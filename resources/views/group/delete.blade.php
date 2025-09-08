@@ -16,8 +16,8 @@
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
     <!-- Custom styles for this template-->
@@ -25,7 +25,7 @@
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <!-- Custom styles for this page -->
     <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-    
+
 </head>
 
 
@@ -33,49 +33,51 @@
 <body id="page-top">
 
 
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
 
-            <!-- Main Content -->
-            <div id="content">
+        <!-- Main Content -->
+        <div id="content">
 
 
 
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
+            <!-- Begin Page Content -->
+            <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم</h1>
+                <!-- Page Heading -->
+                <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم</h1>
 
-                    <!-- DataTales Example -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">حذف مجموعة</h6>
-                        </div>
-                    </div>
-
-                    <div class="card shadow mb-4">
-                        <form class="user" id="regForm" method="post" action="{{ route('group.destroy', $group->GroupID) }}">
-                            @method('DELETE')
-                            @csrf
-                            <div class="card-header py-3">
-                                <div class="col-sm-3 mb-3 mb-sm-0">
-                                                <label>هل أنت متأكد من حذف المجموعة رقم: {{$group->GroupID}}؟</label>
-                                                <input type="submit" class="btn-google btn-user btn-block" style="background-color: brown;" id="submit-button" value="حذف"></input>
-                                                <a href="{{ route('group.index') }}">رجوع</a>
-                                </div>
-                            </div>
-                        </form>
+                <!-- DataTales Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">حذف مجموعة</h6>
                     </div>
                 </div>
-                <!-- /.container-fluid -->
 
+                <div class="card shadow mb-4">
+                    <form class="user" id="regForm" method="post"
+                        action="{{ route('group.destroy', $group->GroupID) }}">
+                        @method('DELETE')
+                        @csrf
+                        <div class="card-header py-3">
+                            <div class="col-sm-3 mb-3 mb-sm-0">
+                                <label>هل أنت متأكد من حذف المجموعة رقم: {{$group->GroupID}}؟</label>
+                                <input type="submit" class="btn-google btn-user btn-block"
+                                    style="background-color: brown;" id="submit-button" value="حذف"></input>
+                                <a href="{{ route('group.index') }}">رجوع</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <!-- End of Main Content -->
+            <!-- /.container-fluid -->
 
-        
         </div>
-        <!-- End of Content Wrapper -->
+        <!-- End of Main Content -->
+
+
+    </div>
+    <!-- End of Content Wrapper -->
 
     </div>
     <!-- End of Page Wrapper -->
@@ -100,7 +102,7 @@
     <script src="js/demo/datatables-demo.js"></script>
 
     <script>
-/*    function myFunction() {
+    /*    function myFunction() {
         const first_name = document.getElementById('rotba_name');
         if(first_name.value=='') {
         first_name.style.backgroundColor = '#C53939';
@@ -121,8 +123,18 @@
         }
     }
     */
-</script>
+    </script>
 
 </body>
 
 </html>
+
+
+@extends('layouts.app' , ['pageTitle' => "حذف مجموعة" ?? ''])
+
+@section('content')
+<x-form-card title="مسح اسم المجموعة" :action="route('group.destroy', $group->GroupID)" method="DELETE"
+    :inputValue="$group->GroupName" inputPlaceholder="ادخل اسم المجموعة" inputLabel="تعديل اسم المجموعة"
+    submitText="مسح" submitColor="red" pageTitle="المجموعات" />
+
+@endsection

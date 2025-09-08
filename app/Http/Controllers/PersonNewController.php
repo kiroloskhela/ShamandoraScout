@@ -21,34 +21,46 @@ class PersonNewController extends Controller
         *
         * @return Response
         */
-        public function index()
-        {
-            /*$persons = DB::table('PersonInformation')
-            ->leftJoin('PersonPhoneNumbers', 'PersonInformation.PersonID', '=', 'PersonPhoneNumbers.PersonID')
-            ->select('PersonInformation.*', 'PersonPhoneNumbers.PersonPersonalMobileNumber')
-            ->get();*/
+    public function index(Request $request)
+{
+    // ✅ Get the user ID from the request
+    $userId = $request->input('id');
 
-           $rawPersons = DB::select("SELECT DISTINCT  pi.PersonID,
-                                                pi.ShamandoraCode,
-                                                pi.FirstName, 
-                                                pi.SecondName, 
-                                                pi.ThirdName, 
-                                                pi.FourthName, 
-                                                q.QetaaName,
-                                                pi.ScoutJoiningYear,
-                                                sm.SanaMarhalaName, 
-                                                pi.RaqamQawmy,
-                                                ppn.PersonPersonalMobileNumber,
-                                                q.QetaaName,
-                                                IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions
-                                            FROM PersonInformation pi
-                                            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-                                            LEFT JOIN PersonSanaMarhala psm ON psm.PersonID = pi.PersonID
-                                            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-                                            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-                                            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-                                            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-                                             ORDER BY pi.PersonID ASC;");
+    // ✅ Run the raw SQL with group filtering
+    $rawPersons = DB::select("
+       SELECT DISTINCT  
+	pi.PersonID,
+	pi.ShamandoraCode,
+	pi.FirstName, 
+	pi.SecondName, 
+	pi.ThirdName, 
+	pi.FourthName, 
+	q.QetaaName,
+	pi.ScoutJoiningYear,
+	sm.SanaMarhalaName, 
+	pi.RaqamQawmy,
+	ppn.PersonPersonalMobileNumber,
+	q.QetaaName,
+    GT.GroupID,
+    PG.PersonID,
+	IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+	psm.sanamarhalaid
+FROM PersonInformation pi
+LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
+LEFT JOIN PersonSanaMarhala psm ON psm.PersonID = pi.PersonID
+LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+LEFT JOIN PersonGroup PG ON PG.personId = pi.PersonID
+left Join GroupTable GT on q.QetaaID = GT.GroupID
+ WHERE  GT.GroupID IN (
+                    SELECT GroupID 
+                    FROM PersonGroup 
+                   WHERE personId = ?
+                )
+	ORDER BY pi.PersonID ASC;
+    ", [$userId]);
 
     // ✅ Convert to collection and add full_name field
     $persons = collect($rawPersons)->map(function ($person) {
@@ -56,9 +68,10 @@ class PersonNewController extends Controller
         return $person;
     });
 
-    // ✅ Now return the view
+    // ✅ Return the view with filtered persons
     return view("person.person-index", ['persons' => $persons]);
-        }
+}
+
         
 
 
