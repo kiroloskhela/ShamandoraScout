@@ -19,7 +19,7 @@
             </li>
         </ul>
 
-        <form method="POST" action="{{ route('season-event.destroy', $seasonEvent->Id) }}" class="flex justify-center space-x-4 space-x-reverse">
+        <form method="POST" action="{{ route('season-event.destroy', $seasonEvent->SeasonEventID) }}" class="flex justify-center space-x-4 space-x-reverse">
             @csrf
             @method('DELETE')
             <button type="submit"
