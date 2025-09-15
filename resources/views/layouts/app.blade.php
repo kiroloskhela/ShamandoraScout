@@ -179,7 +179,10 @@
                                 </svg>
                             </button>
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-
+                            <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href={{ route('media.index') }}>اضافه صور</a>
+                            <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href={{ route('media.pages') }}>عرض صور</a>
                             </div>
                         </div>
                     </div>

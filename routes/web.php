@@ -172,6 +172,21 @@ Route::patch('/event-type/update/{id}', array('as'=> 'event-type.update', 'uses'
 Route::get('/event-type/delete/{id}', array('as'=> 'event-type.delete', 'uses'=>'App\Http\Controllers\EventTypeController@deletes'));
 Route::delete('/event-type/destroy/{id}', array('as'=> 'event-type.destroy', 'uses'=>'App\Http\Controllers\EventTypeController@destroy'));
 
+
+//Routes for Media
+Route::get('/media', array('as' => 'media.index', 'uses' => 'App\Http\Controllers\MediaController@index'));
+Route::get('/media/add', array('as' => 'media.create', 'uses' =>'App\Http\Controllers\MediaController@create'));
+Route::post('/media/insert', array('as' => 'media.insert', 'uses' => 'App\Http\Controllers\MediaController@insert'));
+Route::get('/media/edit/{id}', array('as' => 'media.edit', 'uses' => 'App\Http\Controllers\MediaController@edit'));
+Route::patch('/media/update/{id}', array('as'=> 'media.update', 'uses'=> 'App\Http\Controllers\MediaController@update'));
+Route::get('/media/delete/{id}', array('as'=> 'media.delete', 'uses'=>'App\Http\Controllers\MediaController@delete'));
+Route::delete('/media/destroy/{id}', array('as'=> 'media.destroy', 'uses'=>'App\Http\Controllers\MediaController@destroy'));
+Route::get('/media/events', array('as' => 'media.getEventsForSeason','uses' => 'App\Http\Controllers\MediaController@getEventsForSeason'));
+Route::get('/media/pages', array('as' => 'media.pages', 'uses' => 'App\Http\Controllers\MediaController@pages'));
+Route::get('/media/pages/events', array('as' => 'media.getEventsForPages', 'uses' => 'App\Http\Controllers\MediaController@getEventsForPages'));
+Route::get('/media/pages/media', array('as' => 'media.getMediaForEvent', 'uses' => 'App\Http\Controllers\MediaController@getMediaForEvent'));
+
+
 //Routes for Group Types
 Route::get('/group-type', array('as' => 'group-type.index', 'uses' => 'App\Http\Controllers\GroupTypeController@index'));
 Route::get('/group-type/add', array('as' => 'group-type.create', 'uses' =>'App\Http\Controllers\GroupTypeController@create'));
