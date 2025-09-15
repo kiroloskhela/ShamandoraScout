@@ -231,7 +231,7 @@ Route::delete('/blood/destroy/{id}', array('as'=> 'blood.destroy', 'uses'=>'App\
 
 //Routes for Manateq
 Route::get('/manteqa', array('as'=> 'manteqa.index', 'uses'=> 'App\Http\Controllers\ManteqaController@index'));
-Route::get('/manteqa/add', array('as' => 'manetqa.create', 'uses' =>'App\Http\Controllers\ManteqaController@create'));
+Route::get('/manteqa/add', array('as' => 'manteqa.create', 'uses' =>'App\Http\Controllers\ManteqaController@create'));
 Route::post('/manteqa/insert', array('as' => 'manteqa.insert', 'uses' => 'App\Http\Controllers\ManteqaController@insert'));
 Route::get('/manteqa/edit/{id}', array('as' => 'manteqa.edit', 'uses' => 'App\Http\Controllers\ManteqaController@edit'));
 Route::patch('/manteqa/update/{id}', array('as'=> 'manteqa.update', 'uses'=> 'App\Http\Controllers\ManteqaController@updates'));
@@ -265,12 +265,32 @@ Route::patch('/faculty/update/{id}', array('as'=> 'faculty.update', 'uses'=> 'Ap
 Route::get('/faculty/delete/{id}', array('as'=> 'faculty.delete', 'uses'=>'App\Http\Controllers\FacultyController@deletes'));
 Route::delete('/faculty/destroy/{id}', array('as'=> 'faculty.destroy', 'uses'=>'App\Http\Controllers\FacultyController@destroy'));
 
+
+
+//Route for Seasons
+Route::get('/season', array('as'=> 'season.index', 'uses'=> 'App\Http\Controllers\SeasonController@index'));
+Route::get('/season/add', array('as' => 'season.create', 'uses' =>'App\Http\Controllers\SeasonController@create'));
+Route::post('/season/insert', array('as' => 'season.insert', 'uses' => 'App\Http\Controllers\SeasonController@insert'));
+Route::get('/season/edit/{id}', array('as' => 'season.edit', 'uses' => 'App\Http\Controllers\SeasonController@edit'));
+Route::patch('/season/update/{id}', array('as'=> 'season.update', 'uses'=> 'App\Http\Controllers\SeasonController@updates'));
+Route::get('/season/delete/{id}', array('as'=> 'season.delete', 'uses'=>'App\Http\Controllers\SeasonController@deletes'));
+Route::delete('/season/destroy/{id}', array('as'=> 'season.destroy', 'uses'=>'App\Http\Controllers\SeasonController@destroy'));
+
+//Route for SeasonsEvents
+Route::get('/season-event', array('as'=> 'season-event.index', 'uses'=> 'App\Http\Controllers\SeasonEventController@index'));
+Route::get('/season-event/add', array('as' => 'season-event.create', 'uses' =>'App\Http\Controllers\SeasonEventController@create'));
+Route::post('/season-event/insert', array('as' => 'season-event.insert', 'uses' => 'App\Http\Controllers\SeasonEventController@insert'));
+Route::get('/season-event/edit/{id}', array('as' => 'season-event.edit', 'uses' => 'App\Http\Controllers\SeasonEventController@edit'));
+Route::patch('/season-event/update/{id}', array('as'=> 'season-event.update', 'uses'=> 'App\Http\Controllers\SeasonEventController@update'));
+Route::get('/season-event/delete/{id}', array('as'=> 'season-event.delete', 'uses'=>'App\Http\Controllers\SeasonEventController@deletes'));
+Route::delete('/season-event/destroy/{id}', array('as'=> 'season-event.destroy', 'uses'=>'App\Http\Controllers\SeasonEventController@destroy'));
+
 //Routes for University
 Route::get('/university', array('as'=> 'university.index', 'uses'=> 'App\Http\Controllers\UniversityController@index'));
 Route::get('/university/add', array('as' => 'university.create', 'uses' =>'App\Http\Controllers\UniversityController@create'));
 Route::post('/university/insert', array('as' => 'university.insert', 'uses' => 'App\Http\Controllers\UniversityController@insert'));
 Route::get('/university/edit/{id}', array('as' => 'university.edit', 'uses' => 'App\Http\Controllers\UniversityController@edit'));
-Route::patch('/university/update/{id}', array('as'=> 'university.update', 'uses'=> 'App\Http\Controllers\UniversityController@updates'));
+Route::patch('/season-event/update/{id}', array('as'=> 'season-event.update', 'uses'=> 'App\Http\Controllers\SeasonEventController@update'));
 Route::get('/university/delete/{id}', array('as'=> 'university.delete', 'uses'=>'App\Http\Controllers\UniversityController@deletes'));
 Route::delete('/university/destroy/{id}', array('as'=> 'university.destroy', 'uses'=>'App\Http\Controllers\UniversityController@destroy'));
 

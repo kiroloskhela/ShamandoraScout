@@ -119,6 +119,10 @@
                                     href={{ route('event.index') }}> الأحداث والمناسبات الكشفية</a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href={{ route('group-person.index') }}>ربط الأشخاص بالمجموعات</a>
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href={{ route('season.index') }}>إدارة المواسم</a>
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href={{ route('season-event.index') }}>ربط موسم بفعالية</a>
                                 <!-- <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 href={{ route('betaka.index') }}>ايجازة بطاقة تقدم</a>
                            -->
