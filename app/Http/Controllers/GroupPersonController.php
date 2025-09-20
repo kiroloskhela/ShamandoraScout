@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\stdClass;
 use Session;
 
+
 class GroupPersonController extends Controller
 {
 /**
@@ -156,147 +157,243 @@ class GroupPersonController extends Controller
             return redirect()->route('group-person.index');
         }
     
-        public function edit($id)
-        {
-            $personGroupRoleRow = DB::selectOne("SELECT * FROM PersonGroup WHERE PersonGroupRoleID=?",[$id]);
-            
-            $isKhadem = FALSE;
+public function edit($id)
+{
+    // Here $id = PersonID (not PersonGroupRoleID)
+    $personGroupRoleRow = DB::table('PersonGroup')->where('PersonID', $id)->first();
+    if (!$personGroupRoleRow) {
+        abort(404, 'No PersonGroup found for this person');
+    }
 
-            if(DB::selectOne("SELECT isKhademRole FROM GroupRole WHERE GroupRoleID=?",[$personGroupRoleRow->GroupRoleID])->isKhademRole)
-            {
-                $isKhadem = TRUE;
+    // Check if Khadem role
+    $isKhadem = DB::table('GroupRole')
+        ->where('GroupRoleID', $personGroupRoleRow->GroupRoleID)
+        ->value('isKhademRole') == 1;
+
+    // Person info
+    $person = DB::table('PersonInformation')
+        ->selectRaw("PersonID, CONCAT(ShamandoraCode, ' ', FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) AS FullName")
+        ->where('PersonID', $personGroupRoleRow->PersonID)
+        ->first();
+
+    // Selected group
+    $selectedGroup = DB::table('GroupTable as g')
+        ->leftJoin('GroupType as gt', 'g.GroupTypeID', '=', 'gt.GroupTypeID')
+        ->selectRaw("g.GroupID, CONCAT(gt.GroupTypeName, ' ', g.GroupName) AS GroupInfo")
+        ->where('g.GroupID', $personGroupRoleRow->GroupID)
+        ->first();
+
+    // Selected role
+    $selectedGroupRole = DB::table('GroupRole')
+        ->where('GroupRoleID', $personGroupRoleRow->GroupRoleID)
+        ->first();
+
+    if (!$isKhadem) {
+        // Roles (non-Khadem)
+        $groupRoles = DB::table('GroupRole')->where('isKhademRole', 0)->get();
+
+        // Groups under authenticated Khadem
+        $khademAuthenticatedID = Auth::user()->PersonID;
+        $directGroupsConnectedToKhadem = DB::table('PersonGroup')
+            ->where('PersonID', $khademAuthenticatedID)
+            ->pluck('GroupID');
+
+        $groups = collect();
+
+        if ($directGroupsConnectedToKhadem->isNotEmpty()) {
+            $allGroupsIDsBelowKhadem = [];
+            foreach ($directGroupsConnectedToKhadem as $groupConnected) {
+                $allGroupsIDsBelowKhadem = array_merge(
+                    $allGroupsIDsBelowKhadem,
+                    GroupPersonController::getNodesBelow($groupConnected, [$groupConnected])
+                );
             }
 
-            if(!$isKhadem)
-            {
-                $groupRoles = DB::select("SELECT GroupRole.GroupRoleID, GroupRole.GroupRoleName
-                                            From GroupRole
-                                            WHERE GroupRole.isKhademRole = 0");
-                $person = DB::selectOne("SELECT PersonID, 
-                                        CONCAT(ShamandoraCode, ' ', FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) AS FullName 
-                                        FROM PersonInformation WHERE PersonID=?",[$personGroupRoleRow->PersonID]);
-                $selectedGroup = DB::selectOne("  SELECT  GroupTable.GroupID, 
-                                        CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                        FROM GroupTable
-                                        LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                        WHERE GroupTable.GroupID =?
-                                    ", [$personGroupRoleRow->GroupID]);
-
-                $selectedGroupRole = DB::selectOne("SELECT * FROM GroupRole
-                                                    WHERE GroupRoleID=?", [$personGroupRoleRow->GroupRoleID]);
-                                                    
-                $khademAuthenticatedID = Auth::user()->PersonID;
-                $directGroupsConnectedToKhadem = DB::select("SELECT PersonGroup.GroupID FROM PersonGroup WHERE PersonID = ?", [$khademAuthenticatedID]);
-    
-                $groups = NULL;
-    
-                if($directGroupsConnectedToKhadem != NULL)
-                {
-                    $allGroupsIDsBelowKhadem = [];
-                    foreach($directGroupsConnectedToKhadem as $groupConnected)
-                    {
-                        $allGroupsIDsBelowKhadem = array_merge($allGroupsIDsBelowKhadem, GroupPersonController::getNodesBelow($groupConnected->GroupID, [$groupConnected->GroupID]));
-                    }
-    
-                    $groups = [];
-                    foreach($allGroupsIDsBelowKhadem as $g)
-                    {
-                        $object = new \stdClass;
-                        $object->GroupID = $g;
-                        $object->GroupInfo = GroupPersonController::getParentsPathString($g);
-                        array_push($groups, $object);
-                    }             
-                }
+            foreach ($allGroupsIDsBelowKhadem as $g) {
+                $groups->push((object)[
+                    'GroupID'   => $g,
+                    'GroupInfo' => GroupPersonController::getParentsPathString($g),
+                ]);
             }
-            else
-            {
-
-                $groupRoles = DB::select("SELECT * FROM GroupRole WHERE isKhademRole = 1");
-                $person = DB::selectOne("SELECT PersonID, 
-                                        CONCAT(ShamandoraCode, ' ', FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) AS FullName 
-                                        FROM PersonInformation WHERE PersonID=?",[$personGroupRoleRow->PersonID]);
-                $selectedGroup = DB::selectOne("  SELECT  GroupTable.GroupID, 
-                                        CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                        FROM GroupTable
-                                        LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                        WHERE GroupTable.GroupID =?
-                                    ", [$personGroupRoleRow->GroupID]);
-                $selectedGroupRole = DB::selectOne("SELECT * FROM GroupRole
-                                                    WHERE GroupRoleID=?", [$personGroupRoleRow->GroupRoleID]);
-                $groups = DB::select("  SELECT  GroupTable.GroupID, 
-                    CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                    FROM GroupTable
-                    LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                ");
-                
-            }
-
-            //return $selectedGroup;
-
-            return view("group-person.edit", 
-                    array(
-                    'groupRoles'=>$groupRoles, 
-                    'person'=>$person, 
-                    'selectedGroup'=>$selectedGroup, 
-                    'groups'=>$groups, 
-                    'personGroupRoleRow'=>$personGroupRoleRow,
-                    'isKhadem'=>$isKhadem,
-                    'selectedGroupRole'=>$selectedGroupRole
-                ));
         }
-    
-        public function updates(Request $request, $id)
-        {
-            //return $request;
-            $validator = Validator::make($request->all(), [
-                'group_id' => 'required',
-                'group_role_id' => 'required'
-            ]);
-     
-            if ($validator->fails()) {
-                return view('person.entry-error-repeat-trial');
-            }
-                
-            DB::table('PersonGroup')->where('PersonGroupRoleID', $id)
-            ->update([
-                    'GroupID' => $request -> group_id,
-                    'GroupRoleID' => $request -> group_role_id
-            ]);
+    } else {
+        // Roles (Khadem)
+        $groupRoles = DB::table('GroupRole')->where('isKhademRole', 1)->get();
 
-            return redirect()->route('group-person.index');
-        }
-    
-        public function deletes($id)
-        {
-            $personGroupRoleRow = DB::table('PersonGroup')->where('PersonGroupRoleID', $id)->first();
-            $person = DB::selectOne("SELECT PersonID, ShamandoraCode,
-                                        CONCAT(FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) AS FullName 
-                                        FROM PersonInformation WHERE PersonID=?",[$personGroupRoleRow->PersonID]);
-            $selectedGroup = DB::selectOne("  SELECT  GroupTable.GroupID, 
-                                        CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                        FROM GroupTable
-                                        LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                        WHERE GroupTable.GroupID =?
-                                    ", [$personGroupRoleRow->GroupID]);
+        // All groups
+        $groups = DB::table('GroupTable as g')
+            ->leftJoin('GroupType as gt', 'g.GroupTypeID', '=', 'gt.GroupTypeID')
+            ->selectRaw("g.GroupID, CONCAT(gt.GroupTypeName, ' ', g.GroupName) AS GroupInfo")
+            ->get();
+    }
 
-            return view("group-person.delete", array('personGroupRoleRow' => $personGroupRoleRow, 'person'=> $person, 'selectedGroup' => $selectedGroup));
-        }
+    return view("group-person.edit", [
+        'groupRoles'         => $groupRoles,
+        'person'             => $person,
+        'selectedGroup'      => $selectedGroup,
+        'groups'             => $groups,
+        'personGroupRoleRow' => $personGroupRoleRow,
+        'isKhadem'           => $isKhadem,
+        'selectedGroupRole'  => $selectedGroupRole,
+    ]);
+}
 
-        public function destroy($id)
-        {
-            try{
-                DB::beginTransaction();
-                DB::table('PersonGroup')->where('PersonGroupRoleID',$id)->delete();
-            }
-            catch(Exception $e)
-            {
-                dd($e->getMessage());
+
+public function updates(Request $request, $id)
+{
+    $validator = Validator::make($request->all(), [
+        'group_id' => 'required',
+        'group_role_id' => 'required'
+    ]);
+
+    if ($validator->fails()) {
+        return view('person.entry-error-repeat-trial');
+    }
+
+    DB::table('PersonGroup')
+        ->where('PersonGroupRoleID', $id)
+        ->update([
+            'GroupID'    => $request->group_id,
+            'GroupRoleID'=> $request->group_role_id,
+        ]);
+
+    return redirect()->route('group-person.index');
+}
+
+
+
+
+
+public function deletes(Request $request, $personId) // personId passed, not PersonGroupID
+{
+    // Load person (for header info)
+    $person = DB::table('PersonInformation')
+        ->select(
+            'PersonID',
+            'ShamandoraCode',
+            DB::raw("CONCAT(FirstName,' ',SecondName,' ',ThirdName,' ',FourthName) AS FullName")
+        )
+        ->where('PersonID', $personId)
+        ->first();
+
+    abort_if(!$person, 404, 'Person not found.');
+
+    // Load all links for this person
+    $links = DB::table('PersonGroup as pg')
+        ->leftJoin('GroupTable as g', 'g.GroupID', '=', 'pg.GroupID')
+        ->leftJoin('GroupType as gt', 'gt.GroupTypeID', '=', 'g.GroupTypeID')
+        ->leftJoin('GroupRole as gr', 'gr.GroupRoleID', '=', 'pg.GroupRoleID') // adjust table name if different
+        ->where('pg.PersonID', $personId)
+        ->select(
+            'pg.PersonGroupRoleID',
+            'pg.PersonID',
+            'pg.GroupID',
+            DB::raw("COALESCE(gr.GroupRoleName, '—') as GroupRoleName"),
+            DB::raw("CONCAT(COALESCE(gt.GroupTypeName,''),' ',COALESCE(g.GroupName,'')) as GroupInfo")
+        )
+        ->get();
+
+    // If no links, 404
+    abort_if($links->isEmpty(), 404, 'No group links found for this person.');
+
+    // If caller already specified group_id, short-circuit to confirm that exact one
+    $selectedGroupId = $request->query('group_id');
+    if ($selectedGroupId) {
+        $row = $links->firstWhere('GroupID', (int)$selectedGroupId);
+        abort_if(!$row, 404, 'Selected group link not found for this person.');
+
+        return view('group-person.delete', [
+            'person'        => $person,
+            'links'         => collect([$row]), // single-row confirm
+            'multiple'      => false,
+        ]);
+    }
+
+    // If one link only → simple confirm
+    if ($links->count() === 1) {
+        return view('group-person.delete', [
+            'person'        => $person,
+            'links'         => $links, // one row
+            'multiple'      => false,
+        ]);
+    }
+
+    // Multiple links → show chooser (each delete submits with group_id)
+    return view('group-person.delete', [
+        'person'    => $person,
+        'links'     => $links,
+        'multiple'  => true,
+    ]);
+}
+
+public function destroy(Request $request, $personId) // personId passed, not PersonGroupID
+{
+    $groupId = $request->input('group_id'); // optional disambiguator
+
+    try {
+        DB::beginTransaction();
+
+        if ($groupId) {
+            // Delete the specific link for this person+group
+            $deleted = DB::table('PersonGroup')
+                ->where('PersonID', $personId)
+                ->where('GroupID', $groupId)
+                ->delete();
+
+            if (!$deleted) {
                 DB::rollBack();
-                return view('person.entry-error');
+                return redirect()->route('group-person.index')
+                    ->with('error', 'No record deleted. Person/group link not found.');
             }
+
             DB::commit();
-            return redirect()->route('group-person.index');
+            return redirect()->route('group-person.index')
+                ->with('status', 'Record deleted successfully.');
         }
+
+        // No group_id provided → check how many links exist
+        $links = DB::table('PersonGroup')
+            ->where('PersonID', $personId)
+            ->select('PersonGroupID', 'GroupID')
+            ->get();
+
+        if ($links->isEmpty()) {
+            DB::rollBack();
+            return redirect()->route('group-person.index')
+                ->with('error', 'No links found for this person.');
+        }
+
+        if ($links->count() > 1) {
+            DB::rollBack();
+            // Ask the user to choose; redirect back to the confirm page that lists options
+            return redirect()
+                ->route('group-person.deletes', ['id' => $personId])
+                ->with('error', 'Multiple links found. Please select which group to delete.');
+        }
+
+        // Exactly one link → delete it
+        $deleted = DB::table('PersonGroup')
+            ->where('PersonGroupID', $links->first()->PersonGroupID)
+            ->delete();
+
+        if (!$deleted) {
+            DB::rollBack();
+            return redirect()->route('group-person.index')
+                ->with('error', 'No record deleted. Link vanished?');
+        }
+
+        DB::commit();
+        return redirect()->route('group-person.index')
+            ->with('status', 'Record deleted successfully.');
+    } catch (\Throwable $e) {
+        DB::rollBack();
+        return redirect()->route('group-person.index')
+            ->with('error', 'Unexpected error while deleting.');
+    }
+}
+
+
+
 
         private function getNodesBelow($groupID, $orgIDs)
         {
