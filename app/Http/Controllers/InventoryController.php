@@ -1,0 +1,153 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Http\Requests;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use \Illuminate\Http\Response;
+use Session;
+
+class InventoryController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return Response
+     */
+    public function index()
+    {
+        $inventory = DB::table('Inventory')->get();
+        return view("inventory.index", array('inventory' => $inventory));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return Response
+     */
+    public function create()
+    {
+        // fetch enum values from DB dynamically
+        $units = $this->getEnumValues('Inventory', 'ItemMeasuringUnit');
+        return view("inventory.create", compact('units'));
+    }
+
+    /**
+     * Insert a newly created resource into DB.
+     *
+     * @param  Request $request
+     * @return Response
+     */
+    public function insert(Request $request)
+    {
+        $lastItem = DB::table('Inventory')->orderBy('InventoryID','desc')->first();
+        if ($lastItem == null)
+            $thisInventoryID = 1;
+        else
+            $thisInventoryID = $lastItem->InventoryID + 1;
+
+        DB::table('Inventory')->insert(array(
+            'InventoryID'       => $thisInventoryID,
+            'ItemName'          => $request->item_name,
+            'ItemQuantity'      => $request->item_quantity,
+            'ItemMeasuringUnit' => $request->item_measuring_unit
+        ));
+
+        return redirect()->route('inventory.index');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int $id
+     * @return Response
+     */
+ public function edit($id)
+{
+    // fetch the record
+    $inventory = DB::table('Inventory')->where('InventoryID', $id)->first();
+
+    // if not found, abort or redirect
+    if (!$inventory) {
+        return redirect()->route('inventory.index')->with('error', 'Item not found.');
+    }
+
+    // fetch enum values for ItemMeasuringUnit safely
+    $units = [];
+    $col = DB::select("SHOW COLUMNS FROM Inventory WHERE Field = 'ItemMeasuringUnit'");
+    if (!empty($col)) {
+        $type = $col[0]->Type; // e.g. enum('لتر','كيلو',...)
+        if (preg_match("/^enum\((.*)\)$/", $type, $matches)) {
+            $raw = $matches[1];
+            // split and trim quotes
+            $parts = explode(",", $raw);
+            $units = array_map(function($v){ return trim($v, "'"); }, $parts);
+        }
+    }
+
+    // pass EXACTLY the variable names your blade expects
+    return view('inventory.edit', compact('inventory', 'units'));
+}
+
+
+    /**
+     * Update the specified resource in DB.
+     *
+     * @param  Request $request
+     * @param  int $id
+     * @return Response
+     */
+    public function updates(Request $request, $id)
+    {
+        $affected = DB::table('Inventory')->where('InventoryID', $id)->update([
+            'ItemName'          => $request->item_name,
+            'ItemQuantity'      => $request->item_quantity,
+            'ItemMeasuringUnit' => $request->item_measuring_unit
+        ]);
+
+        return redirect()->route('inventory.index');
+    }
+
+    /**
+     * Show confirmation page before deleting.
+     *
+     * @param  int $id
+     * @return Response
+     */
+    public function deletes($id)
+    {
+        $item = DB::table('Inventory')->where('InventoryID', $id)->first();
+        return view("inventory.delete", array('item' => $item, 'title'=> "حذف عنصر من المخزون"));
+    }
+
+    /**
+     * Remove the specified resource from DB.
+     *
+     * @param  int $id
+     * @return Response
+     */
+    public function destroy($id)
+    {
+        $deleted = DB::table('Inventory')->where('InventoryID', $id)->delete();
+        return redirect()->route('inventory.index');
+    }
+
+    /**
+     * Helper: get enum values for dropdowns
+     */
+    private function getEnumValues($table, $column)
+    {
+        $type = DB::select("SHOW COLUMNS FROM {$table} WHERE Field = '{$column}'")[0]->Type;
+        preg_match('/^enum\((.*)\)$/', $type, $matches);
+        $enum = [];
+        foreach (explode(',', $matches[1]) as $value) {
+            $v = trim($value, "'");
+            $enum[] = $v;
+        }
+        return $enum;
+    }
+}

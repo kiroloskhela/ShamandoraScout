@@ -96,8 +96,8 @@
 
                     </div>
                 </div>
-                <h1 class="text-4xl lg:text-5xl font-bold mb-4 text-center text-gray-800">
-                    شماندورة الكشافة
+                <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center text-gray-800">
+                 مجموعة الشمندورة الكشافة
                 </h1>
                 <p class="text-lg lg:text-xl text-center text-gray-600 max-w-md">
                     منارة للقيادة والتوجيه في رحلة الكشافة

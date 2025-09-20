@@ -216,6 +216,22 @@ Route::get('/rotab/delete/{id}', array('as'=> 'rotab.delete', 'uses'=>'App\Http\
 Route::delete('/rotab/destroy/{id}', array('as'=> 'rotab.destroy', 'uses'=>'App\Http\Controllers\RotbaKashfeyaController@destroy'));
 
 
+
+//Routes for Inventory
+Route::get('/inventory', array('as' => 'inventory.index', 'uses' => 'App\Http\Controllers\InventoryController@index'));
+Route::get('/inventory/add', array('as' => 'inventory.create', 'uses' =>'App\Http\Controllers\InventoryController@create'));
+Route::post('/inventory/insert', array('as' => 'inventory.insert', 'uses' => 'App\Http\Controllers\InventoryController@insert'));
+Route::get('/inventory/edit/{id}', array('as' => 'inventory.edit', 'uses' => 'App\Http\Controllers\InventoryController@edit'));
+Route::patch('/inventory/update/{id}', array('as'=> 'inventory.update', 'uses'=> 'App\Http\Controllers\InventoryController@updates'));
+Route::get('/inventory/delete/{id}', array('as'=> 'inventory.delete', 'uses'=>'App\Http\Controllers\InventoryController@deletes'));
+Route::delete('/inventory/destroy/{id}', array('as'=> 'inventory.destroy', 'uses'=>'App\Http\Controllers\InventoryController@destroy'));
+
+
+//Routes for Inventory-issue
+Route::get('/inventory-issue', array('as' => 'inventory-issue.index', 'uses' => 'App\Http\Controllers\InventoryIssueController@index'));
+Route::get('/inventory-issue/getEventsForSeason', array('as' => 'inventory-issue.getEventsForSeason', 'uses' =>'App\Http\Controllers\InventoryIssueController@getEventsForSeason'));
+Route::Post('/inventory-issue/generate', array('as' => 'inventory-issue.generate','uses' => 'App\Http\Controllers\InventoryIssueController@generate'));
+
 //Routes for LiveForm Max Limits
 Route::get('/max-limits', array('as' => 'max-limits.index', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@index'));
 Route::get('/max-limits/add', array('as' => 'max-limits.create', 'uses' =>'App\Http\Controllers\LiveFormMaxLimitsController@create'));
