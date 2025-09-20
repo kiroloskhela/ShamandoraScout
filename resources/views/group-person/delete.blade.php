@@ -1,128 +1,101 @@
-<!DOCTYPE html>
-<html lang="ar">
+@extends('layouts.app' , ['pageTitle' => "حذف ربط شخص بالمجموعة"])
 
-<head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>كشافة الشمندورة - لوحة التحكم</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="../../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-    </style>
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <!-- Custom styles for this template-->
-    <link href="../../css/sb-admin-2.css" rel="stylesheet">
-    <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
-    <!-- Custom styles for this page -->
-    <link href="../../../vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-    
-</head>
-
-
-
-<body id="page-top">
-
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم</h1>
-
-                    <!-- DataTales Example -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">حذف ربط شخص من مجموعة</h6>
-                        </div>
-                    </div>
-
-                    <div class="card shadow mb-4">
-                        <form class="user" id="regForm" method="post" action="{{ route('group-person.destroy', $personGroupRoleRow->PersonGroupRoleID) }}">
-                            @method('DELETE')
-                            @csrf
-                            <div class="card-header py-3">
-                                <div class="col-sm-3 mb-3 mb-sm-0">
-                                                <label>هل أنت متأكد من حذف الربط بين {{$person->FullName}} والمجموعة {{$selectedGroup->GroupInfo}}</label>
-                                                <input type="submit" class="btn-google btn-user btn-block" style="background-color: brown;" id="submit-button" value="حذف"></input>
-                                                <a href="{{ route('group-person.index') }}">رجوع</a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-        
-        </div>
-        <!-- End of Content Wrapper -->
-
+@section('content')
+<div class="flex place-content-center">
+  <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-red-300" dir="rtl">
+    <div class="mb-6 text-center">
+      <h2 class="text-xl font-bold text-gray-800">تأكيد حذف ربط الشخص بالمجموعة</h2>
+      <p class="text-sm text-gray-500 mt-2">هذه العملية لا يمكن التراجع عنها.</p>
     </div>
-    <!-- End of Page Wrapper -->
 
-    <!-- Scroll to Top Button-->
+    <!-- Person info -->
+    <div class="rounded-lg border border-slate-200 mb-6">
+      <div class="px-4 py-3 bg-slate-50 rounded-t-lg text-sm font-semibold text-slate-700">بيانات الشخص</div>
+      <div class="p-4 text-slate-700 text-sm">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-medium">الاسم الكامل:</span>
+          <span>{{ $person->FullName }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="font-medium">الكود:</span>
+          <span>{{ $person->ShamandoraCode }}</span>
+        </div>
+      </div>
+    </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="../../../vendor/jquery/jquery.min.js"></script>
-    <script src="../../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    @if (session('error'))
+      <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
+        {{ session('error') }}
+      </div>
+    @endif
 
-    <!-- Core plugin JavaScript-->
-    <script src="../../../vendor/jquery-easing/jquery.easing.min.js"></script>
+    @if ($multiple)
+      <!-- Multiple links: show a list to choose which to delete -->
+      <div class="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-800 text-sm">
+        يوجد أكثر من ربط لهذا الشخص. اختر المجموعة المطلوب حذف الربط معها.
+      </div>
 
-    <!-- Custom scripts for all pages-->
-    <script src="../../js/sb-admin-2.min.js"></script>
+      <div class="space-y-3">
+        @foreach ($links as $link)
+          <form method="POST" action="{{ route('group-person.destroy', $person->PersonID) }}" class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-4">
+            @csrf
+            @method('DELETE')
 
-    <!-- Page level plugins -->
-    <script src="../../../vendor/datatables/jquery.dataTables.min.js"></script>
-    <script src="../../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
+            <div class="text-sm">
+              <div class="font-semibold text-slate-800">{{ $link->GroupInfo ?: '—' }}</div>
+              <div class="text-slate-600">الدور: {{ $link->GroupRoleName }}</div>
+            </div>
 
-    <!-- Page level custom scripts -->
-    <script src="../../js/demo/datatables-demo.js"></script>
+            <input type="hidden" name="group_id" value="{{ $link->GroupID }}">
 
-    <script>
-/*    function myFunction() {
-        const first_name = document.getElementById('rotba_name');
-        if(first_name.value=='') {
-        first_name.style.backgroundColor = '#C53939';
-        first_name.style.color = '#FFFFFF';
-        document.getElementById('submit-button').disabled = true;
-        }
-        else {
-            first_name.style.backgroundColor = 'White';
-            first_name.style.color = '#1D43EC';
-        }
-    }
 
-    function clickSubmitButton(){
-        const rotba_name = document.getElementById('rotba_name');
-        if(rotba_name.value==''){
-            alert("الرجاء ادخال البيانات بشكل صحيح");
-                return false;
-        }
-    }
-    */
-</script>
+            <button type="submit"
+              class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition">
+              حذف هذا الربط
+            </button>
+          </form>
+        @endforeach
+      </div>
+    @else
+      <!-- Single link confirm -->
+      @php $link = $links->first(); @endphp
 
-</body>
+      <div class="rounded-lg border border-slate-200 mb-6">
+        <div class="px-4 py-3 bg-slate-50 rounded-t-lg text-sm font-semibold text-slate-700">تفاصيل الربط</div>
+        <div class="p-4 text-slate-700 text-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-medium">المجموعة:</span>
+            <span>{{ $link->GroupInfo ?: '—' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="font-medium">الدور:</span>
+            <span>{{ $link->GroupRoleName }}</span>
+          </div>
+        </div>
+      </div>
 
-</html>
+      <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
+        <div class="font-bold mb-1">تحذير:</div>
+        <p>سيتم حذف هذا الربط نهائيًا. تأكد قبل المتابعة.</p>
+      </div>
+
+      <form method="POST" action="{{ route('group-person.destroy', $person->PersonID) }}">
+        @csrf
+        @method('DELETE')
+        <input type="hidden" name="group_id" value="{{ $link->GroupID }}">
+
+        <div class="flex items-center justify-center gap-3">
+          <a href="{{ route('group-person.index') }}"
+            class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            إلغاء
+          </a>
+          <button type="submit"
+            class="inline-flex items-center justify-center h-11 px-8 text-sm font-medium rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition">
+            حذف نهائي
+          </button>
+        </div>
+      </form>
+    @endif
+  </div>
+</div>
+@endsection
