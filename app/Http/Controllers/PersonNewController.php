@@ -85,7 +85,7 @@ ORDER BY pi.ShamandoraCode ASC;
     /**
      * API: Return all joined person data as JSON
      */
-    public function ShowProfile($id)
+    public function apiShowProfile($id)
     {
         $person = DB::table('PersonInformation')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
