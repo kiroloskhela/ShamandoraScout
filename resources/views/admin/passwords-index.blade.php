@@ -1,0 +1,40 @@
+@extends('layouts.app', ['pageTitle' => 'إدارة كلمات المرور'])
+
+@section('content')
+<div class="container mx-auto px-4 py-8">
+    <h2 class="mb-6 text-xl font-bold">إدارة كلمات المرور</h2>
+    <table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <thead>
+            <tr>
+                <th class="px-4 py-2 border-b">رقم المستخدم</th>
+                <th class="px-4 py-2 border-b">الاسم الكامل</th>
+                <th class="px-4 py-2 border-b">كود الشمندورة</th>
+                <th class="px-4 py-2 border-b">كلمة السر</th>
+                <th class="px-4 py-2 border-b">إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($users as $user)
+            <tr>
+                <td class="px-4 py-2 border-b">{{ $user->PersonID }}</td>
+                <td class="px-4 py-2 border-b font-bold text-blue-600">
+                    {{ trim($user->FirstName . ' ' . $user->SecondName . ' ' . $user->ThirdName . ' ' . $user->FourthName) }}
+                </td>
+                <td class="px-4 py-2 border-b">{{ $user->ShamandoraCode }}</td>
+                <td class="px-4 py-2 border-b">
+                    <span class="password-blur" style="filter: blur(6px); cursor:pointer;" 
+                        onmouseover="this.style.filter='none'" 
+                        onmouseout="this.style.filter='blur(6px)'" 
+                        onclick="navigator.clipboard.writeText('{{ $user->Password ?? '' }}'); this.innerText='Copied!'; setTimeout(()=>{this.innerText='{{ $user->Password ?? '' }}';},1000)">
+                        {{ $user->Password ?? '' }}
+                    </span>
+                </td>
+                <td class="px-4 py-2 border-b">
+                    <a href="{{ route('admin.passwords.edit', $user->PersonID) }}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ml-2">تعديل كلمة السر</a>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+@endsection
