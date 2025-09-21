@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use \Illuminate\Http\Response;
 use Session;
+use Throwable;
 
 class MigrateNewEnrolments extends Controller
 {

@@ -11,6 +11,7 @@ use \Illuminate\Http\Response;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\stdClass;
+use Exception;
 use Session;
 
 
