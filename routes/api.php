@@ -21,4 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 
-    Route::get('/get-persons-qetaa-baraem', array('as'=>'person-qetaa', 'uses'=>'App\Http\Controllers\API\PersonController@getPersonDataByQetaaID'));  
+
+Route::post('/login', [\App\Http\Controllers\LoginController::class, 'apiLogin']);

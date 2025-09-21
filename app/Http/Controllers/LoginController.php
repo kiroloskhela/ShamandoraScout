@@ -5,79 +5,85 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use \Illuminate\Http\Response;
-use App\Models\User;
-use App\Models\Person;
-use Session;
+use Illuminate\Auth\GenericUser;
+use Illuminate\Contracts\Auth\Authenticatable; // <-- use the interface
 
 class LoginController extends Controller
 {
     /**
-     * Display login page.
-     * 
-     * @return Renderable
+     * API Login: Accepts person_id and person_password, returns JSON success/failure
      */
+    public function apiLogin(Request $request)
+    {
+        $personId = (string) $request->input('person_id');
+        $plain    = (string) $request->input('person_password');
+
+        $user = DB::table('PersonInformation')
+            ->where('PersonID', $personId)
+            ->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'No User Found!'], 404);
+        }
+
+        $pwdRow = DB::table('PersonSystemPassword')
+            ->where('PersonID', $personId)
+            ->first();
+        if (!$pwdRow || (string) $pwdRow->Password !== $plain) {
+            return response()->json(['success' => false, 'message' => 'Wrong Password'], 401);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Login Success']);
+    }
     public function show()
     {
         return view('login');
     }
 
-    /**
-     * Handle account login request
-     * 
-     * @param LoginRequest $request
-     * 
-     * @return \Illuminate\Http\Response
-     */
     public function login(LoginRequest $request)
     {
-        
-        $user = User::find($request->person_id);
+        $personId = (string) $request->input('person_id');
+        $plain    = (string) $request->input('person_password');
 
-        if(!$user)
-            return "No User Found!";
-        if(!$user->Password == $request->person_password)
-            return "Wrong Password";
-            //return redirect()->to('login')->withErrors(trans('auth.failed'));
+        // 1) Fetch user row
+        $user = DB::table('PersonInformation')
+            ->where('PersonID', $personId)
+            ->first();
 
+        if (!$user) {
+            return response('No User Found!', 404);
+        }
 
-        
-        //return ($user);
-        /*$user = DB::select("SELECT              pi.PersonID,
-                                                r.RoleName,
-                                                psp.Password as Password
-                                            FROM PersonInformation pi
-                                            LEFT JOIN PersonSystemPassword psp ON pi.PersonID = psp.PersonID
-                                            LEFT JOIN PersonRole pr ON pi.PersonID = pr.PersonID
-                                            LEFT JOIN Roles r ON r.RoleID = pr.RoleID
-                                            WHERE pi.PersonID = ?", [$request->person_id])[0];*/
-        
+        // 2) Fetch password row
+        $pwdRow = DB::table('PersonSystemPassword')
+            ->where('PersonID', $personId)
+            ->first();
 
+        if (!$pwdRow) {
+            return response('Wrong Password', 422);
+        }
 
-        Auth::login($user);
+        // 3) Plain-text compare (your current DB state)
+        if ((string) $pwdRow->Password !== $plain) {
+            return response('Wrong Password', 422);
+        }
 
-        //$person = Person::find($request->person_id);
+        // 4) Build a GenericUser with an `id` key (required by Auth)
+        $userData = (array) $user;
+        $userData['id'] = $user->PersonID;
 
-        //return $user->roles[0]->RoleName;
-        //return $person->FirstName;
-        //return redirect('/')->with('user', $user)->with('person', $person);
-        return $this->authenticated($request, $user);
+        // 5) Log in and regenerate session
+        $genericUser = new GenericUser($userData);
+        Auth::login($genericUser);
+        $request->session()->regenerate();
+
+        return method_exists($this, 'authenticated')
+            ? $this->authenticated($request, $genericUser)
+            : redirect()->intended('/');
     }
 
-    /**
-     * Handle response after user authenticated
-     * 
-     * @param Request $request
-     * @param Auth $user
-     * 
-     * @return \Illuminate\Http\Response
-     */
-    protected function authenticated(Request $request, $user) 
+    // IMPORTANT: type-hint the interface, not App\Models\User
+    protected function authenticated(Request $request, Authenticatable $user)
     {
         return redirect()->intended();
     }
