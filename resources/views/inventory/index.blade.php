@@ -1,10 +1,10 @@
-@extends('layouts.app' , ['pageTitle' => "المخزون" ?? ''])
+@extends('layouts.app' , ['pageTitle' => "العهده" ?? ''])
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <x-data-table 
         :data="$inventory->toArray()" 
-        title="إدارة المخزون" 
+        title="إدارة العهده" 
         :add-button="[
             'label' => 'إضافة عنصر جديد',
             'route' => route('inventory.create'),
