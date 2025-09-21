@@ -119,6 +119,29 @@
             </li>
 
             <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Custom: SuperAdmin Password Management -->
+            @if(auth()->check() && auth()->user()->role[0]->RoleName == 'SuperAdmin')
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('admin.passwords') }}">
+                    <i class="fas fa-key"></i>
+                    <span>Manage Passwords</span>
+                </a>
+            </li>
+            @endif
+
+            <!-- Custom: User Profile -->
+            @if(auth()->check())
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('profile.show') }}">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            @endif
+
+            <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
             <!-- Sidebar Toggler (Sidebar) -->

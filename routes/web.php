@@ -370,3 +370,17 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('/logout', 'App\Http\Controllers\LogoutController@perform')->name('logout');
     Route::get('/change-password', function () {return view('change-password');});
 });
+
+// SuperAdmin-only password management
+Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function() {
+    Route::get('/admin/passwords', 'App\Http\Controllers\AdminPasswordController@index')->name('admin.passwords'); // List users
+    Route::get('/admin/passwords/{id}/edit', 'App\Http\Controllers\AdminPasswordController@edit')->name('admin.passwords.edit'); // Edit form
+    Route::post('/admin/passwords/{id}/update', 'App\Http\Controllers\AdminPasswordController@update')->name('admin.passwords.update'); // Update password
+});
+
+// Profile routes for every person
+Route::middleware(['auth'])->group(function() {
+    Route::get('/profile', 'App\\Http\\Controllers\\PersonProfileController@show')->name('profile.show');
+    Route::get('/profile/edit', 'App\\Http\\Controllers\\PersonProfileController@edit')->name('profile.edit');
+    Route::post('/profile/update', 'App\\Http\\Controllers\\PersonProfileController@update')->name('profile.update');
+});
