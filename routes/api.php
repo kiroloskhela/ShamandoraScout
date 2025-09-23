@@ -21,8 +21,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 
-
-Route::post('/login', [\App\Http\Controllers\API\LoginApiController::class, 'apiLogin']);
+# Add rate limiting to login endpoint to prevent brute-force attacks.
+Route::post('/login', [\App\Http\Controllers\API\LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/show-persons', [\App\Http\Controllers\API\PersonApiController::class, 'ShowPersons']);
