@@ -247,16 +247,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function createMediaCard(link, type, index) {
         const card = document.createElement('div');
-        card.className = `media-card bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow ${type}`;
+        card.classList.add('media-card', 'bg-white', 'rounded-lg', 'shadow-md', 'overflow-hidden', 'hover:shadow-lg', 'transition-shadow', type);
 
         if(type==='folder') {
-            const folderId = link.split('/folders/')[1].split(/[?#]/)[0];
-            card.innerHTML = `
-                <div class="aspect-square flex items-center justify-center">
-                    <iframe src="https://drive.google.com/embeddedfolderview?id=${folderId}#grid" width="100%" height="100%" frameborder="0"></iframe>
-                </div>
-                <div class="p-3 text-center font-semibold text-gray-700">مجلد الوسائط ${index}</div>
-            `;
+            // Validate folderId extraction
+            let folderId = '';
+            try {
+                folderId = link.split('/folders/')[1].split(/[?#]/)[0];
+            } catch(e) {}
+            const aspectDiv = document.createElement('div');
+            aspectDiv.classList.add('aspect-square', 'flex', 'items-center', 'justify-center');
+            if(folderId) {
+                const iframe = document.createElement('iframe');
+                iframe.src = `https://drive.google.com/embeddedfolderview?id=${folderId}#grid`;
+                iframe.width = '100%';
+                iframe.height = '100%';
+                iframe.setAttribute('frameborder', '0');
+                aspectDiv.appendChild(iframe);
+            }
+            card.appendChild(aspectDiv);
+            const labelDiv = document.createElement('div');
+            labelDiv.classList.add('p-3', 'text-center', 'font-semibold', 'text-gray-700');
+            labelDiv.textContent = `مجلد الوسائط ${index}`;
+            card.appendChild(labelDiv);
         } else {
             const fileId = extractFileId(link);
             const thumbnail = fileId ? `https://drive.google.com/uc?export=view&id=${fileId}` : '';
@@ -264,21 +277,61 @@ document.addEventListener('DOMContentLoaded', function() {
             const color = type==='video'?'bg-purple-500':'bg-green-500';
             const typeText = type==='video'?'فيديو':'صورة';
 
-            card.innerHTML = `
-                <div class="aspect-square bg-gray-100 flex items-center justify-center relative cursor-pointer"
-                     onclick="openMedia('${link}','${type}','${typeText} ${index}')">
-                    ${thumbnail ? `<img src="${thumbnail}" alt="${typeText} ${index}" class="w-full h-full object-cover"
-                                    onerror="this.parentElement.innerHTML='<div class=&quot;text-gray-400 text-4xl&quot;>${icon}</div>'">` :
-                                    `<div class="text-gray-400 text-4xl">${icon}</div>`}
-                    <div class="absolute top-2 right-2 ${color} text-white text-xs px-2 py-1 rounded">${typeText} ${index}</div>
-                </div>
-                <div class="p-3">
-                    <a href="${link}" target="_blank" 
-                       class="inline-flex items-center justify-center w-full px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-                       فتح في Drive
-                    </a>
-                </div>
-            `;
+            // Aspect square div
+            const aspectDiv = document.createElement('div');
+            aspectDiv.classList.add('aspect-square', 'bg-gray-100', 'flex', 'items-center', 'justify-center', 'relative', 'cursor-pointer');
+
+            // Click behavior
+            aspectDiv.addEventListener('click', function() {
+                window.openMedia(link, type, `${typeText} ${index}`);
+            });
+
+            if(thumbnail) {
+                const img = document.createElement('img');
+                img.src = thumbnail;
+                img.alt = `${typeText} ${index}`;
+                img.classList.add('w-full', 'h-full', 'object-cover');
+                img.onerror = function() {
+                    // Remove image and show fallback icon
+                    if(img.parentElement) {
+                        img.parentElement.innerHTML = '';
+                        const fallbackDiv = document.createElement('div');
+                        fallbackDiv.classList.add('text-gray-400', 'text-4xl');
+                        fallbackDiv.textContent = icon;
+                        img.parentElement.appendChild(fallbackDiv);
+                    }
+                };
+                aspectDiv.appendChild(img);
+            } else {
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.classList.add('text-gray-400', 'text-4xl');
+                fallbackDiv.textContent = icon;
+                aspectDiv.appendChild(fallbackDiv);
+            }
+
+            // Type label
+            const typeLabel = document.createElement('div');
+            typeLabel.classList.add('absolute', 'top-2', 'right-2', color, 'text-white', 'text-xs', 'px-2', 'py-1', 'rounded');
+            typeLabel.textContent = `${typeText} ${index}`;
+            aspectDiv.appendChild(typeLabel);
+
+            card.appendChild(aspectDiv);
+
+            // Drive link
+            const p3Div = document.createElement('div');
+            p3Div.classList.add('p-3');
+            const anchor = document.createElement('a');
+            anchor.setAttribute('target', '_blank');
+            anchor.classList.add('inline-flex', 'items-center', 'justify-center', 'w-full', 'px-3', 'py-2', 'text-sm', 'bg-blue-500', 'text-white', 'rounded', 'hover:bg-blue-600', 'transition');
+            anchor.textContent = 'فتح في Drive';
+            // Validate/normalize URL (basic check)
+            if(/^https:\/\//.test(link) || /^http:\/\//.test(link)) {
+                anchor.setAttribute('href', link);
+            } else {
+                anchor.setAttribute('href', '#');
+            }
+            p3Div.appendChild(anchor);
+            card.appendChild(p3Div);
         }
         return card;
     }
