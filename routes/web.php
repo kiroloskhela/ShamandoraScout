@@ -385,4 +385,8 @@ Route::middleware(['auth'])->group(function() {
     Route::post('/profile/update', 'App\\Http\\Controllers\\PersonProfileController@update')->name('profile.update');
     Route::post('/profile/updatePassword', 'App\\Http\\Controllers\\PersonProfileController@updatePassword') ->name('profile.updatePassword');
 
+
+// Whatsapp Integration
+
+    Route::post('/whatsapp/send', 'App\\Http\\Controllers\\WhatsAppBridgeController@send')->name('whatsapp.send');
 });
