@@ -34,7 +34,7 @@ class AdminPasswordController extends Controller
         ]);
         DB::table('PersonSystemPassword')
             ->where('PersonID', $id)
-            ->update(['Password' => $request->input('password')]);
+            ->update(['Password' => Hash::make($request->input('password'))]);
         return Redirect::route('admin.passwords')->with('success', 'Password updated successfully.');
     }
 }

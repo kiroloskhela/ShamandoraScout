@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 class PersonProfileController extends Controller
 {
     // Show profile page
@@ -34,9 +35,8 @@ class PersonProfileController extends Controller
             'FourthName' => 'required',
             'ScoutJoiningYear' => 'required|integer',
             'PersonPersonalMobileNumber' => 'required',
-            'password' => 'nullable|min:6',
         ]);
-        // Update user info except ShamandoraCode
+        // Update user info except ShamandoraCode and password
         DB::table('PersonInformation')
             ->where('PersonID', $user->PersonID)
             ->update([
@@ -49,11 +49,25 @@ class PersonProfileController extends Controller
         DB::table('PersonPhoneNumbers')
             ->where('PersonID', $user->PersonID)
             ->update(['PersonPersonalMobileNumber' => $validated['PersonPersonalMobileNumber']]);
-        if (!empty($validated['password'])) {
-            DB::table('PersonSystemPassword')
-                ->where('PersonID', $user->PersonID)
-                ->update(['Password' => $validated['password']]);
-        }
         return Redirect::route('profile.show')->with('success', 'Profile updated successfully.');
     }
+
+    // New method for updating password only
+public function updatePassword(Request $request)
+{
+    $request->validate([
+        'password' => 'required|min:6',
+        // 'confirmed' if you also add password_confirmation in the form
+    ]);
+
+    $personId = Auth::user()->getAuthIdentifier(); // ensures we use the auth PK
+
+    DB::table('PersonSystemPassword')->updateOrInsert(
+        ['PersonID' => $personId],
+        ['Password' => Hash::make($request->input('password'))]
+    );
+
+    return Redirect::route('profile.show')->with('success', 'Password updated successfully.');
+}
+
 }

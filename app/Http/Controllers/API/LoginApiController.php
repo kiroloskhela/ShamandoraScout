@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class LoginApiController extends Controller
 {
@@ -12,13 +13,21 @@ class LoginApiController extends Controller
     public function apiLogin(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'id' => 'required|integer',
             'password' => 'required',
         ]);
 
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $user = \App\Models\User::find($request->id);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        Log::info('Login attempt', [
+            'input_id' => $request->id,
+            'input_password' => $request->password,
+            'user_exists' => $user ? true : false,
+            'user_password' => $user ? $user->password : null,
+        ]);
+
+        $actualPassword = is_object($user->password) && isset($user->password->Password) ? $user->password->Password : $user->password;
+        if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->password, $actualPassword)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
@@ -26,7 +35,6 @@ class LoginApiController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => $user,
         ]);
     }
 }

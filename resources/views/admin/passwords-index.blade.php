@@ -9,7 +9,7 @@
                 <th class="px-4 py-2 border-b text-center">رقم المستخدم</th>
                 <th class="px-4 py-2 border-b text-center">الاسم الكامل</th>
                 <th class="px-4 py-2 border-b text-center">كود الشمندورة</th>
-                <th class="px-4 py-2 border-b text-center">كلمة السر</th>
+                <!-- Password column removed for security -->
                 <th class="px-4 py-2 border-b text-center">إجراءات</th>
             </tr>
         </thead>
@@ -21,14 +21,7 @@
                     {{ trim($user->FirstName . ' ' . $user->SecondName . ' ' . $user->ThirdName . ' ' . $user->FourthName) }}
                 </td>
                 <td class="px-4 py-2 border-b text-center">{{ $user->ShamandoraCode }}</td>
-                <td class="px-4 py-2 border-b text-center">
-                    <span class="password-blur" style="filter: blur(6px); cursor:pointer;" 
-                        onmouseover="this.style.filter='none'" 
-                        onmouseout="this.style.filter='blur(6px)'" 
-                        onclick="navigator.clipboard.writeText('{{ $user->Password ?? '' }}'); this.innerText='Copied!'; setTimeout(()=>{this.innerText='{{ $user->Password ?? '' }}';},1000)">
-                        {{ $user->Password ?? '' }}
-                    </span>
-                </td>
+                <!-- Password value removed for security -->
                 <td class="px-4 py-2 border-b text-center">
                     <a href="{{ route('admin.passwords.edit', $user->PersonID) }}" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ml-2">تعديل كلمة السر</a>
                 </td>

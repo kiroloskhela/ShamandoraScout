@@ -14,27 +14,7 @@ class LoginController extends Controller
     /**
      * API Login: Accepts person_id and person_password, returns JSON success/failure
      */
-    public function apiLogin(Request $request)
-    {
-        $personId = (string) $request->input('person_id');
-        $plain    = (string) $request->input('person_password');
-
-        $user = DB::table('PersonInformation')
-            ->where('PersonID', $personId)
-            ->first();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'No User Found!'], 404);
-        }
-
-        $pwdRow = DB::table('PersonSystemPassword')
-            ->where('PersonID', $personId)
-            ->first();
-        if (!$pwdRow || (string) $pwdRow->Password !== $plain) {
-            return response()->json(['success' => false, 'message' => 'Wrong Password'], 401);
-        }
-
-        return response()->json(['success' => true, 'message' => 'Login Success']);
-    }
+ 
     public function show()
     {
         return view('login');
@@ -63,8 +43,8 @@ class LoginController extends Controller
             return response('Wrong Password', 422);
         }
 
-        // 3) Plain-text compare (your current DB state)
-        if ((string) $pwdRow->Password !== $plain) {
+        // 3) Secure hash comparison
+        if (!\Illuminate\Support\Facades\Hash::check($plain, $pwdRow->Password)) {
             return response('Wrong Password', 422);
         }
 
