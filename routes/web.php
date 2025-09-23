@@ -51,8 +51,6 @@ Route::get('/forgot-password', function () {return view('forgot-password');});
 
 //Route Profile
 
-// Profile password update route
-use App\Http\Controllers\PersonProfileController;
 
 
 
@@ -385,6 +383,6 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/profile', 'App\\Http\\Controllers\\PersonProfileController@show')->name('profile.show');
     Route::get('/profile/edit', 'App\\Http\\Controllers\\PersonProfileController@edit')->name('profile.edit');
     Route::post('/profile/update', 'App\\Http\\Controllers\\PersonProfileController@update')->name('profile.update');
-    Route::post('/profile/updatePassword', ['App\\Http\\Controllers\\PersonProfileController@updatePassword'])->name('profile.updatePassword');
+    Route::post('/profile/updatePassword', 'App\\Http\\Controllers\\PersonProfileController@updatePassword') ->name('profile.updatePassword');
 
 });

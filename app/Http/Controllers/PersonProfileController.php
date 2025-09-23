@@ -14,7 +14,13 @@ class PersonProfileController extends Controller
     public function show()
     {
         $user = Auth::user();
-        return view('profile', compact('user'));
+
+        $phone = DB::table('PersonPhoneNumbers')
+        ->where('PersonID', $user->PersonID)
+        ->value('PersonPersonalMobileNumber');
+
+        
+          return view('profile', compact('user', 'phone'));
     }
 
     // Show edit form
@@ -56,8 +62,7 @@ class PersonProfileController extends Controller
 public function updatePassword(Request $request)
 {
     $request->validate([
-        'password' => 'required|min:6',
-        // 'confirmed' if you also add password_confirmation in the form
+        'password' => 'required|min:6|confirmed',
     ]);
 
     $personId = Auth::user()->getAuthIdentifier(); // ensures we use the auth PK
