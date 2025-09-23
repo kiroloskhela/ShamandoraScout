@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "الرتب الكشفيه"?? ''])
+@extends('layouts.app' , ['pageTitle' => "تعديل بيانات الملتحق"?? ''])
 
 
 @section('content')

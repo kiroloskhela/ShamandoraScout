@@ -15,7 +15,7 @@
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'اسم المرحلة',
+                'label' => 'اسم القطاع',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm'
             ]

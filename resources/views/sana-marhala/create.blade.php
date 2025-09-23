@@ -1,4 +1,3 @@
-</html>
 @extends('layouts.app', ['pageTitle' => 'إضافة مرحلة دراسية'])
 @section('content')
 

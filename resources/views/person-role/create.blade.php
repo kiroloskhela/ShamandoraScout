@@ -9,7 +9,7 @@
             @csrf
 
             <!-- Hidden Requester ID -->
-            <input type="hidden" name="RequestPersonID" value="{{ Auth()->user()->PersonID }}">
+            <input type="hidden" name="RequestPersonID" value="{{ auth()->user()->PersonID }}">
 
             <!-- اختيار اسم الخادم -->
             <div class="mb-6">

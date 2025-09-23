@@ -4,7 +4,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <x-data-table :data="$roles->toArray()" title="إدارة الأدوار والمهام" :add-button="[
-            'label' => 'إضافة منطقة سكنية',
+            'label' => 'إضافة دور/مهمة جديدة',
             'route' => route('role.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
