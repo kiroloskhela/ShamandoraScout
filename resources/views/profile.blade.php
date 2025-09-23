@@ -160,12 +160,13 @@
             </div>
         </form>
     </div>
-<form method="POST" action="{{ route('whatsapp.send') }}" class="space-y-3">
+<form method="POST" action="{{ route('whatsapp.sendWithHeader') }}" class="space-y-3">
   @csrf
-  <input type="text" name="full_number" placeholder="+201234567890" class="border p-2 w-full" required>
-  <textarea name="message" placeholder="Write message..." class="border p-2 w-full" required></textarea>
-  <button class="bg-emerald-600 text-white px-4 py-2 rounded">Send</button>
+  <input name="full_number" class="border p-2 w-full" placeholder="0100XXXXXXX or +20100XXXXXXX" required>
+  <textarea name="message" class="border p-2 w-full" placeholder="رسالتك هنا..." required></textarea>
+  <button class="bg-emerald-600 text-white px-4 py-2 rounded">Send with Header</button>
 </form>
+
 
 </div>
 @endsection

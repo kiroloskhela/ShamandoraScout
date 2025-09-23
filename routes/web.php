@@ -389,4 +389,5 @@ Route::middleware(['auth'])->group(function() {
 // Whatsapp Integration
 
     Route::post('/whatsapp/send', 'App\\Http\\Controllers\\WhatsAppBridgeController@send')->name('whatsapp.send');
+    Route::post('/whatsapp/sendWithHeader', 'App\\Http\\Controllers\\WhatsAppBridgeController@sendWithHeader')->name('whatsapp.sendWithHeader');
 });
