@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
         Route::get('/welcome', function () {return view('welcome');});
         Route::get('/cards', function () {return view('cards');});
         Route::get('/charts', function () {return view('charts');});
-        Route::get('/profile', function () {return view('profile');});
         Route::get('/blank', function () {return view('blank');});
         Route::get('/index', function () {return view('index');});
         Route::get('/buttons', function () {return view('buttons');});
@@ -230,7 +229,7 @@ Route::delete('/inventory/destroy/{id}', array('as'=> 'inventory.destroy', 'uses
 //Routes for Inventory-issue
 Route::get('/inventory-issue', array('as' => 'inventory-issue.index', 'uses' => 'App\Http\Controllers\InventoryIssueController@index'));
 Route::get('/inventory-issue/getEventsForSeason', array('as' => 'inventory-issue.getEventsForSeason', 'uses' =>'App\Http\Controllers\InventoryIssueController@getEventsForSeason'));
-Route::Post('/inventory-issue/generate', array('as' => 'inventory-issue.generate','uses' => 'App\Http\Controllers\InventoryIssueController@generate'));
+Route::post('/inventory-issue/generate', array('as' => 'inventory-issue.generate','uses' => 'App\Http\Controllers\InventoryIssueController@generate'));
 
 //Routes for LiveForm Max Limits
 Route::get('/max-limits', array('as' => 'max-limits.index', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@index'));
@@ -321,7 +320,7 @@ Route::get('/university', array('as'=> 'university.index', 'uses'=> 'App\Http\Co
 Route::get('/university/add', array('as' => 'university.create', 'uses' =>'App\Http\Controllers\UniversityController@create'));
 Route::post('/university/insert', array('as' => 'university.insert', 'uses' => 'App\Http\Controllers\UniversityController@insert'));
 Route::get('/university/edit/{id}', array('as' => 'university.edit', 'uses' => 'App\Http\Controllers\UniversityController@edit'));
-Route::patch('/season-event/update/{id}', array('as'=> 'season-event.update', 'uses'=> 'App\Http\Controllers\SeasonEventController@update'));
+Route::patch('/university/update/{id}', array('as'=> 'university.update', 'uses'=> 'App\Http\Controllers\UniversityController@updates'));
 Route::get('/university/delete/{id}', array('as'=> 'university.delete', 'uses'=>'App\Http\Controllers\UniversityController@deletes'));
 Route::delete('/university/destroy/{id}', array('as'=> 'university.destroy', 'uses'=>'App\Http\Controllers\UniversityController@destroy'));
 
