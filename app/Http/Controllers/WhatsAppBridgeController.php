@@ -54,7 +54,8 @@ class WhatsAppBridgeController extends Controller
         $prefix = $isFemale ? 'شفتان ' : 'كابتن ';
 
         // Header: {prefix}{Name} + " اهلا بك يا ♡"
-        $header = "{$prefix}{$fullName} اهلا بك يا ♡\n";
+      $rtlMarker = "\u{202B}"; // Right-to-Left Embedding
+        $header = $rtlMarker . "اهلا بك يا {$prefix}{$fullName} ♡ \n";
 
         $finalMessage = $header . $data['message'];
 
