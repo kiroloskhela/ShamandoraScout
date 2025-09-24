@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "تعديل منطقة سكنية" ?? ''])
+@extends('layouts.app' , ['pageTitle' => "تعديل منطقة سكنية"])
 @section('content')
 
 <x-form-card title="تعديل منطقة سكنية" :action="route('manteqa.update', $manteqa->ManteqaID)" method="PATCH"

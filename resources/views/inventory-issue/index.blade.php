@@ -169,33 +169,56 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedTableBody.innerHTML = '';
         selectedItems.forEach((item, idx) => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${idx + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.unit}</td>
-                <td><input type="number" value="${item.qty}" min="1" max="${item.max}" class="w-20 text-center" data-idx="${idx}"></td>
-                <td><button type="button" class="remove-item bg-red-500 text-white px-2 rounded" data-idx="${idx}">❌</button></td>`;
-            selectedTableBody.appendChild(tr);
-        });
 
-        // Quantity input events
-        selectedTableBody.querySelectorAll('input[type="number"]').forEach(input => {
-            input.addEventListener('input', function() {
-                const idx = input.dataset.idx;
-                let val = parseInt(input.value) || 1;
-                if (val > selectedItems[idx].max) val = selectedItems[idx].max;
+            // Index cell
+            const tdIdx = document.createElement('td');
+            tdIdx.textContent = idx + 1;
+            tr.appendChild(tdIdx);
+
+            // Name cell
+            const tdName = document.createElement('td');
+            tdName.textContent = item.name;
+            tr.appendChild(tdName);
+
+            // Unit cell
+            const tdUnit = document.createElement('td');
+            tdUnit.textContent = item.unit;
+            tr.appendChild(tdUnit);
+
+            // Quantity cell
+            const tdQty = document.createElement('td');
+            const inputQty = document.createElement('input');
+            inputQty.type = 'number';
+            inputQty.value = item.qty;
+            inputQty.min = 1;
+            inputQty.max = item.max;
+            inputQty.className = 'w-20 text-center';
+            inputQty.dataset.idx = idx;
+            inputQty.addEventListener('input', function() {
+                let val = parseInt(inputQty.value) || 1;
+                if (val > item.max) val = item.max;
                 if (val < 1) val = 1;
-                input.value = val;
+                inputQty.value = val;
                 selectedItems[idx].qty = val;
             });
-        });
+            tdQty.appendChild(inputQty);
+            tr.appendChild(tdQty);
 
-        // Remove item events
-        selectedTableBody.querySelectorAll('.remove-item').forEach(btn => {
-            btn.addEventListener('click', function() {
-                selectedItems.splice(btn.dataset.idx, 1);
+            // Remove button cell
+            const tdRemove = document.createElement('td');
+            const btnRemove = document.createElement('button');
+            btnRemove.type = 'button';
+            btnRemove.className = 'remove-item bg-red-500 text-white px-2 rounded';
+            btnRemove.textContent = '❌';
+            btnRemove.dataset.idx = idx;
+            btnRemove.addEventListener('click', function() {
+                selectedItems.splice(idx, 1);
                 renderSelectedItems();
             });
+            tdRemove.appendChild(btnRemove);
+            tr.appendChild(tdRemove);
+
+            selectedTableBody.appendChild(tr);
         });
     }
 

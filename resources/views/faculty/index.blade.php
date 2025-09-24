@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "الكليات"?? ''])
+@extends('layouts.app' , ['pageTitle' => "الكليات"])
 
 
 @section('content')

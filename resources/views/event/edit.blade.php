@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => "تعديل حدث/مناسبة" ?? ''])
+@extends('layouts.app', ['pageTitle' => "تعديل حدث/مناسبة"])
 
 @section('content')
 
@@ -42,7 +42,7 @@
                     <!-- Event Name -->
                     <div class="relative">
                         <input id="event_name" type="text" name="event_name" required value="{{ $event->EventName }}"
-                            placeholder="ادخل اسم الحدث أو المناسبة" onfocusout="myFunction()"
+                            placeholder="ادخل اسم الحدث أو المناسبة"
                             class="relative w-full h-12 px-4 text-sm placeholder-transparent transition-all border rounded-lg outline-none focus-visible:outline-none peer border-slate-200 text-slate-500 autofill:bg-white invalid:border-emerald-500 invalid:text-emerald-500 focus:border-emerald-500 focus:outline-none invalid:focus:border-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 text-right"
                             style="font-family: 'Cairo', sans-serif; font-size: medium" />
                         <label for="event_name"
@@ -176,17 +176,14 @@ $(document).ready(function() {
         }
     });
 
-    // Pre-select checkboxes based on existing data
+
 
 });
 
-// Pre-select checkboxes based on existing data
 
 
-function myFunction() {
-    // Custom validation function if needed
-    console.log('Field validation triggered');
-};
+
+
 </script>
 @endpush
 

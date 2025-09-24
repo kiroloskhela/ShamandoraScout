@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "إدارة المجموعات" ?? ''])
+@extends('layouts.app' , ['pageTitle' => "إدارة المجموعات"])
 
 
 @section('content')

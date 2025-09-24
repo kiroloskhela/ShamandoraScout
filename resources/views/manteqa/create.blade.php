@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "إضافة منطقة سكنية" ?? ''])
+@extends('layouts.app' , ['pageTitle' => "إضافة منطقة سكنية"])
 @section('content')
 
 <x-form-card title="إضافة منطقة سكنية" :action="route('manteqa.insert')" method="POST"

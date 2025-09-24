@@ -13,7 +13,6 @@
         font-family: 'Cairo', sans-serif;
     }
     </style>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
     <script src="//unpkg.com/alpinejs" defer></script>
 
@@ -52,9 +51,9 @@
                             class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
                     </div>
                     <div class="text-center">
-                        <h4 class="font-medium text-gray-800">{{Auth::user()->FirstName}} {{Auth::user()->SecondName}}
+                        <h4 class="font-medium text-gray-800">{{Auth::user()->FirstName ?? ''}} {{Auth::user()->SecondName ?? ''}}
                         </h4>
-                        <p class="text-sm text-gray-500 mt-1">{{Auth::user()->ShamandoraCode}}</p>
+                        <p class="text-sm text-gray-500 mt-1">{{Auth::user()->ShamandoraCode ?? ''}}</p>
                     </div>
                 </div>
 
@@ -66,7 +65,7 @@
                     $userRoles = $user->role()->get();
                     @endphp
 
-                    @if($userRoles->contains(1))
+                    @if(Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
                     <!-- System Constants Menu -->
                     <div class="px-3 mb-2">
                         <div x-data="{ open: false }">
@@ -274,9 +273,8 @@
                             </button>
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('admin.passwords') }}">عرض كلمات المرور</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('admin.passwords') }}">تعديل كلمات المرور</a>
+                                    href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
+                          
                             </div>
                         </div>
                         @endif

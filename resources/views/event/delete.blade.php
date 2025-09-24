@@ -1,8 +1,8 @@
-@extends('layouts.app' , ['pageTitle' => "مسح المناسبة"?? ''])
+@extends('layouts.app' , ['pageTitle' => "مسح المناسبة"])
 
 @section('content')
-<x-form-card title="مسح نوع المناسبة" :action="route('event.destroy', $event->EventID)" method="DELETE"
+<x-form-card title="مسح المناسبة" :action="route('event.destroy', $event->EventID)" method="DELETE"
     :inputValue="$event->EventName" inputPlaceholder="ادخل اسم نوع المناسبة" inputLabel="مسح اسم نوع المناسبة"
-    submitText="مسح" submitColor="red" pageTitle="المناسبات" />
+    submitText="مسح" submitColor="red" pageTitle="المناسبات" inputName="event_name" />
 
 @endsection

@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => "إضافة حدث/مناسبة" ?? ''])
+@extends('layouts.app', ['pageTitle' => "إضافة حدث/مناسبة"])
 
 @section('content')
 

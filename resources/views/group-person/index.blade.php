@@ -4,7 +4,7 @@
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <x-data-table :data="$groupPersons" title="إدارة الأشخاص في المجموعة" :add-button="[
-            'label' => 'إضافة  جديدة',
+            'label' => 'إضافة شخص  جديد',
             'route' => route('group-person.create-khadem'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[

@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "الكليات"?? ''])
+@extends('layouts.app' , ['pageTitle' => "الكليات"])
 @section('content')
 <x-form-card title="تعديل كليه" :action="route('faculty.update', $faculty->FacultyID)" method="PATCH"
     :inputValue="$faculty->FacultyName" inputPlaceholder="ادخل اسم الكلية" inputLabel="تعديل اسم الكلية"
