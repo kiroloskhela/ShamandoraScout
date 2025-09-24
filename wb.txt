@@ -1,0 +1,6 @@
+<form method="POST" action="{{ route('whatsapp.sendWithHeader') }}" class="space-y-3">
+  @csrf
+  <input name="full_number" class="border p-2 w-full" placeholder="0100XXXXXXX or +20100XXXXXXX" required>
+  <textarea name="message" class="border p-2 w-full" placeholder="رسالتك هنا..." required></textarea>
+  <button class="bg-emerald-600 text-white px-4 py-2 rounded">Send with Header</button>
+</form>

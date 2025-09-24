@@ -1,9 +1,9 @@
-@extends('layouts.app' , ['pageTitle' => "الجامعات"?? ''])
+@extends('layouts.app' , ['pageTitle' => "إضافة رتبة جديدة"])
 
 @section('content')
 
 
-<x-form-card title="اضافة جامعه جديدة" :action="route('rotab.insert')" method="POST" inputPlaceholder="ادخل اسم الجامعه"
-    inputLabel="ادخل اسم الجامعه" submitText="إضافة الجامعه" submitColor="blue" inputName="rotba_name" />
+<x-form-card title="اضافة رتبة جديدة" :action="route('rotab.insert')" method="POST" inputPlaceholder="ادخل اسم الرتبة"
+    inputLabel="ادخل اسم الرتبة" submitText="إضافة الرتبة" submitColor="blue" inputName="rotba_name" />
 
 @endsection

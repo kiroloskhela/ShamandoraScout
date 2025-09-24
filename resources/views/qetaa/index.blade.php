@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <x-data-table :data="$qetaat->toArray()" title="إدارة القطاعات الكشفية" :add-button="[
+     <x-data-table :data="$qetaat ? $qetaat->toArray() : []" title="إدارة القطاعات الكشفية" :add-button="[
             'label' => 'إضافة  قطاع',
             'route' => route('qetaa.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'

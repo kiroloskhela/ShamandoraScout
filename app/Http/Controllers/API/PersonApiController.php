@@ -8,13 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class PersonApiController extends Controller
 {
-    // POST /api/login
-    public function apiLogin(Request $request)
-    {
-        // ...existing code from LoginController@apiLogin...
-    }
 
-    // GET /api/show-persons
     public function ShowPersons(Request $request)
     {
         $userId = $request->input('id');

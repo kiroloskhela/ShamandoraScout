@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "الجامعات"?? ''])
+@extends('layouts.app' , ['pageTitle' => "الجامعات"])
 
 @section('content')
 <x-form-card title="مسح اسم الجامعه" :action="route('university.destroy', $university->UniversityID)" method="DELETE"

@@ -145,7 +145,7 @@
                 <label for="password_confirmation" class="block text-gray-700 font-medium mb-1">تأكيد كلمة السر</label>
                 <input type="password" name="password_confirmation" id="password_confirmation"
                        class="bg-gray-100 rounded px-3 py-2 w-full"
-                       placeholder="اعد ادخال كلمة السر" required minlength="6" autocomplete="new-password">
+                       placeholder="اعد ادخال كلمة السر" required minlength="8" autocomplete="new-password">
             </div>
 
             <div class="md:col-span-2 flex items-center gap-4">
@@ -160,12 +160,7 @@
             </div>
         </form>
     </div>
-<form method="POST" action="{{ route('whatsapp.sendWithHeader') }}" class="space-y-3">
-  @csrf
-  <input name="full_number" class="border p-2 w-full" placeholder="0100XXXXXXX or +20100XXXXXXX" required>
-  <textarea name="message" class="border p-2 w-full" placeholder="رسالتك هنا..." required></textarea>
-  <button class="bg-emerald-600 text-white px-4 py-2 rounded">Send with Header</button>
-</form>
+
 
 
 </div>
