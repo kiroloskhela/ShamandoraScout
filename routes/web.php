@@ -3,6 +3,10 @@
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\GoogleDriveController;
+use App\Http\Controllers\TestingController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -375,6 +379,11 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function() {
     Route::get('/admin/passwords', 'App\Http\Controllers\AdminPasswordController@index')->name('admin.passwords'); // List users
     Route::get('/admin/passwords/{id}/edit', 'App\Http\Controllers\AdminPasswordController@edit')->name('admin.passwords.edit'); // Edit form
     Route::post('/admin/passwords/{id}/update', 'App\Http\Controllers\AdminPasswordController@update')->name('admin.passwords.update'); // Update password
+    
+// Whatsapp Integration
+
+    Route::post('/whatsapp/send', 'App\\Http\\Controllers\\WhatsAppBridgeController@send')->name('whatsapp.send');
+    Route::post('/whatsapp/sendWithHeader', 'App\\Http\\Controllers\\WhatsAppBridgeController@sendWithHeader')->name('whatsapp.sendWithHeader');
 });
 
 // Profile routes for every person
@@ -385,8 +394,14 @@ Route::middleware(['auth'])->group(function() {
     Route::post('/profile/updatePassword', 'App\\Http\\Controllers\\PersonProfileController@updatePassword') ->name('profile.updatePassword');
 
 
-// Whatsapp Integration
-
-    Route::post('/whatsapp/send', 'App\\Http\\Controllers\\WhatsAppBridgeController@send')->name('whatsapp.send');
-    Route::post('/whatsapp/sendWithHeader', 'App\\Http\\Controllers\\WhatsAppBridgeController@sendWithHeader')->name('whatsapp.sendWithHeader');
 });
+
+
+Route::get('/auth/google', [GoogleDriveController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [GoogleDriveController::class, 'handleGoogleCallback']);
+Route::get('/drive/upload', [GoogleDriveController::class, 'uploadTestFile']);
+
+
+
+Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
+Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
