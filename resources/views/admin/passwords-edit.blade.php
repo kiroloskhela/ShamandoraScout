@@ -2,7 +2,7 @@
 
 @section('content')
 <x-form-card 
-    title="تعديل كلمة السر للمستخدم: {{ $user->FirstName }} {{ $user->SecondName }} {{ $user->ThirdName }} {{ $user->FourthName }}"
+    title="تعديل كلمة السر للمستخدم:<br>{{ $user->FirstName }} {{ $user->SecondName }} {{ $user->ThirdName }} {{ $user->FourthName }}"
     :action="route('admin.passwords.update', $user->PersonID)"
     method="POST"
     inputType="password"
