@@ -5,11 +5,8 @@ namespace App\Http\Controllers\API;
 // Core Laravel classes
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
-// Facades for database and authentication
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // <--- FIX 1: Import the Auth facade
-
+use Illuminate\Support\Facades\Auth; 
 class AttendanceController extends Controller
 {
     /**
