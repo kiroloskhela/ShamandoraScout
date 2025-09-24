@@ -27,7 +27,7 @@ class LoginApiController extends Controller
         ]);
 
         $actualPassword = is_object($user->password) && isset($user->password->Password) ? $user->password->Password : $user->password;
-        if (! $user || ! \Illuminate\Support\Facades\Hash::check($request->password, $actualPassword)) {
+        if (! $user || ! Hash::check($request->password, $actualPassword)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
