@@ -12,6 +12,7 @@ use Session;
 use Auth;
 
 
+
 class AttendanceController extends Controller
 {
 /**
