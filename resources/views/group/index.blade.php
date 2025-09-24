@@ -1,6 +1,5 @@
 @extends('layouts.app', ['pageTitle' => 'إدارة المجموعات'])
 
-
 @section('content')
     <div class="container mx-auto px-4 py-8">
         <x-data-table :data="$groups" title="إدارة المجموعات" :add-button="[
@@ -16,20 +15,20 @@
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
-                'key' => 'GroupTypeName',
-                'label' => 'اسم نوع المجموعة',
+                'key' => 'GroupName',
+                'label' => 'اسم المجموعة',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
-                'key' => 'IncludedUnderGroupID',
-                'label' => 'رقم المجموعة الفرعية',
+                'key' => 'GroupTypeName',
+                'label' => 'نوع المجموعة',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'IncludedUnderGroupName',
-                'label' => 'اسم المجموعة الفرعية',
+                'label' => 'اسم المجموعة الأب',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
