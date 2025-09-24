@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
     <!-- Custom styles for this template-->
@@ -66,11 +66,12 @@
                                     <select class="form-control col-sm-4 select2" style="margin-right: 20px;"
                                         name="group_type_id" id="group_type_id">
                                         <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="{{$groupSelected->GroupTypeID}}" selected>
-                                            {{$groupSelected->GroupTypeName}}</option>
-                                        @foreach($groupTypes as $groupType)
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                            value="{{$groupType->GroupTypeID}}">{{$groupType->GroupTypeName}}</option>
+                                            value="{{ $groupSelected->GroupTypeID }}" selected>
+                                            {{ $groupSelected->GroupTypeName }}</option>
+                                        @foreach ($groupTypes as $groupType)
+                                            <option style="font-family: 'Cairo', sans-serif; color: black;"
+                                                value="{{ $groupType->GroupTypeID }}">{{ $groupType->GroupTypeName }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -82,11 +83,11 @@
                                     <select class="form-control col-sm-4 select2" style="margin-right: 20px;"
                                         name="included_under_group_id" id="included_under_group_id">
                                         <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="{{$groupSelected->IncludedUnderGroupID}}" selected>
-                                            {{$groupSelected->GroupInfo}}</option>
-                                        @foreach($groups as $group)
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                            value="{{$group->GroupID}}">{{$group->GroupInfo}}</option>
+                                            value="{{ $groupSelected->IncludedUnderGroupID }}" selected>
+                                            {{ $groupSelected->GroupInfo }}</option>
+                                        @foreach ($groups as $group)
+                                            <option style="font-family: 'Cairo', sans-serif; color: black;"
+                                                value="{{ $group->GroupID }}">{{ $group->GroupInfo }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -97,7 +98,7 @@
                                     <input type="text" class="form-control form-control-user" name="group_name"
                                         id="group_name" style="font-family: 'Cairo', sans-serif; font-size: medium"
                                         placeholder="ادخل اسم المجموعة" onfocusout="myFunction()"
-                                        value="{{$groupSelected->GroupName}}">
+                                        value="{{ $groupSelected->GroupName }}">
                                     <br>
                                     <input type="submit" class="btn-google btn-user btn-block"
                                         style="background-color: brown;" id="submit-button" value="تعديل"></input>
@@ -137,27 +138,27 @@
     <script src="../js/demo/datatables-demo.js"></script>
 
     <script>
-    /*    function myFunction() {
-        const first_name = document.getElementById('rotba_name');
-        if(first_name.value=='') {
-        first_name.style.backgroundColor = '#C53939';
-        first_name.style.color = '#FFFFFF';
-        document.getElementById('submit-button').disabled = true;
+        /*    function myFunction() {
+            const first_name = document.getElementById('rotba_name');
+            if(first_name.value=='') {
+            first_name.style.backgroundColor = '#C53939';
+            first_name.style.color = '#FFFFFF';
+            document.getElementById('submit-button').disabled = true;
+            }
+            else {
+                first_name.style.backgroundColor = 'White';
+                first_name.style.color = '#1D43EC';
+            }
         }
-        else {
-            first_name.style.backgroundColor = 'White';
-            first_name.style.color = '#1D43EC';
-        }
-    }
 
-    function clickSubmitButton(){
-        const rotba_name = document.getElementById('rotba_name');
-        if(rotba_name.value==''){
-            alert("الرجاء ادخال البيانات بشكل صحيح");
-                return false;
+        function clickSubmitButton(){
+            const rotba_name = document.getElementById('rotba_name');
+            if(rotba_name.value==''){
+                alert("الرجاء ادخال البيانات بشكل صحيح");
+                    return false;
+            }
         }
-    }
-    */
+        */
     </script>
 
 </body>
@@ -165,9 +166,9 @@
 </html>
 
 
-@extends('layouts.app' , ['pageTitle' => "تعديل مجموعة جديدة" ?? ''])
+@extends('layouts.app', ['pageTitle' => 'تعديل مجموعة جديدة' ?? ''])
 @section('content')
-<x-form-card title="تعديل مجموعة" :action="route('group.update', $groupSelected->GroupID)" method="PATCH"
-    :inputValue="$groupSelected->GroupName" inputPlaceholder="ادخل اسم المجموعة" inputLabel="تعديل اسم المجموعة"
-    submitText="تعديل" submitColor="emerald" pageTitle="المجموعات" inputName="group_name" />
+    <x-form-card title="تعديل مجموعة" :action="route('group.update', $groupSelected->GroupID)" method="PATCH" :inputValue="$groupSelected->GroupName"
+        inputPlaceholder="ادخل اسم المجموعة" inputLabel="تعديل اسم المجموعة" submitText="تعديل" submitColor="emerald"
+        pageTitle="المجموعات" inputName="group_name" />
 @endsection

@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
     <!-- Custom styles for this template-->
@@ -45,7 +45,7 @@
                 <div class="sidebar-brand-text mx-3">Shamandora Scouts</div>
             </a>
             <div class="sidebar-brand d-flex align-items-center justify-content-center sidebar-brand-text"
-                style="color: rgba(211, 159, 18, 0.849); font-size: large">{{date("Y")}}</div>
+                style="color: rgba(211, 159, 18, 0.849); font-size: large">{{ date('Y') }}</div>
 
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
@@ -153,15 +153,18 @@
                     <i class="fas fa-fw fa-cog"></i>
                     <span style="font-family: 'Cairo', sans-serif;">الالتحاقات الجديدة</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                <div id="collapsePages" class="collapse" aria-labelledby="headingPages"
+                    data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">صفحات التسجيل والدخول</h6>
                         <a class="collapse-item" href={{ url('/liveform') }}>فورم التسجيل LIVE!</a>
                         <a class="collapse-item" href={{ url('/new-enrolments') }}>مراجعة طلبات الالتحاق</a>
                         <a class="collapse-item" href={{ url('/max-limits') }}>الحد الأقصى للطلبات</a>
                         <a class="collapse-item" href={{ url('/entry-questions') }}>التحكم في أسئلة القطاعات</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات الالتحاق</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}> تحويل الطلبات إلى النظام
+                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات
+                            الالتحاق</a>
+                        <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}> تحويل الطلبات إلى
+                            النظام
                             الرئيسي</a>
                     </div>
                 </div>
@@ -257,7 +260,8 @@
                                     </div>
                                     <div>
                                         <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
+                                        <span class="font-weight-bold">A new monthly report is ready to
+                                            download!</span>
                                     </div>
                                 </a>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
@@ -282,7 +286,8 @@
                                         Spending Alert: We've noticed unusually high spending for your account.
                                     </div>
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All
+                                    Alerts</a>
                             </div>
                         </li>
 
@@ -326,13 +331,14 @@
                                 </a>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
                                     <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="https://source.unsplash.com/Mv9hjnEUHR4/60x60"
-                                            alt="...">
+                                        <img class="rounded-circle"
+                                            src="https://source.unsplash.com/Mv9hjnEUHR4/60x60" alt="...">
                                         <div class="status-indicator bg-success"></div>
                                     </div>
 
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More
+                                    Messages</a>
                             </div>
                         </li>
 
@@ -343,16 +349,16 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"
-                                    style="font-family: 'Cairo', sans-serif;">{{Auth::user()->FirstName}}
-                                    {{Auth::user()->SecondName}}</span>
-                                <img class="img-profile rounded-circle" src={{ asset("img/undraw_profile.svg")}}>
+                                    style="font-family: 'Cairo', sans-serif;">{{ Auth::user()->FirstName }}
+                                    {{ Auth::user()->SecondName }}</span>
+                                <img class="img-profile rounded-circle" src={{ asset('img/undraw_profile.svg') }}>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
                                 <a class="dropdown-item">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    {{Auth::user()->ShamandoraCode}}
+                                    {{ Auth::user()->ShamandoraCode }}
                                 </a>
                                 <a class="dropdown-item">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -397,7 +403,8 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <table class="table table-bordered" id="dataTable" width="100%"
+                                            cellspacing="0">
                                             <thead>
                                                 <tr>
                                                     <th>رقم الفصيلة ID</th>
@@ -406,18 +413,19 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($blood as $blooda)
-                                                <tr>
-                                                    <td>
-                                                        {{ $blooda->BloodTypeID }}
-                                                    </td>
+                                                @foreach ($blood as $blooda)
+                                                    <tr>
+                                                        <td>
+                                                            {{ $blooda->BloodTypeID }}
+                                                        </td>
 
-                                                    <td>
-                                                        <label style="color: #4e73df; font-weight: bolder;"
-                                                            id="rotbaIDLabel-{{$loop->iteration}}">{{ $blooda->BloodTypeName }}</label>
-                                                    </td>
-                                                    <td>
-                                                        <a href="{{ route('blood.edit', $blooda->BloodTypeID) }}" style="appearance: none;
+                                                        <td>
+                                                            <label style="color: #4e73df; font-weight: bolder;"
+                                                                id="rotbaIDLabel-{{ $loop->iteration }}">{{ $blooda->BloodTypeName }}</label>
+                                                        </td>
+                                                        <td>
+                                                            <a href="{{ route('blood.edit', $blooda->BloodTypeID) }}"
+                                                                style="appearance: none;
                                                                 background-color: #2ea44f;
                                                                 border: 1px solid rgba(27, 31, 35, .15);
                                                                 border-radius: 6px;
@@ -437,10 +445,11 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;"> تعديل</a>
+                                                                white-space: nowrap;">
+                                                                تعديل</a>
 
-                                                        <a href="{{ route('blood.delete', $blooda->BloodTypeID) }}"
-                                                            style="appearance: none;
+                                                            <a href="{{ route('blood.delete', $blooda->BloodTypeID) }}"
+                                                                style="appearance: none;
                                                                 background-color: #E21739;
                                                                 border: 1px solid rgba(27, 31, 35, .15);
                                                                 border-radius: 6px;
@@ -460,15 +469,17 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;"> مسح</a>
-                                                    </td>
-                                                </tr>
+                                                                white-space: nowrap;">
+                                                                مسح</a>
+                                                        </td>
+                                                    </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
                                     </div>
                                     <div>
-                                        <a href="{{ route('blood.create') }}" style="appearance: none;
+                                        <a href="{{ route('blood.create') }}"
+                                            style="appearance: none;
                                                             background-color: #1216F0;
                                                             border: 1px solid rgba(27, 31, 35, .15);
                                                             border-radius: 6px;
@@ -488,7 +499,8 @@
                                                             -webkit-user-select: none;
                                                             touch-action: manipulation;
                                                             vertical-align: middle;
-                                                            white-space: nowrap;" id="s"> اضافة فصيلة</a>
+                                                            white-space: nowrap;"
+                                            id="s"> اضافة فصيلة</a>
                                     </div>
                                 </div>
                             </div>
@@ -502,7 +514,7 @@
                     <footer class="sticky-footer bg-white">
                         <div class="container my-auto">
                             <div class="copyright text-center my-auto">
-                                <span>Copyright &copy; Shamandora Scouts {{date("Y")}}</span>
+                                <span>Copyright &copy; Shamandora Scouts {{ date('Y') }}</span>
                                 <br />
                                 <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
                                     الكشفية</span>
@@ -523,8 +535,8 @@
             </a>
 
             <!-- Logout Modal-->
-            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
+            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
+                aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -562,24 +574,24 @@
             <script src="js/demo/datatables-demo.js"></script>
 
             <script>
-            function EditButtonClicked(itemNumber) {
-                // Retrieve the item data based on the itemNumber
-                // Enable editing for the corresponding item
-                console.log(`Editing item ${itemNumber}`);
-                document.getElementById('rotbaIDTextBox-' + itemNumber).removeAttribute("readonly");
-                document.getElementById('SubmitButtonNumber-' + itemNumber).removeAttribute("hidden");
-                document.getElementById('EditButtonNumber-' + itemNumber).disabled = true;
-                // Implement your custom logic here
-            }
+                function EditButtonClicked(itemNumber) {
+                    // Retrieve the item data based on the itemNumber
+                    // Enable editing for the corresponding item
+                    console.log(`Editing item ${itemNumber}`);
+                    document.getElementById('rotbaIDTextBox-' + itemNumber).removeAttribute("readonly");
+                    document.getElementById('SubmitButtonNumber-' + itemNumber).removeAttribute("hidden");
+                    document.getElementById('EditButtonNumber-' + itemNumber).disabled = true;
+                    // Implement your custom logic here
+                }
 
-            function SubmitButtonClicked(itemNumber) {
-                // Retrieve the item data based on the itemNumber
-                // Enable editing for the corresponding item
-                console.log(`Submitting item ${itemNumber}`);
-                document.getElementById('EditButtonNumber-' + itemNumber).disabled = false;
-                document.getElementById('rotbaIDTextBox-' + itemNumber).disabled = true;
-                // Implement your custom logic here
-            }
+                function SubmitButtonClicked(itemNumber) {
+                    // Retrieve the item data based on the itemNumber
+                    // Enable editing for the corresponding item
+                    console.log(`Submitting item ${itemNumber}`);
+                    document.getElementById('EditButtonNumber-' + itemNumber).disabled = false;
+                    document.getElementById('rotbaIDTextBox-' + itemNumber).disabled = true;
+                    // Implement your custom logic here
+                }
             </script>
 
 </body>

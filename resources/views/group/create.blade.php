@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
     <!-- Custom styles for this template-->
@@ -48,7 +48,7 @@
                 <div class="sidebar-brand-text mx-3">Shamandora Scouts</div>
             </a>
             <div class="sidebar-brand d-flex align-items-center justify-content-center sidebar-brand-text"
-                style="color: rgba(211, 159, 18, 0.849); font-size: large">{{date("Y")}}</div>
+                style="color: rgba(211, 159, 18, 0.849); font-size: large">{{ date('Y') }}</div>
 
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
@@ -156,15 +156,18 @@
                     <i class="fas fa-fw fa-cog"></i>
                     <span style="font-family: 'Cairo', sans-serif;">الالتحاقات الجديدة</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                <div id="collapsePages" class="collapse" aria-labelledby="headingPages"
+                    data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">صفحات التسجيل والدخول</h6>
                         <a class="collapse-item" href={{ url('/liveform') }}>فورم التسجيل LIVE!</a>
                         <a class="collapse-item" href={{ url('/new-enrolments') }}>مراجعة طلبات الالتحاق</a>
                         <a class="collapse-item" href={{ url('/max-limits') }}>الحد الأقصى للطلبات</a>
                         <a class="collapse-item" href={{ url('/entry-questions') }}>التحكم في أسئلة القطاعات</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات الالتحاق</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}> تحويل الطلبات إلى النظام
+                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات
+                            الالتحاق</a>
+                        <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}> تحويل الطلبات إلى
+                            النظام
                             الرئيسي</a>
                     </div>
                 </div>
@@ -260,7 +263,8 @@
                                     </div>
                                     <div>
                                         <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to download!</span>
+                                        <span class="font-weight-bold">A new monthly report is ready to
+                                            download!</span>
                                     </div>
                                 </a>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
@@ -285,7 +289,8 @@
                                         Spending Alert: We've noticed unusually high spending for your account.
                                     </div>
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All
+                                    Alerts</a>
                             </div>
                         </li>
 
@@ -329,13 +334,14 @@
                                 </a>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
                                     <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src="https://source.unsplash.com/Mv9hjnEUHR4/60x60"
-                                            alt="...">
+                                        <img class="rounded-circle"
+                                            src="https://source.unsplash.com/Mv9hjnEUHR4/60x60" alt="...">
                                         <div class="status-indicator bg-success"></div>
                                     </div>
 
                                 </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More
+                                    Messages</a>
                             </div>
                         </li>
 
@@ -346,16 +352,16 @@
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small"
-                                    style="font-family: 'Cairo', sans-serif;">{{Auth::user()->FirstName}}
-                                    {{Auth::user()->SecondName}}</span>
-                                <img class="img-profile rounded-circle" src={{ asset("img/undraw_profile.svg")}}>
+                                    style="font-family: 'Cairo', sans-serif;">{{ Auth::user()->FirstName }}
+                                    {{ Auth::user()->SecondName }}</span>
+                                <img class="img-profile rounded-circle" src={{ asset('img/undraw_profile.svg') }}>
                             </a>
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
                                 <a class="dropdown-item">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    {{Auth::user()->ShamandoraCode}}
+                                    {{ Auth::user()->ShamandoraCode }}
                                 </a>
                                 <a class="dropdown-item">
                                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
@@ -401,7 +407,8 @@
                             </div>
 
                             <div class="card shadow mb-4">
-                                <form class="user" id="regForm" method="POST" action="{{ route('group.insert') }}">
+                                <form class="user" id="regForm" method="POST"
+                                    action="{{ route('group.insert') }}">
                                     @csrf
                                     <div class="card-header py-3">
                                         <div class="col mb-3 mb-sm-0">
@@ -416,10 +423,11 @@
                                                         <option
                                                             style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
                                                             value="" disabled selected>اختر نوع المجموعة</option>
-                                                        @foreach($groupTypes as $groupType)
-                                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                            value="{{$groupType->GroupTypeID}}">
-                                                            {{$groupType->GroupTypeName}}</option>
+                                                        @foreach ($groupTypes as $groupType)
+                                                            <option
+                                                                style="font-family: 'Cairo', sans-serif; color: black;"
+                                                                value="{{ $groupType->GroupTypeID }}">
+                                                                {{ $groupType->GroupTypeName }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -436,15 +444,18 @@
                                                             style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
                                                             value="" disabled selected>اختر المجموعة التي تتضمنها
                                                         </option>
-                                                        @foreach($groups as $group)
-                                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                            value="{{$group->GroupID}}">{{$group->GroupInfo}}</option>
+                                                        @foreach ($groups as $group)
+                                                            <option
+                                                                style="font-family: 'Cairo', sans-serif; color: black;"
+                                                                value="{{ $group->GroupID }}">{{ $group->GroupInfo }}
+                                                            </option>
                                                         @endforeach
                                                     </select>
                                                 </div>
 
                                                 <div class="form-group" dir="rtl" style="text-align: right">
-                                                    <label for="groupname" style="font-family: 'Cairo', sans-serif;">اسم
+                                                    <label for="groupname"
+                                                        style="font-family: 'Cairo', sans-serif;">اسم
                                                         المجموعة</label>
                                                     <input type="text" class="form-control form-control-user"
                                                         name="group_name" id="group_name"
@@ -470,7 +481,7 @@
                     <footer class="sticky-footer bg-white">
                         <div class="container my-auto">
                             <div class="copyright text-center my-auto">
-                                <span>Copyright &copy; Shamandora Scouts {{date("Y")}}</span>
+                                <span>Copyright &copy; Shamandora Scouts {{ date('Y') }}</span>
                                 <br />
                                 <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
                                     الكشفية</span>
@@ -491,8 +502,8 @@
             </a>
 
             <!-- Logout Modal-->
-            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
+            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
+                aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -513,19 +524,19 @@
 
 
             <script>
-            $(document).ready(function() {
-                $('#included_under_group_id').select2({
-                    theme: "classic"
+                $(document).ready(function() {
+                    $('#included_under_group_id').select2({
+                        theme: "classic"
+                    });
                 });
-            });
             </script>
 
             <script>
-            $(document).ready(function() {
-                $('#group_type_id').select2({
-                    theme: "classic"
+                $(document).ready(function() {
+                    $('#group_type_id').select2({
+                        theme: "classic"
+                    });
                 });
-            });
             </script>
 
             <!-- Bootstrap core JavaScript-->

@@ -16,9 +16,9 @@
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+    </style>
     <!-- Custom styles for this template-->
     <link href="../css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
@@ -38,37 +38,52 @@
                 <!-- Nested Row within Card Body -->
                 <div class="row">
                     <div class="col-sm-5">
-                    <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
+                        <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
                     </div>
                     <div class="col-sm-7">
                         <div class="p-5">
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">التحاق جديد</h1>
                             </div>
-                            <form class="user" id="regForm" method="POST" action="{{ route('person.liveform-insert') }}">
+                            <form class="user" id="regForm" method="POST"
+                                action="{{ route('person.liveform-insert') }}">
                                 @csrf
                                 <div class="text-center">
-                                    <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال بيانات ملتحق جديد</h1>
-                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء الأول: البيانات الدراسية</h2>
+                                    <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال
+                                        بيانات ملتحق جديد</h1>
+                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
+                                        الأول: البيانات الدراسية</h2>
                                 </div>
                                 <div class="form-group text-center" dir="rtl">
-                                    <label for="sana_marhala_id" style="font-family: 'Cairo', sans-serif;">السنة والمرحلة الدراسية</label>
+                                    <label for="sana_marhala_id" style="font-family: 'Cairo', sans-serif;">السنة
+                                        والمرحلة الدراسية</label>
                                     <br />
-                                    <select class="form-control" style="margin-top: 8px;" name="sana_marhala_id" id="sana_marhala_id" onselect="checkMarhala()" placeholder="اختار السنة والمرحلة الدراسية" onclick="validate('sana_marhala_id')" onfocusout="validate('sana_marhala_id')">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large" value="" disabled selected> اختر السنة والمرحلة الدراسية</option>
-                                    @foreach($seneen_marahel as $sana_marhala)
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="{{$sana_marhala->SanaMarhalaID}}">{{$sana_marhala->SanaMarhalaName}}</option>
-                                    @endforeach
+                                    <select class="form-control" style="margin-top: 8px;" name="sana_marhala_id"
+                                        id="sana_marhala_id" onselect="checkMarhala()"
+                                        placeholder="اختار السنة والمرحلة الدراسية"
+                                        onclick="validate('sana_marhala_id')" onfocusout="validate('sana_marhala_id')">
+                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
+                                            value="" disabled selected> اختر السنة والمرحلة الدراسية</option>
+                                        @foreach ($seneen_marahel as $sana_marhala)
+                                            <option style="font-family: 'Cairo', sans-serif; color: black;"
+                                                value="{{ $sana_marhala->SanaMarhalaID }}">
+                                                {{ $sana_marhala->SanaMarhalaName }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
                                 <div class="form-group text-center" dir="rtl">
-                                    <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر نوع الملتحق <strong>(ذكر أم أنثى)</strong></label>
+                                    <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر نوع الملتحق
+                                        <strong>(ذكر أم أنثى)</strong></label>
                                     <br />
-                                    <select class="form-control" name="gender" id="gender" onChange="" placeholder="اختر النوع">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large" value="" disabled selected>اختر النوع</option>
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;" value="Male">ذكر</option>
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;" value="Female">أنثى</option>
+                                    <select class="form-control" name="gender" id="gender" onChange=""
+                                        placeholder="اختر النوع">
+                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
+                                            value="" disabled selected>اختر النوع</option>
+                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="Male">
+                                            ذكر</option>
+                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="Female">
+                                            أنثى</option>
                                     </select>
                                 </div>
 
@@ -77,15 +92,17 @@
                                     <input type="checkbox" name="newLeadersSchool" checked='' />
                                 </div>
 
-                                <input type="submit" class="btn btn-primary btn-user btn-block" id="submit-button" value="اضغط للاستمرار"></input>
+                                <input type="submit" class="btn btn-primary btn-user btn-block" id="submit-button"
+                                    value="اضغط للاستمرار"></input>
                                 <hr>
                             </form>
 
                             <div class="container my-auto">
                                 <div class="copyright text-center my-auto">
-                                <span>Copyright &copy; Shamandora Scout 2024</span>
+                                    <span>Copyright &copy; Shamandora Scout 2024</span>
                                     <br />
-                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة الكشفية</span>
+                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
+                                        الكشفية</span>
                                 </div>
                             </div>
                         </div>
@@ -110,12 +127,11 @@
     <script>
         function validate(ElementId) {
             const element = document.getElementById(ElementId);
-            if(element.value=='') {
+            if (element.value == '') {
                 //element.style.backgroundColor = '#C53939';
                 //element.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-            }
-            else {
+                document.getElementById('submit-button').disabled = true;
+            } else {
                 //element.style.backgroundColor = 'White';
                 //element.style.color = '#1D43EC';
                 document.getElementById('submit-button').disabled = false;

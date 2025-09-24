@@ -9,9 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
-    body {
-        font-family: 'Cairo', sans-serif;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
     </style>
     @stack('styles')
     <script src="//unpkg.com/alpinejs" defer></script>
@@ -51,84 +51,85 @@
                             class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
                     </div>
                     <div class="text-center">
-                        <h4 class="font-medium text-gray-800">{{Auth::user()->FirstName ?? ''}} {{Auth::user()->SecondName ?? ''}}
+                        <h4 class="font-medium text-gray-800">{{ Auth::user()->FirstName ?? '' }}
+                            {{ Auth::user()->SecondName ?? '' }}
                         </h4>
-                        <p class="text-sm text-gray-500 mt-1">{{Auth::user()->ShamandoraCode ?? ''}}</p>
+                        <p class="text-sm text-gray-500 mt-1">{{ Auth::user()->ShamandoraCode ?? '' }}</p>
                     </div>
                 </div>
 
                 <!-- Navigation Menu -->
                 <nav class="flex-1 overflow-y-auto py-4 lg:overflow-y-auto" style="max-height: calc(100vh - 200px);">
-                    @if(Auth::check())
-                    @php
-                    $user = Auth::user();
-                    $userRoles = $user->role()->get();
-                    @endphp
+                    @if (Auth::check())
+                        @php
+                            $user = Auth::user();
+                            $userRoles = $user->role()->get();
+                        @endphp
 
-                    @if(Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
-                    <!-- System Constants Menu -->
-                    <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">ثوابت النظام</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                        @if (Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
+                            <!-- System Constants Menu -->
+                            <div class="px-3 mb-2">
+                                <div x-data="{ open: false }">
+                                    <button @click="open = !open"
+                                        class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                        <span class="font-medium">ثوابت النظام</span>
+                                        <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
 
 
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('rotab.index') }}>الرتب الكشفية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('blood.index') }}>فصائل الدم</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('marhala.index') }}>المراحل الدراسية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('qetaa.index') }}>القطاعات الكشفية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('sana-marhala.index') }}>السنوات والمراحل الدراسية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('entry-questions.index') }}>أسئلة فورم ادخال بيانات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('person.index') }}>بيانات المستخدمين</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('district.index') }}>الأحياء السكنية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('manteqa.index') }}>المناطق السكنية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('faculty.index') }}>الكليات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('university.index') }}>الجامعات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('role.index') }}>الأدوار والمهام</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('person-role.index') }}>ربط الأدوار والمهام</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('group-type.index') }}>أنواع المجموعات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('group.index') }}>ربط المجموعات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('event-type.index') }}>أنواع الأحداث والمناسبات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('event.index') }}> الأحداث والمناسبات الكشفية</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('group-person.index') }}>ربط الأشخاص بالمجموعات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('season.index') }}>إدارة المواسم</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('season-event.index') }}>ربط موسم بفعالية</a>
-                                <!-- <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('rotab.index') }}>الرتب الكشفية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('blood.index') }}>فصائل الدم</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('marhala.index') }}>المراحل الدراسية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('qetaa.index') }}>القطاعات الكشفية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('sana-marhala.index') }}>السنوات والمراحل الدراسية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('entry-questions.index') }}>أسئلة فورم ادخال بيانات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('person.index') }}>بيانات المستخدمين</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('district.index') }}>الأحياء السكنية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('manteqa.index') }}>المناطق السكنية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('faculty.index') }}>الكليات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('university.index') }}>الجامعات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('role.index') }}>الأدوار والمهام</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('person-role.index') }}>ربط الأدوار والمهام</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('group-type.index') }}>أنواع المجموعات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('group.index') }}>ربط المجموعات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('event-type.index') }}>أنواع الأحداث والمناسبات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('event.index') }}> الأحداث والمناسبات الكشفية</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('group-person.index') }}>ربط الأشخاص بالمجموعات</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('season.index') }}>إدارة المواسم</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('season-event.index') }}>ربط موسم بفعالية</a>
+                                        <!-- <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 href={{ route('betaka.index') }}>ايجازة بطاقة تقدم</a>
                            -->
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    @endif
+                        @endif
                     @endif
 
                     <!-- Federations Menu -->
@@ -178,59 +179,91 @@
                                 </svg>
                             </button>
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                            <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href={{ route('media.index') }}>اضافه صور</a>
-                            <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                @if (Auth::check() &&
+                                        Auth::user()->role()->whereIn('RoleName', ['SuperAdmin', 'Media'])->exists())
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href={{ route('media.index') }}>اضافه صور</a>
+                                @endif
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href={{ route('media.pages') }}>عرض صور</a>
                             </div>
                         </div>
+
                     </div>
 
                     <!-- Finance Menu -->
                     <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الماليه</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-
+                        @if (Auth::check() &&
+                                Auth::user()->role()->whereIn('RoleName', ['SuperAdmin', 'Finance'])->exists())
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">الماليه</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
 
-                     <!-- Inventory Menu -->
-                       <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">العهده</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
 
-                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('inventory.index', ['id' => Auth::id()]) }}">
-                                  العهده
-                                </a>
-                                   <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('inventory-issue.index', ['id' => Auth::id()]) }}">
-                                 طلب عهده
-                                </a>
 
+                    <!-- Secretary Menu -->
+                    <div class="px-3 mb-2">
+                        @if (Auth::check() &&
+                                Auth::user()->role()->whereIn('RoleName', ['SuperAdmin', 'Secretary'])->exists())
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">السيكرتارية</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                </div>
                             </div>
-                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Inventory Menu -->
+                    <div class="px-3 mb-2">
+                        @if (Auth::check() &&
+                                Auth::user()->role()->whereIn('RoleName', ['SuperAdmin', 'Inventory'])->exists())
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">العهده</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('inventory.index', ['id' => Auth::id()]) }}">
+                                        العهده
+                                    </a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('inventory-issue.index', ['id' => Auth::id()]) }}">
+                                        طلب عهده
+                                    </a>
+
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="px-3 mb-2">
@@ -239,66 +272,62 @@
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
                                 <span class="font-medium">بيانات المستخدمين</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-
-
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('person.index', ['id' => Auth::id()]) }}">
                                     بيانات المستخدمين
                                 </a>
-
-
                             </div>
                         </div>
                     </div>
 
                     <div class="px-3 mb-2">
-                        @if(Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">إدارة كلمات المرور</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
-                          
+                        @if (Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">إدارة كلمات المرور</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
+
+                                </div>
                             </div>
-                        </div>
                         @endif
                     </div>
 
                     <!-- Profile Menu -->
                     <div class="px-3 mb-2">
-                        @if(Auth::check())
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الملف الشخصي</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('profile.show') }}">عرض الملف الشخصي</a>
+                        @if (Auth::check())
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">الملف الشخصي</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('profile.show') }}">عرض الملف الشخصي</a>
+                                </div>
                             </div>
-                        </div>
                         @endif
                     </div>
                 </nav>
@@ -341,14 +370,16 @@
 
                     <div class="flex items-center gap-3">
                         <!-- Page Title - Only on desktop -->
-                        @if(isset($pageTitle))
-                        <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl">{{ $pageTitle }}</h1>
+                        @if (isset($pageTitle))
+                            <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl">{{ $pageTitle }}
+                            </h1>
                         @endif
                     </div>
                     <div class="flex items-center gap-3">
                         <!-- Logo - Clickable to go to the top index -->
                         <a href="{{ url('/') }}">
-                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-14 w-auto sm:h-14 lg:h-20">
+                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
+                                class="h-14 w-auto sm:h-14 lg:h-20">
                         </a>
                     </div>
 
@@ -387,42 +418,42 @@
 
     <!-- JavaScript -->
     <script>
-    // Sidebar functionality
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const closeSidebar = document.getElementById('closeSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
+        // Sidebar functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
 
-    function openSidebar() {
-        sidebar.classList.remove('translate-x-full');
-        overlay.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeSidebarFunc() {
-        sidebar.classList.add('translate-x-full');
-        overlay.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-
-    // Event listeners
-    sidebarToggle?.addEventListener('click', openSidebar);
-    closeSidebar?.addEventListener('click', closeSidebarFunc);
-    overlay?.addEventListener('click', closeSidebarFunc);
-
-    // Close sidebar on desktop resize
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 1024) {
-            closeSidebarFunc();
+        function openSidebar() {
+            sidebar.classList.remove('translate-x-full');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
-    });
 
-    // Escape key handler
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && window.innerWidth < 1024) {
-            closeSidebarFunc();
+        function closeSidebarFunc() {
+            sidebar.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = '';
         }
-    });
+
+        // Event listeners
+        sidebarToggle?.addEventListener('click', openSidebar);
+        closeSidebar?.addEventListener('click', closeSidebarFunc);
+        overlay?.addEventListener('click', closeSidebarFunc);
+
+        // Close sidebar on desktop resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeSidebarFunc();
+            }
+        });
+
+        // Escape key handler
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && window.innerWidth < 1024) {
+                closeSidebarFunc();
+            }
+        });
     </script>
 
     @stack('scripts')

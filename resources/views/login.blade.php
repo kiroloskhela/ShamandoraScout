@@ -7,29 +7,29 @@
     <title>تسجيل الدخول</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
-    body {
-        font-family: 'Cairo', sans-serif;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
 
-    .input-field {
-        transition: all 0.3s ease;
-    }
+        .input-field {
+            transition: all 0.3s ease;
+        }
 
-    .input-field:focus {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: #6b7280;
-    }
+        .input-field:focus {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #6b7280;
+        }
 
-    .login-btn {
-        transition: all 0.3s ease;
-    }
+        .login-btn {
+            transition: all 0.3s ease;
+        }
 
-    .login-btn:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-1px);
-    }
+        .login-btn:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -77,7 +77,8 @@
                     <div class="text-center mt-6">
                         <p class="text-gray-600">
                             ليس لديك حساب؟
-                            <a href="#" class="text-gray-800 hover:underline font-medium transition-all duration-300">
+                            <a href="#"
+                                class="text-gray-800 hover:underline font-medium transition-all duration-300">
                                 إنشاء حساب جديد
                             </a>
                         </p>
@@ -97,7 +98,7 @@
                     </div>
                 </div>
                 <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center text-gray-800">
-                 مجموعة الشمندورة الكشافة
+                    مجموعة الشمندورة الكشافة
                 </h1>
                 <p class="text-lg lg:text-xl text-center text-gray-600 max-w-md">
                     منارة للقيادة والتوجيه في رحلة الكشافة
@@ -107,17 +108,17 @@
     </div>
 
     <script>
-    // Simple focus effects for input fields
-    const inputs = document.querySelectorAll('.input-field');
-    inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-            input.style.transform = 'translateY(-1px)';
-        });
+        // Simple focus effects for input fields
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.transform = 'translateY(-1px)';
+            });
 
-        input.addEventListener('blur', () => {
-            input.style.transform = 'translateY(0)';
+            input.addEventListener('blur', () => {
+                input.style.transform = 'translateY(0)';
+            });
         });
-    });
     </script>
 </body>
 

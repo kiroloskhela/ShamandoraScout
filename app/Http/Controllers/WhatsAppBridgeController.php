@@ -108,14 +108,7 @@ class WhatsAppBridgeController extends Controller
         return '+2'.$digits;
     }
 
-    /**
-     * Find person by phone number.
-     * Tries multiple representations to match what's in DB:
-     *  - exact normalized +20XXXXXXXXXX
-     *  - '0' + last 10/11 digits (local)
-     *  - raw digits
-     * Returns a stdClass with name fields & Gender from PersonInformation.
-     */
+
     private function findPersonByPhone(string $normalizedE164)
     {
         // Build variants

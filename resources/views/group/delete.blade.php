@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
     <!-- Custom styles for this template-->
@@ -61,7 +61,7 @@
                         @csrf
                         <div class="card-header py-3">
                             <div class="col-sm-3 mb-3 mb-sm-0">
-                                <label>هل أنت متأكد من حذف المجموعة رقم: {{$group->GroupID}}؟</label>
+                                <label>هل أنت متأكد من حذف المجموعة رقم: {{ $group->GroupID }}؟</label>
                                 <input type="submit" class="btn-google btn-user btn-block"
                                     style="background-color: brown;" id="submit-button" value="حذف"></input>
                                 <a href="{{ route('group.index') }}">رجوع</a>
@@ -102,27 +102,27 @@
     <script src="js/demo/datatables-demo.js"></script>
 
     <script>
-    /*    function myFunction() {
-        const first_name = document.getElementById('rotba_name');
-        if(first_name.value=='') {
-        first_name.style.backgroundColor = '#C53939';
-        first_name.style.color = '#FFFFFF';
-        document.getElementById('submit-button').disabled = true;
+        /*    function myFunction() {
+            const first_name = document.getElementById('rotba_name');
+            if(first_name.value=='') {
+            first_name.style.backgroundColor = '#C53939';
+            first_name.style.color = '#FFFFFF';
+            document.getElementById('submit-button').disabled = true;
+            }
+            else {
+                first_name.style.backgroundColor = 'White';
+                first_name.style.color = '#1D43EC';
+            }
         }
-        else {
-            first_name.style.backgroundColor = 'White';
-            first_name.style.color = '#1D43EC';
-        }
-    }
 
-    function clickSubmitButton(){
-        const rotba_name = document.getElementById('rotba_name');
-        if(rotba_name.value==''){
-            alert("الرجاء ادخال البيانات بشكل صحيح");
-                return false;
+        function clickSubmitButton(){
+            const rotba_name = document.getElementById('rotba_name');
+            if(rotba_name.value==''){
+                alert("الرجاء ادخال البيانات بشكل صحيح");
+                    return false;
+            }
         }
-    }
-    */
+        */
     </script>
 
 </body>
@@ -130,11 +130,10 @@
 </html>
 
 
-@extends('layouts.app' , ['pageTitle' => "حذف مجموعة" ?? ''])
+@extends('layouts.app', ['pageTitle' => 'حذف مجموعة' ?? ''])
 
 @section('content')
-<x-form-card title="مسح اسم المجموعة" :action="route('group.destroy', $group->GroupID)" method="DELETE"
-    :inputValue="$group->GroupName" inputPlaceholder="ادخل اسم المجموعة" inputLabel="تعديل اسم المجموعة"
-    submitText="مسح" submitColor="red" pageTitle="المجموعات" />
-
+    <x-form-card title="مسح اسم المجموعة" :action="route('group.destroy', $group->GroupID)" method="DELETE" :inputValue="$group->GroupName"
+        inputPlaceholder="ادخل اسم المجموعة" inputLabel="تعديل اسم المجموعة" submitText="مسح" submitColor="red"
+        pageTitle="المجموعات" />
 @endsection

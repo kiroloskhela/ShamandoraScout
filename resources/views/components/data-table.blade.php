@@ -1,15 +1,15 @@
 {{-- resources/views/components/data-table.blade.php --}}
 @props([
-'data' => [],
-'columns' => [],
-'actions' => [],
-'searchable' => true,
-'sortable' => true,
-'pagination' => true,
-'perPage' => 10,
-'tableId' => 'dataTable',
-'title' => '',
-'addButton' => null
+    'data' => [],
+    'columns' => [],
+    'actions' => [],
+    'searchable' => true,
+    'sortable' => true,
+    'pagination' => true,
+    'perPage' => 10,
+    'tableId' => 'dataTable',
+    'title' => '',
+    'addButton' => null,
 ])
 
 <div class="bg-white shadow-lg rounded-lg overflow-hidden" x-data="dataTable({
@@ -69,8 +69,10 @@
                                     class="mr-2 text-gray-400 hover:text-gray-600">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            :class="sortColumn === column.key ? (sortDirection === 'desc' ? 'text-blue-500' : 'text-blue-500') : ''"
-                                            :d="sortColumn === column.key ? (sortDirection === 'desc' ? 'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7') : 'M8 9l4-4 4 4m0 6l-4 4-4-4'">
+                                            :class="sortColumn === column.key ? (sortDirection === 'desc' ?
+                                                'text-blue-500' : 'text-blue-500') : ''"
+                                            :d="sortColumn === column.key ? (sortDirection === 'desc' ?
+                                                'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7') : 'M8 9l4-4 4 4m0 6l-4 4-4-4'">
                                         </path>
                                     </svg>
                                 </button>
@@ -98,7 +100,8 @@
                                 </div>
                                 <div x-show="column.type === 'badge'">
                                     <span
-                                        :class="column.cssClass || 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'"
+                                        :class="column.cssClass ||
+                                            'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'"
                                         x-text="getNestedValue(item, column.key)"></span>
                                 </div>
                             </td>
@@ -106,8 +109,10 @@
                         <td x-show="actions.length > 0"
                             class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
                             <template x-for="action in actions" :key="action.name">
-                                <a :href="action.route ? action.route.replace(':id', getNestedValue(item, action.idField || 'id')) : '#'"
-                                    :class="action.cssClass || 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
+                                <a :href="action.route ? action.route.replace(':id', getNestedValue(item, action.idField ||
+                                    'id')) : '#'"
+                                    :class="action.cssClass ||
+                                        'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
                                     x-text="action.label">
                                 </a>
                             </template>
@@ -154,7 +159,8 @@
 
                 <template x-for="page in visiblePages" :key="page">
                     <button @click="goToPage(page)"
-                        :class="page === currentPage ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+                        :class="page === currentPage ? 'bg-blue-50 border-blue-500 text-blue-600' :
+                            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
                         class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md"
                         x-text="page">
                     </button>
@@ -174,140 +180,140 @@
 </div>
 
 <script>
-function dataTable(options) {
-    return {
-        // Data
-        originalData: options.data || [],
-        filteredData: options.data || [],
-        paginatedData: [],
-        columns: options.columns || [],
-        actions: options.actions || [],
-        title: options.title || '',
-        addButton: options.addButton || null,
+    function dataTable(options) {
+        return {
+            // Data
+            originalData: options.data || [],
+            filteredData: options.data || [],
+            paginatedData: [],
+            columns: options.columns || [],
+            actions: options.actions || [],
+            title: options.title || '',
+            addButton: options.addButton || null,
 
-        // Features
-        searchable: options.searchable ?? true,
-        sortable: options.sortable ?? true,
-        pagination: options.pagination ?? true,
-        perPage: options.perPage || 10,
+            // Features
+            searchable: options.searchable ?? true,
+            sortable: options.sortable ?? true,
+            pagination: options.pagination ?? true,
+            perPage: options.perPage || 10,
 
-        // State
-        searchTerm: '',
-        sortColumn: '',
-        sortDirection: 'asc',
-        currentPage: 1,
+            // State
+            searchTerm: '',
+            sortColumn: '',
+            sortDirection: 'asc',
+            currentPage: 1,
 
-        // Computed
-        get totalPages() {
-            return Math.ceil(this.filteredData.length / this.perPage);
-        },
+            // Computed
+            get totalPages() {
+                return Math.ceil(this.filteredData.length / this.perPage);
+            },
 
-        get startRecord() {
-            return ((this.currentPage - 1) * this.perPage) + 1;
-        },
+            get startRecord() {
+                return ((this.currentPage - 1) * this.perPage) + 1;
+            },
 
-        get endRecord() {
-            const end = this.currentPage * this.perPage;
-            return end > this.filteredData.length ? this.filteredData.length : end;
-        },
+            get endRecord() {
+                const end = this.currentPage * this.perPage;
+                return end > this.filteredData.length ? this.filteredData.length : end;
+            },
 
-        get visiblePages() {
-            const pages = [];
-            const total = this.totalPages;
-            const current = this.currentPage;
+            get visiblePages() {
+                const pages = [];
+                const total = this.totalPages;
+                const current = this.currentPage;
 
-            if (total <= 7) {
-                for (let i = 1; i <= total; i++) {
-                    pages.push(i);
-                }
-            } else {
-                if (current <= 4) {
-                    for (let i = 1; i <= 5; i++) {
-                        pages.push(i);
-                    }
-                    pages.push('...');
-                    pages.push(total);
-                } else if (current >= total - 3) {
-                    pages.push(1);
-                    pages.push('...');
-                    for (let i = total - 4; i <= total; i++) {
+                if (total <= 7) {
+                    for (let i = 1; i <= total; i++) {
                         pages.push(i);
                     }
                 } else {
-                    pages.push(1);
-                    pages.push('...');
-                    for (let i = current - 1; i <= current + 1; i++) {
-                        pages.push(i);
+                    if (current <= 4) {
+                        for (let i = 1; i <= 5; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(total);
+                    } else if (current >= total - 3) {
+                        pages.push(1);
+                        pages.push('...');
+                        for (let i = total - 4; i <= total; i++) {
+                            pages.push(i);
+                        }
+                    } else {
+                        pages.push(1);
+                        pages.push('...');
+                        for (let i = current - 1; i <= current + 1; i++) {
+                            pages.push(i);
+                        }
+                        pages.push('...');
+                        pages.push(total);
                     }
-                    pages.push('...');
-                    pages.push(total);
                 }
-            }
 
-            return pages.filter(page => page !== '...');
-        },
+                return pages.filter(page => page !== '...');
+            },
 
-        // Methods
-        init() {
-            this.updatePaginatedData();
-        },
-
-        search() {
-            if (!this.searchTerm.trim()) {
-                this.filteredData = [...this.originalData];
-            } else {
-                const term = this.searchTerm.toLowerCase();
-                this.filteredData = this.originalData.filter(item => {
-                    return this.columns.some(column => {
-                        const value = this.getNestedValue(item, column.key);
-                        return value && value.toString().toLowerCase().includes(term);
-                    });
-                });
-            }
-            this.currentPage = 1;
-            this.updatePaginatedData();
-        },
-
-        sort(column) {
-            if (this.sortColumn === column) {
-                this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                this.sortColumn = column;
-                this.sortDirection = 'asc';
-            }
-
-            this.filteredData.sort((a, b) => {
-                const aVal = this.getNestedValue(a, column);
-                const bVal = this.getNestedValue(b, column);
-
-                if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
-                if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            this.updatePaginatedData();
-        },
-
-        goToPage(page) {
-            if (page >= 1 && page <= this.totalPages) {
-                this.currentPage = page;
+            // Methods
+            init() {
                 this.updatePaginatedData();
-            }
-        },
+            },
 
-        updatePaginatedData() {
-            if (this.pagination) {
-                const start = (this.currentPage - 1) * this.perPage;
-                const end = start + this.perPage;
-                this.paginatedData = this.filteredData.slice(start, end);
-            } else {
-                this.paginatedData = this.filteredData;
-            }
-        },
+            search() {
+                if (!this.searchTerm.trim()) {
+                    this.filteredData = [...this.originalData];
+                } else {
+                    const term = this.searchTerm.toLowerCase();
+                    this.filteredData = this.originalData.filter(item => {
+                        return this.columns.some(column => {
+                            const value = this.getNestedValue(item, column.key);
+                            return value && value.toString().toLowerCase().includes(term);
+                        });
+                    });
+                }
+                this.currentPage = 1;
+                this.updatePaginatedData();
+            },
 
-        getNestedValue(obj, path) {
-            return path.split('.').reduce((current, key) => current && current[key], obj);
+            sort(column) {
+                if (this.sortColumn === column) {
+                    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortColumn = column;
+                    this.sortDirection = 'asc';
+                }
+
+                this.filteredData.sort((a, b) => {
+                    const aVal = this.getNestedValue(a, column);
+                    const bVal = this.getNestedValue(b, column);
+
+                    if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                this.updatePaginatedData();
+            },
+
+            goToPage(page) {
+                if (page >= 1 && page <= this.totalPages) {
+                    this.currentPage = page;
+                    this.updatePaginatedData();
+                }
+            },
+
+            updatePaginatedData() {
+                if (this.pagination) {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    const end = start + this.perPage;
+                    this.paginatedData = this.filteredData.slice(start, end);
+                } else {
+                    this.paginatedData = this.filteredData;
+                }
+            },
+
+            getNestedValue(obj, path) {
+                return path.split('.').reduce((current, key) => current && current[key], obj);
+            }
         }
     }
-}
 </script>

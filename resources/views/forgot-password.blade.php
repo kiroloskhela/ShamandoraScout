@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
@@ -38,27 +38,32 @@
                         <!-- Nested Row within Card Body -->
                         <div class="row">
                             <div class="col-lg-6 d-none d-lg-block">
-                            <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
+                                <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
                             </div>
                             <div class="col-lg-6">
                                 <div class="p-5" style="margin-top: 100px;">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-2" style="font-family: 'Cairo', sans-serif;">نسيت كلمة السر؟</h1>
-                                        <p dir="rtl" class="mb-4" style="font-family: 'Cairo', sans-serif;">أدخل البريد الالكتروني المسجل لدينا وسوف نرسل لك طريقة لتجديد كلمة السر!</p>
+                                        <h1 class="h4 text-gray-900 mb-2" style="font-family: 'Cairo', sans-serif;">نسيت
+                                            كلمة السر؟</h1>
+                                        <p dir="rtl" class="mb-4" style="font-family: 'Cairo', sans-serif;">أدخل
+                                            البريد الالكتروني المسجل لدينا وسوف نرسل لك طريقة لتجديد كلمة السر!</p>
                                     </div>
                                     <form class="user">
                                         <div class="form-group">
-                                            <input dir="rtl" style="font-family: 'Cairo', sans-serif;" type="email" class="form-control form-control-user"
+                                            <input dir="rtl" style="font-family: 'Cairo', sans-serif;"
+                                                type="email" class="form-control form-control-user"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
                                                 placeholder="البريد الالكتروني ...">
                                         </div>
-                                        <a href={{ url('/index') }} class="btn btn-primary btn-user btn-block" style="font-family: 'Cairo', sans-serif;">
+                                        <a href={{ url('/index') }} class="btn btn-primary btn-user btn-block"
+                                            style="font-family: 'Cairo', sans-serif;">
                                             تعديل كلمة السر
                                         </a>
                                     </form>
                                     <hr>
                                     <div class="text-center">
-                                        <a class="small" style="font-family: 'Cairo', sans-serif;" href={{ url('/login-auth') }}>لديك حساب بالفعل؟ قم بتسجيل الدخول</a>
+                                        <a class="small" style="font-family: 'Cairo', sans-serif;"
+                                            href={{ url('/login-auth') }}>لديك حساب بالفعل؟ قم بتسجيل الدخول</a>
                                     </div>
                                 </div>
                             </div>
