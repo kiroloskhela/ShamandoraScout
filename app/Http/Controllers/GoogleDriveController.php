@@ -26,25 +26,31 @@ class GoogleDriveController extends Controller
         return redirect()->away($client->createAuthUrl());
     }
 
-    public function handleGoogleCallback(Request $request)
-    {
-        $client = $this->getClient();
+   public function handleGoogleCallback(Request $request)
+{
+    $client = $this->getClient();
 
-        if ($request->has('code')) {
-            $token = $client->fetchAccessTokenWithAuthCode($request->input('code'));
+    if ($request->has('code')) {
+        $token = $client->fetchAccessTokenWithAuthCode($request->input('code'));
 
-            if (isset($token['error'])) {
-                return response()->json(['error' => $token['error']], 400);
-            }
-
-            // ✅ Store token persistently
-            Storage::put('google-token.json', json_encode($token));
-
-            return response()->json(['status' => 'Google Drive connected successfully!']);
+        if (isset($token['error'])) {
+            return response()->json(['error' => $token['error']], 400);
         }
 
-        return "❌ Error: no code returned from Google.";
+        // ✅ Important: add refresh_token if available
+        if ($client->getRefreshToken()) {
+            $token['refresh_token'] = $client->getRefreshToken();
+        }
+
+        // ✅ Save token persistently
+        Storage::put('google-token.json', json_encode($token));
+
+        return response()->json(['status' => 'Google Drive connected successfully!']);
     }
+
+    return "❌ Error: no code returned from Google.";
+}
+
 
     public function uploadTestFile()
     {
@@ -56,13 +62,12 @@ class GoogleDriveController extends Controller
             $client->setAccessToken($token);
 
             // ✅ Refresh if expired
-            if ($client->isAccessTokenExpired()) {
-                if ($client->getRefreshToken()) {
-                    $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-                    $client->setAccessToken($newToken);
-                    Storage::put('google-token.json', json_encode($newToken));
-                }
-            }
+         if ($client->isAccessTokenExpired()) {
+    if (isset($token['refresh_token'])) {
+        $client->fetchAccessTokenWithRefreshToken($token['refresh_token']);
+        Storage::put('google-token.json', json_encode($client->getAccessToken()));
+    }
+}
         } else {
             return "❌ No saved token, please connect first.";
         }
