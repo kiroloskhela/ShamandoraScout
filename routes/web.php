@@ -408,7 +408,5 @@ Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class,'sa
 
 
 
-
-
 Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
 Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');

@@ -8,144 +8,142 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceController extends Controller
 {
-    // Optional middleware
-    // public function __construct(){ $this->middleware('auth'); }
+    // public function __construct() { $this->middleware('auth'); }
 
- public function manage(Request $request)
-{
-    $me = \Illuminate\Support\Facades\Auth::user();
-    $meId = optional($me)->PersonID ?? \Illuminate\Support\Facades\Auth::id();
+    public function manage(Request $request)
+    {
+        $me = Auth::user();
+        $meId = optional($me)->PersonID ?? Auth::id();
 
-    $seasons = DB::table('Season')->select('SeasonID','SeasonName','SeasonYear')->orderBy('SeasonYear','desc')->get();
-
-    $seasonId = $request->get('season_id');
-    $seasonEventId = $request->get('season_event_id');
-
-    // 1) My groups
-    $myGroups = DB::table('PersonGroup')
-        ->where('PersonID', $meId)
-        ->pluck('GroupID')
-        ->toArray();
-
-    $events = collect();
-    $persons = collect();
-    $attendance = [];
-
-    // 2) Events in this season that overlap with MY GROUPS (via EventQetaa ↔ GroupQetaa)
-    if ($seasonId && !empty($myGroups)) {
-        $events = DB::table('SeasonEvent as se')
-            ->join('Event as e','e.EventID','=','se.EventID')
-            ->where('se.SeasonID', $seasonId)
-            ->whereExists(function($q) use ($myGroups) {
-                $q->select(DB::raw(1))
-                  ->from('EventQetaa as eq')
-                  ->join('GroupQetaa as gq','gq.QetaaID','=','eq.QetaaID')
-                  ->whereColumn('eq.EventID','se.EventID')
-                  ->whereIn('gq.GroupID', $myGroups)
-                  ->limit(1);
-            })
-            ->select('se.SeasonEventID','se.SeasonID','e.EventID','e.EventName','e.EventStartDate','e.EventEndDate')
-            ->orderBy('e.EventStartDate','asc')
+        // Seasons
+        $seasons = DB::table('Season')
+            ->select('SeasonID','SeasonName','SeasonYear')
+            ->orderBy('SeasonYear','desc')
             ->get();
-    }
 
-    // 3) Persons = people IN QetaaIDs (via PersonQetaa), limited to
-    //    intersection( my Qetaas, event's Qetaas )
-    if ($seasonEventId && !empty($myGroups)) {
-        $eventId = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->value('EventID');
+        $seasonId = $request->get('season_id');
+        $seasonEventId = $request->get('season_event_id');
 
-        // QetaaIDs of my groups
-        $myQetaas = DB::table('GroupQetaa')
-            ->whereIn('GroupID', $myGroups)
-            ->pluck('QetaaID')
+        // My groups
+        $myGroups = DB::table('PersonGroup')
+            ->where('PersonID', $meId)
+            ->pluck('GroupID')
             ->toArray();
 
-        // QetaaIDs of the selected event
-        $eventQetaas = DB::table('EventQetaa')
-            ->where('EventID', $eventId)
-            ->pluck('QetaaID')
-            ->toArray();
+        $events = collect();
+        $persons = collect();
+        $attendanceIds = [];
+        $tableRows = [];
 
-        // Intersection
-        $allowedQetaas = array_values(array_intersect($myQetaas, $eventQetaas));
-
-        if (!empty($allowedQetaas)) {
-            // 🔹 persons come from PersonQetaa (NOT PersonGroup)
-            $persons = DB::table('PersonQetaa as pq')
-                ->join('PersonInformation as p','p.PersonID','=','pq.PersonID')
-                ->whereIn('pq.QetaaID', $allowedQetaas)
-                ->select('p.PersonID','p.FirstName','p.SecondName','p.ThirdName','p.FourthName')
-                ->distinct()
-                ->orderBy('p.FirstName')
+        // Events in season that overlap with my groups via EventQetaa ↔ GroupQetaa
+        if ($seasonId && !empty($myGroups)) {
+            $events = DB::table('SeasonEvent as se')
+                ->join('Event as e','e.EventID','=','se.EventID')
+                ->where('se.SeasonID', $seasonId)
+                ->whereExists(function($q) use ($myGroups){
+                    $q->select(DB::raw(1))
+                      ->from('EventQetaa as eq')
+                      ->join('GroupQetaa as gq','gq.QetaaID','=','eq.QetaaID')
+                      ->whereColumn('eq.EventID','se.EventID')
+                      ->whereIn('gq.GroupID', $myGroups)
+                      ->limit(1);
+                })
+                ->select('se.SeasonEventID','se.SeasonID','e.EventID','e.EventName','e.EventStartDate','e.EventEndDate')
+                ->orderBy('e.EventStartDate','asc')
                 ->get();
-
-            // Existing attendance for pre-check
-            $attendance = DB::table('Attendance')
-                ->where('SeasonEventID',$seasonEventId)
-                ->pluck('ServedID')
-                ->toArray();
         }
+
+        // Persons = members of PersonQetaa in intersection(my Qetaas, event Qetaas)
+        if ($seasonEventId && !empty($myGroups)) {
+            $eventId = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->value('EventID');
+
+            $myQetaas = DB::table('GroupQetaa')
+                ->whereIn('GroupID', $myGroups)
+                ->pluck('QetaaID')
+                ->toArray();
+
+            $eventQetaas = DB::table('EventQetaa')
+                ->where('EventID', $eventId)
+                ->pluck('QetaaID')
+                ->toArray();
+
+            $allowedQetaas = array_values(array_intersect($myQetaas, $eventQetaas));
+
+            if (!empty($allowedQetaas)) {
+                $persons = DB::table('PersonQetaa as pq')
+                    ->join('PersonInformation as p','p.PersonID','=','pq.PersonID')
+                    ->leftJoin('PersonPhoneNumbers as ph','ph.PersonID','=','p.PersonID')
+                    ->leftJoin('PersonSanaMarhala as psm','psm.PersonID','=','p.PersonID')
+                    ->leftJoin('SanaMarhala as sm','sm.SanaMarhalaID','=','psm.SanaMarhalaID')
+                    ->leftJoin('Qetaa as q','q.QetaaID','=','pq.QetaaID')
+                    ->whereIn('pq.QetaaID', $allowedQetaas)
+                    ->groupBy('p.PersonID','p.FirstName','p.SecondName','p.ThirdName','p.FourthName','sm.SanaMarhalaName')
+                    ->selectRaw("
+                        p.PersonID,
+                        p.FirstName, p.SecondName, p.ThirdName, p.FourthName,
+                        COALESCE(MAX(ph.PersonPersonalMobileNumber),'') as PhoneNumber,
+                        COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ', '),'') as QetaaName,
+                        COALESCE(sm.SanaMarhalaName,'') as SanaMarhalaName
+                    ")
+                    ->orderBy('p.FirstName')
+                    ->get();
+
+                $attendanceIds = DB::table('Attendance')
+                    ->where('SeasonEventID',$seasonEventId)
+                    ->pluck('ServedID')
+                    ->toArray();
+
+                $tableRows = $persons->map(function($p) use ($attendanceIds){
+                    $fullName = trim("{$p->FirstName} {$p->SecondName} {$p->ThirdName} {$p->FourthName}");
+                    $isPresent = in_array($p->PersonID, $attendanceIds);
+                    return [
+                        'PersonID'        => (int)$p->PersonID,
+                        'PersonName'      => $fullName,
+                        'PhoneNumber'     => $p->PhoneNumber,
+                        'QetaaName'       => $p->QetaaName,
+                        'SanaMarhalaName' => $p->SanaMarhalaName,
+                        'Attended'        => $isPresent ? 'نعم' : 'لا',
+                    ];
+                })->toArray();
+            }
+        }
+
+        return view('attendance.manage', [
+            'seasons'        => $seasons,
+            'events'         => $events,
+            'seasonId'       => $seasonId,
+            'seasonEventId'  => $seasonEventId,
+            'tableRows'      => $tableRows,
+            'attendanceIds'  => $attendanceIds,
+            'me'             => $me,
+        ]);
     }
 
-    return view('attendance.manage', compact(
-        'seasons','events','persons','attendance','seasonId','seasonEventId','me'
-    ));
-}
-
-
+    // Save all toggles (non-AJAX submit)
     public function save(Request $request, $seasonEventId)
     {
-        // Servent is ALWAYS the logged-in user
         $serventId = optional(Auth::user())->PersonID ?? Auth::id();
 
-        // We will re-enforce access: only save for groups the user serves & that belong to this event
-        $myGroupIds = DB::table('PersonGroup')
-            ->where('PersonID', $serventId)
-            ->pluck('GroupID');
+        $request->validate([
+            'ServedIDs' => 'array'
+        ]);
 
-        if ($myGroupIds->isEmpty()) {
-            return back()->with('success','لا تمتلك مجموعات لادارة حضورها.');
-        }
-
-        $eventId = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->value('EventID');
-        if (!$eventId) {
-            return back()->with('success','الفعالية غير موجودة.');
-        }
-
-        $eventQetaaIds = DB::table('EventQetaa')->where('EventID', $eventId)->pluck('QetaaID');
-        $eventGroupIds = DB::table('GroupQetaa')->whereIn('QetaaID', $eventQetaaIds)->pluck('GroupID');
-        $allowedGroupIds = $eventGroupIds->intersect($myGroupIds)->values();
-
-        // Normalize ServedIDs (only keep persons from allowed groups)
-        $servedIds = collect($request->input('ServedIDs', []))->map(fn($v)=>(int)$v)->unique()->values();
-
-        if ($servedIds->isNotEmpty()) {
-            // Filter servedIds to persons that are actually in allowed groups
-            $validServedIds = DB::table('PersonGroup')
-                ->whereIn('GroupID', $allowedGroupIds)
-                ->whereIn('PersonID', $servedIds)
-                ->pluck('PersonID');
-
-            $servedIds = $servedIds->intersect($validServedIds)->values();
-        }
-
-        // Replace attendance for this SeasonEvent with the filtered list
         DB::table('Attendance')->where('SeasonEventID', $seasonEventId)->delete();
 
-        if ($servedIds->isNotEmpty()) {
-            $rows = $servedIds->map(function($sid) use ($seasonEventId, $serventId) {
-                return [
-                    'SeasonEventID' => (int)$seasonEventId,
-                    'ServedID'      => (int)$sid,
-                    'ServentID'     => (int)$serventId,
-                ];
-            })->all();
-
+        $rows = [];
+        foreach ((array)$request->input('ServedIDs', []) as $servedId) {
+            $rows[] = [
+                'SeasonEventID' => (int)$seasonEventId,
+                'ServedID'      => (int)$servedId,
+                'ServentID'     => (int)$serventId,
+            ];
+        }
+        if (!empty($rows)) {
             DB::table('Attendance')->insert($rows);
         }
 
         return redirect()->route('attendance.manage', [
-            'season_id' => $request->season_id,
+            'season_id'       => $request->season_id,
             'season_event_id' => $seasonEventId
         ])->with('success','تم حفظ الحضور بنجاح');
     }
