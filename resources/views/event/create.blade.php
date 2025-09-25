@@ -2,36 +2,41 @@
 
 @section('content')
     <div class="container-fluid">
-
-        <!-- Event Form using x-form-card concept -->
         <div class="flex place-content-center mb-8">
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl border-2 border-blue-300" dir="rtl">
-                <!-- Card Title -->
+                <!-- Title -->
                 <div class="mb-6 text-center">
                     <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">
                         اضافة حدث/مناسبة جديدة
                     </h2>
                 </div>
 
+                <!-- Errors -->
+                @if ($errors->any())
+                    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 text-sm">
+                        <ul class="list-disc pr-5 space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form class="user" id="regForm" method="POST" action="{{ route('event.insert') }}">
                     @csrf
                     <div class="space-y-6">
 
-                        <!-- Event Type Selection -->
-                        <div class="relative">
+                        <!-- Event Type -->
+                        <div>
                             <label for="event_type_id" class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                نوع الحدث أو المناسبة الكشفية
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">نوع الحدث أو المناسبة
+                                الكشفية</label>
                             <select name="event_type_id" id="event_type_id" required
-                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-500 focus:border-blue-300 focus:outline-none text-right"
+                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
                                 <option value="" disabled selected>اختر نوع الحدث أو المناسبة الكشفية</option>
                                 @foreach ($eventTypes as $eventType)
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                        value="{{ $eventType->EventTypeID }}">
-                                        {{ $eventType->EventTypeName }}
-                                    </option>
+                                    <option value="{{ $eventType->EventTypeID }}">{{ $eventType->EventTypeName }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -39,31 +44,24 @@
                         <!-- Event Name -->
                         <div class="relative">
                             <input id="event_name" type="text" name="event_name" required
-                                placeholder="ادخل اسم الحدث أو المناسبة" onfocusout="myFunction()"
-                                class="relative w-full h-12 px-4 text-sm placeholder-transparent transition-all border rounded-lg outline-none focus-visible:outline-none peer border-slate-200 text-slate-500 autofill:bg-white invalid:border-blue-300 invalid:text-blue-300 focus:border-blue-400 focus:outline-none invalid:focus:border-blue-400 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 text-right"
+                                placeholder="ادخل اسم الحدث أو المناسبة"
+                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium" />
-                            <label for="event_name"
-                                class="cursor-text peer-focus:cursor-default peer-autofill:-top-2 absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 transition-all before:absolute before:top-0 before:right-0 before:z-[-1] before:block before:h-full before:w-full before:bg-white before:transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-required:after:text-blue-500 peer-required:after:content-['\00a0*'] peer-invalid:text-blue-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-blue-300 peer-invalid:peer-focus:text-blue-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400 peer-disabled:before:bg-transparent"
-                                style="font-family: 'Cairo', sans-serif;">
-                                اسم الحدث أو المناسبة الكشفية
-                            </label>
+                            <label for="event_name" class="sr-only">اسم الحدث</label>
                         </div>
 
-                        <!-- Qetaa Multi-Selection with Checkboxes -->
-                        <div class="relative">
+                        <!-- Qetaa Multi-Selection -->
+                        <div>
                             <label class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                اختر القطاعات المربوطة بهذا الحدث
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">اختر القطاعات المربوطة بهذا
+                                الحدث</label>
                             <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
                                 @foreach ($qetaat as $qetaa)
                                     <label class="flex items-center mb-2 cursor-pointer hover:bg-slate-50 p-2 rounded"
                                         style="font-family: 'Cairo', sans-serif; direction: rtl;">
                                         <input type="checkbox" name="qetaa_id[]" value="{{ $qetaa->QetaaID }}"
-                                            class="ml-2 w-4 h-4 text-blue-300 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
-                                        <span class="text-sm text-slate-700" style="font-family: 'Cairo', sans-serif;">
-                                            {{ $qetaa->QetaaName }}
-                                        </span>
+                                            class="ml-2 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                                        <span class="text-sm text-slate-700">{{ $qetaa->QetaaName }}</span>
                                     </label>
                                 @endforeach
                             </div>
@@ -73,38 +71,55 @@
                             </div>
                         </div>
 
-                        <!-- Date Fields Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Start Date -->
-                            <div class="relative">
-                                <input id="event_start_date" type="date" name="event_start_date" required
-                                    class="relative w-full h-12 px-4 text-sm transition-all border rounded-lg outline-none focus-visible:outline-none peer border-slate-200 text-slate-500 focus:border-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 text-right"
-                                    style="font-family: 'Cairo', sans-serif; font-size: medium" />
-                                <label for="event_start_date"
-                                    class="cursor-text absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 bg-white"
-                                    style="font-family: 'Cairo', sans-serif;">
-                                    تاريخ بداية الحدث
-                                </label>
-                            </div>
+                        <!-- Recurrence Toggle -->
+                        <div class="flex items-center gap-3">
+                            <input id="is_recursive" type="checkbox" name="is_recursive"
+                                class="h-4 w-4 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
+                            <label for="is_recursive" class="text-sm text-gray-700">متكرر (اختيار أيام متعددة
+                                منفصلة)</label>
+                        </div>
 
-                            <!-- End Date -->
-                            <div class="relative">
-                                <input id="event_end_date" type="date" name="event_end_date" required
-                                    class="relative w-full h-12 px-4 text-sm transition-all border rounded-lg outline-none focus-visible:outline-none peer border-slate-200 text-slate-500 focus:border-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 text-right"
-                                    style="font-family: 'Cairo', sans-serif; font-size: medium" />
-                                <label for="event_end_date"
-                                    class="cursor-text absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 bg-white"
-                                    style="font-family: 'Cairo', sans-serif;">
-                                    تاريخ نهاية الحدث
-                                </label>
+                        <!-- Date Range (single event) -->
+                        <div id="singleRangeWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="event_start_date" class="block mb-2 text-sm text-gray-700">تاريخ بداية
+                                    الحدث</label>
+                                <input id="event_start_date" type="date" name="event_start_date"
+                                    class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
+                            </div>
+                            <div>
+                                <label for="event_end_date" class="block mb-2 text-sm text-gray-700">تاريخ نهاية
+                                    الحدث</label>
+                                <input id="event_end_date" type="date" name="event_end_date"
+                                    class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
+                        <!-- Multiple Days (recurring events) -->
+                        <div id="multiDatesWrap" class="hidden rounded-lg border border-slate-200 p-4">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm text-slate-700">الأيام المختارة (لكل يوم سيتم إنشاء حدث منفصل يبدأ وينتهي
+                                    في نفس اليوم)</p>
+                                <button type="button" id="addDateBtn"
+                                    class="h-10 px-4 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm">
+                                    + إضافة يوم
+                                </button>
+                            </div>
+
+                            <div id="datesList" class="mt-3 space-y-3">
+                                <!-- rows injected by JS: each row is input[type=date] name="event_multi_dates[]" + remove -->
+                            </div>
+
+                            <div id="multiDatesError" class="hidden text-red-600 text-xs mt-2">
+                                يرجى إضافة يوم واحد على الأقل عند اختيار "متكرر"
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
                         <div class="flex justify-center pt-6">
                             <button type="submit" id="submit-button"
-                                class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-medium tracking-wide transition duration-300 rounded-full focus-visible:outline-none whitespace-nowrap bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 focus:bg-blue-200 focus:text-blue-700 disabled:cursor-not-allowed disabled:border-blue-300 disabled:bg-blue-100 disabled:text-blue-400 disabled:shadow-none cursor-pointer"
-                                style="font-family: 'Cairo', sans-serif; font-weight: bold;">
+                                class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-bold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
+                                style="font-family: 'Cairo', sans-serif;">
                                 ادخال
                             </button>
                         </div>
@@ -116,64 +131,138 @@
 
     @push('scripts')
         <script>
-            $(document).ready(function() {
-                // Initialize Select2 only for event type dropdown
-                $('#event_type_id').select2({
-                    theme: "classic",
-                    placeholder: "اختر نوع الحدث أو المناسبة الكشفية",
-                    dir: "rtl"
-                });
+            (function() {
+                // --- Elements
+                const isRecursive = document.getElementById('is_recursive');
+                const singleWrap = document.getElementById('singleRangeWrap');
+                const multiWrap = document.getElementById('multiDatesWrap');
+                const addDateBtn = document.getElementById('addDateBtn');
+                const datesList = document.getElementById('datesList');
+                const multiErr = document.getElementById('multiDatesError');
+                const qetaaErr = document.getElementById('qetaa-validation-error');
+                const form = document.getElementById('regForm');
 
-                // Form validation with checkbox support
-                $('#regForm').on('submit', function(e) {
-                    const eventType = $('#event_type_id').val();
-                    const eventName = $('#event_name').val();
-                    const qetaaCheckboxes = $('input[name="qetaa_id[]"]:checked');
-                    const startDate = $('#event_start_date').val();
-                    const endDate = $('#event_end_date').val();
+                // Toggle sections
+                function refreshMode() {
+                    const on = isRecursive.checked;
+                    singleWrap.classList.toggle('hidden', on);
+                    multiWrap.classList.toggle('hidden', !on);
 
-                    // Hide previous error message
-                    $('#qetaa-validation-error').addClass('hidden');
+                    // toggle required on fields
+                    document.getElementById('event_start_date').required = !on;
+                    document.getElementById('event_end_date').required = !on;
 
-                    // Validate all fields
-                    if (!eventType || !eventName || qetaaCheckboxes.length === 0 || !startDate || !endDate) {
-                        e.preventDefault();
+                    // If switched to recursive and there are no date rows, add one
+                    if (on && datesList.children.length === 0) addRow();
+                }
 
-                        if (qetaaCheckboxes.length === 0) {
-                            $('#qetaa-validation-error').removeClass('hidden');
+                function addRow(val = '') {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3';
+                    row.innerHTML = `
+                        <input type="date" name="event_multi_dates[]" value="${val}"
+                               class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                               required>
+                        <button type="button"
+                                class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
+                            إزالة
+                        </button>
+                    `;
+                    datesList.appendChild(row);
+                    hookRemove(row.querySelector('.remove-date'));
+                }
+
+                function hookRemove(btn) {
+                    btn.addEventListener('click', function() {
+                        const rows = datesList.querySelectorAll('div.flex.items-center.gap-3');
+                        if (rows.length <= 1) {
+                            // always keep at least one input visible in recursive mode
+                            const input = rows[0].querySelector('input[type="date"]');
+                            input.value = '';
+                        } else {
+                            btn.closest('div.flex.items-center.gap-3').remove();
+                        }
+                    });
+                }
+
+                // Initial hooks
+                isRecursive.addEventListener('change', refreshMode);
+                if (addDateBtn) addDateBtn.addEventListener('click', () => addRow(''));
+
+                // Select2 only for event type (if jQuery/Select2 are present in layout)
+                $(document).ready(function() {
+                    if (typeof $.fn.select2 === 'function') {
+                        $('#event_type_id').select2({
+                            theme: "classic",
+                            placeholder: "اختر نوع الحدث أو المناسبة الكشفية",
+                            dir: "rtl"
+                        });
+                    }
+
+                    // Visual feedback for qetaa checkboxes
+                    $('input[name="qetaa_id[]"]').on('change', function() {
+                        const label = $(this).parent();
+                        if ($(this).is(':checked')) {
+                            label.addClass('bg-blue-50 border-l-4 border-blue-500');
+                        } else {
+                            label.removeClass('bg-blue-50 border-l-4 border-blue-500');
+                        }
+                        if ($('input[name="qetaa_id[]"]:checked').length > 0) {
+                            qetaaErr.classList.add('hidden');
+                        }
+                    });
+
+                    // Form validation
+                    $('#regForm').on('submit', function(e) {
+                        const eventType = $('#event_type_id').val();
+                        const eventName = $('#event_name').val();
+                        const qetaaChecked = $('input[name="qetaa_id[]"]:checked').length;
+
+                        if (!eventType || !eventName || qetaaChecked === 0) {
+                            e.preventDefault();
+                            if (qetaaChecked === 0) qetaaErr.classList.remove('hidden');
+                            alert('يرجى ملء جميع الحقول المطلوبة');
+                            return false;
                         }
 
-                        alert('يرجى ملء جميع الحقول المطلوبة');
-                        return false;
-                    }
-
-                    if (new Date(startDate) > new Date(endDate)) {
-                        e.preventDefault();
-                        alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
-                        return false;
-                    }
+                        if (!isRecursive.checked) {
+                            const startDate = $('#event_start_date').val();
+                            const endDate = $('#event_end_date').val();
+                            if (!startDate || !endDate) {
+                                e.preventDefault();
+                                alert('يرجى إدخال تاريخ البداية والنهاية');
+                                return false;
+                            }
+                            if (new Date(startDate) > new Date(endDate)) {
+                                e.preventDefault();
+                                alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
+                                return false;
+                            }
+                        } else {
+                            // recursive mode: ensure we have at least one date and all filled
+                            const rows = datesList.querySelectorAll('input[name="event_multi_dates[]"]');
+                            if (rows.length === 0) {
+                                e.preventDefault();
+                                multiErr.classList.remove('hidden');
+                                alert('يرجى إضافة يوم واحد على الأقل');
+                                return false;
+                            }
+                            for (const r of rows) {
+                                if (!r.value) {
+                                    e.preventDefault();
+                                    multiErr.classList.remove('hidden');
+                                    alert('يرجى تعبئة جميع الأيام أو حذف الصفوف الفارغة');
+                                    return false;
+                                }
+                            }
+                            multiErr.classList.add('hidden');
+                        }
+                    });
                 });
 
-                // Visual feedback for checkbox selection
-                $('input[name="qetaa_id[]"]').on('change', function() {
-                    const label = $(this).parent();
-                    if ($(this).is(':checked')) {
-                        label.addClass('bg-blue-50 border-l-4 border-blue-500');
-                    } else {
-                        label.removeClass('bg-blue-50 border-l-4 border-blue-500');
-                    }
-
-                    // Hide error message when user selects at least one checkbox
-                    if ($('input[name="qetaa_id[]"]:checked').length > 0) {
-                        $('#qetaa-validation-error').addClass('hidden');
-                    }
-                });
-            });
-
-            function myFunction() {
-                // Custom validation function if needed
-                console.log('Field validation triggered');
-            }
+                // Set initial state
+                refreshMode();
+            })();
         </script>
     @endpush
 @endsection

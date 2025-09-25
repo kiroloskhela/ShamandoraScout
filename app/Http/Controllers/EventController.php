@@ -52,52 +52,82 @@ class EventController extends Controller
         return view("event.create-recursive", ['qetaat' => $qetaat, 'eventTypes' => $eventTypes]);
     }
 
-    public function insert(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'event_type_id' => 'required',
-            'event_start_date' => 'required|date',
-            'event_end_date' => 'required|date|after_or_equal:event_start_date',
-            'qetaa_id' => 'required|array|min:1'
+   public function insert(Request $request)
+{
+    $isRecursive = $request->boolean('is_recursive');
+
+    $baseRules = [
+        'event_type_id' => 'required',
+        'event_name'    => 'required|string|max:255',
+        'qetaa_id'      => 'required|array|min:1',
+        'qetaa_id.*'    => 'integer',
+    ];
+
+    $rules = $baseRules;
+
+    if ($isRecursive) {
+        $rules = array_merge($rules, [
+            'event_multi_dates'   => 'required|array|min:1',
+            'event_multi_dates.*' => 'date',
         ]);
+    } else {
+        $rules = array_merge($rules, [
+            'event_start_date' => 'required|date',
+            'event_end_date'   => 'required|date|after_or_equal:event_start_date',
+        ]);
+    }
 
-        if ($validator->fails()) {
-            // It's better to redirect back with errors than show a generic error page
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
+    $validator = Validator::make($request->all(), $rules);
 
-        try {
-            DB::beginTransaction();
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
 
-            // Insert the event and get its new ID in a safer way
-            $thisEventID = DB::table('Event')->insertGetId([
-                'EventTypeID' => $request->event_type_id,
-                'EventName' => $request->event_name,
+    try {
+        DB::beginTransaction();
+
+        if ($isRecursive) {
+            // Insert one event per selected date (start = end = that date)
+            $days = $request->input('event_multi_dates', []);
+            foreach ($days as $day) {
+                $eventId = DB::table('Event')->insertGetId([
+                    'EventTypeID'    => $request->event_type_id,
+                    'EventName'      => $request->event_name,
+                    'EventStartDate' => $day,
+                    'EventEndDate'   => $day,
+                ]);
+
+                $eventQetaatData = [];
+                foreach ($request->qetaa_id as $qetaa) {
+                    $eventQetaatData[] = ['EventID' => $eventId, 'QetaaID' => $qetaa];
+                }
+                DB::table('EventQetaa')->insert($eventQetaatData);
+            }
+        } else {
+            // Single event (range)
+            $eventId = DB::table('Event')->insertGetId([
+                'EventTypeID'    => $request->event_type_id,
+                'EventName'      => $request->event_name,
                 'EventStartDate' => $request->event_start_date,
-                'EventEndDate' => $request->event_end_date,
+                'EventEndDate'   => $request->event_end_date,
             ]);
 
-            // Prepare data for batch insert
             $eventQetaatData = [];
             foreach ($request->qetaa_id as $qetaa) {
-                $eventQetaatData[] = [
-                    'EventID' => $thisEventID,
-                    'QetaaID' => $qetaa
-                ];
+                $eventQetaatData[] = ['EventID' => $eventId, 'QetaaID' => $qetaa];
             }
             DB::table('EventQetaa')->insert($eventQetaatData);
-
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
-            // Log the actual error for debugging
-            // Log::error($e->getMessage());
-            // Show a user-friendly error page
-            return view('person.entry-error');
         }
 
-        return redirect()->route('event.index')->with('success', 'Event created successfully!');
+        DB::commit();
+    } catch (Exception $e) {
+        DB::rollBack();
+        return view('person.entry-error');
     }
+
+    return redirect()->route('event.index')->with('success', 'Event(s) created successfully!');
+}
+
 
     /**
      * Display the specified resource.
