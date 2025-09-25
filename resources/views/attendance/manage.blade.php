@@ -55,15 +55,14 @@
             </div>
         </form>
 
-        {{-- Attendance Card with Toggles (no AJAX; submit once) --}}
-        {{-- Attendance Card with Toggles, Pagination (10/page), Search --}}
+
         @if (!empty($seasonEventId))
             @php
                 $rows = $tableRows;
                 $presentSet = array_flip($attendanceIds ?? []);
             @endphp
 
-            <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-green-300">
+            <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-300">
                 <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm">
                     @csrf
                     <input type="hidden" name="season_id" value="{{ $seasonId }}">
@@ -102,8 +101,8 @@
 
                         <!-- Toggle All -->
                         <div class="flex items-center gap-3">
-                            <label for="toggleAll" class="text-sm font-semibold text-slate-700">تبديل الكل (الصفحة
-                                الحالية)</label>
+                            <label for="toggleAll" class="text-sm font-semibold text-slate-700">تبديل الكل (كل
+                                الجدول)</label>
                             <label class="relative inline-flex items-center cursor-pointer select-none">
                                 <input id="toggleAll" type="checkbox" class="sr-only peer">
                                 <!-- OFF = red, ON = green -->
@@ -112,6 +111,7 @@
                                     class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition peer-checked:translate-x-6"></span>
                             </label>
                         </div>
+
                     </div>
 
                     <!-- Table -->
@@ -183,22 +183,16 @@
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-600 text-white hover:bg-green-700 transition">
                             💾 حفظ الحضور
                         </button>
-                        <button type="button" id="clearAll"
-                            class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium tracking-wide rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition">
-                            إلغاء تحديد الكل (الصفحة)
-                        </button>
                     </div>
                 </form>
             </div>
 
-            {{-- Client-side: search + pagination(10) + toggle-all page --}}
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const pageSize = 10;
                     let currentPage = 1;
 
                     const toggleAll = document.getElementById('toggleAll');
-                    const clearAllBtn = document.getElementById('clearAll');
                     const searchInput = document.getElementById('tableSearch');
                     const table = document.getElementById('attendanceTable');
                     const allRows = Array.from(table.querySelectorAll('tbody tr'));
@@ -233,7 +227,7 @@
                             renderPage();
                         }));
 
-                        // Page numbers (compact)
+                        // Page numbers
                         const total = totalPages;
                         const windowSize = 5;
                         let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
@@ -260,10 +254,10 @@
                         }
 
                         if (end < total - 1) {
-                            const dots = document.createElement('span');
-                            dots.className = 'px-2 text-slate-500';
-                            dots.textContent = '…';
-                            pagerControls.appendChild(dots);
+                            const dots2 = document.createElement('span');
+                            dots2.className = 'px-2 text-slate-500';
+                            dots2.textContent = '…';
+                            pagerControls.appendChild(dots2);
                         }
                         if (end < total) pagerControls.appendChild(btn(String(total), false, () => {
                             currentPage = total;
@@ -303,19 +297,16 @@
                         renderPager(totalPages);
                     }
 
-                    function setAllOnCurrentPage(checked) {
-                        currentSlice.forEach(r => {
+                    // ✅ Toggle ALL rows in the table (not just current page, not just filtered)
+                    function setAllTable(checked) {
+                        allRows.forEach(r => {
                             const cb = r.querySelector('.row-toggle');
                             if (cb) cb.checked = checked;
                         });
                     }
 
                     // Events
-                    toggleAll?.addEventListener('change', (e) => setAllOnCurrentPage(e.target.checked));
-                    clearAllBtn?.addEventListener('click', () => {
-                        toggleAll.checked = false;
-                        setAllOnCurrentPage(false);
-                    });
+                    toggleAll?.addEventListener('change', (e) => setAllTable(e.target.checked));
                     searchInput?.addEventListener('input', function() {
                         currentPage = 1;
                         renderPage();
