@@ -31,7 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     //Person API
     Route::get('/show-persons', [\App\Http\Controllers\API\PersonApiController::class, 'ShowPersons']);
     Route::get('/person/{id}', [\App\Http\Controllers\API\PersonApiController::class, 'ShowProfile']);
-   
+    Route::post('/refresh', [\App\Http\Controllers\API\LoginApiController::class, 'refresh']);
+
     //Calendar API
     Route::get('/calendar/{id}', [\App\Http\Controllers\API\PersonApiController::class, 'ShowCalendar']);
   
