@@ -29,33 +29,89 @@ class SeasonEventController extends Controller
         return view("season-event.create", ['seasons' => $seasons, 'events' => $events]);
     }
 
-    public function insert(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'season_id' => 'required|integer',
-            'event_id' => 'required|integer'
-        ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
 
-        try {
-            DB::beginTransaction();
 
-            DB::table('SeasonEvent')->insert([
-                'SeasonID' => $request->season_id,
-                'EventID' => $request->event_id
-            ]);
 
-            DB::commit();
-        } catch (Exception $e) {
-            DB::rollBack();
-            return view('person.entry-error');
-        }
 
-        return redirect()->route('season-event.index')->with('success', 'SeasonEvent link created successfully!');
+public function insert(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'season_id'   => 'required|integer|exists:Season,SeasonID',
+        'event_id'    => 'required|array|min:1',
+        'event_id.*'  => 'integer|exists:Event,EventID',
+    ], [
+        'event_id.required' => 'يجب اختيار فعالية واحدة على الأقل',
+    ]);
+
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
     }
+
+    $seasonId   = (int) $request->season_id;
+    $eventIds   = collect($request->event_id)->map(fn($v) => (int) $v)->unique()->values();
+
+    try {
+        DB::beginTransaction();
+
+        // Find events already linked to ANY season (global uniqueness)
+        $existing = DB::table('SeasonEvent')
+            ->whereIn('EventID', $eventIds)
+            ->pluck('EventID')
+            ->all();
+
+        $conflicts = collect($existing);
+
+        // Optional: fetch names to display in error message
+        $conflictNames = [];
+        if ($conflicts->isNotEmpty()) {
+            $conflictNames = DB::table('Event')
+                ->whereIn('EventID', $conflicts)
+                ->pluck('EventName', 'EventID')
+                ->toArray();
+        }
+
+        // Filter out conflicting EventIDs
+        $insertableIds = $eventIds->diff($conflicts)->values();
+
+        // If you want to FAIL ALL when there’s any conflict, uncomment:
+        // if ($conflicts->isNotEmpty()) {
+        //     DB::rollBack();
+        //     return redirect()->back()
+        //         ->withErrors(['event_id' => 'لا يمكن ربط هذه الفعاليات لأنها مرتبطة بالفعل بموسم آخر: ' .
+        //             implode('، ', array_values($conflictNames))])
+        //         ->withInput();
+        // }
+
+        // Insert only the allowed ones
+        foreach ($insertableIds as $eventId) {
+            DB::table('SeasonEvent')->insert([
+                'SeasonID' => $seasonId,
+                'EventID'  => $eventId,
+            ]);
+        }
+
+        DB::commit();
+
+    } catch (Exception $e) {
+        DB::rollBack();
+        return view('person.entry-error');
+    }
+
+    // Success + partial-conflict notice
+    if (!empty($conflictNames)) {
+        return redirect()->route('season-event.index')->with([
+            'success'  => 'تم ربط الموسم بالفعاليات المسموح بها بنجاح.',
+            'warning'  => 'تم تجاهل بعض الفعاليات لأنها مرتبطة بالفعل بمواسم أخرى: ' . implode('، ', array_values($conflictNames)),
+        ]);
+    }
+
+    return redirect()->route('season-event.index')
+        ->with('success', 'تم ربط الموسم بعدة فعاليات بنجاح!');
+}
+
+
+
 
     # ====== EDIT ======
     public function edit($id)

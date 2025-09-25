@@ -68,7 +68,7 @@ class EventController extends Controller
     if ($isRecursive) {
         $rules = array_merge($rules, [
             'event_multi_dates'   => 'required|array|min:1',
-            'event_multi_dates.*' => 'date',
+             'event_multi_dates.*' => 'date|distinct', 
         ]);
     } else {
         $rules = array_merge($rules, [

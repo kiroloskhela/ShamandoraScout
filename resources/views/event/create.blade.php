@@ -142,6 +142,49 @@
                 const qetaaErr = document.getElementById('qetaa-validation-error');
                 const form = document.getElementById('regForm');
 
+                // === NEW: helpers to enforce unique dates ===
+                function getAllDateInputs() {
+                    return Array.from(datesList.querySelectorAll('input[name="event_multi_dates[]"]'));
+                }
+
+                function getValuesSet() {
+                    return new Set(getAllDateInputs().map(i => i.value).filter(Boolean));
+                }
+
+                function findDuplicate(value, current) {
+                    if (!value) return false;
+                    return getAllDateInputs().some(inp => inp !== current && inp.value === value);
+                }
+
+                function showDuplicateError(msg = 'هناك أيام مكررة. برجاء اختيار كل يوم مرة واحدة فقط.') {
+                    multiErr.textContent = msg;
+                    multiErr.classList.remove('hidden');
+                }
+
+                function hideDuplicateError() {
+                    multiErr.classList.add('hidden');
+                }
+
+                function validateUniqueDatesOnChange(input) {
+                    if (findDuplicate(input.value, input)) {
+                        showDuplicateError('هذا اليوم مكرر بالفعل. اختر يومًا مختلفًا.');
+                        // reset the conflicting input
+                        input.value = '';
+                        input.focus();
+                        return false;
+                    }
+                    // if no duplicates remain, hide error
+                    const hasDup = hasAnyDuplicates();
+                    if (!hasDup) hideDuplicateError();
+                    return true;
+                }
+
+                function hasAnyDuplicates() {
+                    const vals = getAllDateInputs().map(i => i.value).filter(Boolean);
+                    const uniq = new Set(vals);
+                    return uniq.size !== vals.length;
+                }
+
                 // Toggle sections
                 function refreshMode() {
                     const on = isRecursive.checked;
@@ -160,15 +203,20 @@
                     const row = document.createElement('div');
                     row.className = 'flex items-center gap-3';
                     row.innerHTML = `
-                        <input type="date" name="event_multi_dates[]" value="${val}"
-                               class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
-                               required>
-                        <button type="button"
-                                class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
-                            إزالة
-                        </button>
-                    `;
+            <input type="date" name="event_multi_dates[]" value="${val}"
+                   class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                   required>
+            <button type="button"
+                    class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
+                إزالة
+            </button>
+        `;
                     datesList.appendChild(row);
+
+                    const input = row.querySelector('input[type="date"]');
+                    // NEW: validate uniqueness when a date changes
+                    input.addEventListener('change', () => validateUniqueDatesOnChange(input));
+
                     hookRemove(row.querySelector('.remove-date'));
                 }
 
@@ -182,6 +230,8 @@
                         } else {
                             btn.closest('div.flex.items-center.gap-3').remove();
                         }
+                        // Re-check duplicates after removal
+                        if (!hasAnyDuplicates()) hideDuplicateError();
                     });
                 }
 
@@ -239,15 +289,15 @@
                                 return false;
                             }
                         } else {
-                            // recursive mode: ensure we have at least one date and all filled
-                            const rows = datesList.querySelectorAll('input[name="event_multi_dates[]"]');
-                            if (rows.length === 0) {
+                            // recursive mode: ensure we have at least one date and all filled and unique
+                            const inputs = getAllDateInputs();
+                            if (inputs.length === 0) {
                                 e.preventDefault();
                                 multiErr.classList.remove('hidden');
                                 alert('يرجى إضافة يوم واحد على الأقل');
                                 return false;
                             }
-                            for (const r of rows) {
+                            for (const r of inputs) {
                                 if (!r.value) {
                                     e.preventDefault();
                                     multiErr.classList.remove('hidden');
@@ -255,7 +305,14 @@
                                     return false;
                                 }
                             }
-                            multiErr.classList.add('hidden');
+                            // NEW: block duplicates on submit
+                            if (hasAnyDuplicates()) {
+                                e.preventDefault();
+                                showDuplicateError();
+                                alert('لا يمكن تكرار نفس اليوم أكثر من مرة.');
+                                return false;
+                            }
+                            hideDuplicateError();
                         }
                     });
                 });
