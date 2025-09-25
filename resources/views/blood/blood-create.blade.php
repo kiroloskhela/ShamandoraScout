@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'فصائل الدم' ?? ''])
+@extends('layouts.app', ['pageTitle' => 'فصائل الدم'])
 
 @section('content')
     {{-- CREATE FORM - resources/views/faculty/create.blade.php --}}

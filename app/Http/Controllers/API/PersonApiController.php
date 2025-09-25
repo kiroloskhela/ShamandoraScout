@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 class PersonApiController extends Controller
 {
 
+
+    
+
     public function ShowPersons(Request $request)
     {
         $userId = $request->input('id');
@@ -77,4 +80,24 @@ class PersonApiController extends Controller
             'questions' => $questions
         ]);
     }
+
+
+public function ShowCalendar($id)
+{
+    $events = DB::select("
+            SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
+            FROM PersonGroup pg
+            JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
+            JOIN Qetaa q ON gq.QetaaID = q.QetaaID
+            JOIN EventQetaa eq ON q.QetaaID = eq.QetaaID
+            JOIN Event e ON eq.EventID = e.EventID
+            JOIN EventType et ON e.EventTypeID = et.EventTypeID
+            JOIN SeasonEvent se on se.EventID = e.EventID
+            JOIN Season S on S.SeasonID = se.SeasonID
+            WHERE pg.PersonID = ?
+            ORDER BY e.EventStartDate ASC
+    ", [$id]);
+
+    return response()->json(['events' => $events]);
+}
 }

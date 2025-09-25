@@ -1,194 +1,152 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use \Illuminate\Http\Response;
-use Session;
-
 use Illuminate\Support\Facades\Auth;
-
-
 
 class AttendanceController extends Controller
 {
-/**
-        * Display a listing of the resource.
-        *
-        * @return Response
-        */
-        public function index()
-        {
-            /*$groups = DB::table('GroupTable')
-                        ->leftJoin('GroupType', 'GroupTable.GroupTypeID', '=', 'GroupType.GroupTypeID')
-                        ->leftJoin('GroupType', 'GroupTable.IncludedUnderGroupID', '=', 'GroupType.GroupTypeID');*/
-            
-            $events = DB::select("  SELECT CONCAT(EventType.EventTypeName, ' - ', Event.EventName, ' من ' , Event.EventStartDate, ' إلى ', Event.EventEndDate) AS EventInfo, EventID
-                                    FROM Event
-                                    LEFT JOIN EventType ON Event.EventTypeID = EventType.EventtypeID");
-            /*
-            $groups =   DB::select("SELECT    g1.IncludedUnderGroupID, 
-                                                g1.GroupID AS GroupID1, 
-                                                g1.GroupName, 
-                                                g3.GroupTypeName, 
-                                                g2.GroupID AS GroupID2, 
-                                                CONCAT(g4.GroupTypeName, ' ', g2.GroupName) AS IncludedUnderGroupName
-                                    FROM GroupTable g1
-                                    LEFT JOIN GroupTable g2 ON g1.IncludedUnderGroupID = g2.GroupID
-                                    LEFT JOIN GroupType g3 ON g1.GroupTypeID = g3.GroupTypeID
-                                    LEFT JOIN GroupType g4 ON g2.GroupTypeID = g4.GroupTypeID
-                                    ");
-            */
-            return view("attendance.index", array('events' => $events));
+    // Optional middleware
+    // public function __construct(){ $this->middleware('auth'); }
+
+ public function manage(Request $request)
+{
+    $me = \Illuminate\Support\Facades\Auth::user();
+    $meId = optional($me)->PersonID ?? \Illuminate\Support\Facades\Auth::id();
+
+    $seasons = DB::table('Season')->select('SeasonID','SeasonName','SeasonYear')->orderBy('SeasonYear','desc')->get();
+
+    $seasonId = $request->get('season_id');
+    $seasonEventId = $request->get('season_event_id');
+
+    // 1) My groups
+    $myGroups = DB::table('PersonGroup')
+        ->where('PersonID', $meId)
+        ->pluck('GroupID')
+        ->toArray();
+
+    $events = collect();
+    $persons = collect();
+    $attendance = [];
+
+    // 2) Events in this season that overlap with MY GROUPS (via EventQetaa ↔ GroupQetaa)
+    if ($seasonId && !empty($myGroups)) {
+        $events = DB::table('SeasonEvent as se')
+            ->join('Event as e','e.EventID','=','se.EventID')
+            ->where('se.SeasonID', $seasonId)
+            ->whereExists(function($q) use ($myGroups) {
+                $q->select(DB::raw(1))
+                  ->from('EventQetaa as eq')
+                  ->join('GroupQetaa as gq','gq.QetaaID','=','eq.QetaaID')
+                  ->whereColumn('eq.EventID','se.EventID')
+                  ->whereIn('gq.GroupID', $myGroups)
+                  ->limit(1);
+            })
+            ->select('se.SeasonEventID','se.SeasonID','e.EventID','e.EventName','e.EventStartDate','e.EventEndDate')
+            ->orderBy('e.EventStartDate','asc')
+            ->get();
+    }
+
+    // 3) Persons = people IN QetaaIDs (via PersonQetaa), limited to
+    //    intersection( my Qetaas, event's Qetaas )
+    if ($seasonEventId && !empty($myGroups)) {
+        $eventId = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->value('EventID');
+
+        // QetaaIDs of my groups
+        $myQetaas = DB::table('GroupQetaa')
+            ->whereIn('GroupID', $myGroups)
+            ->pluck('QetaaID')
+            ->toArray();
+
+        // QetaaIDs of the selected event
+        $eventQetaas = DB::table('EventQetaa')
+            ->where('EventID', $eventId)
+            ->pluck('QetaaID')
+            ->toArray();
+
+        // Intersection
+        $allowedQetaas = array_values(array_intersect($myQetaas, $eventQetaas));
+
+        if (!empty($allowedQetaas)) {
+            // 🔹 persons come from PersonQetaa (NOT PersonGroup)
+            $persons = DB::table('PersonQetaa as pq')
+                ->join('PersonInformation as p','p.PersonID','=','pq.PersonID')
+                ->whereIn('pq.QetaaID', $allowedQetaas)
+                ->select('p.PersonID','p.FirstName','p.SecondName','p.ThirdName','p.FourthName')
+                ->distinct()
+                ->orderBy('p.FirstName')
+                ->get();
+
+            // Existing attendance for pre-check
+            $attendance = DB::table('Attendance')
+                ->where('SeasonEventID',$seasonEventId)
+                ->pluck('ServedID')
+                ->toArray();
+        }
+    }
+
+    return view('attendance.manage', compact(
+        'seasons','events','persons','attendance','seasonId','seasonEventId','me'
+    ));
+}
+
+
+    public function save(Request $request, $seasonEventId)
+    {
+        // Servent is ALWAYS the logged-in user
+        $serventId = optional(Auth::user())->PersonID ?? Auth::id();
+
+        // We will re-enforce access: only save for groups the user serves & that belong to this event
+        $myGroupIds = DB::table('PersonGroup')
+            ->where('PersonID', $serventId)
+            ->pluck('GroupID');
+
+        if ($myGroupIds->isEmpty()) {
+            return back()->with('success','لا تمتلك مجموعات لادارة حضورها.');
         }
 
-        public function getPersonsByLeaderPersonID($leaderID)
-        {
-            $persons = DB::select("SELECT PersonGroup.GroupID FROM PersonGroup WHERE  PeronGroup.PersonID = ?", [$leaderID]);
+        $eventId = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->value('EventID');
+        if (!$eventId) {
+            return back()->with('success','الفعالية غير موجودة.');
         }
 
-        public function findAttendanceByEventID($eventID)
-        {
-            if(DB::table("PersonEventAttendance")->where("PersonEventAttendance.EventID", "=", $eventID)->exists()) //Event is found in attendance and has records attached to it
-            {
-                //This means that the event is having records attached to it
-                //So, we need to return all the persons result array joined with the attendance of each person at this given EventID
-                //For those users who are not found in the attendance table, they are fetched in the result persons array to be returned to the view
+        $eventQetaaIds = DB::table('EventQetaa')->where('EventID', $eventId)->pluck('QetaaID');
+        $eventGroupIds = DB::table('GroupQetaa')->whereIn('QetaaID', $eventQetaaIds)->pluck('GroupID');
+        $allowedGroupIds = $eventGroupIds->intersect($myGroupIds)->values();
 
-                $attendanceResultArray = DB::select ("      SELECT  PersonInformation.PersonID
-                                                                PersonInformation.ShamandoraCode
-                                                                CONCAT(PersonInformation.FirstName, ' ', PersonInformation.SecondName, ' ', PersonInformation.ThirdName, ' ', PersonInformation.FourthName) AS PersonFullName
-                                                                GroupRole.GroupRoleName,
-                                                                GroupTable.GroupName,
-                                                                GroupType.GroupTypeName
-                                                        FROM PersonInformation
-                                                        LEFT JOIN PersonGroup ON PersonInformation.PersonID = PersonGroup.PersonID
-                                                        LEFT JOIN GroupRole ON PersonGroup.GroupID = GroupRole.GroupID
-                                                        LEFT JOIN PersonEventAttendance ON PersonEventAttendance.PersonID = PersonInformation.PersonID
-                                                        LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
-                                                        LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                                        WHERE PersonInformation.
-                                                ");
-            }
-            else
-            {
-                //This is event is not attached to any persons attendance and deosn't have any records
-                //Return the Persons array without the attendance array
-                //Return the attendance result array containing (PersonID) and Empty Checkboxes
+        // Normalize ServedIDs (only keep persons from allowed groups)
+        $servedIds = collect($request->input('ServedIDs', []))->map(fn($v)=>(int)$v)->unique()->values();
 
+        if ($servedIds->isNotEmpty()) {
+            // Filter servedIds to persons that are actually in allowed groups
+            $validServedIds = DB::table('PersonGroup')
+                ->whereIn('GroupID', $allowedGroupIds)
+                ->whereIn('PersonID', $servedIds)
+                ->pluck('PersonID');
 
-            }
-
-            $groupControlledByAuthUser = DB::select("   SELECT  PersonGroup.GroupID, 
-                                                            PersonGroup.GroupRoleID, 
-                                                            GroupRole.GroupRoleName, 
-                                                            CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                                    FROM PersonGroup
-                                                    WHERE PersonGroup.PersonID = ?
-                                                    LEFT JOIN GroupRole ON GroupRole.GroupRoleID = PersonGroup.GroupRoleID
-                                                    LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
-                                                    LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID 
-                                                ", [Auth::user()->PersonID]);
-
-            $groupTypes = DB::table('GroupType')->get();
-            $groups = DB::select("  SELECT  GroupTable.GroupID,  GroupTable.IncludedUnderGroupID,
-                                            CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                    FROM GroupTable
-                                    LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                ");
-            return view("group.create", array('groupTypes'=>$groupTypes, 'groups'=>$groups));
+            $servedIds = $servedIds->intersect($validServedIds)->values();
         }
 
-        public function insert(Request  $request)
-        {
-            $lastGroupID = DB::table('GroupTable')->orderBy('GroupID','desc')->first();
-            
-            if($lastGroupID==Null)
-                $thisGroupID = 1;
-            else
-                $thisGroupID = $lastGroupID->GroupID + 1;
+        // Replace attendance for this SeasonEvent with the filtered list
+        DB::table('Attendance')->where('SeasonEventID', $seasonEventId)->delete();
 
-            DB::table('GroupTable')->insert(
-                array(
-                    'GroupID' => $thisGroupID,
-                    'GroupName' => $request -> group_name,
-                    'GroupTypeID' => $request -> group_type_id,
-                    'IncludedUnderGroupID' => $request -> included_under_group_id
-                )
-            );
-            return redirect()->route('group.index');
-        }
-    
-        /**
-            * Display the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
-        public function show($id)
-        {
-            //
-        }
-    
-        /**
-            * Show the form for editing the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
-        public function edit($id)
-        {
+        if ($servedIds->isNotEmpty()) {
+            $rows = $servedIds->map(function($sid) use ($seasonEventId, $serventId) {
+                return [
+                    'SeasonEventID' => (int)$seasonEventId,
+                    'ServedID'      => (int)$sid,
+                    'ServentID'     => (int)$serventId,
+                ];
+            })->all();
 
-            $groupSelected =   DB::selectOne("SELECT    g1.IncludedUnderGroupID, 
-                                    g1.GroupID AS GroupID1,
-                                    g3.GroupTypeID,
-                                    g1.GroupName, 
-                                    g3.GroupTypeName, 
-                                    g2.GroupID AS GroupID2, 
-                                    CONCAT(g4.GroupTypeName, ' ', g2.GroupName) AS GroupInfo
-                        FROM GroupTable g1
-                        LEFT JOIN GroupTable g2 ON g1.IncludedUnderGroupID = g2.GroupID
-                        LEFT JOIN GroupType g3 ON g1.GroupTypeID = g3.GroupTypeID
-                        LEFT JOIN GroupType g4 ON g2.GroupTypeID = g4.GroupTypeID
-                        WHERE g1.GroupID = ?
-                        ", [$id]);
-            //return $groupSelected;
-            $groupTypes = DB::table('GroupType')->get();
-
-            $groups = DB::select("  SELECT  GroupTable.GroupID,  GroupTable.IncludedUnderGroupID,
-                                            CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo
-                                    FROM GroupTable
-                                    LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                ");
-    
-            return view("group.edit", array('groupSelected' => $groupSelected, 'groupTypes' => $groupTypes, 'groups' => $groups));
-        }
-    
-        public function updates(Request $request, $id)
-        {
-            //$qetaa = DB::table('Qetaa')->where('QetaaID', $id)->first();
-            //return $request;
-            $affected = DB::table('GroupTable')->where('GroupID', $id)->update(['GroupName' => $request->group_name, 
-                                                                                'GroupTypeID'=> $request -> group_type_id, 
-                                                                                'IncludedUnderGroupID' => $request -> included_under_group_id]);
-
-            return redirect()->route('group.index');
-        }
-    
-        public function deletes($id)
-        {
-            $group = DB::table('GroupTable')->where('GroupID', $id)->first();
-            return view("group.delete", array('group' => $group));
+            DB::table('Attendance')->insert($rows);
         }
 
-        public function destroy($id)
-        {
-            $deleted = DB::table('GroupTable')->where('GroupID',$id)->delete();
-            
-            return redirect()->route('group.index');
-        }
+        return redirect()->route('attendance.manage', [
+            'season_id' => $request->season_id,
+            'season_event_id' => $seasonEventId
+        ])->with('success','تم حفظ الحضور بنجاح');
+    }
 }

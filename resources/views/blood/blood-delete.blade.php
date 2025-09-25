@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'فصائل الدم' ?? ''])
+@extends('layouts.app', ['pageTitle' => 'فصائل الدم'])
 
 @section('content')
     <x-form-card title="مسح فصيله دم" :action="route('blood.destroy', $blood->BloodTypeID)" method="DELETE" :inputValue="$blood->BloodTypeName" inputPlaceholder="ادخل فصيله دم"

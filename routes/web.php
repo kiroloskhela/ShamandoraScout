@@ -5,7 +5,7 @@ use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\TestingController;
-
+use App\Http\Controllers\AttendanceController;
 
 
 /*
@@ -83,11 +83,11 @@ Route::get('/new-enrolments/person/delete/{id}', array('as'=> 'person.new-enrolm
 Route::delete('/new-enrolments/person/destroy/{id}', array('as'=> 'person.new-enrolments-destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroyNewEnrolments'));
 
 //Attendance Routes
-Route::middleware(['auth','checkAuth:SuperAdmin|Admin|Khadem'])->group(function(){
-        Route::get('/attendance', array('as'=> 'attendance.index', 'uses'=> 'App\Http\Controllers\AttendanceController@index'));
-        Route::get('/attendance/add', array('as' => 'attendance.create', 'uses' =>'App\Http\Controllers\AttendanceController@create'));
-        Route::post('/attendance/insert', array('as' => 'attendance.insert', 'uses' => 'App\Http\Controllers\AttendanceController@insert'));
-});
+// Route::middleware(['auth','checkAuth:SuperAdmin|Admin|Khadem'])->group(function(){
+//         Route::get('/attendance', array('as'=> 'attendance.index', 'uses'=> 'App\Http\Controllers\AttendanceController@index'));
+//         Route::get('/attendance/add', array('as' => 'attendance.create', 'uses' =>'App\Http\Controllers\AttendanceController@create'));
+//         Route::post('/attendance/insert', array('as' => 'attendance.insert', 'uses' => 'App\Http\Controllers\AttendanceController@insert'));
+// });
 
 
 Route::middleware(['auth','checkAuth:SuperAdmin'])->group(function(){
@@ -396,10 +396,17 @@ Route::middleware(['auth'])->group(function() {
 
 });
 
-
+// Google Drive Integration Routes
 Route::get('/auth/google', [GoogleDriveController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [GoogleDriveController::class, 'handleGoogleCallback']);
 Route::get('/drive/upload', [GoogleDriveController::class, 'uploadTestFile']);
+
+
+//Attendance Routes
+Route::get('/attendance/manage', [AttendanceController::class,'manage'])->name('attendance.manage');
+Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class,'save'])->name('attendance.save');
+
+
 
 
 
