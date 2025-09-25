@@ -1,658 +1,237 @@
-<!DOCTYPE html>
-<html lang="ar">
+{{-- resources/views/entry-questions/entry-questions-edit.blade.php --}}
+@extends('layouts.app', ['pageTitle' => 'تعديل سؤال'])
 
-<head>
+@section('content')
+    <div class="flex place-content-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-emerald-300" dir="rtl">
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>كشافة الشمندورة - لوحة التحكم</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="../../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-    </style>
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <!-- Custom styles for this template-->
-    <link href="../../css/sb-admin-2.css" rel="stylesheet">
-    <link href="../../css/sb-admin-2.min.css" rel="stylesheet">
-    <!-- Custom styles for this page -->
-    <link href="../../../vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-
-</head>
-
-
-
-<body id="page-top">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" style="right:0">
-            <div>
-                <img class ="" src="{{ asset('img/shamandora.png') }}" style="width: 100px; height: 100px;"
-                    alt="Shamandora Image">
-            </div>
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href={{ url('/index') }}>
-                <div class="sidebar-brand-text mx-3">Shamandora Scouts</div>
-            </a>
-            <div class="sidebar-brand d-flex align-items-center justify-content-center sidebar-brand-text"
-                style="color: rgba(211, 159, 18, 0.849); font-size: large">{{ date('Y') }}</div>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href={{ url('/index') }}>
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span style="font-family: 'Cairo', sans-serif; font-weight: lighter;">لوحة التحكم</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Interface
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-gray-800">تعديل سؤال</h2>
+                <p class="text-sm text-gray-500 mt-1">يمكنك تغيير القطاع ونص السؤال وتعديل الاختيارات</p>
             </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Administration</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Admin Panel</h6>
-                        <a class="collapse-item">الترقيات</a>
-                        <a class="collapse-item" href={{ route('rotab.index') }}>الرتب الكشفية</a>
-                        <a class="collapse-item" href={{ route('betaka.index') }}>ايجازة بطاقة تقدم</a>
-                        <a class="collapse-item" href={{ route('blood.index') }}>فصائل الدم</a>
-                        <a class="collapse-item" href={{ route('marhala.index') }}>المراحل الدراسية</a>
-                        <a class="collapse-item" href={{ route('qetaa.index') }}>القطاعات الكشفية</a>
-                        <a class="collapse-item" href={{ route('sana-marhala.index') }}>السنوات والمراحل الدراسية</a>
-                        <a class="collapse-item" href={{ route('entry-questions.index') }}>أسئلة فورم ادخال بيانات</a>
-                        <a class="collapse-item" href={{ route('person.index') }}>بيانات المستخدمين</a>
-                        <a class="collapse-item" href={{ route('district.index') }}>الأحياء السكنية</a>
-                        <a class="collapse-item" href={{ route('manteqa.index') }}>المناطق السكنية</a>
-                        <a class="collapse-item" href={{ route('faculty.index') }}>الكليات</a>
-                        <a class="collapse-item" href={{ route('university.index') }}>الجامعات</a>
-                        <a class="collapse-item" href={{ route('role.index') }}>الأدوار والمهام</a>
-                        <a class="collapse-item" href={{ route('person-role.index') }}>ربط الأدوار والمهام</a>
-                        <a class="collapse-item" href={{ route('group-type.index') }}>أنواع المجموعات</a>
-                        <a class="collapse-item" href={{ route('group.index') }}>ربط المجموعات</a>
-                        <a class="collapse-item" href={{ route('event-type.index') }}>أنواع الأحداث والمناسبات</a>
-                        <a class="collapse-item" href={{ route('event.index') }}> الأحداث والمناسبات الكشفية</a>
-                        <a class="collapse-item" href={{ route('group-person.index') }}>ربط الأشخاص بالمجموعات</a>
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 text-sm">
+                    <ul class="list-disc pr-5 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form id="editQuestionForm" class="space-y-6" method="POST"
+                action="{{ route('entry-questions.update', $entryQuestion->QuestionID) }}">
+                @csrf
+                @method('PATCH')
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2 text-sm text-gray-700">نوع السؤال</label>
+                        <input type="text" value="{{ $entryQuestion->QuestionTypeInArabicWords }}" disabled
+                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 bg-slate-50">
+                    </div>
+                    <div>
+                        <label class="block mb-2 text-sm text-gray-700">القطاع الحالي</label>
+                        <input type="text" value="{{ $entryQuestion->QetaaName }}" disabled
+                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 bg-slate-50">
                     </div>
                 </div>
-            </li>
 
-            <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Configurations</span>
-                </a>
-            </li>
-
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Attendance
-            </div>
-
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href={{ url('/attendance') }}>
-                    <i class="fas fa-fw fa-table"></i>
-                    <span style="font-family: 'Cairo', sans-serif;">الحضور والغياب</span></a>
-            </li>
-
-
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Midea
-            </div>
-
-            <li class="nav-item">
-                <a class="nav-link" href={{ url('/person') }}>
-                    <i class="fas fa-fw fa-photo-video"></i>
-                    <span style="font-family: 'Cairo', sans-serif;">منصة الميديا</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Summer 2024
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span style="font-family: 'Cairo', sans-serif;">الالتحاقات الجديدة</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">صفحات التسجيل والدخول</h6>
-                        <a class="collapse-item" href={{ url('/liveform') }}>فورم التسجيل LIVE!</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments') }}>مراجعة طلبات الالتحاق</a>
-                        <a class="collapse-item" href={{ url('/max-limits') }}>الحد الأقصى للطلبات</a>
-                        <a class="collapse-item" href={{ url('/entry-questions') }}>التحكم في أسئلة القطاعات</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات
-                            الالتحاق</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}> تحويل الطلبات إلى
-                            النظام الرئيسي</a>
-                    </div>
+                <div>
+                    <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">اختر قطاعًا جديدًا (اختياري)</label>
+                    <select id="qetaa_id" name="qetaa_id" required
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                        @foreach ($qetaat as $qetaa)
+                            <option value="{{ $qetaa->QetaaID }}"
+                                {{ $qetaa->QetaaID == $qetaaSelected->QetaaID ? 'selected' : '' }}>
+                                {{ $qetaa->QetaaName }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-            </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
+                <div>
+                    <label for="question_text" class="block mb-2 text-sm text-gray-700">نص السؤال</label>
+                    <textarea id="question_text" name="question_text" rows="3" required
+                        class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none"
+                        placeholder="ادخل نص السؤال المطلوب">{{ old('question_text', $entryQuestion->QuestionText) }}</textarea>
+                </div>
 
-            <!-- Sidebar Message -->
+                <div class="flex items-center gap-6">
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" name="questionNotToBeShown"
+                            {{ $entryQuestion->NotToBeShown == 1 ? 'checked' : '' }}
+                            class="h-4 w-4 border-slate-300 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm text-gray-700">إخفاء السؤال</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2">
+                        <input type="checkbox" name="questionIsRequired"
+                            {{ $entryQuestion->IsRequired == 1 ? 'checked' : '' }}
+                            class="h-4 w-4 border-slate-300 rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm text-gray-700">سؤال مطلوب (إجباري)</span>
+                    </label>
+                </div>
 
-        </ul>
-        <!-- End of Sidebar -->
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
-
-                    <!-- Topbar Search -->
-                    <form
-                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
-                        <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small"
-                                style="font-family: 'Cairo', sans-serif; direction: rtl;" placeholder="ابحث عن ...."
-                                aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button">
-                                    <i class="fas fa-search fa-sm"></i>
+                @if ($entryQuestion->RequiredAnswerType == 'MultipleChoice')
+                    <div class="rounded-lg border border-slate-200 p-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm text-gray-700">الاختيارات (من 1 إلى 6)</p>
+                                <p class="text-xs text-slate-500 mt-1">يمكنك إضافة أو إزالة اختيارات. كل اختيار ظاهر يجب أن
+                                    يحتوي على قيمة قبل الحفظ.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="addChoiceBtn"
+                                    class="h-11 px-4 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 text-sm disabled:opacity-50">
+                                    + إضافة اختيار
                                 </button>
                             </div>
                         </div>
-                    </form>
 
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
+                        <!-- hidden count field that controller reads -->
+                        <input type="hidden" id="answers" name="answers"
+                            value="{{ max(1, count($arrayOfMCAnswers ?? [])) }}">
 
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
+                        <!-- choices list -->
+                        <div id="choicesList" class="mt-4 space-y-3">
+                            @php
+                                $current = $arrayOfMCAnswers ?? [];
+                                if (count($current) === 0) {
+                                    $current = [''];
+                                }
+                                $current = array_slice($current, 0, 6);
+                            @endphp
 
-                        <!-- Nav Item - Alerts -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-bell fa-fw"></i>
-                                <!-- Counter - Alerts -->
-                                <span class="badge badge-danger badge-counter">3+</span>
-                            </a>
-                            <!-- Dropdown - Alerts -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="alertsDropdown">
-                                <h6 class="dropdown-header" style="font-family: 'Cairo', sans-serif;">
-                                    الاشعارات
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-primary">
-                                            <i class="fas fa-file-alt text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 12, 2019</div>
-                                        <span class="font-weight-bold">A new monthly report is ready to
-                                            download!</span>
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-success">
-                                            <i class="fas fa-donate text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 7, 2019</div>
-                                        $290.29 has been deposited into your account!
-                                    </div>
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="mr-3">
-                                        <div class="icon-circle bg-warning">
-                                            <i class="fas fa-exclamation-triangle text-white"></i>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="small text-gray-500">December 2, 2019</div>
-                                        Spending Alert: We've noticed unusually high spending for your account.
-                                    </div>
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Show All
-                                    Alerts</a>
-                            </div>
-                        </li>
-
-                        <!-- Nav Item - Messages -->
-                        <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-envelope fa-fw"></i>
-                                <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">7</span>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="messagesDropdown">
-                                <h6 class="dropdown-header" style="font-family: 'Cairo', sans-serif;">
-                                    الرسائل
-                                </h6>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src={{ asset('img/undraw_profile_1.svg') }}
-                                            alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src={{ asset('img/undraw_profile_2.svg') }}
-                                            alt="...">
-                                        <div class="status-indicator"></div>
-                                    </div>
-
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle" src={{ asset('img/undraw_profile_3.svg') }}
-                                            alt="...">
-                                        <div class="status-indicator bg-warning"></div>
-                                    </div>
-
-                                </a>
-                                <a class="dropdown-item d-flex align-items-center" href="#">
-                                    <div class="dropdown-list-image mr-3">
-                                        <img class="rounded-circle"
-                                            src="https://source.unsplash.com/Mv9hjnEUHR4/60x60" alt="...">
-                                        <div class="status-indicator bg-success"></div>
-                                    </div>
-
-                                </a>
-                                <a class="dropdown-item text-center small text-gray-500" href="#">Read More
-                                    Messages</a>
-                            </div>
-                        </li>
-
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- Nav Item - User Information -->
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"
-                                    style="font-family: 'Cairo', sans-serif;">{{ Auth::user()->FirstName }}
-                                    {{ Auth::user()->SecondName }}</span>
-                                <img class="img-profile rounded-circle" src={{ asset('img/undraw_profile.svg') }}>
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    {{ Auth::user()->ShamandoraCode }}
-                                </a>
-                                <a class="dropdown-item">
-                                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-
-                                </a>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <form class="dropdown-item" method="POST" action="{{ route('logout') }}">
-                                    @csrf <!-- Include the CSRF token -->
-                                    <button type="submit">Log Out</button>
-                                </form>
-                            </div>
-                        </li>
-
-                    </ul>
-
-                </nav>
-
-                <!-- Content Wrapper -->
-                <div id="content-wrapper" class="d-flex flex-column">
-
-                    <!-- Main Content -->
-                    <div id="content">
-
-
-
-                        <!-- Begin Page Content -->
-                        <div class="container-fluid">
-
-                            <!-- Page Heading -->
-                            <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم
-                            </h1>
-
-                            <!-- DataTales Example -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">تعديل سؤال</h6>
+                            @foreach ($current as $i => $answer)
+                                <div class="flex items-center gap-3 choice-row">
+                                    <span
+                                        class="index-badge inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 text-sm">{{ $loop->iteration }}</span>
+                                    <input type="text"
+                                        class="choice-input w-full h-11 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none"
+                                        name="answer{{ $loop->iteration }}"
+                                        placeholder="اختيار رقم {{ $loop->iteration }}" value="{{ $answer }}"
+                                        required>
+                                    <button type="button"
+                                        class="remove-btn h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm">
+                                        إزالة
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div class="card shadow mb-4">
-                                <form class="user" id="regForm" method="post"
-                                    action="{{ route('entry-questions.update', $entryQuestion->QuestionID) }}">
-                                    @method('PATCH')
-                                    @csrf
-                                    <div class="card-header py-3">
-                                        <div>
-                                            <input style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="{{ $entryQuestion->QuestionTypeInArabicWords }}"
-                                                disabled></input>
-                                            <br>
-                                            <input style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="{{ $entryQuestion->QetaaName }}" disabled></input>
-                                            <br>
-                                        </div>
-                                    </div>
-
-                                    <div style="margin-left: 5px; margin-right: 5px">
-                                        <div style="display: flex;align-items: center;">
-                                            <span>اذا كنت تريد تغيير القطاع المربوط بالسؤال قم باختيار القطاع الجديد من
-                                                هنا ويمكنك أيضاً تعديل نص السؤال</span>
-                                        </div>
-                                        <select class="form-control" style="margin-top: 8px; margin-bottom:  8px;"
-                                            name="qetaa_id" id="qetaa_id" onselect=""
-                                            placeholder="اذا كنت تريد تغيير القطاع المربوط بالسؤال قم باختيار القطاع الجديد من هنا">
-                                            @foreach ($qetaat as $qetaa)
-                                                @if ($qetaa->QetaaID == $qetaaSelected->QetaaID)
-                                                    <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                        value="{{ $qetaa->QetaaID }}" selected>
-                                                        {{ $qetaa->QetaaName }}</option>
-                                                @else
-                                                    <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                        value="{{ $qetaa->QetaaID }}">{{ $qetaa->QetaaName }}
-                                                    </option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-
-                                        <br>
-                                        <input type="text" class="form-control" name="question_text"
-                                            id="question_text"
-                                            style="font-family: 'Cairo', sans-serif; font-size: medium; line-height: 6em;"
-                                            placeholder="ادخل نص السؤال المطلوب"
-                                            value="{{ $entryQuestion->QuestionText }}">
-
-                                        <br>
-                                        <label>اخفاء السؤال؟</label>
-                                        <input type="checkbox" name="questionNotToBeShown"
-                                            {{ $entryQuestion->NotToBeShown == 1 ? 'checked' : '' }} />
-                                        <br>
-                                        <label>السؤال مطلوب "اجباري"؟</label>
-                                        <input type="checkbox" name="questionIsRequired"
-                                            {{ $entryQuestion->IsRequired == 1 ? 'checked' : '' }} />
-                                        <br>
-                                        @if ($entryQuestion->RequiredAnswerType == 'MultipleChoice')
-                                            <label>الاختيارات</label>
-                                            <br>
-                                            <input type="input" value="{{ count($arrayOfMCAnswers) }}"
-                                                name="answers" id="answers"
-                                                style="text-align: center; margin-left: 8px" hidden />
-                                            <br>
-                                            @foreach ($arrayOfMCAnswers as $answer)
-                                                <input type="text" class=""
-                                                    style="margin-top: 8px; margin-left: 4px; text-align: center;"
-                                                    name="answer{{ $loop->iteration }}"
-                                                    id="answer{{ $loop->iteration }}" value="{{ $answer }}" />
-                                                <br>
-                                            @endforeach
-                                        @endif
-                                        <hr>
-                                        <input type="submit" class="btn-google btn-user btn-block"
-                                            style="background-color: brown;" id="submit-button"
-                                            value="تعديل"></input>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <!-- /.container-fluid -->
-
-                    </div>
-                    <!-- End of Main Content -->
-
-                    <!-- Footer -->
-                    <footer class="sticky-footer bg-white">
-                        <div class="container my-auto">
-                            <div class="copyright text-center my-auto">
-                                <span>Copyright &copy; Shamandora Scouts {{ date('Y') }}</span>
-                                <br />
-                                <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
-                                    الكشفية</span>
-                            </div>
-                        </div>
-                    </footer>
-                    <!-- End of Footer -->
-
-                </div>
-                <!-- End of Content Wrapper -->
-
-            </div>
-            <!-- End of Page Wrapper -->
-
-            <!-- Scroll to Top Button-->
-            <a class="scroll-to-top rounded" href="#page-top">
-                <i class="fas fa-angle-up"></i>
-            </a>
-
-            <!-- Logout Modal-->
-            <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog"
-                aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">×</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">Select "Logout" below if you are ready to end your current session.
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                            <a class="btn btn-primary" href="login.html">Logout</a>
+                            @endforeach
                         </div>
                     </div>
+                @endif
+
+                <div class="flex justify-center">
+                    <button type="submit"
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition">
+                        حفظ التعديلات
+                    </button>
                 </div>
-            </div>
+            </form>
+        </div>
+    </div>
 
+    {{-- No Alpine. Pure vanilla JS below. --}}
+    <script>
+        (function() {
+            const maxChoices = 6;
+            const list = document.getElementById('choicesList');
+            const answersField = document.getElementById('answers');
+            const addBtn = document.getElementById('addChoiceBtn');
+            const form = document.getElementById('editQuestionForm');
 
-            <!-- Bootstrap core JavaScript-->
-            <script src="../../../vendor/jquery/jquery.min.js"></script>
-            <script src="../../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+            if (!list) return; // not MultipleChoice
 
-            <!-- Core plugin JavaScript-->
-            <script src="../../../vendor/jquery-easing/jquery.easing.min.js"></script>
+            function renumber() {
+                const rows = Array.from(list.querySelectorAll('.choice-row'));
+                rows.forEach((row, idx) => {
+                    const n = idx + 1;
+                    row.querySelector('.index-badge').textContent = n;
+                    const input = row.querySelector('.choice-input');
+                    input.name = 'answer' + n;
+                    input.placeholder = 'اختيار رقم ' + n;
+                });
+                answersField.value = rows.length;
+                // enable/disable add/remove based on count
+                if (addBtn) addBtn.disabled = rows.length >= maxChoices;
+                rows.forEach((row) => {
+                    const remove = row.querySelector('.remove-btn');
+                    remove.disabled = rows.length <= 1; // keep at least 1
+                    remove.classList.toggle('opacity-50', remove.disabled);
+                    remove.classList.toggle('cursor-not-allowed', remove.disabled);
+                });
+            }
 
-            <!-- Custom scripts for all pages-->
-            <script src="../../js/sb-admin-2.min.js"></script>
+            function addChoice(value = '') {
+                const count = list.querySelectorAll('.choice-row').length;
+                if (count >= maxChoices) return;
 
-            <!-- Page level plugins -->
-            <script src="../../../vendor/datatables/jquery.dataTables.min.js"></script>
-            <script src="../../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex items-center gap-3 choice-row';
 
-            <!-- Page level custom scripts -->
-            <script src="../../js/demo/datatables-demo.js"></script>
+                const badge = document.createElement('span');
+                badge.className =
+                    'index-badge inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 text-sm';
+                badge.textContent = 'X'; // will be set in renumber
+                wrapper.appendChild(badge);
 
-            <script>
-                var globalIncrement = 0;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className =
+                    'choice-input w-full h-11 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none';
+                input.required = true;
+                input.value = value || '';
+                wrapper.appendChild(input);
 
-                function clicked() {
-                    var dropdown = document.getElementById('required_answer_type');
-                    var text = dropdown.options[dropdown.selectedIndex].value;
-                    console.log(text);
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'remove-btn h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm';
+                remove.textContent = 'إزالة';
+                remove.addEventListener('click', () => {
+                    const rows = list.querySelectorAll('.choice-row');
+                    if (rows.length <= 1) return; // keep at least 1
+                    wrapper.remove();
+                    renumber();
+                });
+                wrapper.appendChild(remove);
 
-                    if (text === "MultipleChoice") {
+                list.appendChild(wrapper);
+                renumber();
+            }
 
+            // hook add button
+            if (addBtn) {
+                addBtn.addEventListener('click', () => addChoice(''));
+            }
 
-                        console.log('Inside Multiple Choice Options');
-                        var container = document.getElementById("container");
-                        container.appendChild(document.createElement("br"));
-                        while (container.hasChildNodes()) {
-                            container.removeChild(container.lastChild);
-                        }
+            // hook existing remove buttons
+            list.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const rows = list.querySelectorAll('.choice-row');
+                    if (rows.length <= 1) return; // keep at least 1
+                    e.target.closest('.choice-row').remove();
+                    renumber();
+                });
+            });
 
-                        var labelA = document.createElement("label");
-                        labelA.innerHTML = " أدخل عدد الاختيارات المطلوبة";
-                        container.appendChild(labelA);
-                        container.appendChild(document.createElement("br"));
-                        var labelB = document.createElement("label");
-                        labelB.innerHTML = "(بحد أقصى 6 اختيارات فقط)";
-                        labelB.style.fontWeight = "bold";
-                        container.appendChild(labelB);
-
-
-                        container.appendChild(document.createElement("br"));
-
-                        var input = document.createElement("input");
-                        input.type = "text";
-                        input.name = "memberA";
-                        input.id = "memberA";
-                        input.placeholder = "";
-                        input.onchange = "";
-                        input.setAttribute("class", "form-control");
-                        container.appendChild(input);
-
-                        container.appendChild(document.createElement("br"));
-                        container.appendChild(document.createElement("hr"));
-
-                        var a = document.createElement("input");
-                        a.type = "button";
-                        a.id = "filldetails";
-                        a.setAttribute("onclick", "addFields()");
-                        a.value = "اضغط لاضافة تفاصيل الاختيارات";
-
-                        container.appendChild(a);
-
-                        container.appendChild(document.createElement("br"));
-
-                    } else {
-                        console.log('Inside Else Options');
-                        var container = document.getElementById("container");
-                        while (container.hasChildNodes()) {
-                            container.removeChild(container.lastChild);
-                        }
+            // validate on submit: no empty visible inputs
+            form.addEventListener('submit', (e) => {
+                const inputs = list.querySelectorAll('.choice-input');
+                for (const inp of inputs) {
+                    if (!inp.value.trim()) {
+                        e.preventDefault();
+                        alert('من فضلك اكتب قيمة لكل اختيار ظاهر أو احذفه قبل الحفظ.');
+                        inp.focus();
+                        return;
                     }
                 }
+                // answers field already synced by renumber()
+            });
 
-                function addFields() {
-                    console.log(globalIncrement);
-                    if (globalIncrement != 0) {
-                        for (var i = 1; i <= globalIncrement; i++) {
-                            document.getElementById("choice" + i).remove();
-                            document.getElementById("label" + i).remove();
-                            document.getElementById("br" + i).remove();
-                            document.getElementById("brx" + i).remove();
-                            console.log("Removing choice" + i + " , label" + i + " , br" + i + " , brx" + i);
-                        }
-                        globalIncrement = 0;
-                    }
+            // initial sync
+            renumber();
 
-                    var numberOfChoices = document.getElementById("memberA").value;
-                    if (numberOfChoices > 6)
-                        numberOfChoices = 6;
-                    console.log("Input Function");
-                    console.log(numberOfChoices);
-                    globalIncrement = numberOfChoices;
-
-                    for (var i = 1; i <= numberOfChoices; i++) {
-                        var label = document.createElement("label");
-                        label.id = "label" + i;
-                        label.innerHTML = "اختيار رقم: " + i;
-                        container.appendChild(label);
-                        var br = document.createElement("br");
-                        br.id = "br" + i;
-                        container.appendChild(br);
-                        var input = document.createElement("input");
-                        input.type = "text";
-                        input.name = "choice" + i;
-                        input.id = "choice" + i;
-                        container.appendChild(input);
-                        // Append a line break 
-                        var brx = document.createElement("br");
-                        brx.id = "brx" + i;
-                        container.appendChild(brx);
-
-
-                    }
-
-                    function increaseAnswers() {
-
-                    }
-                }
-            </script>
-
-</body>
-
-</html>
+        })();
+    </script>
+@endsection

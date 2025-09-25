@@ -1,130 +1,87 @@
-<!DOCTYPE html>
-<html lang="ar">
+@extends('layouts.app', ['pageTitle' => 'حذف سؤال'])
 
-<head>
+@section('content')
+    <div class="flex place-content-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-red-300" dir="rtl">
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>كشافة الشمندورة - لوحة التحكم</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-    </style>
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.css" rel="stylesheet">
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
-    <!-- Custom styles for this page -->
-    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-
-</head>
-
-
-
-<body id="page-top">
-
-
-    <!-- Content Wrapper -->
-    <div id="content-wrapper" class="d-flex flex-column">
-
-        <!-- Main Content -->
-        <div id="content">
-
-
-
-            <!-- Begin Page Content -->
-            <div class="container-fluid">
-
-                <!-- Page Heading -->
-                <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم</h1>
-
-                <!-- DataTales Example -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">حذف سؤال</h6>
-                    </div>
-                </div>
-
-                <div class="card shadow mb-4">
-                    <form class="user" id="regForm" method="post"
-                        action="{{ route('entry-questions.destroy', $entryQuestions->QuestionID) }}">
-                        @method('DELETE')
-                        @csrf
-                        <div class="card-header py-3">
-                            <div class="col-sm-3 mb-3 mb-sm-0">
-                                <label>هل أنت متأكد من حذف السؤال {{ $entryQuestions->QuestionID }}؟</label>
-                                <input type="submit" class="btn-google btn-user btn-block"
-                                    style="background-color: brown;" id="submit-button" value="حذف"></input>
-                                <a href="{{ route('entry-questions.index') }}">رجوع</a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+            <!-- Title -->
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-gray-800">تأكيد حذف السؤال</h2>
+                <p class="text-sm text-gray-500 mt-1">هل أنت متأكد أنك تريد حذف هذا السؤال؟ هذا الإجراء لا يمكن التراجع عنه.
+                </p>
             </div>
-            <!-- /.container-fluid -->
+
+            <!-- Question summary -->
+            <div class="rounded-lg border border-slate-200">
+                <dl class="divide-y divide-slate-200">
+
+                    <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                        <dt class="text-sm text-slate-500 col-span-1">رقم السؤال</dt>
+                        <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QuestionID }}</dd>
+                    </div>
+
+                    <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                        <dt class="text-sm text-slate-500 col-span-1">القطاع</dt>
+                        <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QetaaName }}</dd>
+                    </div>
+
+                    <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                        <dt class="text-sm text-slate-500 col-span-1">نوع الإجابة</dt>
+                        <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QuestionTypeInArabicWords }}</dd>
+                    </div>
+
+                    <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                        <dt class="text-sm text-slate-500 col-span-1">نص السؤال</dt>
+                        <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QuestionText }}</dd>
+                    </div>
+
+                    <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                        <dt class="text-sm text-slate-500 col-span-1">السؤال مطلوب؟</dt>
+                        <dd class="text-sm text-slate-800 col-span-3">
+                            {{ (int) $entryQuestions->IsRequired === 1 ? 'نعم' : 'لا' }}</dd>
+                    </div>
+
+                    @php
+                        $choices =
+                            trim((string) ($entryQuestions->MCAnswer ?? '')) !== ''
+                                ? explode('|', $entryQuestions->MCAnswer)
+                                : [];
+                    @endphp
+
+                    @if (!empty($choices))
+                        <div class="px-4 py-3 grid grid-cols-4 gap-4">
+                            <dt class="text-sm text-slate-500 col-span-1">الاختيارات</dt>
+                            <dd class="text-sm text-slate-800 col-span-3">
+                                <ul class="list-disc pr-5 space-y-1">
+                                    @foreach ($choices as $i => $c)
+                                        <li><span class="text-slate-500">({{ $i + 1 }})</span> {{ $c }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </dd>
+                        </div>
+                    @endif
+
+                </dl>
+            </div>
+
+            <!-- Confirm actions -->
+            <div class="mt-6 flex items-center justify-center gap-3">
+                <form method="POST" action="{{ route('entry-questions.destroy', $entryQuestions->QuestionID) }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-red-600 text-white hover:bg-red-700 text-sm font-medium">
+                        نعم، احذف
+                    </button>
+                </form>
+
+                <a href="{{ route('entry-questions.index') }}"
+                    class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium">
+                    إلغاء
+                </a>
+            </div>
 
         </div>
-        <!-- End of Main Content -->
-
-
     </div>
-    <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
-
-    <!-- Page level plugins -->
-    <script src="vendor/datatables/jquery.dataTables.min.js"></script>
-    <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="js/demo/datatables-demo.js"></script>
-
-    <script>
-        /*    function myFunction() {
-            const first_name = document.getElementById('rotba_name');
-            if(first_name.value=='') {
-            first_name.style.backgroundColor = '#C53939';
-            first_name.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-            }
-            else {
-                first_name.style.backgroundColor = 'White';
-                first_name.style.color = '#1D43EC';
-            }
-        }
-
-        function clickSubmitButton(){
-            const rotba_name = document.getElementById('rotba_name');
-            if(rotba_name.value==''){
-                alert("الرجاء ادخال البيانات بشكل صحيح");
-                    return false;
-            }
-        }
-        */
-    </script>
-
-</body>
-
-</html>
+@endsection

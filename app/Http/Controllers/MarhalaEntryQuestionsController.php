@@ -36,65 +36,46 @@ class MarhalaEntryQuestionsController extends Controller
             return view("entry-questions.entry-questions-create", array('qetaat'=>$qetaat, 'questionTypes' => $questionTypes));
         }
 
-        public function insert(Request  $request)
-        {
-            $lastQuestionID = DB::table('MarhalaEntryQuestions')->orderBy('QuestionID','desc')->first();
-            
-            if($lastQuestionID==Null)
-                $thisQuestionID = 1;
-            else
-                $thisQuestionID = $lastQuestionID->QuestionID + 1;
-            
-            
-            $numberOfChoices =  $request->memberA;
-            $stringOfChoices = "";
-            for ($i=1; $i<=$numberOfChoices; $i++)
-            {
-                $choice = "choice".$i;
-                $stringOfChoices = $stringOfChoices.$request->$choice;
+public function insert(Request $request)
+{
+    $lastQuestionID = DB::table('MarhalaEntryQuestions')->orderBy('QuestionID','desc')->first();
+    $thisQuestionID = $lastQuestionID ? ($lastQuestionID->QuestionID + 1) : 1;
 
-                if($i<$numberOfChoices)
-                    $stringOfChoices = $stringOfChoices.'|';
-            }
+    $num = (int) $request->input('memberA', 0);
+    if ($num > 6) { $num = 6; }
 
-            if($request->has('questionIsRequired'))
-                $isRequired = 1;
-            else
-                $isRequired = 0;
-            
-            DB::table('MarhalaEntryQuestions')->insert(
-                    array(
-                        'QuestionID' => $thisQuestionID,
-                        'QetaaID' => $request -> qetaa_id,
-                        'QuestionText' => $request -> question_text,
-                        'RequiredAnswerType' => $request -> required_answer_type,
-                        'MCAnswer' => $stringOfChoices,
-                        'NotToBeShown' => 0,
-                        'IsRequired' => $isRequired,
-                    )
-                );
-            
-            return redirect()->route('entry-questions.index')->with('status',' :تم ادخال بنجاح السؤال' .$thisQuestionID);
-            
+    $choices = [];
+    for ($i = 1; $i <= $num; $i++) {
+        $val = trim((string) $request->input('choice'.$i, ''));
+        if ($val !== '') { // ✅ تجاهل الفاضي
+            $choices[] = $val;
         }
-    
-        /**
-            * Display the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
-        public function show($id)
-        {
-            //
-        }
-    
-        /**
-            * Show the form for editing the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
+    }
+
+    // Validation: لو السؤال MultipleChoice و مفيش ولا اختيار => رجّع Error
+    if ($request->required_answer_type === 'MultipleChoice' && empty($choices)) {
+        return back()->withErrors(['choices' => 'يجب إدخال على الأقل اختيار واحد'])->withInput();
+    }
+
+    $stringOfChoices = implode('|', $choices);
+    $isRequired = $request->has('questionIsRequired') ? 1 : 0;
+
+    DB::table('MarhalaEntryQuestions')->insert([
+        'QuestionID'          => $thisQuestionID,
+        'QetaaID'             => $request->qetaa_id,
+        'QuestionText'        => $request->question_text,
+        'RequiredAnswerType'  => $request->required_answer_type,
+        'MCAnswer'            => $stringOfChoices,
+        'NotToBeShown'        => 0,
+        'IsRequired'          => $isRequired,
+    ]);
+
+    return redirect()->route('entry-questions.index')
+                     ->with('status','تم إدخال السؤال بنجاح: '.$thisQuestionID);
+}
+
+ 
+
         public function edit($id)
         {
             $qetaat = DB::table('Qetaa')->get();
@@ -165,10 +146,23 @@ class MarhalaEntryQuestionsController extends Controller
     
         public function deletes($id)
         {
-            $qetaat = DB::table('Qetaa')->get();
-            $entryQuestions = DB::table('MarhalaEntryQuestions')->where('QuestionID', $id)->first();
-            return view("entry-questions.entry-questions-delete", array('qetaat' => $qetaat, 'entryQuestions' => $entryQuestions, 'title'=> "حذف رتبة كشفية"));
+            $entryQuestions = DB::table('MarhalaEntryQuestions')
+                ->join('Qetaa', 'MarhalaEntryQuestions.QetaaID', '=', 'Qetaa.QetaaID')
+                ->join('QuestionsTypes', 'MarhalaEntryQuestions.RequiredAnswerType', '=', 'QuestionsTypes.QuestionType')
+                ->select(
+                    'MarhalaEntryQuestions.*',
+                    'Qetaa.QetaaName',
+                    'QuestionsTypes.QuestionTypeInArabicWords'
+                )
+                ->where('QuestionID', $id)
+                ->first();
+
+            return view("entry-questions.entry-questions-delete", [
+                'entryQuestions' => $entryQuestions,
+                'title' => "حذف سؤال",
+            ]);
         }
+
 
         public function destroy($id)
         {
