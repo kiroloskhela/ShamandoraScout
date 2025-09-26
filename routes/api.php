@@ -1,45 +1,40 @@
 <?php
 
+
+
+
+
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\PersonController;
+
+use App\Http\Controllers\API\LoginApiController;
+use App\Http\Controllers\API\TokenApiController;
+use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Auth endpoints
+Route::post('/login',   [LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
+Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
+// Route::post('/logout',  [LoginApiController::class, 'logout'])->middleware(['auth:sanctum']); 
+// (You can add 'check.token.expiry' here too if you want logout blocked on expired tokens.)
 
+// Protected API
+Route::middleware(['auth:sanctum', 'check.token.expiry'])->group(function () {
+    // Persons
+    Route::get('/show-persons', [PersonApiController::class, 'ShowPersons']);
+    Route::get('/person/{id}',  [PersonApiController::class, 'ShowProfile']);
+    Route::get('/calendar/{id}', [PersonApiController::class, 'ShowCalendar']);
 
-
-
-//Login API "Add rate limiting to login endpoint to prevent brute-force attacks."
-Route::post('/login', [\App\Http\Controllers\API\LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
-
-Route::middleware('auth:sanctum')->group(function () {
-  
-    //Person API
-    Route::get('/show-persons', [\App\Http\Controllers\API\PersonApiController::class, 'ShowPersons']);
-    Route::get('/person/{id}', [\App\Http\Controllers\API\PersonApiController::class, 'ShowProfile']);
-    Route::post('/refresh', [\App\Http\Controllers\API\LoginApiController::class, 'refresh']);
-
-    //Calendar API
-    Route::get('/calendar/{id}', [\App\Http\Controllers\API\PersonApiController::class, 'ShowCalendar']);
-  
-    // Attendance API
-    Route::get('/attendance/events', [AttendanceApiController::class, 'events']); // ?person_id or ?season_id
-    Route::get('/attendance/persons/{seasonEventId}', [AttendanceApiController::class, 'personsBySeasonEventId']); // recommended
-    Route::get('/attendance/persons', [AttendanceApiController::class, 'persons']); // legacy query version
-    Route::post('/attendance/save', [AttendanceApiController::class, 'save']);
-
+    // Attendance
+    Route::get('/attendance/events',                         [AttendanceApiController::class, 'events']);
+    Route::get('/attendance/persons/{seasonEventId}',        [AttendanceApiController::class, 'personsBySeasonEventId']);
+    Route::get('/attendance/persons',                        [AttendanceApiController::class, 'persons']); // legacy
+    Route::post('/attendance/save',                          [AttendanceApiController::class, 'save']);
 });

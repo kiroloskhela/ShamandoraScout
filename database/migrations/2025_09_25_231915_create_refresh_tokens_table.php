@@ -8,7 +8,10 @@ return new class extends Migration {
     {
         Schema::create('refresh_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            // Column name should be user_id to match your controller
+            // But reference the PersonID column in users table
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('PersonID')->on('users')->onDelete('cascade');
             $table->string('token')->unique();
             $table->timestamp('expires_at');
             $table->timestamps();
