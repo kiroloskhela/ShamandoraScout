@@ -34,6 +34,6 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     // Attendance
     Route::get('/attendance/events',                  [AttendanceApiController::class, 'events']);
     Route::get('/attendance/persons/{seasonEventId}', [AttendanceApiController::class, 'personsBySeasonEventId']);
-    Route::get('/attendance/persons',                 [AttendanceApiController::class, 'persons']); // legacy
+    Route::get('/attendance/persons',                 [AttendanceApiController::class, 'persons']); 
     Route::post('/attendance/save',                   [AttendanceApiController::class, 'save']);
 });
