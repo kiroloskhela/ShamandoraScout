@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Models\RefreshToken;
 
 class TokenApiController extends Controller
@@ -11,55 +12,48 @@ class TokenApiController extends Controller
     // POST /api/refresh
     public function refresh(Request $request)
     {
-        $request->validate([
-            'refresh_token' => 'required|string',
-        ]);
+        $request->validate(['refresh_token' => 'required']);
 
-        $hashed = hash('sha256', $request->refresh_token);
+        $hash = hash('sha256', $request->input('refresh_token'));
 
-        // find valid refresh
-        $stored = RefreshToken::where('token', $hashed)
+        /** @var RefreshToken|null $old */
+        $old = RefreshToken::where('token_hash', $hash)
+            ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
             ->first();
 
-        if (! $stored) {
+        if (! $old) {
             return response()->json(['error' => 'Invalid or expired refresh token'], 401);
         }
 
-        $user = $stored->user;
+        $user = $old->user;
 
-        // ROTATE: delete the used refresh token
-        $stored->delete();
+        // issue short-lived access token (match your TTL)
+        $newAccess = $user->createToken('api-token', ['*'], now()->addMinutes(60))->plainTextToken;
 
-        // === Hard-coded expiry times ===
-        $accessTokenMinutes = 60; // 1 hour
-        $refreshTokenDays   = 30; // 30 days
+        // rotate refresh token
+        $newPlain = Str::random(64);
+        $newHash  = hash('sha256', $newPlain);
 
-        // Issue new access token
-        $new = $user->createToken('api-token');
-        $plainAccess = $new->plainTextToken;
-        $accessModel = $new->accessToken;
-        $accessExpiry = now()->addMinutes($accessTokenMinutes);
-        $accessModel->expires_at = $accessExpiry;
-        $accessModel->save();
+        $new = RefreshToken::create([
+            'user_id'    => $user->PersonID,
+            'token_hash' => $newHash,
+            'expires_at' => now()->addDays(30),
+            'ip'         => $request->ip(),
+            'user_agent' => substr((string)$request->userAgent(), 0, 1000),
+        ]);
 
-        // Issue new refresh token
-        $rawRefresh = base64_encode(random_bytes(64));
-        $hashedNew  = hash('sha256', $rawRefresh);
-        $refreshExpiry = now()->addDays($refreshTokenDays);
-
-        RefreshToken::create([
-            'user_id'    => $user->id,
-            'token'      => $hashedNew,
-            'expires_at' => $refreshExpiry,
+        // revoke old + link
+        $old->update([
+            'revoked_at'     => now(),
+            'replaced_by_id' => $new->id,
         ]);
 
         return response()->json([
-            'access_token'             => $plainAccess,
-            'access_token_expires_at'  => $accessExpiry->toIso8601String(),
-            'refresh_token'            => $rawRefresh,
-            'refresh_token_expires_at' => $refreshExpiry->toIso8601String(),
-            'token_type'               => 'Bearer',
+            'access_token'   => $newAccess,
+            'token_type'     => 'Bearer',
+            'expires_in_sec' => 60 * 60, // or 60 if you're testing 1-minute tokens
+            'refresh_token'  => $newPlain,
         ]);
     }
 }

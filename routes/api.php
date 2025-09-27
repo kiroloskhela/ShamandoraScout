@@ -24,7 +24,7 @@ Route::post('/login',   [LoginApiController::class, 'apiLogin'])->middleware('th
 Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
 
 Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
-    Route::post('/logout', [LoginApiController::class, 'logout']);
+    Route::post('/logout', [LoginApiController::class, 'apiLogout']);
 
     // Persons
     Route::get('/show-persons', [PersonApiController::class, 'ShowPersons']);

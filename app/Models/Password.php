@@ -25,7 +25,7 @@ class Password extends Model
         'PersonID',
         'Password'
     ];
-
+   protected $hidden = ['Password']; 
     protected $primaryKey = 'PersonID';
     protected $table = 'PersonSystemPassword';
     public $timestamps = false;
