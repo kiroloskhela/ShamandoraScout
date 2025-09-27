@@ -6,35 +6,45 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class LoginApiController extends Controller
 {
     // POST /api/login
-    public function apiLogin(Request $request)
-    {
-        $request->validate([
-            'id' => 'required|integer',
-            'password' => 'required',
-        ]);
+public function apiLogin(Request $request)
+{
+    $request->validate([
+        'id'       => 'required|integer',
+        'password' => 'required',
+    ]);
 
-        $user = \App\Models\User::find($request->id);
+    $user = User::find($request->id);
 
-        Log::info('Login attempt', [
-            'input_id' => $request->id,
-            'input_password' => $request->password,
-            'user_exists' => $user ? true : false,
-            'user_password' => $user ? $user->password : null,
-        ]);
-
-        $actualPassword = is_object($user->password) && isset($user->password->Password) ? $user->password->Password : $user->password;
-        if (! $user || ! Hash::check($request->password, $actualPassword)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
-        }
-
-        $token = $user->createToken('api-token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-        ]);
+    $hashedPassword = optional($user->password)->Password;
+    if (! $user || ! Hash::check($request->password, $hashedPassword)) {
+        return response()->json(['error' => 'Invalid credentials'], 401);
     }
+
+    // 1) short-lived access token (1 hour)
+    $accessToken = $user->createToken('api-token', ['*'], now()->addMinutes(60))->plainTextToken;
+
+    // 2) long-lived refresh token (30 days)
+    $plainRefresh = \Illuminate\Support\Str::random(64);
+    \App\Models\RefreshToken::create([
+        'user_id'    => $user->PersonID,
+        'token_hash' => hash('sha256', $plainRefresh),
+        'expires_at' => now()->addDays(30),
+        'ip'         => $request->ip(),
+        'user_agent' => substr((string) $request->userAgent(), 0, 1000),
+    ]);
+
+    return response()->json([
+        'access_token'   => $accessToken,
+        'token_type'     => 'Bearer',
+        'expires_in_sec' => 3600,
+        'refresh_token'  => $plainRefresh,
+    ]);
+}
+
+    
 }
