@@ -7,6 +7,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\RefreshToken;
+use \Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\PersonalAccessToken;
+
 
 class LoginApiController extends Controller
 {
@@ -26,11 +31,11 @@ public function apiLogin(Request $request)
     }
 
     // 1) short-lived access token (1 hour)
-    $accessToken = $user->createToken('api-token', ['*'], now()->addMinutes(60))->plainTextToken;
+    $accessToken = $user->createToken('api-token', ['*'], now()->addHours(1))->plainTextToken;
 
     // 2) long-lived refresh token (30 days)
-    $plainRefresh = \Illuminate\Support\Str::random(64);
-    \App\Models\RefreshToken::create([
+    $plainRefresh = str::random(64);
+    RefreshToken::create([
         'user_id'    => $user->PersonID,
         'token_hash' => hash('sha256', $plainRefresh),
         'expires_at' => now()->addDays(30),
@@ -44,7 +49,41 @@ public function apiLogin(Request $request)
         'expires_in_sec' => 3600,
         'refresh_token'  => $plainRefresh,
     ]);
-}
+
 
     
+}
+
+public function apiLogout(Request $request)
+{
+    $token = $request->user()->currentAccessToken();
+
+    if ($token instanceof PersonalAccessToken) {
+        // API token auth: revoke this access token
+        $token->delete();
+    } else {
+        // SPA (cookie) auth: end the session
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    }
+
+    // (Optional) revoke all active refresh tokens for this user
+    RefreshToken::where('user_id', $request->user()->PersonID)
+        ->whereNull('revoked_at')
+        ->update(['revoked_at' => now()]);
+
+    return response()->json(['message' => 'Logged out']);
+}
+
+  
+
+// public function logout(Request $request)
+// {
+//     $pat = PersonalAccessToken::findToken($request->bearerToken());
+//     $pat?->delete();
+
+//     return response()->json(['message' => 'Logged out']);
+// }
+
 }
