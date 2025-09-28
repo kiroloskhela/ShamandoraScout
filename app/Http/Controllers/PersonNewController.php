@@ -550,16 +550,16 @@ class PersonNewController extends Controller
         public function insertNewPersonLiveForm(Request $request)
         {
 
-            $raqamQawmyExistsObject = DB::selectOne('SELECT EXISTS(SELECT 1 FROM NewUsersInformation WHERE RaqamQawmy = :some_id) AS `exists`', ['some_id' => $request->input_raqam_qawmy]);
-              $raqamQawmyExists = $raqamQawmyExistsObject->exists; // 0 or 1
-              
-  
-              if($raqamQawmyExists)
-              {
-                  return view('person.person-already-exists');
-              }
-            
-            $lastPersonID = DB::table('NewUsersInformation')->orderBy('PersonID','desc')->first();
+        $raqamQawmy = preg_replace('/\D+/', '', (string) $request->input('input_raqam_qawmy'));
+
+        $exists = DB::table('NewUsersInformation')->where('RaqamQawmy', $raqamQawmy)->exists()
+            || DB::table('PersonInformation')  ->where('RaqamQawmy', $raqamQawmy)->exists();
+
+        if ($exists) {
+            return view('person.person-already-exists');
+        }
+
+            $lastPersonID = DB::table('PersonInformation')->orderBy('PersonID','desc')->first();
             
             if($lastPersonID==Null)
                 $thisPersonID = 1;
