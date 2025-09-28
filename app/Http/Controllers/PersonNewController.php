@@ -515,30 +515,6 @@ ORDER BY pi.ShamandoraCode ASC;
 
             $hashedPasswordString = Hash::make($passString); // Hash it securely
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             $QetaaName = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first()->QetaaName;
             //return $QetaaName;
             try{
