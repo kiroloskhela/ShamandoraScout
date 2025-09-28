@@ -10,8 +10,9 @@ use Illuminate\Validation\Rule;
 use \Illuminate\Http\Response;
 use \Illuminate\Database\QueryException;
 use Exception;
-
-
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request as HttpRequest; 
+use Illuminate\Support\Facades\Log;
 class PersonNewController extends Controller
 {
     /**
@@ -159,6 +160,14 @@ ORDER BY pi.ShamandoraCode ASC;
                                                 FROM NewUsersInformation nui 
                                                 LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
                                                 LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID;");
+
+            $persons = collect($persons)->map(function ($person) {
+            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+             $person->IsApprovedText = is_null($person->IsApproved)
+            ? 'لم يتم التقييم بعد'
+            : ($person->IsApproved ? 'تمت الموافقة' : 'في انتظار الموافقة');
+            return $person;
+        });
             //return $questionsDistinctCodes;
             return view("person.new-enrolments-migrate-index", array('persons' => $persons));
         }
@@ -179,6 +188,18 @@ ORDER BY pi.ShamandoraCode ASC;
                                                 FROM NewUsersInformation nui 
                                                 LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
                                                 LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID;");
+                                                
+            //return $questionsDistinctCodes;
+
+
+              $persons = collect($persons)->map(function ($person) {
+            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+             $person->IsApprovedText = is_null($person->IsApproved)
+            ? 'لم يتم التقييم بعد'
+            : ($person->IsApproved ? 'تمت الموافقة' : 'في انتظار الموافقة');
+
+            return $person;
+        });
             //return $questionsDistinctCodes;
             return view("person.new-enrolments-index", array('persons' => $persons));
         }
@@ -816,23 +837,50 @@ ORDER BY pi.ShamandoraCode ASC;
                 )
             );
 
-                $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-                $pass = array(); //remember to declare $pass as an array
-                $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-                for ($i = 0; $i < 8; $i++) {
-                    $n = rand(0, $alphaLength);
-                    $pass[] = $alphabet[$n];
-                }
-                $passString =  implode($pass); //turn the array into a string
 
-            //return "".$thisPersonID."\n".$passString;
 
-            DB::table('PersonSystemPassword')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'Password'=>$passString 
-                )
-            );
+                    $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+                    $pass = [];
+                    $alphaLength = strlen($alphabet) - 1; // length - 1
+
+                    for ($i = 0; $i < 8; $i++) {
+                        $n = rand(0, $alphaLength);
+                        $pass[] = $alphabet[$n];
+                    }
+
+                    $plainPassword = implode($pass); // The actual random password
+                    $hashedPassword = Hash::make($plainPassword); // Hash it securely
+
+                    // Insert into DB
+                    DB::table('PersonSystemPassword')->insert([
+                        'PersonID' => $thisPersonID,
+                        'Password' => $hashedPassword,
+                    ]);
+
+                 if ($request->personal_phone_number && $request->has_whatsapp) {
+                        try {
+                            // Create an internal request payload for sendWithHeader
+                            $payload = [
+                                'full_number' => $request->personal_phone_number,
+                                'message'     => "اهلا بك يا {$request->first_name} {$request->second_name} {$request->third_name} {$request->fourth_name}\nالرقم الخاص بك: {$thisPersonID}\nالرقم: {$plainPassword}\nيرجى تغيير الرقم عند أول تسجيل دخول.\nمرحبا بك في الكشافة.",
+                            ];
+
+        
+                            // Build a fake POST Request object and call the controller directly
+                            $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload);
+
+                            app(WhatsAppBridgeController::class)->send($fake);
+                            // We ignore the returned RedirectResponse; we’ll always go back to admin list
+                        } catch (\Throwable $e) {
+                            Log::error('Failed to send WA new password via sendWithHeader', [
+                    
+                                'error'     => $e->getMessage(),
+                            ]);
+                        }
+                    } else {
+                        Log::warning('No phone found for WA new password');
+                    }
+
 
             DB::table('PersonalPhysicalAddress')->insert(
                 array(
@@ -858,7 +906,10 @@ ORDER BY pi.ShamandoraCode ASC;
 
             DB::commit();
 
+            
+
             return redirect()->route('person.entry-questions', $thisPersonID);
+
 
         }
 
