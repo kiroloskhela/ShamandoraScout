@@ -57,12 +57,12 @@
                                             value="{{ $person->PersonID }}" disabled>
                                     </div>
 
-                                    <div class="col-sm-3">
+                                    {{-- <div class="col-sm-3">
                                         <label>كلمة السر</label>
                                         <input type="text" class="form-control form-control-user" name="second_name"
                                             id="second_name" style="font-family: 'Cairo', sans-serif; font-size: medium"
                                             value="{{ $person->Password }}" disabled>
-                                    </div>
+                                    </div> --}}
                                 </div>
                                 <br>
                                 <div class="form-group row" dir="rtl">

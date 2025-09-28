@@ -500,19 +500,48 @@ ORDER BY pi.ShamandoraCode ASC;
             $shamandoraCode = $shamandoraCode. $thisPersonID;
             
             
-              
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-        $pass = array(); //remember to declare $pass as an array
-        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-        for ($i = 0; $i < 8; $i++) {
-            $n = rand(0, $alphaLength);
-            $pass[] = $alphabet[$n];
-        }
-        $passString =  implode($pass); //turn the array into a string
+                
+            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+            $pass = array(); //remember to declare $pass as an array
+            $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+            for ($i = 0; $i < 8; $i++) {
+                $n = rand(0, $alphaLength);
+                $pass[] = $alphabet[$n];
+            }
+            $passString =  implode($pass); //turn the array into a string
 
-        $QetaaName = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first()->QetaaName;
-        //return $QetaaName;
-        try{
+
+
+
+            $hashedPasswordString = Hash::make($passString); // Hash it securely
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            $QetaaName = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first()->QetaaName;
+            //return $QetaaName;
+            try{
 
             $validatedData = $request->validate([
                 'first_name' => 'required',
@@ -559,7 +588,7 @@ ORDER BY pi.ShamandoraCode ASC;
                     'SanaMarhalaID'         => $request->sana_marhala_id, 
                     'SpiritualFatherName'   => $request->spiritual_father,
                     'SpiritualFatherChurchName' => $request->spiritual_father_church,
-                    'Password'              => $passString, 
+                    'Password'              => $hashedPasswordString, 
                     'PersonPersonalMobileNumber' => $request->personal_phone_number,
                     'FatherMobileNumber'    => $request->father_phone_number,
                     'MotherMobileNumber'    => $request->mother_phone_number,
