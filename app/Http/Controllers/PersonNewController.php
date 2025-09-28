@@ -15,134 +15,121 @@ use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Log;
 class PersonNewController extends Controller
 {
-    /**
-     * API: Return filtered persons for a user as JSON
-     */
-    public function ShowPersons(Request $request)
-    {
-        $userId = $request->input('id');
-        $rawPersons = DB::select("\nSELECT  Distinct\n    pi.PersonID,\n    pi.ShamandoraCode,\n    pi.FirstName, \n    pi.SecondName, \n    pi.ThirdName, \n    pi.FourthName, \n    q.QetaaName,\n    pi.ScoutJoiningYear,\n    sm.SanaMarhalaName, \n    pi.RaqamQawmy,\n    ppn.PersonPersonalMobileNumber,\n    q.QetaaID,\n    PG.PersonID AS GroupPersonID,\n    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,\n    psm.SanaMarhalaID\nFROM PersonInformation pi\nLEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID \nLEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID\nLEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID\nLEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID\nLEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID\nLEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID\nLEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID\nJOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID\nJOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID\nWHERE pg2.PersonID = ?\nORDER BY pi.ShamandoraCode ASC;\n    ", [$userId]);
 
-        $persons = collect($rawPersons)->map(function ($person) {
-            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-            return $person;
-        });
+        public function ShowPersons(Request $request)
+        {
+            $userId = $request->input('id');
+            $rawPersons = DB::select("\nSELECT  Distinct\n    pi.PersonID,\n    pi.ShamandoraCode,\n    pi.FirstName, \n    pi.SecondName, \n    pi.ThirdName, \n    pi.FourthName, \n    q.QetaaName,\n    pi.ScoutJoiningYear,\n    sm.SanaMarhalaName, \n    pi.RaqamQawmy,\n    ppn.PersonPersonalMobileNumber,\n    q.QetaaID,\n    PG.PersonID AS GroupPersonID,\n    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,\n    psm.SanaMarhalaID\nFROM PersonInformation pi\nLEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID \nLEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID\nLEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID\nLEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID\nLEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID\nLEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID\nLEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID\nJOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID\nJOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID\nWHERE pg2.PersonID = ?\nORDER BY pi.ShamandoraCode ASC;\n    ", [$userId]);
 
-        return response()->json(['persons' => $persons]);
-    }
+            $persons = collect($rawPersons)->map(function ($person) {
+                $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+                return $person;
+            });
 
-
-/**
-        * Display a listing of the resource.
-        *
-        * @return Response
-        */
-  public function index(Request $request)
-{
-    // ✅ Get the user ID from the request
-    $userId = $request->input('id');
-
-    // ✅ Run the raw SQL with group filtering
-    $rawPersons = DB::select("
-SELECT  Distinct
-    pi.PersonID,
-    pi.ShamandoraCode,
-    pi.FirstName, 
-    pi.SecondName, 
-    pi.ThirdName, 
-    pi.FourthName, 
-    q.QetaaName,
-    pi.ScoutJoiningYear,
-    sm.SanaMarhalaName, 
-    pi.RaqamQawmy,
-    ppn.PersonPersonalMobileNumber,
-    q.QetaaID,
-    PG.PersonID AS GroupPersonID,
-    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-    psm.SanaMarhalaID
-FROM PersonInformation pi
-LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-WHERE pg2.PersonID = ?
-ORDER BY pi.ShamandoraCode ASC;
-    ", [$userId]);
-
-    // ✅ Convert to collection and add full_name field
-    $persons = collect($rawPersons)->map(function ($person) {
-        $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-        return $person;
-    });
-
-    // ✅ Return the view with filtered persons
-    return view("person.person-index", ['persons' => $persons]);
-}
-    /**
-     * API: Return all joined person data as JSON
-     */
-    public function apiShowProfile($id)
-    {
-        $person = DB::table('PersonInformation')
-            ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
-            ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID' , '=', 'PersonInformation.PersonID')
-            ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
-            ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
-            ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
-            ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
-            ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
-            ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
-            ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
-            ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
-            ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
-            ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
-            ->where('PersonInformation.PersonID', $id)
-            ->select('PersonInformation.*',
-                'BloodType.BloodTypeName',
-                'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
-                'PersonJob.JobName', 'PersonJob.WorkPlace',
-                'PersonLearningInformation.SchoolName', 'PersonLearningInformation.SchoolGraduationYear',
-                'Faculty.FacultyName', 'University.UniversityName', 'PersonLearningInformation.ActualFacultyGraduationYear',
-                'PersonPhoneNumbers.PersonPersonalMobileNumber', 'PersonPhoneNumbers.FatherMobileNumber', 'PersonPhoneNumbers.MotherMobileNumber', 'PersonPhoneNumbers.HomePhoneNumber', 'PersonPhoneNumbers.IsOPersonalPhoneNumberHavingWhatsapp',
-                'Qetaa.QetaaName',
-                'RotbaInformation.RotbaName',
-                'SanaMarhala.SanaMarhalaName',
-                'PersonSpiritualFatherInformation.SpiritualFatherName', 'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
-                'PersonSystemPassword.Password',
-                'PersonalPhysicalAddress.BuildingNumber', 'PersonalPhysicalAddress.FloorNumber', 'PersonalPhysicalAddress.AppartmentNumber', 'PersonalPhysicalAddress.MainStreetName', 'PersonalPhysicalAddress.SubStreetName', 'PersonalPhysicalAddress.NearestLandmark',
-                'Manteqa.ManteqaName', 'Districts.DistrictName'
-            )
-            ->first();
-
-        if (!$person) {
-            return response()->json(['error' => 'Person not found'], 404);
+            return response()->json(['persons' => $persons]);
         }
 
-        $questions = DB::table('PersonEntryQuestions')
-            ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
-            ->select('MarhalaEntryQuestions.QuestionText','PersonEntryQuestions.Answer')
-            ->where('PersonEntryQuestions.PersonID', $id)->get();
+        public function index(Request $request)
+        {
+            // ✅ Get the user ID from the request
+            $userId = $request->input('id');
 
-        return response()->json([
-            'person' => $person,
-            'questions' => $questions
-        ]);
-    }
+            // ✅ Run the raw SQL with group filtering
+            $rawPersons = DB::select("
+        SELECT  Distinct
+            pi.PersonID,
+            pi.ShamandoraCode,
+            pi.FirstName, 
+            pi.SecondName, 
+            pi.ThirdName, 
+            pi.FourthName, 
+            q.QetaaName,
+            pi.ScoutJoiningYear,
+            sm.SanaMarhalaName, 
+            pi.RaqamQawmy,
+            ppn.PersonPersonalMobileNumber,
+            q.QetaaID,
+            PG.PersonID AS GroupPersonID,
+            IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+            psm.SanaMarhalaID
+        FROM PersonInformation pi
+        LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
+        LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+        LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+        LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+        LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+        LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+        LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+        JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
+        JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+        WHERE pg2.PersonID = ?
+        ORDER BY pi.ShamandoraCode ASC;
+            ", [$userId]);
 
-        
+            // ✅ Convert to collection and add full_name field
+            $persons = collect($rawPersons)->map(function ($person) {
+                $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+                return $person;
+            });
 
+            // ✅ Return the view with filtered persons
+            return view("person.person-index", ['persons' => $persons]);
+        }
+ 
+        public function apiShowProfile($id)
+        {
+            $person = DB::table('PersonInformation')
+                ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
+                ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID' , '=', 'PersonInformation.PersonID')
+                ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
+                ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
+                ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
+                ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
+                ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
+                ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
+                ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
+                ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
+                ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
+                ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
+                ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+                ->where('PersonInformation.PersonID', $id)
+                ->select('PersonInformation.*',
+                    'BloodType.BloodTypeName',
+                    'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
+                    'PersonJob.JobName', 'PersonJob.WorkPlace',
+                    'PersonLearningInformation.SchoolName', 'PersonLearningInformation.SchoolGraduationYear',
+                    'Faculty.FacultyName', 'University.UniversityName', 'PersonLearningInformation.ActualFacultyGraduationYear',
+                    'PersonPhoneNumbers.PersonPersonalMobileNumber', 'PersonPhoneNumbers.FatherMobileNumber', 'PersonPhoneNumbers.MotherMobileNumber', 'PersonPhoneNumbers.HomePhoneNumber', 'PersonPhoneNumbers.IsOPersonalPhoneNumberHavingWhatsapp',
+                    'Qetaa.QetaaName',
+                    'RotbaInformation.RotbaName',
+                    'SanaMarhala.SanaMarhalaName',
+                    'PersonSpiritualFatherInformation.SpiritualFatherName', 'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
+                    'PersonSystemPassword.Password',
+                    'PersonalPhysicalAddress.BuildingNumber', 'PersonalPhysicalAddress.FloorNumber', 'PersonalPhysicalAddress.AppartmentNumber', 'PersonalPhysicalAddress.MainStreetName', 'PersonalPhysicalAddress.SubStreetName', 'PersonalPhysicalAddress.NearestLandmark',
+                    'Manteqa.ManteqaName', 'Districts.DistrictName'
+                )
+                ->first();
+
+            if (!$person) {
+                return response()->json(['error' => 'Person not found'], 404);
+            }
+
+            $questions = DB::table('PersonEntryQuestions')
+                ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
+                ->select('MarhalaEntryQuestions.QuestionText','PersonEntryQuestions.Answer')
+                ->where('PersonEntryQuestions.PersonID', $id)->get();
+
+            return response()->json([
+                'person' => $person,
+                'questions' => $questions
+            ]);
+        }
 
         public function indexNewEnrolmentsAndMigrations()
         {        
@@ -239,7 +226,6 @@ ORDER BY pi.ShamandoraCode ASC;
             return view('person.new-enrolments-analytics', array('analytics'=>$analytics));
         }
 
-
         public function showNewEnrolments($id)
         {
             $person = DB::table('NewUsersInformation')->where('PersonID',$id)
@@ -285,20 +271,113 @@ ORDER BY pi.ShamandoraCode ASC;
 
         public function approveNewEnrolments($id)
         {   
+
             return redirect()->route('person.new-enrolments-approve-again', $id);
         }
 
         public function approveAgainNewEnrolments($id)
         {
-            $approvedInt = 1;
-            DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt]);
-            $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
-            return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
+
+
+// 1) Load the row
+    $u = DB::table('NewUsersInformation')->where('PersonID', $id)->first();
+    if (!$u) {
+        return back()->with('error', 'Person not found.');
+    }
+
+    // 2) Extract the plain password currently stored (NOT hashed)
+    $plain = (string) ($u->Password ?? '');
+
+    // 3) Prepare phone + flags (adjust column names if yours differ)
+    $phone           = $u->PersonPersonalMobileNumber ?? $u->personal_phone_number ?? null;
+    $hasWhatsappFlag = (bool) ($u->IsOPersonalPhoneNumberHavingWhatsapp ?? $u->has_whatsapp ?? false);
+
+    // 4) Build display name for the message
+    $fullName = trim(implode(' ', array_filter([
+        $u->FirstName  ?? '',
+        $u->SecondName ?? '',
+        $u->ThirdName  ?? '',
+        $u->FourthName ?? '',
+    ])));
+
+    // 5) Do the DB update in a transaction
+        DB::beginTransaction();
+        try {
+            // Hash and save
+            $hash = Hash::make($plain);
+
+            DB::table('NewUsersInformation')
+            ->where('PersonID', $id)
+            ->update([
+                'IsApproved' => 1,
+                'Password'   => $hash,        // store ONLY the hash
+            ]);
+
+            // After the transaction is safely committed, send WhatsApp with the *plain*
+            DB::afterCommit(function () use ($phone, $hasWhatsappFlag, $fullName, $id, $plain) {
+                if (!$phone || !$hasWhatsappFlag) {
+                    Log::warning('No phone or WA flag for new approval', [
+                        'person_id' => $id, 'phone' => $phone, 'has_whatsapp' => $hasWhatsappFlag
+                    ]);
+                    return;
+                }
+
+                try {
+                    $payload = [
+                        'full_number' => $phone, // controller will normalize to +20...
+                        'message'     => "اهلا بك يا {$fullName}\n"
+                                    . "الرقم الخاص بك: {$id}\n"
+                                    . "الرقم: {$plain}\n"
+                                    . "يرجى تغيير الرقم عند أول تسجيل دخول.\n"
+                                    . "مرحبا بك في الكشافة.",
+                    ];
+
+                    $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
+                    app(\App\Http\Controllers\WhatsAppBridgeController::class)->sendWithHeader($fake);
+
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send WA new password', ['person_id' => $id, 'error' => $e->getMessage()]);
+                }
+            });
+
+            DB::commit();
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Approval/update failed', ['person_id' => $id, 'error' => $e->getMessage()]);
+            return back()->with('error', 'Approval failed.');
         }
 
+    // 6) Redirect (use the one we already loaded)
+    $qetaa_id = $u->QetaaID ?? null;
+    return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
 
 
 
+
+            // $approvedInt = 1;
+           
+            // $passString = DB::table('NewUsersInformation')->where('PersonID', $id)->get(['Password']);
+
+            // $hashedPasswordString = Hash::make($passString); // Hash it securely
+
+            
+
+
+
+
+            // if ($request->personal_phone_number && $request->has_whatsapp) { try { // Create an internal request payload for sendWithHeader 
+            // $payload = [ 'full_number' => $request->personal_phone_number, 'message' => "اهلا بك يا {$request->first_name} {$request->second_name} {$request->third_name} {$request->fourth_name}\nالرقم الخاص بك: {$thisPersonID}\nالرقم: {$plainPassword}\nيرجى تغيير الرقم عند أول تسجيل دخول.\nمرحبا بك في الكشافة.", ]; 
+            // // Build a fake POST Request object and call the controller directly 
+            // $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload); app(WhatsAppBridgeController::class)->send($fake); // We ignore the returned RedirectResponse; we’ll always go back to admin list 
+            // } catch (\Throwable $e) { Log::error('Failed to send WA new password via sendWithHeader', [ 'error' => $e->getMessage(), ]); } } else { Log::warning('No phone found for WA new password'); }
+
+
+
+            // DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt, 'Password' => $hashedPasswordString]);
+            // $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
+            // return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
+        }
 
         public function createLiveForm()
         {
@@ -513,7 +592,7 @@ ORDER BY pi.ShamandoraCode ASC;
 
 
 
-            $hashedPasswordString = Hash::make($passString); // Hash it securely
+            //$hashedPasswordString = Hash::make($passString); // Hash it securely
 
             $QetaaName = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first()->QetaaName;
             //return $QetaaName;
@@ -564,7 +643,7 @@ ORDER BY pi.ShamandoraCode ASC;
                     'SanaMarhalaID'         => $request->sana_marhala_id, 
                     'SpiritualFatherName'   => $request->spiritual_father,
                     'SpiritualFatherChurchName' => $request->spiritual_father_church,
-                    'Password'              => $hashedPasswordString, 
+                    'Password'              => $passString, 
                     'PersonPersonalMobileNumber' => $request->personal_phone_number,
                     'FatherMobileNumber'    => $request->father_phone_number,
                     'MotherMobileNumber'    => $request->mother_phone_number,
@@ -854,12 +933,12 @@ ORDER BY pi.ShamandoraCode ASC;
                     }
 
                     $plainPassword = implode($pass); // The actual random password
-                    $hashedPassword = Hash::make($plainPassword); // Hash it securely
+                //    $hashedPassword = Hash::make($plainPassword); // Hash it securely
 
                     // Insert into DB
                     DB::table('PersonSystemPassword')->insert([
                         'PersonID' => $thisPersonID,
-                        'Password' => $hashedPassword,
+                        'Password' => $plainPassword,
                     ]);
 
                  if ($request->personal_phone_number && $request->has_whatsapp) {
@@ -984,13 +1063,7 @@ ORDER BY pi.ShamandoraCode ASC;
             return redirect()->route('person.index');
 
         }
-    
-        /**
-            * Display the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
+  
         public function show($id)
         {
             $person = DB::table('PersonInformation')
@@ -1024,12 +1097,6 @@ ORDER BY pi.ShamandoraCode ASC;
             return view('person.person-show', array('person'=>$person, 'questions'=>$questions));
         }
     
-        /**
-            * Show the form for editing the specified resource.
-            *
-            * @param  int  $id
-            * @return Response
-            */
         public function edit($id)
         {
             $marahel = DB::table('Marhala')->get();
