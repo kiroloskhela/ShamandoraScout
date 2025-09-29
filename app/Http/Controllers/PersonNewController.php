@@ -277,108 +277,72 @@ class PersonNewController extends Controller
 
         public function approveAgainNewEnrolments($id)
         {
-
-
-// 1) Load the row
-    $u = DB::table('NewUsersInformation')->where('PersonID', $id)->first();
-    if (!$u) {
-        return back()->with('error', 'Person not found.');
-    }
-
-    // 2) Extract the plain password currently stored (NOT hashed)
-    $plain = (string) ($u->Password ?? '');
-
-    // 3) Prepare phone + flags (adjust column names if yours differ)
-    $phone           = $u->PersonPersonalMobileNumber ?? $u->personal_phone_number ?? null;
-    $hasWhatsappFlag = (bool) ($u->IsOPersonalPhoneNumberHavingWhatsapp ?? $u->has_whatsapp ?? false);
-
-    // 4) Build display name for the message
-    $fullName = trim(implode(' ', array_filter([
-        $u->FirstName  ?? '',
-        $u->SecondName ?? '',
-        $u->ThirdName  ?? '',
-        $u->FourthName ?? '',
-    ])));
-
-    // 5) Do the DB update in a transaction
-        DB::beginTransaction();
-        try {
-            // Hash and save
-            $hash = Hash::make($plain);
-
-            DB::table('NewUsersInformation')
-            ->where('PersonID', $id)
-            ->update([
-                'IsApproved' => 1,
-                'Password'   => $hash,        // store ONLY the hash
-            ]);
-
-            // After the transaction is safely committed, send WhatsApp with the *plain*
-            DB::afterCommit(function () use ($phone, $hasWhatsappFlag, $fullName, $id, $plain) {
-                if (!$phone || !$hasWhatsappFlag) {
-                    Log::warning('No phone or WA flag for new approval', [
-                        'person_id' => $id, 'phone' => $phone, 'has_whatsapp' => $hasWhatsappFlag
-                    ]);
-                    return;
+                // Load user
+                $u = DB::table('NewUsersInformation')->where('PersonID', $id)->first();
+                if (!$u) {
+                    return back()->with('error', 'Person not found.');
                 }
 
+                // Plain password (currently stored)
+                $plain = (string) ($u->Password ?? '');
+                if ($plain === '') {
+                    return back()->with('error', 'User has no plain password to send.');
+                }
+
+                // Phone & WA flag (adjust column names if needed)
+                $phone = $u->PersonPersonalMobileNumber ?? $u->personal_phone_number ?? null;
+                $hasWhatsappFlag = (bool) ($u->IsOPersonalPhoneNumberHavingWhatsapp ?? $u->has_whatsapp ?? false);
+                if (!$phone || !$hasWhatsappFlag) {
+                    return back()->with('error', 'No WhatsApp phone/flag on this user.');
+                }
+
+                // Full name
+                $fullName = trim(implode(' ', array_filter([
+                    $u->FirstName  ?? '',
+                    $u->SecondName ?? '',
+                    $u->ThirdName  ?? '',
+                    $u->FourthName ?? '',
+                ])));
+
+                // 1) SEND FIRST (no DB check): /whatsapp/send normalizes then sends
                 try {
                     $payload = [
-                        'full_number' => $phone, // controller will normalize to +20...
+                        'full_number' => $phone,
                         'message'     => "اهلا بك يا {$fullName}\n"
                                     . "الرقم الخاص بك: {$id}\n"
                                     . "الرقم: {$plain}\n"
                                     . "يرجى تغيير الرقم عند أول تسجيل دخول.\n"
                                     . "مرحبا بك في الكشافة.",
                     ];
-
                     $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload);
-                    app(\App\Http\Controllers\WhatsAppBridgeController::class)->sendWithHeader($fake);
-
+                    app(\App\Http\Controllers\WhatsAppBridgeController::class)->send($fake);
+                    // Note: send() returns a RedirectResponse; we just care that it didn't throw.
                 } catch (\Throwable $e) {
-                    Log::error('Failed to send WA new password', ['person_id' => $id, 'error' => $e->getMessage()]);
+                    Log::error('WhatsApp send failed; aborting update', ['person_id' => $id, 'error' => $e->getMessage()]);
+                    return back()->with('error', 'Failed to send WhatsApp. Password was NOT updated.');
                 }
-            });
 
-            DB::commit();
+                // 2) NOW hash & update
+                try {
+                    DB::table('NewUsersInformation')
+                        ->where('PersonID', $id)
+                        ->update([
+                            'IsApproved' => 1,
+                            'Password'   => Hash::make($plain),
+                        ]);
+                } catch (QueryException $e) {
+                    return back()->with('error', 'Database error: ' . $e->getMessage());
+                } catch (\Throwable $e) {
+                    Log::error('Approval/update failed after send', ['person_id' => $id, 'error' => $e->getMessage()]);
+                    return back()->with('error', 'Approval failed after sending WhatsApp.');
+                }
 
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            Log::error('Approval/update failed', ['person_id' => $id, 'error' => $e->getMessage()]);
-            return back()->with('error', 'Approval failed.');
+                // Redirect
+                $qetaa_id = $u->QetaaID ?? null;
+                return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id)
+                                ->with('success', 'WhatsApp sent and password updated.');
         }
 
-    // 6) Redirect (use the one we already loaded)
-    $qetaa_id = $u->QetaaID ?? null;
-    
-    return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
-
-
-
-
-            // $approvedInt = 1;
-           
-            // $passString = DB::table('NewUsersInformation')->where('PersonID', $id)->get(['Password']);
-
-            // $hashedPasswordString = Hash::make($passString); // Hash it securely
-
-            
-
-
-
-
-            // if ($request->personal_phone_number && $request->has_whatsapp) { try { // Create an internal request payload for sendWithHeader 
-            // $payload = [ 'full_number' => $request->personal_phone_number, 'message' => "اهلا بك يا {$request->first_name} {$request->second_name} {$request->third_name} {$request->fourth_name}\nالرقم الخاص بك: {$thisPersonID}\nالرقم: {$plainPassword}\nيرجى تغيير الرقم عند أول تسجيل دخول.\nمرحبا بك في الكشافة.", ]; 
-            // // Build a fake POST Request object and call the controller directly 
-            // $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload); app(WhatsAppBridgeController::class)->send($fake); // We ignore the returned RedirectResponse; we’ll always go back to admin list 
-            // } catch (\Throwable $e) { Log::error('Failed to send WA new password via sendWithHeader', [ 'error' => $e->getMessage(), ]); } } else { Log::warning('No phone found for WA new password'); }
-
-
-
-            // DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt, 'Password' => $hashedPasswordString]);
-            // $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
-            // return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
-        }
 
         public function createLiveForm()
         {
