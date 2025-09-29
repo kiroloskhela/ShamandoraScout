@@ -332,7 +332,7 @@ class PersonNewController extends Controller
                                     . "مرحبا بك في الكشافة.",
                     ];
 
-                    $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
+                    $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload);
                     app(\App\Http\Controllers\WhatsAppBridgeController::class)->sendWithHeader($fake);
 
                 } catch (\Throwable $e) {
@@ -350,6 +350,7 @@ class PersonNewController extends Controller
 
     // 6) Redirect (use the one we already loaded)
     $qetaa_id = $u->QetaaID ?? null;
+    
     return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
 
 
@@ -941,29 +942,29 @@ class PersonNewController extends Controller
                         'Password' => $plainPassword,
                     ]);
 
-                 if ($request->personal_phone_number && $request->has_whatsapp) {
-                        try {
-                            // Create an internal request payload for sendWithHeader
-                            $payload = [
-                                'full_number' => $request->personal_phone_number,
-                                'message'     => "اهلا بك يا {$request->first_name} {$request->second_name} {$request->third_name} {$request->fourth_name}\nالرقم الخاص بك: {$thisPersonID}\nالرقم: {$plainPassword}\nيرجى تغيير الرقم عند أول تسجيل دخول.\nمرحبا بك في الكشافة.",
-                            ];
+                //  if ($request->personal_phone_number && $request->has_whatsapp) {
+                //         try {
+                //             // Create an internal request payload for sendWithHeader
+                //             $payload = [
+                //                 'full_number' => $request->personal_phone_number,
+                //                 'message'     => "اهلا بك يا {$request->first_name} {$request->second_name} {$request->third_name} {$request->fourth_name}\nالرقم الخاص بك: {$thisPersonID}\nالرقم: {$plainPassword}\nيرجى تغيير الرقم عند أول تسجيل دخول.\nمرحبا بك في الكشافة.",
+                //             ];
 
         
-                            // Build a fake POST Request object and call the controller directly
-                            $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload);
+                //             // Build a fake POST Request object and call the controller directly
+                //             $fake = HttpRequest::create('/whatsapp/send', 'POST', $payload);
 
-                            app(WhatsAppBridgeController::class)->send($fake);
-                            // We ignore the returned RedirectResponse; we’ll always go back to admin list
-                        } catch (\Throwable $e) {
-                            Log::error('Failed to send WA new password via sendWithHeader', [
+                //             app(WhatsAppBridgeController::class)->send($fake);
+                //             // We ignore the returned RedirectResponse; we’ll always go back to admin list
+                //         } catch (\Throwable $e) {
+                //             Log::error('Failed to send WA new password via sendWithHeader', [
                     
-                                'error'     => $e->getMessage(),
-                            ]);
-                        }
-                    } else {
-                        Log::warning('No phone found for WA new password');
-                    }
+                //                 'error'     => $e->getMessage(),
+                //             ]);
+                //         }
+                //     } else {
+                //         Log::warning('No phone found for WA new password');
+                //     }
 
 
             DB::table('PersonalPhysicalAddress')->insert(
