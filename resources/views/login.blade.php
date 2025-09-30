@@ -62,8 +62,7 @@
                         <!-- Forgot Password -->
                         <!-- Forgot Password -->
                         <div class="text-right">
-                            <a href="forgot-password.form"
-                                class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
+                            <a href="forgot-password"
                                 class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
                                 نسيت كلمة المرور؟
                             </a>

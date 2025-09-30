@@ -7,29 +7,29 @@
     <title>نسيت كلمة المرور</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
-    body {
-        font-family: 'Cairo', sans-serif;
-    }
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
 
-    .input-field {
-        transition: all 0.3s ease;
-    }
+        .input-field {
+            transition: all 0.3s ease;
+        }
 
-    .input-field:focus {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        border-color: #6b7280;
-    }
+        .input-field:focus {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #6b7280;
+        }
 
-    .login-btn {
-        transition: all 0.3s ease;
-    }
+        .login-btn {
+            transition: all 0.3s ease;
+        }
 
-    .login-btn:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transform: translateY(-1px);
-    }
+        .login-btn:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -44,23 +44,23 @@
 
                     {{-- Alerts --}}
                     @if (session('success'))
-                    <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg text-center">
-                        {{ session('success') }}
-                    </div>
+                        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg text-center">
+                            {{ session('success') }}
+                        </div>
                     @endif
                     @if (session('error'))
-                    <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-lg text-center">
-                        {{ session('error') }}
-                    </div>
+                        <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-lg text-center">
+                            {{ session('error') }}
+                        </div>
                     @endif
                     @if ($errors->any())
-                    <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-lg">
-                        <ul class="list-disc list-inside text-sm">
-                            @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                        <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-lg">
+                            <ul class="list-disc list-inside text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     @endif
 
                     <form method="POST" action="{{ route('forgot-password.handle') }}" class="space-y-6">
@@ -91,7 +91,7 @@
 
                     <!-- Back to login -->
                     <div class="text-center mt-6">
-                        <a href="{{ route('login') }}"
+                        <a href="{{ route('login-auth') }}"
                             class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
                             العودة لتسجيل الدخول
                         </a>
@@ -119,15 +119,15 @@
     </div>
 
     <script>
-    const inputs = document.querySelectorAll('.input-field');
-    inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-            input.style.transform = 'translateY(-1px)';
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.transform = 'translateY(-1px)';
+            });
+            input.addEventListener('blur', () => {
+                input.style.transform = 'translateY(0)';
+            });
         });
-        input.addEventListener('blur', () => {
-            input.style.transform = 'translateY(0)';
-        });
-    });
     </script>
 </body>
 
