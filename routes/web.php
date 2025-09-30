@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\TestingController;
 use App\Http\Controllers\AttendanceController;
-
+use App\Http\Controllers\ForgotPasswordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,9 +36,20 @@ Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
 Route::get('/login-auth', array('as'=>'login-auth', 'uses'=>'App\Http\Controllers\LoginController@show'));
 Route::post('/login', array('as'=>'login', 'uses'=>'App\Http\Controllers\LoginController@login'));
 
+// routes/web.php
+
+
+Route::get('/forgot-password', function () {
+    return view('forgot-password.form');   // ⬅️ مسار الفيو الجديد
+})->name('forgot-password.form');
+
+// معالجة الفورم
+Route::post('/forgot-password', [ForgotPasswordController::class, 'handle'])
+    ->name('forgot-password.handle');
+
+
 
 Route::get('/register', function () {return view('register');});
-Route::get('/forgot-password', function () {return view('forgot-password');});
 
 
 //Person Tables Routes
@@ -75,6 +86,7 @@ Route::get('/liveform/apologize', function() {return view('person.liveform-limit
 Route::get('/liveform/finalize', function(){return view('person.liveform-finalize');});
 
 
+
 Route::get('/new-enrolments/show/qetaa/{id}', array('as'=> 'person.new-enrolments-show-qetaa', 'uses'=>'App\Http\Controllers\PersonNewController@showNewEnrolmentsByQetaaID'));
 Route::get('/new-enrolments/show/{id}', array('as'=> 'person.new-enrolments-show', 'uses'=>'App\Http\Controllers\PersonNewController@showNewEnrolments'));
 Route::get('/new-enrolments/person/approve/{id}', array('as'=>'person.new-enrolments-approve', 'uses'=>'App\Http\Controllers\PersonNewController@approveNewEnrolments'));
@@ -100,6 +112,9 @@ Route::patch('/role/update/{id}', array('as'=> 'role.update', 'uses'=> 'App\Http
 Route::get('/role/delete/{id}', array('as'=> 'role.delete', 'uses'=>'App\Http\Controllers\RoleController@deletes'));
 Route::delete('/role/destroy/{id}', array('as'=> 'role.destroy', 'uses'=>'App\Http\Controllers\RoleController@destroy'));
 
+//Routes for Person Information for all system (Show ALL, Insert, Show by ID, Edit)
+Route::get('/person/ShowPersons', array('as'=> 'person.ShowPersons', 'uses'=>'App\Http\Controllers\PersonNewController@ShowPersons'));
+
 
 //Routes for Person Roles Assignment
 Route::get('/person-role', array('as'=> 'person-role.index', 'uses'=> 'App\Http\Controllers\PersonRoleController@index'));
@@ -114,6 +129,10 @@ Route::delete('/person-role/destroy/{id}', array('as'=> 'person-role.destroy', '
 Route::get('/group-person/add-khadem', array('as' => 'group-person.create-khadem', 'uses' =>'App\Http\Controllers\GroupPersonController@createKhadem'));
 Route::get('/group-person/delete/{id}', array('as'=> 'group-person.delete', 'uses'=>'App\Http\Controllers\GroupPersonController@deletes'));
 Route::delete('/group-person/destroy/{id}', array('as'=> 'group-person.destroy', 'uses'=>'App\Http\Controllers\GroupPersonController@destroy'));
+
+
+
+
 });
 
 Route::middleware(['auth'])->group(function(){

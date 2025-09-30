@@ -60,12 +60,15 @@
                         </div>
 
                         <!-- Forgot Password -->
-                        <div class="text-left">
-                            <a href="forgot-password.html"
+                        <!-- Forgot Password -->
+                        <div class="text-right">
+                            <a href="forgot-password.form"
+                                class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
                                 class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
                                 نسيت كلمة المرور؟
                             </a>
                         </div>
+
 
                         <!-- Login Button -->
                         <input type="submit"

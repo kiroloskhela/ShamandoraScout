@@ -12,31 +12,17 @@ use \Illuminate\Database\QueryException;
 use Exception;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request as HttpRequest; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 class PersonNewController extends Controller
 {
 
-        public function ShowPersons(Request $request)
-        {
-            $userId = $request->input('id');
-            $rawPersons = DB::select("\nSELECT  Distinct\n    pi.PersonID,\n    pi.ShamandoraCode,\n    pi.FirstName, \n    pi.SecondName, \n    pi.ThirdName, \n    pi.FourthName, \n    q.QetaaName,\n    pi.ScoutJoiningYear,\n    sm.SanaMarhalaName, \n    pi.RaqamQawmy,\n    ppn.PersonPersonalMobileNumber,\n    q.QetaaID,\n    PG.PersonID AS GroupPersonID,\n    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,\n    psm.SanaMarhalaID\nFROM PersonInformation pi\nLEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID \nLEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID\nLEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID\nLEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID\nLEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID\nLEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID\nLEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID\nJOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID\nJOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID\nWHERE pg2.PersonID = ?\nORDER BY pi.ShamandoraCode ASC;\n    ", [$userId]);
+public function ShowPersons(Request $request)
+{
 
-            $persons = collect($rawPersons)->map(function ($person) {
-                $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-                return $person;
-            });
 
-            return response()->json(['persons' => $persons]);
-        }
-
-        public function index(Request $request)
-        {
-            // ✅ Get the user ID from the request
-            $userId = $request->input('id');
-
-            // ✅ Run the raw SQL with group filtering
-            $rawPersons = DB::select("
-        SELECT  Distinct
+    $rawPersons = DB::select("
+        SELECT DISTINCT
             pi.PersonID,
             pi.ShamandoraCode,
             pi.FirstName, 
@@ -62,8 +48,55 @@ class PersonNewController extends Controller
         LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
         JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
         JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-        WHERE pg2.PersonID = ?
-        ORDER BY pi.ShamandoraCode ASC;
+ 
+        ORDER BY pi.ShamandoraCode ASC
+    ");
+
+    $persons = collect($rawPersons)->map(function ($person) {
+        $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+        return $person;
+    });
+
+    return view("person.person-showAllPersons", ['persons' => $persons]);
+}
+
+
+
+        public function index(Request $request)
+        {
+            // ✅ Get the user ID from the request
+            $userId = $request->input('id');
+
+            // ✅ Run the raw SQL with group filtering
+            $rawPersons = DB::select("
+        SELECT  Distinct
+            pi.PersonID,
+            pi.ShamandoraCode,
+            pi.FirstName, 
+            pi.SecondName, 
+            pi.ThirdName, 
+            pi.FourthName, 
+            q.QetaaName,
+            pi.ScoutJoiningYear,
+            sm.SanaMarhalaName, 
+            pi.RaqamQawmy,
+            ppn.PersonPersonalMobileNumber,
+            q.QetaaID,
+            PG.PersonID AS GroupPersonID,
+            IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+            psm.SanaMarhalaID
+            FROM PersonInformation pi
+            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
+            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
+            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+            WHERE pg2.PersonID = ?
+            ORDER BY pi.ShamandoraCode ASC;
             ", [$userId]);
 
             // ✅ Convert to collection and add full_name field
@@ -75,6 +108,8 @@ class PersonNewController extends Controller
             // ✅ Return the view with filtered persons
             return view("person.person-index", ['persons' => $persons]);
         }
+
+        
  
         public function apiShowProfile($id)
         {

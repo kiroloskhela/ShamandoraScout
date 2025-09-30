@@ -277,6 +277,12 @@
                                 </svg>
                             </button>
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                @if (Auth::check() && Auth::user()->role()->get()->contains('RoleName', 'SuperAdmin'))
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('person.ShowPersons', ['id' => Auth::id()]) }}">
+                                        بيانات كل المخدومين
+                                    </a>
+                                @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('person.index', ['id' => Auth::id()]) }}">
                                     بيانات المخدومين
