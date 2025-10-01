@@ -89,6 +89,52 @@
                         </button>
                     </form>
 
+                    {{-- Triggered when duplicates are found --}}
+                    @if (session('need_raqam_qawmy'))
+                        <div id="rq-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">تأكيد الهوية</h3>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    {{ session('info') ?? 'برجاء إدخال الرقم القومي لإتمام التحقق.' }}
+                                </p>
+
+                                <form method="POST" action="{{ route('forgot-password.handle') }}" class="space-y-4">
+                                    @csrf
+                                    {{-- Keep the original inputs --}}
+                                    <input type="hidden" name="phone" value="{{ old('phone') }}">
+                                    <input type="hidden" name="dob" value="{{ old('dob') }}">
+
+                                    <div>
+                                        <label class="block text-gray-700 text-sm font-medium mb-2">الرقم القومي</label>
+                                        <input type="text" name="raqam_qawmy" pattern="\d{14}" maxlength="14"
+                                            class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500"
+                                            placeholder="أدخل الرقم القومي (14 رقم)" required>
+                                        <p class="mt-1 text-xs text-gray-500">أدخل 14 رقمًا بدون مسافات.</p>
+                                    </div>
+
+                                    <div class="flex gap-3">
+                                        <button type="submit"
+                                            class="flex-1 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg">
+                                            تأكيد
+                                        </button>
+                                        <button type="button" onclick="closeRaqamModal()"
+                                            class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg">
+                                            إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
+
+                    <script>
+                        function closeRaqamModal() {
+                            const el = document.getElementById('rq-modal');
+                            if (el) el.remove(); // simply remove it; user stays on the same page
+                        }
+                    </script>
+
+
                     <!-- Back to login -->
                     <div class="text-center mt-6">
                         <a href="{{ route('login-auth') }}"

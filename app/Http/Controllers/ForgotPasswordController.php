@@ -30,40 +30,66 @@ class ForgotPasswordController extends Controller
 
 public function handle(Request $request)
 {
-    // 1) Strict validation (phone = local 11 digits; DOB = YYYY-MM-DD)
-    $request->validate([
-        'phone' => ['required','regex:/^0\d{10}$/'],
-        'dob'   => ['required','date_format:Y-m-d'],
-    ], [
-        'phone.regex'     => 'Phone must be 11 digits and start with 0 (e.g. 01000485402).',
-        'dob.date_format' => 'DOB must be YYYY-MM-DD (e.g. 2001-03-29).',
+    // Validate base inputs
+    $baseRules = [
+        'phone' => ['required','regex:/^0\d{10}$/'],   // 11 digits, starts with 0
+        'dob'   => ['required','date_format:Y-m-d'],   // e.g., 2001-03-29
+    ];
+
+    // If modal posted RaqamQawmy, validate it too
+    if ($request->filled('raqam_qawmy')) {
+        $baseRules['raqam_qawmy'] = ['required','regex:/^\d{14}$/'];
+    }
+
+    $request->validate($baseRules, [
+        'phone.regex'       => 'Phone must be 11 digits and start with 0 (e.g. 01000485402).',
+        'dob.date_format'   => 'DOB must be YYYY-MM-DD (e.g., 2001-03-29).',
+        'raqam_qawmy.regex' => 'RaqamQawmy must be 14 digits.',
     ]);
 
-    $normalizedPhone = preg_replace('/\D+/', '', (string) $request->input('phone')); // 010XXXXXXXXX
-    $dobInput        = (string) $request->input('dob'); // 'YYYY-MM-DD'
+    $phone = preg_replace('/\D+/', '', (string) $request->input('phone'));
+    $dob   = (string) $request->input('dob');           // 'YYYY-MM-DD'
+    $nid   = $request->filled('raqam_qawmy') ? preg_replace('/\D+/', '', $request->input('raqam_qawmy')) : null;
 
-    // 2) Match ON phone + DOB (the unique combo)
-    // If DateOfBirth is DATETIME, change the where() line to whereDate('pi.DateOfBirth', $dobInput)
-    $matches = DB::table('PersonInformation as pi')
+    // Base query: phone + dob (your storage is exact 11-digit local)
+    $q = DB::table('PersonInformation as pi')
         ->join('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
-        ->whereRaw('TRIM(ppn.PersonPersonalMobileNumber) = ?', [$normalizedPhone])
-        ->where('pi.DateOfBirth', '=', $dobInput)   // or ->whereDate('pi.DateOfBirth', $dobInput)
-        ->select('pi.PersonID','pi.FirstName','pi.SecondName','pi.ThirdName','pi.FourthName')
-        ->limit(2) // detect accidental duplicates defensively
-        ->get();
+        ->whereRaw('TRIM(ppn.PersonPersonalMobileNumber) = ?', [$phone])
+        // if DateOfBirth is DATETIME use whereDate instead:
+        ->where('pi.DateOfBirth', '=', $dob)
+        ->select('pi.PersonID','pi.FirstName','pi.SecondName','pi.ThirdName','pi.FourthName');
 
+    // If user provided RaqamQawmy (from modal), refine
+    if ($nid) {
+        $q->where('pi.RaqamQawmy', '=', $nid);
+    }
+
+    $matches = $q->limit(2)->get(); // limit(2) to detect duplicates safely
+
+    // No match at all
     if ($matches->isEmpty()) {
-        return back()->with('error', 'لم يتم العثور على مستخدم يطابق رقم الهاتف وتاريخ الميلاد.')->withInput();
-    }
-    if ($matches->count() > 1) {
-        // Shouldn't happen if (phone + DOB) is unique; handle safely
-        return back()->with('error', 'يوجد أكثر من مستخدم بنفس رقم الهاتف وتاريخ الميلاد. يرجى التواصل مع الدعم.');
+        // If we already asked for RaqamQawmy, then this is an actual mismatch
+        if ($nid) {
+            return back()->with('error', 'البيانات لا تطابق أي مستخدم. يرجى التحقق من الرقم القومي.')
+                         ->withInput();
+        }
+        return back()->with('error', 'لم يتم العثور على مستخدم يطابق رقم الهاتف وتاريخ الميلاد.')
+                     ->withInput();
     }
 
+    // More than one match and we don't yet have RaqamQawmy -> trigger modal
+    if ($matches->count() > 1 && !$nid) {
+        return back()
+            ->with('need_raqam_qawmy', true) // <-- flag to open the modal
+            ->with('info', 'يرجى إدخال الرقم القومي لتأكيد الهوية.')
+            ->withInput(); // keep phone & dob for the modal
+    }
+
+    // Unique person (either from first pass, or after NID refining)
     $person   = $matches->first();
     $personId = $person->PersonID;
 
-    // 3) Generate 8-char password (your exact method)
+    // Generate 8-char password (your method)
     $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
     $pass = [];
     $alphaLength = strlen($alphabet) - 1;
@@ -73,7 +99,7 @@ public function handle(Request $request)
     }
     $plainPassword = implode($pass);
 
-    // 4) WhatsApp message (send first; abort on failure)
+    // Send WhatsApp first
     $fullName = trim(implode(' ', array_filter([
         $person->FirstName  ?? '',
         $person->SecondName ?? '',
@@ -83,28 +109,29 @@ public function handle(Request $request)
 
     try {
         $payload = [
-            'full_number' => $normalizedPhone,
+            'full_number' => $phone,
             'message'     => "اهلا بك يا {$fullName}\n"
                            . "الرقم الخاص بك: {$personId}\n"
                            . "الرقم: {$plainPassword}\n"
                            . "يرجى تغيير الرقم عند أول تسجيل دخول.\n"
                            . "مرحبا بك في الكشافة.",
         ];
-        $fake = \Illuminate\Http\Request::create('/whatsapp/send', 'POST', $payload);
+        $fake = Request::create('/whatsapp/send', 'POST', $payload);
         app(\App\Http\Controllers\WhatsAppBridgeController::class)->send($fake);
     } catch (\Throwable $e) {
         Log::error('WhatsApp send failed; aborting update', ['person_id' => $personId, 'error' => $e->getMessage()]);
         return back()->with('error', 'Failed to send WhatsApp. Password was NOT updated.');
     }
 
-    // 5) Hash + upsert in PersonSystemPassword
+    // Hash + upsert
     DB::table('PersonSystemPassword')->updateOrInsert(
         ['PersonID' => $personId],
-        ['Password' => Hash::make($plainPassword), 'PasswordCreationTimestamp' => now()]
+        ['SystemPassword' => Hash::make($plainPassword), 'updated_at' => now()]
     );
 
-    return back()->with('success', 'تم إرسال كلمة مرور مؤقتة على واتساب وتحديثها في النظام.');
+    return back()->with('success', 'Temporary password sent on WhatsApp and updated in the system.');
 }
+
 
 
     /**
