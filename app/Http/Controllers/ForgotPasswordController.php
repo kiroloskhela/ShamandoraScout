@@ -126,7 +126,7 @@ public function handle(Request $request)
     // Hash + upsert
     DB::table('PersonSystemPassword')->updateOrInsert(
         ['PersonID' => $personId],
-        ['SystemPassword' => Hash::make($plainPassword), 'updated_at' => now()]
+        ['Password' => Hash::make($plainPassword), 'updated_at' => now()]
     );
 
     return back()->with('success', 'Temporary password sent on WhatsApp and updated in the system.');
