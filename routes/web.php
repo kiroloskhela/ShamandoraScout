@@ -27,6 +27,10 @@ use App\Http\Controllers\ForgotPasswordController;
         Route::get('/buttons', function () {return view('buttons');});
         Route::get('/utilities-animation', function () {return view('utilities-animation');});
 
+        Route::get('/adv', function () {
+            return view('Adv');
+        });
+
 //General UI Routes
 Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
         Route::get('/', function () {return view('index');})->name('home');
