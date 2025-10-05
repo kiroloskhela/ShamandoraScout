@@ -81,7 +81,7 @@
                             ليس لديك حساب؟
                             <a href="#"
                                 class="text-gray-800 hover:underline font-medium transition-all duration-300">
-                                tot إنشاء حساب جديد
+                                try إنشاء حساب جديد
                             </a>
                         </p>
                     </div>
