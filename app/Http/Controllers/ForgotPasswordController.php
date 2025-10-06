@@ -122,8 +122,8 @@ try {
     $brevo = app(BrevoService::class);
 
     // your public HTTPS logo & login URLs
-    $logoUrl  = asset('img/shamandora.png');
-    $loginUrl = 'https://app.shamandorascout.com/login'; // change to your real login link
+    $logoUrl  = 'https://shamandorascout.com/img/shamandora.png'; // Absolute HTTPS URL for email clients
+    $loginUrl = 'https://shamandorascout.com/login-auth'; 
 
     $res = $brevo->sendTempPasswordBilingual(
         $email,

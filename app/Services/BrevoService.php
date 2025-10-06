@@ -137,7 +137,7 @@ class BrevoService
             <!-- Footer -->
             <tr>
               <td style="padding:16px 24px 24px; color:#6b7280; font-size:12px; text-align:center;">
-                © {date('Y')} Shamandora Scout — All rights reserved.
+                Shamandora Scout — All rights reserved.
               </td>
             </tr>
           </table>
