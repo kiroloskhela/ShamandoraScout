@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Services\BrevoService; // Update to the correct service class
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -99,14 +99,32 @@ public function handle(Request $request)
     }
     $plainPassword = implode($pass);
 
-    // Send WhatsApp first
+
+
+
+  // Send WhatsApp first
     $fullName = trim(implode(' ', array_filter([
         $person->FirstName  ?? '',
         $person->SecondName ?? '',
         $person->ThirdName  ?? '',
         $person->FourthName ?? '',
     ])));
+    $email = DB::table('PersonInformation')
+    ->where('PersonID', $personId)
+    ->value('PersonalEmail');
 
+        if (!$email) {
+            return back()->with('error', 'لا يوجد بريد إلكتروني مسجل لهذا المستخدم.');
+        }
+
+        try {
+            $brevo = app(BrevoService::class); // Now uses the correct class
+            $brevo->sendTempPassword($email, $fullName, $personId, $plainPassword);
+        } catch (\Throwable $e) {
+            Log::error('Brevo send failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'فشل إرسال البريد الإلكتروني.');
+}
+  
     try {
         $payload = [
             'full_number' => $phone,
