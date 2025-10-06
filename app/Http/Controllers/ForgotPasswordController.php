@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
+
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request as HttpRequest; // for your WhatsApp bridge
@@ -117,14 +118,35 @@ public function handle(Request $request)
             return back()->with('error', 'لا يوجد بريد إلكتروني مسجل لهذا المستخدم.');
         }
 
-        try {
-            $brevo = app(BrevoService::class); // Now uses the correct class
-            $brevo->sendTempPassword($email, $fullName, $personId, $plainPassword);
-        } catch (\Throwable $e) {
-            Log::error('Brevo send failed', ['error' => $e->getMessage()]);
-            return back()->with('error', 'فشل إرسال البريد الإلكتروني.');
+try {
+    $brevo = app(BrevoService::class);
+
+    // your public HTTPS logo & login URLs
+    $logoUrl  = asset('img/shamandora.png');
+    $loginUrl = 'https://app.shamandorascout.com/login'; // change to your real login link
+
+    $res = $brevo->sendTempPasswordBilingual(
+        $email,
+        $fullName,
+        (string)$personId,
+        $plainPassword,
+        $logoUrl,
+        $loginUrl
+    );
+
+    Log::info('Brevo email sent', [
+        'to'     => $email,
+        'result' => method_exists($res, 'getMessageId') ? $res->getMessageId() : $res
+    ]);
+    $emailSent = true;
+} catch (\Brevo\Client\ApiException $e) {
+    Log::error('Brevo API Exception', ['status'=>$e->getCode(), 'body'=>$e->getResponseBody()]);
+} catch (\Throwable $e) {
+    Log::error('Brevo send failed', ['class'=>get_class($e), 'msg'=>$e->getMessage()]);
 }
-  
+
+
+
     try {
         $payload = [
             'full_number' => $phone,
