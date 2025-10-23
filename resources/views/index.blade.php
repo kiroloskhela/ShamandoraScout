@@ -7,122 +7,79 @@
 
 
     <!-- STATS/CARDS SECTION -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- Card 1 -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center">
 
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600"> عدد الخدام الحالي </p>
-                    <p class="text-2xl font-semibold text-gray-900">223</p>
-                </div>
+        <div>
+            <!-- All cards stacked under each other + zoom on hover -->
+            <div class="grid grid-cols-1 gap-4">
 
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                        </path>
-                    </svg>
-                </div>
+                <x-card-stat href="{{ route('person.index', ['id' => Auth::id()]) }}" title="عدد المخدومين الحالي"
+                    :count="$personsCount ?? 0" color="blue">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+                <x-card-stat href="#" title="الفعاليات" :count="is_countable($events ?? []) ? count($events) : 0" color="emerald">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3M3 11h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+                <x-card-stat href="{{ route('attendance.manage', ['id' => Auth::id()]) }}" title="حضور المخدومين"
+                    color="indigo">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+                <x-card-stat href="#" title="طلب عهده" color="amber">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 13V7a2 2 0 00-2-2h-3l-2-2-2 2H8a2 2 0 00-2 2v6m14 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0H4" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+                <x-card-stat href="#" title="طلب غرفه" color="pink">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10l9-6 9 6v8a2 2 0 01-2 2h-2a2 2 0 01-2-2v-3H9v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-8z" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+                <x-card-stat href="profile" title="صفحتي الشخصية" color="rose">
+                    <x-slot:icon>
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A4 4 0 017 16h10a4 4 0 011.879.496M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </x-slot:icon>
+                </x-card-stat>
+
+
 
             </div>
+
         </div>
 
         <!-- Card 2 -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <div class="flex justify-between items-center">
-
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">اجمالي عدد الملتحقين</p>
-                    <p class="text-2xl font-semibold text-gray-900">130</p>
-                </div>
-                <div class="p-2 bg-purple-100 rounded-lg">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN CONTENT AREA -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Left Column: Chart/Graph -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Analytics Overview</h3>
-                <!-- REPLACE THIS DIV WITH YOUR CHART COMPONENT -->
-                <div
-                    class="h-64 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                    <p class="text-gray-500">📊 Your Chart Component Goes Here</p>
-                </div>
-            </div>
+        <div>
+            <x-calendar :events="$events" />
         </div>
 
-        <!-- Right Column: Recent Activity -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-                <!-- REPLACE THIS DIV WITH YOUR ACTIVITY COMPONENT -->
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        <p class="text-sm text-gray-700">New user registered</p>
-                        <span class="text-xs text-gray-500 ml-auto">2 min ago</span>
-                    </div>
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <p class="text-sm text-gray-700">Payment processed</p>
-                        <span class="text-xs text-gray-500 ml-auto">5 min ago</span>
-                    </div>
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <p class="text-sm text-gray-700">Report generated</p>
-                        <span class="text-xs text-gray-500 ml-auto">12 min ago</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FULL WIDTH SECTION -->
-    <div class="mt-6 bg-white rounded-lg shadow">
-        <div class="p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Data Table</h3>
-            <!-- REPLACE THIS DIV WITH YOUR TABLE COMPONENT -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">John Doe</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 15, 2024</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button class="text-emerald-600 hover:text-emerald-900">Edit</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 @endsection

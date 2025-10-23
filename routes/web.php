@@ -8,6 +8,11 @@ use App\Http\Controllers\TestingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ForgotPasswordController;
 
+use App\Http\Controllers\HomeController;
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -19,11 +24,10 @@ use App\Http\Controllers\ForgotPasswordController;
 |
 */
 
-        Route::get('/welcome', function () {return view('welcome');});
+
         Route::get('/cards', function () {return view('cards');});
         Route::get('/charts', function () {return view('charts');});
         Route::get('/blank', function () {return view('blank');});
-        Route::get('/index', function () {return view('index');});
         Route::get('/buttons', function () {return view('buttons');});
         Route::get('/utilities-animation', function () {return view('utilities-animation');});
 
@@ -33,7 +37,7 @@ use App\Http\Controllers\ForgotPasswordController;
 
 //General UI Routes
 Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
-        Route::get('/', function () {return view('index');})->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 });
 
 //General Registration and Login Routes
