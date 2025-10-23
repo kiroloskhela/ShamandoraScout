@@ -40,6 +40,29 @@ Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
     Route::get('/', [HomeController::class, 'index'])->name('home');
 });
 
+
+
+
+Route::middleware(['auth','checkAuth:SuperAdmin|Secretary'])->group(function(){
+Route::get('/secretary', array('as'=> 'secretary.index', 'uses'=> 'App\Http\Controllers\SecretaryController@index'));
+Route::get('/secretary/add', array('as' => 'secretary.create', 'uses' =>'App\Http\Controllers\SecretaryController@create'));
+Route::post('/secretary/insert', array('as' => 'secretary.insert', 'uses' => 'App\Http\Controllers\SecretaryController@insert'));
+Route::get('/secretary/edit/{id}', array('as' => 'secretary.edit', 'uses' => 'App\Http\Controllers\SecretaryController@edit'));
+Route::patch('/secretary/update/{id}', array('as'=> 'secretary.update', 'uses'=> 'App\Http\Controllers\SecretaryController@updates'));
+Route::get('/secretary/delete/{id}', array('as'=> 'secretary.delete', 'uses'=>'App\Http\Controllers\SecretaryController@deletes'));
+Route::delete('/secretary/destroy/{id}', array('as'=> 'secretary.destroy', 'uses'=>'App\Http\Controllers\SecretaryController@destroy'));
+Route::post('/secretary/upload', array('as'=> 'secretary.upload', 'uses'=>'App\Http\Controllers\SecretaryController@upload'));
+
+
+
+});
+
+
+
+
+
+
+
 //General Registration and Login Routes
 Route::get('/login-auth', array('as'=>'login-auth', 'uses'=>'App\Http\Controllers\LoginController@show'));
 Route::post('/login', array('as'=>'login', 'uses'=>'App\Http\Controllers\LoginController@login'));
