@@ -85,76 +85,108 @@ class SecretaryController extends Controller
             return redirect()->route('secretary.index');
         }
 
-        public function upload(Request $request)
-        {
-            // 1) Validate form
-            $request->validate([
-                'document_date' => ['required', 'date'],   // If your column is VARCHAR, it's still fine
-                'document_file' => ['required', 'mimes:pdf,doc,docx', 'max:10240'], // 10 MB
-            ], [
-                'document_file.mimes' => 'Only PDF, DOC, and DOCX are allowed.',
-            ]);
+       public function upload(Request $request)
+{
+    // 1) Validate inputs (keep your style, but for docs)
+    $request->validate([
+        'document_date' => 'required|date',
+        'document_file' => 'required|mimes:pdf,doc,docx|max:10240', // 10MB
+    ], [
+        'document_file.mimes' => 'Only PDF, DOC, and DOCX are allowed.',
+    ]);
 
-            // 2) Init Google Client (service account or OAuth token in session)
-            $client = new Client();
-            $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
-            $client->setScopes([Drive::DRIVE_FILE]); // or Drive::DRIVE if you need wider scope
+    // 2) Init Google client (same as your code)
+    $client = new Client();
+    $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
 
-            // If you used OAuth web-flow before and keep token in session:
-            if (session()->has('google_drive_token')) {
-                $client->setAccessToken(session('google_drive_token'));
-            }
+    // ⚠️ Using session token after OAuth login (same pattern)
+    $token = session('google_drive_token');
+    if (!$token) {
+        return back()->withErrors(['google' => 'Google Drive is not connected. Please sign in first.']);
+    }
+    $client->setAccessToken($token);
 
-            $service = new Drive($client);
+    // (Optional) refresh token if expired and we have a refresh_token
+    if ($client->isAccessTokenExpired() && $client->getRefreshToken()) {
+        $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+        session(['google_drive_token' => $client->getAccessToken()]);
+    }
 
-            // 3) Ensure folder exists (get or create)
-            $folderId = $this->getOrCreateFolder($service, 'LeadersMeetingDocument');
+    // 3) Create Drive service
+    $service = new Drive($client);
 
-            // 4) Prepare file metadata
-            $uploaded = $request->file('document_file');
-            $originalName = $uploaded->getClientOriginalName();
-            $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
-            $driveFileName = 'LeadersMeetingDocument_' . $safeDate . '_' . $originalName;
+    // 4) Ensure the folder exists (find by name; create if not found)
+    $folderName = 'LeadersMeetingDocument';
+    $folderId = null;
 
-            $fileMetadata = new DriveFile([
-                'name' => $driveFileName,
-                'parents' => [$folderId],
-            ]);
+    // Search for the folder in My Drive
+    $list = $service->files->listFiles([
+        'q' => "mimeType = 'application/vnd.google-apps.folder' and name = '{$folderName}' and trashed = false",
+        'fields' => 'files(id, name)',
+        'spaces' => 'drive',
+        'pageSize' => 1,
+    ]);
 
-            // 5) Upload file (multipart)
-            $content = file_get_contents($uploaded->getRealPath());
-            $mime = $uploaded->getMimeType();
+    if ($list->files && count($list->files) > 0) {
+        $folderId = $list->files[0]->id;
+    } else {
+        // Create it if missing
+        $folderFile = new DriveFile([
+            'name' => $folderName,
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
+        $createdFolder = $service->files->create($folderFile, ['fields' => 'id']);
+        $folderId = $createdFolder->id;
+    }
 
-            $file = $service->files->create(
-                $fileMetadata,
-                [
-                    'data' => $content,
-                    'mimeType' => $mime,
-                    'uploadType' => 'multipart',
-                    'fields' => 'id, name, webViewLink, webContentLink',
-                ]
-            );
+    // 5) File metadata/content
+    $uploaded = $request->file('document_file');
+    $originalExt = $uploaded->getClientOriginalExtension();
+    $originalName = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
+    $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
 
-            // 6) (Optional) Make link accessible to anyone with the link
-            //    Comment this block out if you want it private.
-            $permission = new Permission([
-                'type' => 'anyone',
-                'role' => 'reader',
-            ]);
-            $service->permissions->create($file->id, $permission);
+    // e.g. LeadersMeetingDocument_2025-10-23_Report.docx
+    $driveFileName = "{$folderName}_{$safeDate}_{$originalName}.{$originalExt}";
 
-            // 7) Save to DB
-            DB::table('Documents')->insert([
-                'DocumentDate' => $request->document_date,       // 'YYYY-MM-DD' from <input type="date">
-                'DocumentLink' => $file->webViewLink ?? '',      // view link
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ]);
+    $fileMetadata = new DriveFile([
+        'name'    => $driveFileName,
+        'parents' => [$folderId],
+    ]);
 
-            return redirect()
-                ->route('secretary.index')
-                ->with('success', 'تم رفع الملف وحفظ الرابط بنجاح.');
-        }
+    $content  = file_get_contents($uploaded->getRealPath());
+    $mimeType = $uploaded->getMimeType();
+
+    // 6) Upload
+    $file = $service->files->create($fileMetadata, [
+        'data' => $content,
+        'mimeType' => $mimeType,
+        'uploadType' => 'multipart',
+        'fields' => 'id, name, webViewLink, webContentLink',
+    ]);
+
+    // 7) (Optional) Make it viewable by anyone with the link
+    //    Remove this block if you want private access.
+    try {
+        $perm = new \Google\Service\Drive\Permission([
+            'type' => 'anyone',
+            'role' => 'reader',
+        ]);
+        $service->permissions->create($file->id, $perm);
+    } catch (\Throwable $e) {
+        // ignore if permission fails; continue
+    }
+
+    // 8) Save to DB (Documents: DocumentDate, DocumentLink)
+    DB::table('Documents')->insert([
+        'DocumentDate' => $request->document_date,          // e.g. 2025-10-23
+        'DocumentLink' => $file->webViewLink ?? '',         // Drive view link
+        'created_at'   => now(),
+        'updated_at'   => now(),
+    ]);
+
+    return back()->with('success', '✅ Uploaded to Drive & saved link: ' . ($file->webViewLink ?? ''));
+}
+
 
         /**
          * Find a Drive folder by name; if not found, create it.
