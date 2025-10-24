@@ -228,6 +228,13 @@
                                     </svg>
                                 </button>
                                 <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                    @if (Auth::check() &&
+                                            Auth::user()->role()->whereIn('RoleName', ['SuperAdmin', 'secretary'])->exists())
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href={{ route('secretary.index') }}>اضافه محضر اجتماع</a>
+                                    @endif
+                                    {{-- <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href={{ route('secretary.') }}> </a> --}}
                                 </div>
                             </div>
                         @endif
