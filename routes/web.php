@@ -7,7 +7,7 @@ use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\TestingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ForgotPasswordController;
-
+use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\HomeController;
 
 
@@ -460,3 +460,17 @@ Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class,'sa
 
 Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
 Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
+
+
+
+// Web callback that saves drive_token.json
+Route::get('/auth/google/callback', [SecretaryController::class, 'driveCallback'])
+    ->name('drive.callback');
+
+// Optional manual redirect for CLI authorization
+use Illuminate\Http\Request;
+Route::get('/auth/google/manual', function (Request $req) {
+    if ($err = $req->query('error')) return "OAuth error: {$err}";
+    $code = $req->query('code');
+    return $code ? "Copy this code and paste into your terminal:\n\n{$code}\n" : 'No code param returned.';
+})->name('drive.manual');
