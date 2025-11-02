@@ -3,214 +3,211 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use \Illuminate\Http\Response;
 use Google\Client;
 use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
 use Google\Service\Drive\Permission;
 
-use Session;
-
 class SecretaryController extends Controller
 {
-/**
-        * Display a listing of the resource.
-        *
-        * @return Response
-        */
-        public function index()
-        {
-            $documents = DB::table('Documents')->get();
-            return view("secretary.index", array('documents' => $documents));
-        }
-
-        public function create()
-        {
-            return view("secretary.create");
-        } 
-        public function insert(Request  $request)
-        {
-            $lastDocumentID = DB::table('Documents')->orderBy('DocumentID','desc')->first();
-            
-            if($lastDocumentID==Null)
-                $thisDocumentID = 1;
-            else
-                $thisDocumentID = $lastDocumentID->DocumentID + 1;
-
-            DB::table('Documents')->insert(
-                array(
-                    'DocumentID' => $thisDocumentID,
-                    'DocumentName' => $request -> document_name,
-                    'DocumentLink' => $request -> document_content,
-                    'created_at' => now(),
-                    
-                )
-            );
-            return redirect()->route('document.index');
-        
-        }
-
-        public function edit($id)
-        {
-            $document = DB::table('Documents')->where('DocumentID', $id)->first();
-            return view('secretary.edit', array('document' => $document));
-        }
-
-        public function update(Request $request, $id)
-        {
-            DB::table('Documents')
-                ->where('DocumentID', $id)
-                ->update(
-                    array(
-                        'DocumentName' => $request->document_name,
-                        'DocumentLink' => $request->document_content,
-                        'updated_at' => now(),
-                    )
-                );
-            return redirect()->route('secretary.index');
-        }
-
-       public function deletes($id)
-        {
-            $document = DB::table('Documents')->where('DocumentID', $id)->first();
-            return view("secretary.delete", array('document' => $document));
-        }
-
-        public function destroy($id)
-        {
-
-            $deleted = DB::table('Documents')->where('DocumentID',$id)->delete();
-            return redirect()->route('secretary.index');
-        }
-
-       public function upload(Request $request)
-{
-    // 1) Validate inputs (keep your style, but for docs)
-    $request->validate([
-        'document_date' => 'required|date',
-        'document_file' => 'required|mimes:pdf,doc,docx|max:10240', // 10MB
-    ], [
-        'document_file.mimes' => 'Only PDF, DOC, and DOCX are allowed.',
-    ]);
-
-    // 2) Init Google client (same as your code)
-    $client = new Client();
-    $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
-
-    // ⚠️ Using session token after OAuth login (same pattern)
-    $token = session('google_drive_token');
-    if (!$token) {
-        return back()->withErrors(['google' => 'Google Drive is not connected. Please sign in first.']);
-    }
-    $client->setAccessToken($token);
-
-    // (Optional) refresh token if expired and we have a refresh_token
-    if ($client->isAccessTokenExpired() && $client->getRefreshToken()) {
-        $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-        session(['google_drive_token' => $client->getAccessToken()]);
+    /**
+     * Show all documents.
+     */
+    public function index()
+    {
+        $documents = DB::table('Documents')->orderByDesc('created_at')->get();
+        return view('secretary.index', compact('documents'));
     }
 
-    // 3) Create Drive service
-    $service = new Drive($client);
+    /**
+     * Show create form.
+     */
+    public function create()
+    {
+        return view('secretary.create');
+    }
 
-    // 4) Ensure the folder exists (find by name; create if not found)
-    $folderName = 'LeadersMeetingDocument';
-    $folderId = null;
+    /**
+     * Insert a new record manually (without upload).
+     */
+    public function insert(Request $request)
+    {
+        $validated = $request->validate([
+            'document_name' => 'required|string|max:255',
+            'document_content' => 'required|string',
+        ]);
 
-    // Search for the folder in My Drive
-    $list = $service->files->listFiles([
-        'q' => "mimeType = 'application/vnd.google-apps.folder' and name = '{$folderName}' and trashed = false",
-        'fields' => 'files(id, name)',
-        'spaces' => 'drive',
-        'pageSize' => 1,
-    ]);
+        $last = DB::table('Documents')->orderByDesc('DocumentID')->first();
+        $id = $last ? $last->DocumentID + 1 : 1;
 
-    if ($list->files && count($list->files) > 0) {
-        $folderId = $list->files[0]->id;
-    } else {
-        // Create it if missing
-        $folderFile = new DriveFile([
+        DB::table('Documents')->insert([
+            'DocumentID'   => $id,
+            'DocumentName' => $validated['document_name'],
+            'DocumentLink' => $validated['document_content'],
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
+        return redirect()->route('secretary.index')->with('success', 'Document added.');
+    }
+
+    /**
+     * Show edit form.
+     */
+    public function edit($id)
+    {
+        $document = DB::table('Documents')->where('DocumentID', $id)->first();
+        return view('secretary.edit', compact('document'));
+    }
+
+    /**
+     * Update record.
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'document_name' => 'required|string|max:255',
+            'document_content' => 'required|string',
+        ]);
+
+        DB::table('Documents')
+            ->where('DocumentID', $id)
+            ->update([
+                'DocumentName' => $validated['document_name'],
+                'DocumentLink' => $validated['document_content'],
+                'updated_at'   => now(),
+            ]);
+
+        return redirect()->route('secretary.index')->with('success', 'Document updated.');
+    }
+
+    /**
+     * Confirm deletion.
+     */
+    public function deletes($id)
+    {
+        $document = DB::table('Documents')->where('DocumentID', $id)->first();
+        return view('secretary.delete', compact('document'));
+    }
+
+    /**
+     * Delete record from DB.
+     */
+    public function destroy($id)
+    {
+        DB::table('Documents')->where('DocumentID', $id)->delete();
+        return redirect()->route('secretary.index')->with('success', 'Document deleted.');
+    }
+
+    /**
+     * Upload a file directly to Google Drive (backend-only OAuth).
+     */
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'document_date' => 'required|date',
+            'document_file' => 'required|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
+        ]);
+
+        // Initialize Google Client
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
+        $client->addScope(Drive::DRIVE);
+        $client->setAccessType('offline');
+
+        // Load saved token from backend
+        $tokenPath = storage_path('app/drive_token.json');
+        if (!file_exists($tokenPath)) {
+            return back()->withErrors(['google' => 'Google Drive token not found. Run php artisan drive:authorize first.']);
+        }
+
+        $accessToken = json_decode(file_get_contents($tokenPath), true);
+        $client->setAccessToken($accessToken);
+
+        // Refresh token if expired
+        if ($client->isAccessTokenExpired() && $client->getRefreshToken()) {
+            $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            file_put_contents($tokenPath, json_encode($newToken));
+            $client->setAccessToken($newToken);
+        }
+
+        $service = new Drive($client);
+
+        // Ensure Documents folder exists
+        $folderId = $this->getOrCreateFolder($service, 'Documents');
+
+        // Prepare file
+        $uploaded = $request->file('document_file');
+        $originalName = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
+        $ext = $uploaded->getClientOriginalExtension();
+        $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
+        $fileName = "Document_{$safeDate}_{$originalName}.{$ext}";
+
+        $fileMetadata = new DriveFile([
+            'name' => $fileName,
+            'parents' => [$folderId],
+        ]);
+
+        $content = file_get_contents($uploaded->getRealPath());
+        $mime = $uploaded->getMimeType();
+
+        // Upload to Drive
+        $file = $service->files->create($fileMetadata, [
+            'data' => $content,
+            'mimeType' => $mime,
+            'uploadType' => 'multipart',
+            'fields' => 'id, name, webViewLink, webContentLink',
+        ]);
+
+        // Make public
+        try {
+            $permission = new Permission([
+                'type' => 'anyone',
+                'role' => 'reader',
+            ]);
+            $service->permissions->create($file->id, $permission);
+        } catch (\Throwable $e) {
+            // ignore permission failure
+        }
+
+        // Save to DB
+        DB::table('Documents')->insert([
+            'DocumentDate' => $request->document_date,
+            'DocumentName' => $file->name,
+            'DocumentLink' => $file->webViewLink ?? '',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
+        return back()->with('success', '✅ File uploaded and saved: ' . ($file->webViewLink ?? ''));
+    }
+
+    /**
+     * Get or create a Google Drive folder by name.
+     */
+    private function getOrCreateFolder(Drive $service, string $folderName): string
+    {
+        $query = sprintf(
+            "mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false",
+            addslashes($folderName)
+        );
+        $res = $service->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id, name)',
+            'spaces' => 'drive',
+            'pageSize' => 1,
+        ]);
+
+        if (!empty($res->files)) {
+            return $res->files[0]->id;
+        }
+
+        $folderMeta = new DriveFile([
             'name' => $folderName,
             'mimeType' => 'application/vnd.google-apps.folder',
         ]);
-        $createdFolder = $service->files->create($folderFile, ['fields' => 'id']);
-        $folderId = $createdFolder->id;
+        $folder = $service->files->create($folderMeta, ['fields' => 'id']);
+        return $folder->id;
     }
-
-    // 5) File metadata/content
-    $uploaded = $request->file('document_file');
-    $originalExt = $uploaded->getClientOriginalExtension();
-    $originalName = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
-    $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
-
-    // e.g. LeadersMeetingDocument_2025-10-23_Report.docx
-    $driveFileName = "{$folderName}_{$safeDate}_{$originalName}.{$originalExt}";
-
-    $fileMetadata = new DriveFile([
-        'name'    => $driveFileName,
-        'parents' => [$folderId],
-    ]);
-
-    $content  = file_get_contents($uploaded->getRealPath());
-    $mimeType = $uploaded->getMimeType();
-
-    // 6) Upload
-    $file = $service->files->create($fileMetadata, [
-        'data' => $content,
-        'mimeType' => $mimeType,
-        'uploadType' => 'multipart',
-        'fields' => 'id, name, webViewLink, webContentLink',
-    ]);
-
-    // 7) (Optional) Make it viewable by anyone with the link
-    //    Remove this block if you want private access.
-    try {
-        $perm = new \Google\Service\Drive\Permission([
-            'type' => 'anyone',
-            'role' => 'reader',
-        ]);
-        $service->permissions->create($file->id, $perm);
-    } catch (\Throwable $e) {
-        // ignore if permission fails; continue
-    }
-
-    // 8) Save to DB (Documents: DocumentDate, DocumentLink)
-    DB::table('Documents')->insert([
-        'DocumentDate' => $request->document_date,          // e.g. 2025-10-23
-        'DocumentLink' => $file->webViewLink ?? '',         // Drive view link
-        'created_at'   => now(),
-        'updated_at'   => now(),
-    ]);
-
-    return back()->with('success', '✅ Uploaded to Drive & saved link: ' . ($file->webViewLink ?? ''));
-}
-
-
-        /**
-         * Find a Drive folder by name; if not found, create it.
-         */
-        private function getOrCreateFolder(Drive $service, string $folderName): string
-        {
-            $q = sprintf("name = '%s' and mimeType = 'application/vnd.google-apps.folder' and trashed = false", addslashes($folderName));
-            $res = $service->files->listFiles([
-                'q' => $q,
-                'fields' => 'files(id, name)',
-                'spaces' => 'drive',
-                'pageSize' => 1,
-            ]);
-
-            if ($res->files && count($res->files) > 0) {
-                return $res->files[0]->id;
-            }
-
-            $folderMeta = new DriveFile([
-                'name' => $folderName,
-                'mimeType' => 'application/vnd.google-apps.folder',
-            ]);
-
-            $folder = $service->files->create($folderMeta, ['fields' => 'id']);
-            return $folder->id;
-        }
 }
