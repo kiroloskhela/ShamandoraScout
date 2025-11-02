@@ -210,4 +210,41 @@ class SecretaryController extends Controller
         $folder = $service->files->create($folderMeta, ['fields' => 'id']);
         return $folder->id;
     }
+
+    /**
+ * Handles Google OAuth callback and stores the Drive token.
+ */
+public function driveCallback(Request $request)
+{
+    $code = $request->get('code');
+
+    if (!$code) {
+        return response()->json(['error' => 'No authorization code returned from Google.'], 400);
+    }
+
+    // Initialize Google Client
+    $client = new \Google\Client();
+    $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
+    $client->setRedirectUri('https://shamandorascout.com/auth/google/callback');
+    $client->setScopes([
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/drive.metadata'
+    ]);
+    $client->setAccessType('offline');
+    $client->setPrompt('consent');
+
+    // Exchange the code for tokens
+    $token = $client->fetchAccessTokenWithAuthCode($code);
+
+    if (isset($token['error'])) {
+        return response()->json(['error' => $token['error_description'] ?? $token['error']], 400);
+    }
+
+    // Save the access + refresh tokens to a file
+    file_put_contents(storage_path('app/drive_token.json'), json_encode($token));
+
+    return redirect()->route('secretary.index')->with('success', '✅ Google Drive connected successfully!');
+}
+
 }
