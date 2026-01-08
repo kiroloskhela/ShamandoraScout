@@ -133,6 +133,6 @@ class CurriculaController extends Controller
 
         DB::table('Curricula')->where('CurriculaID', $id)->delete();
 
-        return redirect()->route('Curricula.index')->with('status', '🗑️ Curriculum deleted.');
+        return redirect()->route('curricula.index')->with('status', '🗑️ Curriculum deleted.');
     }
 }
