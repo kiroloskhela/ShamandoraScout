@@ -313,6 +313,26 @@ Route::patch('/blood/update/{id}', array('as'=> 'blood.update', 'uses'=> 'App\Ht
 Route::get('/blood/delete/{id}', array('as'=> 'blood.delete', 'uses'=>'App\Http\Controllers\BloodTypeController@deletes'));
 Route::delete('/blood/destroy/{id}', array('as'=> 'blood.destroy', 'uses'=>'App\Http\Controllers\BloodTypeController@destroy'));
 
+//CurriculaCategory
+Route::get('/CurriculaCategory', array('as'=> 'CurriculaCategory.index', 'uses'=> 'App\Http\Controllers\CurriculaCategoryController@index'));
+Route::get('/CurriculaCategory/add', array('as' => 'CurriculaCategory.create', 'uses' =>'App\Http\Controllers\CurriculaCategoryController@create'));
+Route::post('/CurriculaCategory/insert', array('as' => 'CurriculaCategory.insert', 'uses' => 'App\Http\Controllers\CurriculaCategoryController@insert'));
+Route::get('/CurriculaCategory/edit/{id}', array('as' => 'CurriculaCategory.edit', 'uses' => 'App\Http\Controllers\CurriculaCategoryController@edit'));
+Route::patch('/CurriculaCategory/update/{id}', array('as'=> 'CurriculaCategory.update', 'uses'=> 'App\Http\Controllers\CurriculaCategoryController@updates'));
+Route::get('/CurriculaCategory/delete/{id}', array('as'=> 'CurriculaCategory.delete', 'uses'=>'App\Http\Controllers\CurriculaCategoryController@deletes'));
+Route::delete('/CurriculaCategory/destroy/{id}', array('as'=> 'CurriculaCategory.destroy', 'uses'=>'App\Http\Controllers\CurriculaCategoryController@destroy'));
+
+
+// Curricula
+Route::get('/curricula', array('as'=> 'curricula.index', 'uses'=> 'App\Http\Controllers\CurriculaController@index'));
+Route::get('/curricula/add', array('as' => 'curricula.create', 'uses' =>'App\Http\Controllers\CurriculaController@create'));
+Route::post('/curricula/insert', array('as' => 'curricula.insert', 'uses' => 'App\Http\Controllers\CurriculaController@insert'));
+Route::get('/curricula/edit/{id}', array('as' => 'curricula.edit', 'uses' => 'App\Http\Controllers\CurriculaController@edit'));
+Route::patch('/curricula/update/{id}', array('as'=> 'curricula.update', 'uses'=> 'App\Http\Controllers\CurriculaController@updates'));
+Route::get('/curricula/delete/{id}', array('as'=> 'curricula.delete', 'uses'=>'App\Http\Controllers\CurriculaController@deletes'));
+Route::delete('/curricula/destroy/{id}', array('as'=> 'curricula.destroy', 'uses'=>'App\Http\Controllers\CurriculaController@destroy'));
+Route::get('/curricula/download/{id}', array('as'=> 'curricula.download', 'uses'=>'App\Http\Controllers\CurriculaController@download'));
+
 //Routes for Manateq
 Route::get('/manteqa', array('as'=> 'manteqa.index', 'uses'=> 'App\Http\Controllers\ManteqaController@index'));
 Route::get('/manteqa/add', array('as' => 'manteqa.create', 'uses' =>'App\Http\Controllers\ManteqaController@create'));
