@@ -3,7 +3,6 @@
 use App\Http\Controllers\PersonController;
 use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\GoogleDriveController;
 use App\Http\Controllers\TestingController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ForgotPasswordController;
@@ -49,6 +48,7 @@ Route::get('/secretary/add', array('as' => 'secretary.create', 'uses' =>'App\Htt
 Route::post('/secretary/insert', array('as' => 'secretary.insert', 'uses' => 'App\Http\Controllers\SecretaryController@insert'));
 Route::get('/secretary/edit/{id}', array('as' => 'secretary.edit', 'uses' => 'App\Http\Controllers\SecretaryController@edit'));
 Route::patch('/secretary/update/{id}', array('as'=> 'secretary.update', 'uses'=> 'App\Http\Controllers\SecretaryController@updates'));
+Route::get('/secretary/download/{id}', array('as'=> 'secretary.download', 'uses'=>'App\Http\Controllers\SecretaryController@download'));
 Route::get('/secretary/delete/{id}', array('as'=> 'secretary.delete', 'uses'=>'App\Http\Controllers\SecretaryController@deletes'));
 Route::delete('/secretary/destroy/{id}', array('as'=> 'secretary.destroy', 'uses'=>'App\Http\Controllers\SecretaryController@destroy'));
 Route::post('/secretary/upload', array('as'=> 'secretary.upload', 'uses'=>'App\Http\Controllers\SecretaryController@upload'));
@@ -446,12 +446,6 @@ Route::middleware(['auth'])->group(function() {
 
 });
 
-// Google Drive Integration Routes
-Route::get('/auth/google', [GoogleDriveController::class, 'redirectToGoogle']);
-Route::get('/auth/google/callback', [GoogleDriveController::class, 'handleGoogleCallback']);
-Route::get('/drive/upload', [GoogleDriveController::class, 'uploadTestFile']);
-
-
 //Attendance Routes
 Route::get('/attendance/manage', [AttendanceController::class,'manage'])->name('attendance.manage');
 Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class,'save'])->name('attendance.save');
@@ -463,14 +457,4 @@ Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upl
 
 
 
-// Web callback that saves drive_token.json
-Route::get('/auth/google/callback', [SecretaryController::class, 'driveCallback'])
-    ->name('drive.callback');
-
-// Optional manual redirect for CLI authorization
-use Illuminate\Http\Request;
-Route::get('/auth/google/manual', function (Request $req) {
-    if ($err = $req->query('error')) return "OAuth error: {$err}";
-    $code = $req->query('code');
-    return $code ? "Copy this code and paste into your terminal:\n\n{$code}\n" : 'No code param returned.';
-})->name('drive.manual');
+// (Google Drive routes removed — uploads now stored locally in SecretaryDocuments)

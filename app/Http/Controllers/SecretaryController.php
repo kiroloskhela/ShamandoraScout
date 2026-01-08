@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Google\Client;
-use Google\Service\Drive;
-use Google\Service\Drive\DriveFile;
-use Google\Service\Drive\Permission;
+use Illuminate\Support\Facades\Storage;
+
 
 class SecretaryController extends Controller
 {
@@ -29,133 +27,93 @@ class SecretaryController extends Controller
             'document_file' => 'required|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
         ]);
 
-        // Initialize Google Client
-        $client = new Client();
-        $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
-        $client->addScope(Drive::DRIVE);
-        $client->setAccessType('offline');
-
-        // Load saved token
-        $tokenPath = storage_path('app/drive_token.json');
-        if (!file_exists($tokenPath)) {
-            return back()->withErrors(['google' => 'Google Drive token not found. Run php artisan drive:authorize first.']);
-        }
-
-        $accessToken = json_decode(file_get_contents($tokenPath), true);
-        $client->setAccessToken($accessToken);
-
-        // Refresh if needed
-        if ($client->isAccessTokenExpired() && $client->getRefreshToken()) {
-            $newToken = $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-            file_put_contents($tokenPath, json_encode($newToken));
-            $client->setAccessToken($newToken);
-        }
-
-        $service = new Drive($client);
-
-        // Ensure Documents folder exists
-        $folderId = $this->getOrCreateFolder($service, 'Documents');
-
-        // Upload file
+        // Store uploaded file locally
         $uploaded = $request->file('document_file');
         $originalName = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
         $ext = $uploaded->getClientOriginalExtension();
         $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
-        $fileName = "Document_{$safeDate}_{$originalName}.{$ext}";
+        $fileName = " محضر اجتماع يوم  ({$safeDate}).{$ext}";
 
-        $fileMetadata = new DriveFile([
-            'name' => $fileName,
-            'parents' => [$folderId],
-        ]);
+        $path = $uploaded->storeAs('SecretaryDocuments', $fileName);
 
-        $content = file_get_contents($uploaded->getRealPath());
-        $mime = $uploaded->getMimeType();
-
-        $file = $service->files->create($fileMetadata, [
-            'data' => $content,
-            'mimeType' => $mime,
-            'uploadType' => 'multipart',
-            'fields' => 'id, name, webViewLink, webContentLink',
-        ]);
-
-        // Make file public
-        try {
-            $perm = new Permission([
-                'type' => 'anyone',
-                'role' => 'reader',
-            ]);
-            $service->permissions->create($file->id, $perm);
-        } catch (\Throwable $e) {
-            // Ignore permission error
-        }
-
-        // Save to DB (no DocumentName column)
+        // Save to DB: store file name and storage path
         DB::table('Documents')->insert([
             'DocumentDate' => $request->document_date,
-            'DocumentLink' => $file->webViewLink ?? '',
+            'DocumentName' => $fileName,
+            'DocumentPath' => $path,
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
 
-        return back()->with('success', '✅ File uploaded and saved: ' . ($file->webViewLink ?? ''));
+        return back()->with('success', '✅ File uploaded and saved: ' . $path);
     }
 
-    private function getOrCreateFolder(Drive $service, string $folderName): string
+    
+    public function insert(Request $request)
     {
-        $query = sprintf(
-            "mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false",
-            addslashes($folderName)
-        );
-        $res = $service->files->listFiles([
-            'q' => $query,
-            'fields' => 'files(id, name)',
-            'spaces' => 'drive',
-            'pageSize' => 1,
-        ]);
-
-        if (!empty($res->files)) {
-            return $res->files[0]->id;
-        }
-
-        $folderMeta = new DriveFile([
-            'name' => $folderName,
-            'mimeType' => 'application/vnd.google-apps.folder',
-        ]);
-
-        $folder = $service->files->create($folderMeta, ['fields' => 'id']);
-        return $folder->id;
+        // Backwards-compatible wrapper for older routes that point to "insert"
+        return $this->upload($request);
     }
 
-    /**
-     * Google OAuth callback (token saver)
-     */
-    public function driveCallback(Request $request)
+    public function edit($id)
     {
-        $code = $request->get('code');
-
-        if (!$code) {
-            return response()->json(['error' => 'No authorization code returned from Google.'], 400);
+        $document = DB::table('Documents')->where('DocumentID', $id)->first();
+        if (!$document) {
+            return redirect()->route('secretary.index')->with('error', '❌ Document not found.');
         }
 
-        $client = new Client();
-        $client->setAuthConfig(storage_path('app/google-drive-credentials.json'));
-        $client->setRedirectUri('https://shamandorascout.com/auth/google/callback');
-        $client->setScopes([
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/drive.metadata'
-        ]);
-        $client->setAccessType('offline');
-        $client->setPrompt('consent');
-
-        $token = $client->fetchAccessTokenWithAuthCode($code);
-
-        if (isset($token['error'])) {
-            return response()->json(['error' => $token['error_description'] ?? $token['error']], 400);
-        }
-
-        file_put_contents(storage_path('app/drive_token.json'), json_encode($token));
-
-        return redirect()->route('secretary.index')->with('success', '✅ Google Drive connected successfully!');
+        return view('secretary.edit', ['document' => $document]);
     }
-}
+
+public function download($id)
+    {
+        $document = DB::table('Documents')->where('DocumentID', $id)->first();
+
+        if (!$document || empty($document->DocumentPath)) {
+            return back()->with('error', '❌ Document not found.');
+        }
+
+        $full = storage_path('app/' . $document->DocumentPath);
+        if (!file_exists($full)) {
+            return back()->with('error', '❌ File not found on disk.');
+        }
+
+        return response()->download($full, $document->DocumentName ?? basename($full));
+    }
+
+
+    public function updates(Request $request, $id)
+    {
+        $request->validate([
+            'document_name' => 'required|string|max:255',
+        ]);
+
+        DB::table('Documents')->where('DocumentID', $id)->update([
+            'DocumentName' => $request->document_name,
+            'updated_at'   => now(),
+        ]);
+
+        return redirect()->route('secretary.index')->with('status', '✅ Document updated successfully.');
+    }
+
+
+    public function delete($id)
+    {
+          $role = DB::table('Documents')->where('DocumentID', $id)->first();
+            return view("secretary.delete", array('document' => $role));
+    }
+
+    // Old route handlers kept for compatibility (do nothing)
+    public function deletes($id)
+    {
+        $role = DB::table('Documents')->where('DocumentID', $id)->first();
+            return view("secretary.delete", array('document' => $role));
+    }
+
+    public function destroy($id)
+    {
+
+        $deleted = DB::table('Documents')->where('DocumentID',$id)->delete();
+
+        return redirect()->route('secretary.index');}
+    }
