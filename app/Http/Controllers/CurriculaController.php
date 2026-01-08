@@ -16,7 +16,7 @@ class CurriculaController extends Controller
             ->orderByDesc('Curricula.created_at')
             ->get();
 
-        return view('curricula.index', compact('curricula'));
+        return view('Curricula.index', compact('curricula'));
     }
 
     public function create()
@@ -24,7 +24,7 @@ class CurriculaController extends Controller
         $categories = DB::table('CurriculaCategory')->get();
         $marhalat   = DB::table('Marhala')->get();
 
-        return view('curricula.create', compact('categories', 'marhalat'));
+        return view('Curricula.create', compact('categories', 'marhalat'));
     }
 
     public function upload(Request $request)
@@ -68,13 +68,13 @@ class CurriculaController extends Controller
     {
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
         if (!$curriculum) {
-            return redirect()->route('curricula.index')->with('error', '❌ Curriculum not found.');
+            return redirect()->route('Curricula.index')->with('error', '❌ Curriculum not found.');
         }
 
         $categories = DB::table('CurriculaCategory')->get();
         $marhalat   = DB::table('Marhala')->get();
 
-        return view('curricula.edit', compact('curriculum', 'categories', 'marhalat'));
+        return view('Curricula.edit', compact('curriculum', 'categories', 'marhalat'));
     }
 
     public function download($id)
@@ -108,13 +108,13 @@ class CurriculaController extends Controller
             'updated_at'          => now(),
         ]);
 
-        return redirect()->route('curricula.index')->with('status', '✅ Curriculum updated successfully.');
+        return redirect()->route('Curricula.index')->with('status', '✅ Curriculum updated successfully.');
     }
 
     public function delete($id)
     {
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
-        return view('curricula.delete', compact('curriculum'));
+        return view('Curricula.delete', compact('curriculum'));
     }
 
     // Backward-compatibility
@@ -133,6 +133,6 @@ class CurriculaController extends Controller
 
         DB::table('Curricula')->where('CurriculaID', $id)->delete();
 
-        return redirect()->route('curricula.index')->with('status', '🗑️ Curriculum deleted.');
+        return redirect()->route('Curricula.index')->with('status', '🗑️ Curriculum deleted.');
     }
 }
