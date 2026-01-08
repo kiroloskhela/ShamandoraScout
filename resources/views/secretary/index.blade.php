@@ -10,7 +10,7 @@
         ]" :columns="[
             [
                 'key' => 'DocumentID',
-                'label' => 'رقم موسم',
+                'label' => 'رقم المستند',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
