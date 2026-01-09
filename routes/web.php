@@ -8,9 +8,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\CustodyRequestController; // Ensure this controller exists in the specified namespace
 use App\Http\Controllers\AdminCustodyRequestController;
-
+use App\Http\Controllers\CustodyRequestController;
 
 
 
