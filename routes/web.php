@@ -8,6 +8,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CustodyRequestController; // Ensure this controller exists in the specified namespace
+use App\Http\Controllers\AdminCustodyRequestController;
 
 
 
@@ -397,6 +399,24 @@ Route::get('/university/edit/{id}', array('as' => 'university.edit', 'uses' => '
 Route::patch('/university/update/{id}', array('as'=> 'university.update', 'uses'=> 'App\Http\Controllers\UniversityController@updates'));
 Route::get('/university/delete/{id}', array('as'=> 'university.delete', 'uses'=>'App\Http\Controllers\UniversityController@deletes'));
 Route::delete('/university/destroy/{id}', array('as'=> 'university.destroy', 'uses'=>'App\Http\Controllers\UniversityController@destroy'));
+
+
+
+// Custody Request Routes
+Route::get('/custody-requests/create', [CustodyRequestController::class, 'create'])->name('custody_requests.create');
+Route::post('/custody-requests',        [CustodyRequestController::class, 'store'])->name('custody_requests.store');
+Route::get('/custody-requests/my',      [CustodyRequestController::class, 'my'])->name('custody_requests.my');
+Route::get('/custody-requests/{id}',    [CustodyRequestController::class, 'show'])->name('custody_requests.show');
+Route::get('/custody-requests/{id}/edit', [CustodyRequestController::class, 'edit'])->name('custody_requests.edit');
+Route::patch('/custody-requests/{id}',    [CustodyRequestController::class, 'update'])->name('custody_requests.update');
+Route::delete('/custody-requests/{id}',   [CustodyRequestController::class, 'destroy'])->name('custody_requests.destroy');
+
+// Admin Custody (protect with middleware/role)
+Route::get('/admin/custody-requests',           [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
+Route::get('/admin/custody-requests/{id}',      [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
+Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
+Route::post('/admin/custody-requests/{id}/reject',  [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
+
 
 //Routes for Marhala Deraseyya
 Route::get('/marhala', array('as'=> 'marhala.index', 'uses'=> 'App\Http\Controllers\MarhalaDeraseyyaController@index'));
