@@ -131,7 +131,7 @@ class CustodyRequestController extends Controller
                 $admin = DB::table('PersonRole as pr')
                     ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
                     ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
-                    ->where('r.RoleName', 'AdminInventory')
+                    ->where('r.RoleID', '8')
                     ->whereNotNull('pp.PersonPersonalMobileNumber')
                     ->select('pr.PersonID', 'pp.PersonPersonalMobileNumber')
                     ->orderBy('pr.PersonRoleID', 'asc')
