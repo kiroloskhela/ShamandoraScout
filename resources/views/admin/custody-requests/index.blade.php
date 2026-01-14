@@ -29,10 +29,10 @@
             $allCount = $requests->count();
         @endphp
 
-        <div class="grid md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-slate-200">
+        <div class="grid md:grid-cols-4 gap-4 mb-6 text-center">
+            <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-blue-200">
                 <div class="text-sm text-gray-500 mb-1">الإجمالي</div>
-                <div class="text-2xl font-bold text-slate-800">{{ $allCount }}</div>
+                <div class="text-2xl font-bold text-blue-800">{{ $allCount }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-yellow-200">
                 <div class="text-sm text-gray-500 mb-1">قيد المراجعة</div>
@@ -59,7 +59,7 @@
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
             <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="font-bold text-gray-800">فلترة</div>
+                <div class="font-bold text-gray-800">فلتر</div>
 
                 <div class="flex items-center gap-2 flex-wrap">
                     <a href="{{ route('admin.custody_requests.index', ['status' => 'all']) }}"
