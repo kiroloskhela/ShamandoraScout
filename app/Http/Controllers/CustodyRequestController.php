@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+
 class CustodyRequestController extends Controller
 {
     // ===== Helpers =====
@@ -124,6 +125,53 @@ class CustodyRequestController extends Controller
             }
 
             DB::commit();
+
+            // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
+            try {
+                $admin = DB::table('PersonRole as pr')
+                    ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
+                    ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
+                    ->where('r.RoleName', 'AdminInventory')
+                    ->whereNotNull('pp.PersonPersonalMobileNumber')
+                    ->select('pr.PersonID', 'pp.PersonPersonalMobileNumber')
+                    ->orderBy('pr.PersonRoleID', 'asc')
+                    ->first();
+
+                if ($admin) {
+                    $user = auth()->user();
+                    $fullName = trim(implode(' ', array_filter([
+                        $user->FirstName ?? null,
+                        $user->SecondName ?? null,
+                        $user->ThirdName ?? null,
+                    ])));
+                    $code = $user->ShamandoraCode ?? '';
+
+                    $itemsText = "";
+                    foreach ($normalizedItems as $ni) {
+                        $unit = $ni['ItemUnitSnapshot'] !== '' ? " ({$ni['ItemUnitSnapshot']})" : '';
+                        $itemsText .= "- {$ni['ItemNameSnapshot']}{$unit} x {$ni['QtyRequested']}\n";
+                    }
+
+                    $link = route('admin.custody_requests.show', $requestId);
+
+                    $message = "هناك طلب عهدة جديد (#{$requestId})\n"
+                             . "المستخدم: {$fullName} {$code}\n"
+                             . "التواريخ: من {$request->date_from} إلى {$request->date_to}\n"
+                             . "الأصناف:\n{$itemsText}\n"
+                             . "مراجعة: {$link}";
+
+                    $payload = [
+                        'full_number' => $admin->PersonPersonalMobileNumber,
+                        'message'     => $message,
+                    ];
+
+                    $fake = \Illuminate\Support\Facades\Http::post('/whatsapp/sendWithHeader', $payload);
+                    app(\App\Http\Controllers\WhatsAppBridgeController::class)->sendWithHeader($fake);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed sending WhatsApp notification for custody request', ['requestId' => $requestId, 'error' => $e->getMessage()]);
+            }
+
             return redirect()->route('custody_requests.my')
                 ->with('success', '✅ تم إرسال طلب العهدة بنجاح وهو الآن قيد المراجعة.');
         } catch (\Throwable $e) {
