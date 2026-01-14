@@ -135,7 +135,7 @@ try {
     $admin = DB::table('PersonRole as pr')
         ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
         ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
-        ->where('r.RoleID', '8')
+        ->where('r.RoleName', 'AdminInventory')
         ->whereNotNull('pp.PersonPersonalMobileNumber')
         ->select('pr.PersonID', 'pp.PersonPersonalMobileNumber')
         ->orderBy('pr.PersonRoleID', 'asc')
@@ -180,7 +180,6 @@ try {
             'raw' => $rawNumber,
             'normalized' => $normalizedNumber,
         ]);
-
         $payload = [
             'full_number' => $normalizedNumber,
             'message'     => $message,
