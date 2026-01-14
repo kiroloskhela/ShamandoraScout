@@ -162,10 +162,14 @@ try {
                  . "مراجعة: {$link}";
 
         // --- FIXED: use internal Laravel Request like in your password update ---
+
+        $normalizedNumber = '+2' . ltrim(preg_replace('/\D+/', '', $admin->PersonPersonalMobileNumber), '0');
+
         $payload = [
-            'full_number' => $admin->PersonPersonalMobileNumber,
+            'full_number' => $normalizedNumber, // +201000485402
             'message'     => $message,
         ];
+     
 
         $fake = \Illuminate\Http\Request::create('/whatsapp/send-with-header', 'POST', $payload);
 
