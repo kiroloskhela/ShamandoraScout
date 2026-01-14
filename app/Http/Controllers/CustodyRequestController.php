@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 
 class CustodyRequestController extends Controller
 {
@@ -128,7 +128,10 @@ class CustodyRequestController extends Controller
 
             // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
          // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
+// Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
 try {
+    Log::info('CustodyRequest: finding AdminInventory role');
+
     $admin = DB::table('PersonRole as pr')
         ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
         ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
@@ -138,7 +141,11 @@ try {
         ->orderBy('pr.PersonRoleID', 'asc')
         ->first();
 
-    if ($admin) {
+    if (!$admin) {
+        Log::warning("CustodyRequest: no admin found to notify");
+    } else {
+        Log::info("CustodyRequest: admin found", ['admin' => $admin]);
+
         $user = auth()->user();
         $fullName = trim(implode(' ', array_filter([
             $user->FirstName ?? null,
@@ -146,6 +153,8 @@ try {
             $user->ThirdName ?? null,
         ])));
         $code = $user->ShamandoraCode ?? '';
+
+        Log::info('CustodyRequest: building items text');
 
         $itemsText = "";
         foreach ($normalizedItems as $ni) {
@@ -161,17 +170,30 @@ try {
                  . "الأصناف:\n{$itemsText}\n"
                  . "مراجعة: {$link}";
 
-        // --- FIXED: use internal Laravel Request like in your password update ---
+        Log::info('CustodyRequest: message built', ['message' => $message]);
 
-        
+        // --- Normalize number here if you want to force +20 ---
+        $rawNumber = $admin->PersonPersonalMobileNumber;
+        $normalizedNumber = '+2' . ltrim(preg_replace('/\D+/', '', $rawNumber), '0'); // logs can check format
+
+        Log::info('CustodyRequest: normalized phone number', [
+            'raw' => $rawNumber,
+            'normalized' => $normalizedNumber,
+        ]);
+
         $payload = [
-            'full_number' => $admin->PersonPersonalMobileNumber,
+            'full_number' => $normalizedNumber,
             'message'     => $message,
         ];
 
+        Log::info('CustodyRequest: sending WhatsApp', ['payload' => $payload]);
+
         $fake = \Illuminate\Http\Request::create('/whatsapp/send-with-header', 'POST', $payload);
 
-        app(\App\Http\Controllers\WhatsAppBridgeController::class)->sendWithHeader($fake);
+        $waController = app(\App\Http\Controllers\WhatsAppBridgeController::class);
+        $response = $waController->sendWithHeader($fake);
+
+        Log::info('CustodyRequest: WhatsApp response', ['response' => $response]);
     }
 } catch (\Throwable $e) {
     \Illuminate\Support\Facades\Log::error('Failed sending WhatsApp notification for custody request', [
@@ -179,6 +201,7 @@ try {
         'error'     => $e->getMessage(),
     ]);
 }
+
 
 
             return redirect()->route('custody_requests.my')
