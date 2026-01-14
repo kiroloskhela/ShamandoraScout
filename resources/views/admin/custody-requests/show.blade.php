@@ -63,7 +63,7 @@
             @if (!empty($requestRow->AdminNote))
                 <div
                     class="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800 whitespace-pre-line">
-                    <div class="font-bold mb-1">ملاحظة الإدارة:</div>
+                    <div class="font-bold mb-1">ملاحظة:</div>
                     {{ $requestRow->AdminNote }}
                 </div>
             @endif

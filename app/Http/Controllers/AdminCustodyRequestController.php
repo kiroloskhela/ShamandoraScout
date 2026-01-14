@@ -4,12 +4,28 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AdminCustodyRequestController extends Controller
 {
+    public function __construct()
+    {
+        // Ensure only users with admin/superadmin roles can access these actions
+        $this->middleware(['auth', 'checkAuth:SuperAdmin|Admin']);
+    }
+
     private function currentAdminPersonId()
     {
-        return auth()->user()->PersonID ?? null;
+        $user = auth()->user();
+        if (!$user) return null;
+
+        // Verify the user has an admin role before returning a PersonID
+        $roles = $user->role ?? null; // might be a collection
+        if (!$roles || !collect($roles)->contains('RoleName', 'Admin') && !collect($roles)->contains('RoleName', 'SuperAdmin')) {
+            return null;
+        }
+
+        return $user->PersonID ?? null;
     }
 
     public function index()
@@ -70,14 +86,12 @@ class AdminCustodyRequestController extends Controller
             return redirect()->route('admin.custody_requests.index')->with('error', '❌ الطلب غير موجود.');
         }
 
-        if ($requestRow->Status !== 'pending') {
-            return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.');
-        }
-
-        $request->validate([
+        $validated = $request->validate([
             'approved_qty' => 'required|array|min:1',
+            'approved_qty.*' => 'required|integer|min:0',
             'admin_note'   => 'nullable|string|max:2000',
             'item_note'    => 'nullable|array',
+            'item_note.*'  => 'nullable|string|max:500',
         ], [
             'approved_qty.required' => 'من فضلك أدخل الكميات المعتمدة.',
         ]);
@@ -97,19 +111,18 @@ class AdminCustodyRequestController extends Controller
         foreach ($items as $it) {
             $itemId = (int) $it->RequestItemID;
 
-            if (!array_key_exists($itemId, $request->approved_qty)) {
-                return back()->with('error', '❌ من فضلك أدخل الكمية المعتمدة لكل الأصناف.')->withInput();
+            if (!array_key_exists($itemId, $validated['approved_qty'])) {
+                return back()->withErrors(['approved_qty' => 'من فضلك أدخل الكمية المعتمدة لكل الأصناف.'])->withInput();
             }
 
-            $approved = (int) $request->approved_qty[$itemId];
+            $approved = (int) $validated['approved_qty'][$itemId];
             $requestedQty = (int) $it->QtyRequested;
 
             if ($approved < 0) $approved = 0;
 
             // cannot exceed requested
             if ($approved > $requestedQty) {
-                return back()->with('error', '❌ الكمية المعتمدة لا يمكن أن تكون أكبر من الكمية المطلوبة.')
-                    ->withInput();
+                return back()->withErrors(['approved_qty.' . $itemId => 'الكمية المعتمدة تتجاوز المطلوبة.'])->withInput();
             }
 
             if ($approved < $requestedQty) {
@@ -117,8 +130,8 @@ class AdminCustodyRequestController extends Controller
             }
 
             $note = null;
-            if (is_array($request->item_note) && array_key_exists($itemId, $request->item_note)) {
-                $note = trim((string)$request->item_note[$itemId]);
+            if (is_array($validated['item_note'] ?? []) && array_key_exists($itemId, $validated['item_note'])) {
+                $note = trim((string)$validated['item_note'][$itemId]);
                 if ($note === '') $note = null;
                 if ($note && mb_strlen($note) > 500) $note = mb_substr($note, 0, 500);
             }
@@ -131,7 +144,7 @@ class AdminCustodyRequestController extends Controller
         }
 
         // Compose admin note that user will see
-        $adminNote = trim((string)$request->admin_note);
+        $adminNote = trim((string)$validated['admin_note']);
 
         if (!empty($reductions)) {
             $reductionText = "تمت الموافقة على الطلب مع تعديل بعض الكميات:\n- " . implode("\n- ", $reductions);
@@ -152,8 +165,10 @@ class AdminCustodyRequestController extends Controller
                     ]);
             }
 
-            DB::table('CustodyRequests')
+            // Atomic update to prevent TOCTOU: ensure status is still pending
+            $affected = DB::table('CustodyRequests')
                 ->where('RequestID', $id)
+                ->where('Status', 'pending')
                 ->update([
                     'Status'     => 'approved',
                     'AdminNote'  => $adminNote,
@@ -162,10 +177,16 @@ class AdminCustodyRequestController extends Controller
                     'updated_at' => now(),
                 ]);
 
+            if ($affected === 0) {
+                DB::rollBack();
+                return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.')->withInput();
+            }
+
             DB::commit();
             return redirect()->route('admin.custody_requests.show', $id)
                 ->with('success', '✅ تم اعتماد الطلب بنجاح.');
         } catch (\Throwable $e) {
+            Log::error('Error approving custody request', ['exception' => $e, 'requestId' => $id]);
             DB::rollBack();
             return back()->with('error', '❌ حدث خطأ أثناء اعتماد الطلب.')->withInput();
         }
@@ -187,21 +208,33 @@ class AdminCustodyRequestController extends Controller
             return back()->with('error', '❌ لا يمكن رفض طلب تم مراجعته بالفعل.');
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'admin_note' => 'nullable|string|max:2000',
         ]);
 
-        $adminNote = trim((string)$request->admin_note);
+        $adminNote = trim((string)$validated['admin_note']);
         if (!$adminNote) $adminNote = 'تم رفض الطلب.';
 
-        DB::table('CustodyRequests')->where('RequestID', $id)->update([
-            'Status'     => 'rejected',
-            'AdminNote'  => $adminNote,
-            'ReviewedBy' => $adminPersonId,
-            'ReviewedAt' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            $affected = DB::table('CustodyRequests')
+                ->where('RequestID', $id)
+                ->where('Status', 'pending')
+                ->update([
+                    'Status'     => 'rejected',
+                    'AdminNote'  => $adminNote,
+                    'ReviewedBy' => $adminPersonId,
+                    'ReviewedAt' => now(),
+                    'updated_at' => now(),
+                ]);
 
-        return redirect()->route('admin.custody_requests.show', $id)->with('success', '✅ تم رفض الطلب.');
+            if ($affected === 0) {
+                return back()->with('error', '❌ لا يمكن رفض طلب تم مراجعته بالفعل.');
+            }
+
+            return redirect()->route('admin.custody_requests.show', $id)->with('success', '✅ تم رفض الطلب.');
+        } catch (\Throwable $e) {
+            Log::error('Error rejecting custody request', ['exception' => $e, 'requestId' => $id]);
+            return back()->with('error', '❌ حدث خطأ أثناء رفض الطلب.')->withInput();
+        }
     }
 }

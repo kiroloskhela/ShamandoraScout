@@ -57,7 +57,12 @@ class CustodyRequestController extends Controller
         }
 
         // Load inventory snapshots
-        $inventoryIds = collect($request->items)->pluck('inventory_id')->unique()->values();
+        $allInventoryIds = collect($request->items)->pluck('inventory_id');
+        if ($allInventoryIds->count() !== $allInventoryIds->unique()->count()) {
+            return back()->with('error', '❌ يوجد تكرار في الأصناف.')->withInput();
+        }
+
+        $inventoryIds = $allInventoryIds->unique()->values();
         $inventoryRows = DB::table('Inventory')
             ->whereIn('InventoryID', $inventoryIds)
             ->get()

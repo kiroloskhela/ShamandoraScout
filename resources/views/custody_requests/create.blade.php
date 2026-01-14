@@ -378,10 +378,17 @@
 
                 itemsHiddenContainer.innerHTML = '';
                 selectedItems.forEach((it, idx) => {
-                    itemsHiddenContainer.insertAdjacentHTML('beforeend', `
-                <input type="hidden" name="items[${idx}][inventory_id]" value="${it.inventory_id}">
-                <input type="hidden" name="items[${idx}][qty]" value="${it.qty}">
-            `);
+                    const inputInv = document.createElement('input');
+                    inputInv.type = 'hidden';
+                    inputInv.name = `items[${idx}][inventory_id]`;
+                    inputInv.value = it.inventory_id;
+                    itemsHiddenContainer.appendChild(inputInv);
+
+                    const inputQty = document.createElement('input');
+                    inputQty.type = 'hidden';
+                    inputQty.name = `items[${idx}][qty]`;
+                    inputQty.value = it.qty;
+                    itemsHiddenContainer.appendChild(inputQty);
                 });
             });
         });
