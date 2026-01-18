@@ -131,3 +131,7 @@ class ImportPersonsFromExcel extends Command
         $this->info('Import finished');
     }
 }
+
+
+// To run this command, use:
+// php artisan import:persons
