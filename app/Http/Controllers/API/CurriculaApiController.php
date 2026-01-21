@@ -4,25 +4,21 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CurriculaApiController extends Controller
 {
     /**
      * GET /api/curricula
-     *
      * Optional filters:
      *  - ?category_id=1
      *  - ?marhala_id=2
      *  - ?q=search text
-     *  - ?limit=50   (default 50, max 200)
+     *  - ?limit=50 (default 50, max 200)
      */
     public function index(Request $request)
     {
-        // If you want auth required, uncomment:
-        // if (!Auth::check()) return response()->json(['ok'=>false,'message'=>'Unauthorized'], 401);
-
         $limit = (int) ($request->query('limit', 50));
         $limit = max(1, min($limit, 200));
 
@@ -38,9 +34,9 @@ class CurriculaApiController extends Controller
                 'c.CurriculaName',
                 'c.CurriculaPath',
                 'c.CurriculaCategoryID',
-                'cc.CurriculaCategoryName', // adjust if your column name differs
+                'cc.CurriculaCategoryName', // change if needed
                 'c.MarhalaID',
-                'm.MarhalaName',             // adjust if your column name differs
+                'm.MarhalaName',             // change if needed
                 'c.created_at',
                 'c.updated_at',
             ])
@@ -55,16 +51,14 @@ class CurriculaApiController extends Controller
         }
 
         if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                $w->where('c.CurriculaName', 'like', "%{$q}%");
-            });
+            $query->where('c.CurriculaName', 'like', "%{$q}%");
         }
 
         $items = $query->limit($limit)->get();
 
-        // Add download URL (your web controller already has download($id))
+        // API download endpoint
         $items = $items->map(function ($r) {
-            $r->download_url = route('Curricula.download', ['id' => $r->CurriculaID]);
+            $r->download_url = url("/api/curricula/{$r->CurriculaID}/download");
             return $r;
         });
 
@@ -88,9 +82,9 @@ class CurriculaApiController extends Controller
                 'c.CurriculaName',
                 'c.CurriculaPath',
                 'c.CurriculaCategoryID',
-                'cc.CurriculaCategoryName', // adjust if needed
+                'cc.CurriculaCategoryName', // change if needed
                 'c.MarhalaID',
-                'm.MarhalaName',             // adjust if needed
+                'm.MarhalaName',             // change if needed
                 'c.created_at',
                 'c.updated_at',
             ])
@@ -101,29 +95,51 @@ class CurriculaApiController extends Controller
             return response()->json(['ok' => false, 'message' => 'Curriculum not found'], 404);
         }
 
-        $item->download_url = route('Curricula.download', ['id' => $item->CurriculaID]);
+        $item->download_url = url("/api/curricula/{$item->CurriculaID}/download");
 
         return response()->json(['ok' => true, 'data' => $item]);
     }
 
     /**
+     * GET /api/curricula/{id}/download
+     * Downloads the stored curriculum file directly from API.
+     */
+    public function download(int $id)
+    {
+        $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
+
+        if (!$curriculum || empty($curriculum->CurriculaPath)) {
+            return response()->json(['ok' => false, 'message' => 'File not found'], 404);
+        }
+
+        // stored path example: CurriculaDocuments/xxx.pdf
+        if (!Storage::exists($curriculum->CurriculaPath)) {
+            return response()->json(['ok' => false, 'message' => 'File missing on disk'], 404);
+        }
+
+        // Download with original filename
+        $downloadName = basename($curriculum->CurriculaPath);
+
+        return Storage::download($curriculum->CurriculaPath, $downloadName);
+    }
+
+    /**
      * GET /api/curricula/meta
-     * Returns categories + marhalat to build filters in frontend.
      */
     public function meta()
     {
         $categories = DB::table('CurriculaCategory')
-            ->select('CurriculaCategoryID', 'CurriculaCategoryName') // adjust if needed
+            ->select('CurriculaCategoryID', 'CurriculaCategoryName') // change if needed
             ->orderBy('CurriculaCategoryName')
             ->get();
 
         $marhalat = DB::table('Marhala')
-            ->select('MarhalaID', 'MarhalaName') // adjust if needed
+            ->select('MarhalaID', 'MarhalaName') // change if needed
             ->orderBy('MarhalaName')
             ->get();
 
         return response()->json([
-            'ok' => true,
+            'ok'         => true,
             'categories' => $categories,
             'marhalat'   => $marhalat,
         ]);

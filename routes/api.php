@@ -42,6 +42,7 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::get('/curricula', [CurriculaApiController::class, 'index']);
     Route::get('/curricula/meta', [CurriculaApiController::class, 'meta']);
     Route::get('/curricula/{id}', [CurriculaApiController::class, 'show']);
+    Route::get('/curricula/{id}/download', [CurriculaApiController::class, 'download']);
     
 
     
