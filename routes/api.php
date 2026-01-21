@@ -13,6 +13,7 @@ use App\Http\Controllers\API\TokenApiController;
 use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
 use App\Http\Controllers\API\CurriculaApiController;
+use App\Http\Controllers\API\MediaApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,5 +46,12 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::get('/curricula/{id}/download', [CurriculaApiController::class, 'download']);
     
 
-    
+    // Media
+    Route::get('/media/seasons', [MediaApiController::class, 'seasons']);
+Route::get('/media/events', [MediaApiController::class, 'events']); // ?season_id=
+Route::get('/media/links', [MediaApiController::class, 'links']);   // ?season_event_id=
+
+/* Optional nice route: */
+Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
+
 });
