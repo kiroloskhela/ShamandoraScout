@@ -14,6 +14,7 @@ use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
 use App\Http\Controllers\API\CurriculaApiController;
 use App\Http\Controllers\API\MediaApiController;
+use App\Http\Controllers\API\CustodyApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,10 +23,10 @@ use App\Http\Controllers\API\MediaApiController;
 */
 
 
-Route::post('/login',   [LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
-Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
+    Route::post('/login',   [LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
+    Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
 
-Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
+    Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::post('/logout', [LoginApiController::class, 'apiLogout']);
 
     // Persons
@@ -48,10 +49,20 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
 
     // Media
     Route::get('/media/seasons', [MediaApiController::class, 'seasons']);
-Route::get('/media/events', [MediaApiController::class, 'events']); // ?season_id=
-Route::get('/media/links', [MediaApiController::class, 'links']);   // ?season_event_id=
+    Route::get('/media/events', [MediaApiController::class, 'events']); // ?season_id=
+    Route::get('/media/links', [MediaApiController::class, 'links']);   // ?season_event_id=
+    Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
 
-/* Optional nice route: */
-Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
+    // Custody
+
+
+    Route::get('/custody/meta', [CustodyApiController::class, 'meta']);
+
+    Route::get('/custody/requests', [CustodyApiController::class, 'index']);
+    Route::post('/custody/requests', [CustodyApiController::class, 'store']);
+    Route::get('/custody/requests/{id}', [CustodyApiController::class, 'show']);
+    Route::put('/custody/requests/{id}', [CustodyApiController::class, 'update']);
+    Route::delete('/custody/requests/{id}', [CustodyApiController::class, 'destroy']);
+
 
 });
