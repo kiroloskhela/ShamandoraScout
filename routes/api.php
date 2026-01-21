@@ -12,6 +12,7 @@ use App\Http\Controllers\API\LoginApiController;
 use App\Http\Controllers\API\TokenApiController;
 use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
+use App\Http\Controllers\API\CurriculaApiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,4 +37,12 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::get('/attendance/persons/{seasonEventId}', [AttendanceApiController::class, 'personsBySeasonEventId']);
     Route::get('/attendance/persons',                 [AttendanceApiController::class, 'persons']); 
     Route::post('/attendance/save',                   [AttendanceApiController::class, 'save']);
+
+    // Curricula
+    Route::get('/curricula', [CurriculaApiController::class, 'index']);
+    Route::get('/curricula/meta', [CurriculaApiController::class, 'meta']);
+    Route::get('/curricula/{id}', [CurriculaApiController::class, 'show']);
+    
+
+    
 });
