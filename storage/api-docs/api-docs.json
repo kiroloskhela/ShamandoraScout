@@ -1110,6 +1110,773 @@
                     }
                 ]
             }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login and get access + refresh tokens",
+                "description": "Validates user credentials then returns a short-lived access token (1 hour) and a long-lived refresh token (30 days).",
+                "operationId": "apiLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 55
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "expires_in_sec": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid credentials"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout (revoke current token)",
+                "description": "Revokes the current access token (Sanctum) and revokes active refresh tokens for the user.",
+                "operationId": "apiLogout",
+                "responses": {
+                    "200": {
+                        "description": "Logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/media/seasons": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get seasons list",
+                "description": "Returns seasons list for dropdown.",
+                "operationId": "mediaSeasons",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "seasons": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "SeasonID": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "SeasonName": {
+                                                        "type": "string",
+                                                        "example": "Season A"
+                                                    },
+                                                    "SeasonYear": {
+                                                        "type": "integer",
+                                                        "example": 2025
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/events": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get events by season",
+                "description": "Returns events for a selected season.",
+                "operationId": "mediaEvents",
+                "parameters": [
+                    {
+                        "name": "season_id",
+                        "in": "query",
+                        "description": "SeasonID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "events": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "SeasonEventID": {
+                                                        "type": "integer",
+                                                        "example": 999
+                                                    },
+                                                    "SeasonID": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "EventID": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "EventName": {
+                                                        "type": "string",
+                                                        "example": "Camp Day"
+                                                    },
+                                                    "EventStartDate": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-09-01 10:00:00"
+                                                    },
+                                                    "EventEndDate": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-09-01 18:00:00"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/links": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get drive links by SeasonEventID (query param)",
+                "description": "Returns drive links for selected SeasonEventID. Also returns preview_link for embedding.",
+                "operationId": "mediaLinksLegacy",
+                "parameters": [
+                    {
+                        "name": "season_event_id",
+                        "in": "query",
+                        "description": "SeasonEventID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 999
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "links": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "MediaID": {
+                                                        "type": "integer",
+                                                        "example": 50
+                                                    },
+                                                    "SeasonEventID": {
+                                                        "type": "integer",
+                                                        "example": 999
+                                                    },
+                                                    "DriveLink": {
+                                                        "type": "string",
+                                                        "example": "https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
+                                                    },
+                                                    "preview_link": {
+                                                        "type": "string",
+                                                        "example": "https://drive.google.com/file/d/FILE_ID/preview"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/media/links/{seasonEventId}": {
+            "get": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Get drive links by SeasonEventID (path param)",
+                "description": "Same as /api/media/links but uses a path parameter.",
+                "operationId": "mediaLinks",
+                "parameters": [
+                    {
+                        "name": "seasonEventId",
+                        "in": "path",
+                        "description": "SeasonEventID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 999
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "links": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "MediaID": {
+                                                        "type": "integer",
+                                                        "example": 50
+                                                    },
+                                                    "SeasonEventID": {
+                                                        "type": "integer",
+                                                        "example": 999
+                                                    },
+                                                    "DriveLink": {
+                                                        "type": "string",
+                                                        "example": "https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
+                                                    },
+                                                    "preview_link": {
+                                                        "type": "string",
+                                                        "example": "https://drive.google.com/file/d/FILE_ID/preview"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/persons": {
+            "post": {
+                "tags": [
+                    "Person"
+                ],
+                "summary": "List persons accessible by the user",
+                "description": "Returns persons in groups/qetaat visible to the provided user id. Adds full_name in response.",
+                "operationId": "showPersons",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "description": "User/Person ID used to filter accessible persons",
+                                        "type": "integer",
+                                        "example": 55
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "persons": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "PersonID": {
+                                                        "type": "integer",
+                                                        "example": 101
+                                                    },
+                                                    "ShamandoraCode": {
+                                                        "type": "string",
+                                                        "example": "SC-001"
+                                                    },
+                                                    "FirstName": {
+                                                        "type": "string",
+                                                        "example": "John"
+                                                    },
+                                                    "SecondName": {
+                                                        "type": "string",
+                                                        "example": "A."
+                                                    },
+                                                    "ThirdName": {
+                                                        "type": "string",
+                                                        "example": "B."
+                                                    },
+                                                    "FourthName": {
+                                                        "type": "string",
+                                                        "example": "C."
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string",
+                                                        "example": "John A. B. C."
+                                                    },
+                                                    "QetaaName": {
+                                                        "type": "string",
+                                                        "example": "Qetaa A"
+                                                    },
+                                                    "ScoutJoiningYear": {
+                                                        "type": "integer",
+                                                        "example": 2020
+                                                    },
+                                                    "SanaMarhalaName": {
+                                                        "type": "string",
+                                                        "example": "Level 1"
+                                                    },
+                                                    "RaqamQawmy": {
+                                                        "type": "string",
+                                                        "example": "12345678901234"
+                                                    },
+                                                    "PersonPersonalMobileNumber": {
+                                                        "type": "string",
+                                                        "example": "01000000000"
+                                                    },
+                                                    "QetaaID": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "GroupPersonID": {
+                                                        "type": "integer",
+                                                        "example": 101
+                                                    },
+                                                    "HasAnsweredQuestions": {
+                                                        "type": "string",
+                                                        "example": "نعم"
+                                                    },
+                                                    "SanaMarhalaID": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/person/{id}": {
+            "get": {
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Get person profile",
+                "description": "Returns person full profile data (joined tables) and entry questions/answers.",
+                "operationId": "showProfile",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "PersonID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 101
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "person": {
+                                            "type": "object"
+                                        },
+                                        "questions": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "QuestionText": {
+                                                        "type": "string",
+                                                        "example": "Why do you want to join?"
+                                                    },
+                                                    "Answer": {
+                                                        "type": "string",
+                                                        "example": "To learn and serve."
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Person not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/person/{id}/calendar": {
+            "get": {
+                "tags": [
+                    "Person"
+                ],
+                "summary": "Get person calendar events",
+                "description": "Returns events accessible for a person via their group/qetaa membership.",
+                "operationId": "showCalendar",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "PersonID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 101
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "events": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "EventID": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "EventName": {
+                                                        "type": "string",
+                                                        "example": "Weekly Meeting"
+                                                    },
+                                                    "EventStartDate": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-09-01 18:00:00"
+                                                    },
+                                                    "EventEndDate": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-09-01 20:00:00"
+                                                    },
+                                                    "EventTypeName": {
+                                                        "type": "string",
+                                                        "example": "Meeting"
+                                                    },
+                                                    "SeasonName": {
+                                                        "type": "string",
+                                                        "example": "Season A"
+                                                    },
+                                                    "SeasonYear": {
+                                                        "type": "integer",
+                                                        "example": 2025
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/refresh": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Refresh access token",
+                "description": "Uses refresh_token to issue a new access token and rotate refresh token. Old refresh token becomes revoked.",
+                "operationId": "refreshToken",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "refresh_token"
+                                ],
+                                "properties": {
+                                    "refresh_token": {
+                                        "type": "string",
+                                        "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "New tokens issued",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "expires_in_sec": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "example": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or expired refresh token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid or expired refresh token"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1133,6 +1900,18 @@
         {
             "name": "Custody",
             "description": "Custody requests (inventory borrowing) endpoints"
+        },
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints (refresh token)"
+        },
+        {
+            "name": "Media",
+            "description": "Media endpoints (seasons, events, and drive links)"
+        },
+        {
+            "name": "Person",
+            "description": "Person endpoints (list persons, profile, calendar)"
         }
     ]
 }
