@@ -1,499 +1,541 @@
 <?php
 
-use App\Http\Controllers\PersonController;
-use App\Http\Controllers\FeedbackController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TestingController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\SecretaryController;
+
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\AdminCustodyRequestController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\LogoutController;
+
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\AdminPasswordController;
+
+use App\Http\Controllers\SecretaryController;
+use App\Http\Controllers\PersonNewController;
+use App\Http\Controllers\PersonProfileController;
+
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PersonRoleController;
+use App\Http\Controllers\GroupPersonController;
+
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventTypeController;
+
+use App\Http\Controllers\MediaController;
+
+use App\Http\Controllers\GroupTypeController;
+use App\Http\Controllers\GroupController;
+
+use App\Http\Controllers\RotbaKashfeyaController;
+
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\InventoryIssueController;
+
+use App\Http\Controllers\LiveFormMaxLimitsController;
+use App\Http\Controllers\BetakaTakaddomController;
+use App\Http\Controllers\BloodTypeController;
+use App\Http\Controllers\CurriculaCategoryController;
+use App\Http\Controllers\CurriculaController;
+
+use App\Http\Controllers\ManteqaController;
+use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\QetaaController;
+use App\Http\Controllers\FacultyController;
+
+use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\SeasonEventController;
+
+use App\Http\Controllers\UniversityController;
+
 use App\Http\Controllers\CustodyRequestController;
+use App\Http\Controllers\AdminCustodyRequestController;
 
+use App\Http\Controllers\MarhalaDeraseyyaController;
+use App\Http\Controllers\SanaMarhalaDeraseyyaController;
+use App\Http\Controllers\MarhalaEntryQuestionsController;
 
+use App\Http\Controllers\FeedbackController;
+
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\TestingController;
+
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\PlaceController;
+
+use App\Http\Controllers\WhatsAppBridgeController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Public / UI Pages
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
+Route::view('/cards', 'cards');
+Route::view('/charts', 'charts');
+Route::view('/blank', 'blank');
+Route::view('/buttons', 'buttons');
+Route::view('/utilities-animation', 'utilities-animation');
+Route::view('/adv', 'Adv');
 
+/*
+|--------------------------------------------------------------------------
+| Auth (Login / Register / Forgot Password)
+|--------------------------------------------------------------------------
+*/
+Route::get('/login-auth', [LoginController::class, 'show'])->name('login-auth');
+Route::post('/login', [LoginController::class, 'login'])->name('login');
 
-        Route::get('/cards', function () {return view('cards');});
-        Route::get('/charts', function () {return view('charts');});
-        Route::get('/blank', function () {return view('blank');});
-        Route::get('/buttons', function () {return view('buttons');});
-        Route::get('/utilities-animation', function () {return view('utilities-animation');});
-
-        Route::get('/adv', function () {
-            return view('Adv');
-        });
-
-//General UI Routes
-Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
-    Route::get('/', [HomeController::class, 'index'])->name('home');
-});
-
-
-
-
-Route::middleware(['auth','checkAuth:SuperAdmin|Secretary'])->group(function(){
-Route::get('/secretary', array('as'=> 'secretary.index', 'uses'=> 'App\Http\Controllers\SecretaryController@index'));
-Route::get('/secretary/add', array('as' => 'secretary.create', 'uses' =>'App\Http\Controllers\SecretaryController@create'));
-Route::post('/secretary/insert', array('as' => 'secretary.insert', 'uses' => 'App\Http\Controllers\SecretaryController@insert'));
-Route::get('/secretary/edit/{id}', array('as' => 'secretary.edit', 'uses' => 'App\Http\Controllers\SecretaryController@edit'));
-Route::patch('/secretary/update/{id}', array('as'=> 'secretary.update', 'uses'=> 'App\Http\Controllers\SecretaryController@updates'));
-Route::get('/secretary/download/{id}', array('as'=> 'secretary.download', 'uses'=>'App\Http\Controllers\SecretaryController@download'));
-Route::get('/secretary/delete/{id}', array('as'=> 'secretary.delete', 'uses'=>'App\Http\Controllers\SecretaryController@deletes'));
-Route::delete('/secretary/destroy/{id}', array('as'=> 'secretary.destroy', 'uses'=>'App\Http\Controllers\SecretaryController@destroy'));
-Route::post('/secretary/upload', array('as'=> 'secretary.upload', 'uses'=>'App\Http\Controllers\SecretaryController@upload'));
-
-
-
-});
-
-
-
-
-
-
-
-//General Registration and Login Routes
-Route::get('/login-auth', array('as'=>'login-auth', 'uses'=>'App\Http\Controllers\LoginController@show'));
-Route::post('/login', array('as'=>'login', 'uses'=>'App\Http\Controllers\LoginController@login'));
-
-// routes/web.php
-
+Route::view('/register', 'register');
 
 Route::get('/forgot-password', function () {
-    return view('forgot-password.form');   // ⬅️ مسار الفيو الجديد
+    return view('forgot-password.form');
 })->name('forgot-password.form');
 
-// معالجة الفورم
 Route::post('/forgot-password', [ForgotPasswordController::class, 'handle'])
     ->name('forgot-password.handle');
 
-
-
-Route::get('/register', function () {return view('register');});
-
-
-//Person Tables Routes
-//Route::get('/tables', function () {return view('tables');});
-
-//Routes for Person Information
-//Route::get('/createperson', function () {return view('createperson');});
-//Route::get('/person', 'App\Http\Controllers\PersonController@index');
-//Route::get('/insertperson','App\Http\Controllers\PersonController@insert');
-//Route::get('/createperson','App\Http\Controllers\PersonController@createPersonController');
-//Route::post('/submitPerson','App\Http\Controllers\PersonController@submitPersonController');
-
-
-//Route Profile
-
-
-
-
-//New Routes for Person Information for Live Form
-Route::get('/de7k', array('as'=>'person.de7k','uses'=>'App\Http\Controllers\PersonNewController@showLiveForm'));
-Route::get('/liveform', array('as'=>'person.liveform', 'uses'=>'App\Http\Controllers\PersonNewController@createLiveForm'));
-Route::post('/liveform/insert', array('as'=>'person.liveform-insert', 'uses'=>'App\Http\Controllers\PersonNewController@insertLiveForm'));
-Route::get('/liveform/person/add', array('as' => 'person.liveform-create', 'uses' =>'App\Http\Controllers\PersonNewController@createNewPersonLiveForm'));
-Route::post('/liveform/person/insert', array('as' => 'person.liveform-insert-person', 'uses' => 'App\Http\Controllers\PersonNewController@insertNewPersonLiveForm'));
-Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.liveform-entry-questions', 'uses'=>'App\Http\Controllers\PersonNewController@getQuestionsLiveForm'));
-Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitQuestionsLiveForm'));
-
-Route::get('/liveform/person/delete/{id}', array('as'=> 'person.liveform-delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletesLiveForm'));
-Route::delete('/liveform/person/destroy/{id}', array('as'=> 'person.liveform-destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroyLiveForm'));
-Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@getLiveFormQuestions'));
-Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitLiveFormQuestions'));
-
-Route::get('/liveform/apologize', function() {return view('person.liveform-limit-exceeded');});
-Route::get('/liveform/finalize', function(){return view('person.liveform-finalize');});
-
-
-
-Route::get('/new-enrolments/show/qetaa/{id}', array('as'=> 'person.new-enrolments-show-qetaa', 'uses'=>'App\Http\Controllers\PersonNewController@showNewEnrolmentsByQetaaID'));
-Route::get('/new-enrolments/show/{id}', array('as'=> 'person.new-enrolments-show', 'uses'=>'App\Http\Controllers\PersonNewController@showNewEnrolments'));
-Route::get('/new-enrolments/person/approve/{id}', array('as'=>'person.new-enrolments-approve', 'uses'=>'App\Http\Controllers\PersonNewController@approveNewEnrolments'));
-Route::get('/new-enrolments/person/approve-again/{id}', array('as'=>'person.new-enrolments-approve-again', 'uses'=>'App\Http\Controllers\PersonNewController@approveAgainNewEnrolments'));
-Route::get('/new-enrolments/person/delete/{id}', array('as'=> 'person.new-enrolments-delete', 'uses'=>'App\Http\Controllers\PersonNewController@deleteNewEnrolments'));
-Route::delete('/new-enrolments/person/destroy/{id}', array('as'=> 'person.new-enrolments-destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroyNewEnrolments'));
-
-//Attendance Routes
-// Route::middleware(['auth','checkAuth:SuperAdmin|Admin|Khadem'])->group(function(){
-//         Route::get('/attendance', array('as'=> 'attendance.index', 'uses'=> 'App\Http\Controllers\AttendanceController@index'));
-//         Route::get('/attendance/add', array('as' => 'attendance.create', 'uses' =>'App\Http\Controllers\AttendanceController@create'));
-//         Route::post('/attendance/insert', array('as' => 'attendance.insert', 'uses' => 'App\Http\Controllers\AttendanceController@insert'));
-// });
-
-
-Route::middleware(['auth','checkAuth:SuperAdmin'])->group(function(){
-//Routes for Roles
-Route::get('/role', array('as'=> 'role.index', 'uses'=> 'App\Http\Controllers\RoleController@index'));
-Route::get('/role/add', array('as' => 'role.create', 'uses' =>'App\Http\Controllers\RoleController@create'));
-Route::post('/role/insert', array('as' => 'role.insert', 'uses' => 'App\Http\Controllers\RoleController@insert'));
-Route::get('/role/edit/{id}', array('as' => 'role.edit', 'uses' => 'App\Http\Controllers\RoleController@edit'));
-Route::patch('/role/update/{id}', array('as'=> 'role.update', 'uses'=> 'App\Http\Controllers\RoleController@updates'));
-Route::get('/role/delete/{id}', array('as'=> 'role.delete', 'uses'=>'App\Http\Controllers\RoleController@deletes'));
-Route::delete('/role/destroy/{id}', array('as'=> 'role.destroy', 'uses'=>'App\Http\Controllers\RoleController@destroy'));
-
-//Routes for Person Information for all system (Show ALL, Insert, Show by ID, Edit)
-Route::get('/person/ShowPersons', array('as'=> 'person.ShowPersons', 'uses'=>'App\Http\Controllers\PersonNewController@ShowPersons'));
-
-
-//Routes for Person Roles Assignment
-Route::get('/person-role', array('as'=> 'person-role.index', 'uses'=> 'App\Http\Controllers\PersonRoleController@index'));
-Route::get('/person-role/add', array('as' => 'person-role.create', 'uses' =>'App\Http\Controllers\PersonRoleController@create'));
-Route::post('/person-role/insert', array('as' => 'person-role.insert', 'uses' => 'App\Http\Controllers\PersonRoleController@insert'));
-Route::get('/person-role/edit/{id}', array('as' => 'person-role.edit', 'uses' => 'App\Http\Controllers\PersonRoleController@edit'));
-Route::patch('/person-role/update/{id}', array('as'=> 'person-role.update', 'uses'=> 'App\Http\Controllers\PersonRoleController@updates'));
-Route::get('/person-role/delete/{id}', array('as'=> 'person-role.delete', 'uses'=>'App\Http\Controllers\PersonRoleController@deletes'));
-Route::delete('/person-role/destroy/{id}', array('as'=> 'person-role.destroy', 'uses'=>'App\Http\Controllers\PersonRoleController@destroy'));
-
-//Routes for Group Person Roles Assignment
-Route::get('/group-person/add-khadem', array('as' => 'group-person.create-khadem', 'uses' =>'App\Http\Controllers\GroupPersonController@createKhadem'));
-Route::get('/group-person/delete/{id}', array('as'=> 'group-person.delete', 'uses'=>'App\Http\Controllers\GroupPersonController@deletes'));
-Route::delete('/group-person/destroy/{id}', array('as'=> 'group-person.destroy', 'uses'=>'App\Http\Controllers\GroupPersonController@destroy'));
-
-
-
-
+/*
+|--------------------------------------------------------------------------
+| Home (SuperAdmin|Admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 });
 
-Route::middleware(['auth'])->group(function(){
-        Route::get('/group-person', array('as'=> 'group-person.index', 'uses'=> 'App\Http\Controllers\GroupPersonController@index'));
-        Route::get('/group-person/add-makhdoom', array('as' => 'group-person.create-makhdoom', 'uses' =>'App\Http\Controllers\GroupPersonController@createMakhdoom'));
-        Route::post('/group-person/insert', array('as' => 'group-person.insert', 'uses' => 'App\Http\Controllers\GroupPersonController@insert'));
-        Route::get('/group-person/edit/{id}', array('as' => 'group-person.edit', 'uses' => 'App\Http\Controllers\GroupPersonController@edit'));
-        Route::patch('/group-person/update/{id}', array('as'=> 'group-person.update', 'uses'=> 'App\Http\Controllers\GroupPersonController@updates'));
+/*
+|--------------------------------------------------------------------------
+| Secretary (SuperAdmin|Secretary)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function () {
+    Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
+    Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
+    Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
+
+    Route::get('/secretary/edit/{id}',      [SecretaryController::class, 'edit'])->name('secretary.edit');
+    Route::patch('/secretary/update/{id}',  [SecretaryController::class, 'updates'])->name('secretary.update');
+
+    Route::get('/secretary/download/{id}',  [SecretaryController::class, 'download'])->name('secretary.download');
+
+    Route::get('/secretary/delete/{id}',    [SecretaryController::class, 'deletes'])->name('secretary.delete');
+    Route::delete('/secretary/destroy/{id}',[SecretaryController::class, 'destroy'])->name('secretary.destroy');
+
+    Route::post('/secretary/upload',        [SecretaryController::class, 'upload'])->name('secretary.upload');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Live Form (Public)
+|--------------------------------------------------------------------------
+*/
+Route::get('/de7k', [PersonNewController::class, 'showLiveForm'])->name('person.de7k');
+Route::get('/liveform', [PersonNewController::class, 'createLiveForm'])->name('person.liveform');
+Route::post('/liveform/insert', [PersonNewController::class, 'insertLiveForm'])->name('person.liveform-insert');
 
-Route::middleware(['auth','checkAuth:SuperAdmin|Admin|Khadem'])->group(function(){
+Route::get('/liveform/person/add', [PersonNewController::class, 'createNewPersonLiveForm'])->name('person.liveform-create');
+Route::post('/liveform/person/insert', [PersonNewController::class, 'insertNewPersonLiveForm'])->name('person.liveform-insert-person');
 
-//Routes for Person Information for all system (Show ALL, Insert, Show by ID, Edit)
-Route::get('/person', array('as'=> 'person.index', 'uses'=>'App\Http\Controllers\PersonNewController@index'));
-Route::get('/person/add', array('as' => 'person.create', 'uses' =>'App\Http\Controllers\PersonNewController@create'));
-Route::post('/person/insert', array('as' => 'person.insert', 'uses' => 'App\Http\Controllers\PersonNewController@insert'));
-Route::get('/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions', 'uses'=>'App\Http\Controllers\PersonNewController@getQuestions'));
-Route::post('/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit', 'uses'=>'App\Http\Controllers\PersonNewController@submitQuestions'));
-Route::get('/person/show/{id}', array('as'=> 'person.show', 'uses'=>'App\Http\Controllers\PersonNewController@show'));
-Route::get('/person/edit/{id}', array('as' => 'person.edit', 'uses' => 'App\Http\Controllers\PersonNewController@edit'));
-Route::patch('/person/update/{id}', array('as'=> 'person.update', 'uses'=> 'App\Http\Controllers\PersonNewController@updates'));
+Route::get('/liveform/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestionsLiveForm'])->name('person.liveform-entry-questions');
+Route::post('/liveform/person/entry-questions/submit', [PersonNewController::class, 'submitQuestionsLiveForm'])->name('person.entry-questions-submit-liveform');
+
+Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');
+Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'destroyLiveForm'])->name('person.liveform-destroy');
+
+Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
+Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
+
+/*
+|--------------------------------------------------------------------------
+| New Enrolments (Public)
+|--------------------------------------------------------------------------
+*/
+Route::get('/new-enrolments/show/qetaa/{id}', [PersonNewController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
+Route::get('/new-enrolments/show/{id}', [PersonNewController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
+Route::get('/new-enrolments/person/approve/{id}', [PersonNewController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
+Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
+Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
+Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
+
+/*
+|--------------------------------------------------------------------------
+| SuperAdmin Only
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
+
+    // Roles
+    Route::get('/role', [RoleController::class, 'index'])->name('role.index');
+    Route::get('/role/add', [RoleController::class, 'create'])->name('role.create');
+    Route::post('/role/insert', [RoleController::class, 'insert'])->name('role.insert');
+    Route::get('/role/edit/{id}', [RoleController::class, 'edit'])->name('role.edit');
+    Route::patch('/role/update/{id}', [RoleController::class, 'updates'])->name('role.update');
+    Route::get('/role/delete/{id}', [RoleController::class, 'deletes'])->name('role.delete');
+    Route::delete('/role/destroy/{id}', [RoleController::class, 'destroy'])->name('role.destroy');
+
+    // Person Roles Assignment
+    Route::get('/person-role', [PersonRoleController::class, 'index'])->name('person-role.index');
+    Route::get('/person-role/add', [PersonRoleController::class, 'create'])->name('person-role.create');
+    Route::post('/person-role/insert', [PersonRoleController::class, 'insert'])->name('person-role.insert');
+    Route::get('/person-role/edit/{id}', [PersonRoleController::class, 'edit'])->name('person-role.edit');
+    Route::patch('/person-role/update/{id}', [PersonRoleController::class, 'updates'])->name('person-role.update');
+    Route::get('/person-role/delete/{id}', [PersonRoleController::class, 'deletes'])->name('person-role.delete');
+    Route::delete('/person-role/destroy/{id}', [PersonRoleController::class, 'destroy'])->name('person-role.destroy');
+
+    // Group Person (add khadem)
+    Route::get('/group-person/add-khadem', [GroupPersonController::class, 'createKhadem'])->name('group-person.create-khadem');
+    Route::get('/group-person/delete/{id}', [GroupPersonController::class, 'deletes'])->name('group-person.delete');
+    Route::delete('/group-person/destroy/{id}', [GroupPersonController::class, 'destroy'])->name('group-person.destroy');
+
+    // SuperAdmin Password Management
+    Route::get('/admin/passwords', [AdminPasswordController::class, 'index'])->name('admin.passwords');
+    Route::get('/admin/passwords/{id}/edit', [AdminPasswordController::class, 'edit'])->name('admin.passwords.edit');
+    Route::post('/admin/passwords/{id}/update', [AdminPasswordController::class, 'update'])->name('admin.passwords.update');
+
+    // Whatsapp
+    Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
+    Route::post('/whatsapp/sendWithHeader', [WhatsAppBridgeController::class, 'sendWithHeader'])->name('whatsapp.sendWithHeader');
+
+    // Show ALL persons
+    Route::get('/person/ShowPersons', [PersonNewController::class, 'ShowPersons'])->name('person.ShowPersons');
 });
 
-Route::middleware(['auth','checkAuth:SuperAdmin|Admin'])->group(function(){
+/*
+|--------------------------------------------------------------------------
+| Authenticated (Any User)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
 
-//Routes for New Enrolments
-Route::get('/new-enrolments', array('as'=> 'person.new-enrolments-index', 'uses'=>'App\Http\Controllers\PersonNewController@indexNewEnrolments'));
-Route::get('/new-enrolments/migrations', array('as'=> 'person.new-enrolments-migrate-index', 'uses'=>'App\Http\Controllers\PersonNewController@indexNewEnrolmentsAndMigrations'));
-Route::get('/new-enrolments/analytics', array('as'=>'person.new-enrolments-analytics', 'uses'=>'App\Http\Controllers\PersonNewController@analyticsNewEnrolments'));
-Route::get('/new-enrolments/count/marahel', array('as'=>'person.new-enrolments-marahel-count','uses'=>'App\Http\Controllers\PersonNewController@countNewEnrolmentsMarahel'));
-Route::get('/new-enrolments/count/qetaat', array('as'=>'person.new-enrolments-qetaat-count','uses'=>'App\Http\Controllers\PersonNewController@countNewEnrolmentsQetaat'));
+    // Logout
+    Route::post('/logout', [LogoutController::class, 'perform'])->name('logout');
 
-//Routes for Migrating New Enrolments to Original System
-Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
+    // Change Password page
+    Route::view('/change-password', 'change-password');
 
-//Routes for Deleting Persons from Database
-Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletes'));
-Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
+    // Profile
+    Route::get('/profile', [PersonProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [PersonProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/update', [PersonProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/updatePassword', [PersonProfileController::class, 'updatePassword'])->name('profile.updatePassword');
 
-
-//Routes for Event
-Route::get('/event', array('as' => 'event.index', 'uses' => 'App\Http\Controllers\EventController@index'));
-Route::get('/event/add-recursive', array('as' => 'event.create-recursive', 'uses' =>'App\Http\Controllers\EventController@createRecursive'));
-Route::post('/event/insert-recursive', array('as' => 'event.insert-recursive', 'uses' => 'App\Http\Controllers\EventController@insertRecursive'));
-Route::get('/event/add', array('as' => 'event.create', 'uses' =>'App\Http\Controllers\EventController@create'));
-Route::post('/event/insert', array('as' => 'event.insert', 'uses' => 'App\Http\Controllers\EventController@insert'));
-Route::get('/event/edit/{id}', array('as' => 'event.edit', 'uses' => 'App\Http\Controllers\EventController@edit'));
-Route::patch('/event/update/{id}', array('as'=> 'event.update', 'uses'=> 'App\Http\Controllers\EventController@updates'));
-Route::get('/event/delete/{id}', array('as'=> 'event.delete', 'uses'=>'App\Http\Controllers\EventController@deletes'));
-Route::delete('/event/destroy/{id}', array('as'=> 'event.destroy', 'uses'=>'App\Http\Controllers\EventController@destroy'));
-
-//Routes for Event Types
-Route::get('/event-type', array('as' => 'event-type.index', 'uses' => 'App\Http\Controllers\EventTypeController@index'));
-Route::get('/event-type/add', array('as' => 'event-type.create', 'uses' =>'App\Http\Controllers\EventTypeController@create'));
-Route::post('/event-type/insert', array('as' => 'event-type.insert', 'uses' => 'App\Http\Controllers\EventTypeController@insert'));
-Route::get('/event-type/edit/{id}', array('as' => 'event-type.edit', 'uses' => 'App\Http\Controllers\EventTypeController@edit'));
-Route::patch('/event-type/update/{id}', array('as'=> 'event-type.update', 'uses'=> 'App\Http\Controllers\EventTypeController@updates'));
-Route::get('/event-type/delete/{id}', array('as'=> 'event-type.delete', 'uses'=>'App\Http\Controllers\EventTypeController@deletes'));
-Route::delete('/event-type/destroy/{id}', array('as'=> 'event-type.destroy', 'uses'=>'App\Http\Controllers\EventTypeController@destroy'));
-
-
-//Routes for Media
-Route::get('/media', array('as' => 'media.index', 'uses' => 'App\Http\Controllers\MediaController@index'));
-Route::get('/media/add', array('as' => 'media.create', 'uses' =>'App\Http\Controllers\MediaController@create'));
-Route::post('/media/insert', array('as' => 'media.insert', 'uses' => 'App\Http\Controllers\MediaController@insert'));
-Route::get('/media/edit/{id}', array('as' => 'media.edit', 'uses' => 'App\Http\Controllers\MediaController@edit'));
-Route::patch('/media/update/{id}', array('as'=> 'media.update', 'uses'=> 'App\Http\Controllers\MediaController@update'));
-Route::get('/media/delete/{id}', array('as'=> 'media.delete', 'uses'=>'App\Http\Controllers\MediaController@delete'));
-Route::delete('/media/destroy/{id}', array('as'=> 'media.destroy', 'uses'=>'App\Http\Controllers\MediaController@destroy'));
-Route::get('/media/events', array('as' => 'media.getEventsForSeason','uses' => 'App\Http\Controllers\MediaController@getEventsForSeason'));
-Route::get('/media/pages', array('as' => 'media.pages', 'uses' => 'App\Http\Controllers\MediaController@pages'));
-Route::get('/media/pages/events', array('as' => 'media.getEventsForPages', 'uses' => 'App\Http\Controllers\MediaController@getEventsForPages'));
-Route::get('/media/pages/media', array('as' => 'media.getMediaForEvent', 'uses' => 'App\Http\Controllers\MediaController@getMediaForEvent'));
-
-
-//Routes for Group Types
-Route::get('/group-type', array('as' => 'group-type.index', 'uses' => 'App\Http\Controllers\GroupTypeController@index'));
-Route::get('/group-type/add', array('as' => 'group-type.create', 'uses' =>'App\Http\Controllers\GroupTypeController@create'));
-Route::post('/group-type/insert', array('as' => 'group-type.insert', 'uses' => 'App\Http\Controllers\GroupTypeController@insert'));
-Route::get('/group-type/edit/{id}', array('as' => 'group-type.edit', 'uses' => 'App\Http\Controllers\GroupTypeController@edit'));
-Route::patch('/group-type/update/{id}', array('as'=> 'group-type.update', 'uses'=> 'App\Http\Controllers\GroupTypeController@updates'));
-Route::get('/group-type/delete/{id}', array('as'=> 'group-type.delete', 'uses'=>'App\Http\Controllers\GroupTypeController@deletes'));
-Route::delete('/group-type/destroy/{id}', array('as'=> 'group-type.destroy', 'uses'=>'App\Http\Controllers\GroupTypeController@destroy'));
-
-//Routes for Groups
-Route::get('/group', array('as' => 'group.index', 'uses' => 'App\Http\Controllers\GroupController@index'));
-Route::get('/group/add', array('as' => 'group.create', 'uses' =>'App\Http\Controllers\GroupController@create'));
-Route::post('/group/insert', array('as' => 'group.insert', 'uses' => 'App\Http\Controllers\GroupController@insert'));
-Route::get('/group/edit/{id}', array('as' => 'group.edit', 'uses' => 'App\Http\Controllers\GroupController@edit'));
-Route::patch('/group/update/{id}', array('as'=> 'group.update', 'uses'=> 'App\Http\Controllers\GroupController@updates'));
-Route::get('/group/delete/{id}', array('as'=> 'group.delete', 'uses'=>'App\Http\Controllers\GroupController@deletes'));
-Route::delete('/group/destroy/{id}', array('as'=> 'group.destroy', 'uses'=>'App\Http\Controllers\GroupController@destroy'));
-
-
-//Routes for Rotab Kashfeyya
-Route::get('/rotab', array('as' => 'rotab.index', 'uses' => 'App\Http\Controllers\RotbaKashfeyaController@index'));
-Route::get('/rotab/add', array('as' => 'rotab.create', 'uses' =>'App\Http\Controllers\RotbaKashfeyaController@create'));
-Route::post('/rotab/insert', array('as' => 'rotab.insert', 'uses' => 'App\Http\Controllers\RotbaKashfeyaController@insert'));
-Route::get('/rotab/edit/{id}', array('as' => 'rotab.edit', 'uses' => 'App\Http\Controllers\RotbaKashfeyaController@edit'));
-Route::patch('/rotab/update/{id}', array('as'=> 'rotab.update', 'uses'=> 'App\Http\Controllers\RotbaKashfeyaController@updates'));
-Route::get('/rotab/delete/{id}', array('as'=> 'rotab.delete', 'uses'=>'App\Http\Controllers\RotbaKashfeyaController@deletes'));
-Route::delete('/rotab/destroy/{id}', array('as'=> 'rotab.destroy', 'uses'=>'App\Http\Controllers\RotbaKashfeyaController@destroy'));
-
-
-
-//Routes for Inventory
-Route::get('/inventory', array('as' => 'inventory.index', 'uses' => 'App\Http\Controllers\InventoryController@index'));
-Route::get('/inventory/add', array('as' => 'inventory.create', 'uses' =>'App\Http\Controllers\InventoryController@create'));
-Route::post('/inventory/insert', array('as' => 'inventory.insert', 'uses' => 'App\Http\Controllers\InventoryController@insert'));
-Route::get('/inventory/edit/{id}', array('as' => 'inventory.edit', 'uses' => 'App\Http\Controllers\InventoryController@edit'));
-Route::patch('/inventory/update/{id}', array('as'=> 'inventory.update', 'uses'=> 'App\Http\Controllers\InventoryController@updates'));
-Route::get('/inventory/delete/{id}', array('as'=> 'inventory.delete', 'uses'=>'App\Http\Controllers\InventoryController@deletes'));
-Route::delete('/inventory/destroy/{id}', array('as'=> 'inventory.destroy', 'uses'=>'App\Http\Controllers\InventoryController@destroy'));
-
-
-//Routes for Inventory-issue
-Route::get('/inventory-issue', array('as' => 'inventory-issue.index', 'uses' => 'App\Http\Controllers\InventoryIssueController@index'));
-Route::get('/inventory-issue/getEventsForSeason', array('as' => 'inventory-issue.getEventsForSeason', 'uses' =>'App\Http\Controllers\InventoryIssueController@getEventsForSeason'));
-Route::post('/inventory-issue/generate', array('as' => 'inventory-issue.generate','uses' => 'App\Http\Controllers\InventoryIssueController@generate'));
-
-//Routes for LiveForm Max Limits
-Route::get('/max-limits', array('as' => 'max-limits.index', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@index'));
-Route::get('/max-limits/add', array('as' => 'max-limits.create', 'uses' =>'App\Http\Controllers\LiveFormMaxLimitsController@create'));
-Route::post('/max-limits/insert', array('as' => 'max-limits.insert', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@insert'));
-Route::get('/max-limits/edit/{id}/{sana_id}', array('as' => 'max-limits.edit', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@edit'));
-Route::patch('/max-limits/update/{id}/{sana_id}', array('as'=> 'max-limits.update', 'uses'=> 'App\Http\Controllers\LiveFormMaxLimitsController@updates'));
-Route::get('/max-limits/delete/{id}/{sana_id}', array('as'=> 'max-limits.delete', 'uses'=>'App\Http\Controllers\LiveFormMaxLimitsController@deletes'));
-Route::delete('/max-limits/destroy/{id}/{sana_id}', array('as'=> 'max-limits.destroy', 'uses'=>'App\Http\Controllers\LiveFormMaxLimitsController@destroy'));
-
-//Routes for Betakat Takaddom
-Route::get('/betaka', array('as' => 'betaka.index', 'uses' => 'App\Http\Controllers\BetakaTakaddomController@index'));
-Route::get('/betaka/add', array('as' => 'betaka.create', 'uses' =>'App\Http\Controllers\BetakaTakaddomController@create'));
-Route::post('/betaka/insert', array('as' => 'betaka.insert', 'uses' => 'App\Http\Controllers\BetakaTakaddomController@insert'));
-Route::get('/betaka/edit/{id}', array('as' => 'betaka.edit', 'uses' => 'App\Http\Controllers\BetakaTakaddomController@edit'));
-Route::patch('/betaka/update/{id}', array('as'=> 'betaka.update', 'uses'=> 'App\Http\Controllers\BetakaTakaddomController@updates'));
-Route::get('/betaka/delete/{id}', array('as'=> 'betaka.delete', 'uses'=>'App\Http\Controllers\BetakaTakaddomController@deletes'));
-Route::delete('/betaka/destroy/{id}', array('as'=> 'betaka.destroy', 'uses'=>'App\Http\Controllers\BetakaTakaddomController@destroy'));
-
-
-//Routes for Blood Types
-Route::get('/blood', array('as'=> 'blood.index', 'uses'=> 'App\Http\Controllers\BloodTypeController@index'));
-Route::get('/blood/add', array('as' => 'blood.create', 'uses' =>'App\Http\Controllers\BloodTypeController@create'));
-Route::post('/blood/insert', array('as' => 'blood.insert', 'uses' => 'App\Http\Controllers\BloodTypeController@insert'));
-Route::get('/blood/edit/{id}', array('as' => 'blood.edit', 'uses' => 'App\Http\Controllers\BloodTypeController@edit'));
-Route::patch('/blood/update/{id}', array('as'=> 'blood.update', 'uses'=> 'App\Http\Controllers\BloodTypeController@updates'));
-Route::get('/blood/delete/{id}', array('as'=> 'blood.delete', 'uses'=>'App\Http\Controllers\BloodTypeController@deletes'));
-Route::delete('/blood/destroy/{id}', array('as'=> 'blood.destroy', 'uses'=>'App\Http\Controllers\BloodTypeController@destroy'));
-
-//CurriculaCategory
-Route::get('/CurriculaCategory', array('as'=> 'CurriculaCategory.index', 'uses'=> 'App\Http\Controllers\CurriculaCategoryController@index'));
-Route::get('/CurriculaCategory/add', array('as' => 'CurriculaCategory.create', 'uses' =>'App\Http\Controllers\CurriculaCategoryController@create'));
-Route::post('/CurriculaCategory/insert', array('as' => 'CurriculaCategory.insert', 'uses' => 'App\Http\Controllers\CurriculaCategoryController@insert'));
-Route::get('/CurriculaCategory/edit/{id}', array('as' => 'CurriculaCategory.edit', 'uses' => 'App\Http\Controllers\CurriculaCategoryController@edit'));
-Route::patch('/CurriculaCategory/update/{id}', array('as'=> 'CurriculaCategory.update', 'uses'=> 'App\Http\Controllers\CurriculaCategoryController@updates'));
-Route::get('/CurriculaCategory/delete/{id}', array('as'=> 'CurriculaCategory.delete', 'uses'=>'App\Http\Controllers\CurriculaCategoryController@deletes'));
-Route::delete('/CurriculaCategory/destroy/{id}', array('as'=> 'CurriculaCategory.destroy', 'uses'=>'App\Http\Controllers\CurriculaCategoryController@destroy'));
-
-
-// Curricula
-Route::get('/curricula', array('as'=> 'curricula.index', 'uses'=> 'App\Http\Controllers\CurriculaController@index'));
-Route::get('/curricula/add', array('as' => 'curricula.create', 'uses' =>'App\Http\Controllers\CurriculaController@create'));
-Route::post('/curricula/insert', array('as' => 'curricula.insert', 'uses' => 'App\Http\Controllers\CurriculaController@insert'));
-Route::get('/curricula/edit/{id}', array('as' => 'curricula.edit', 'uses' => 'App\Http\Controllers\CurriculaController@edit'));
-Route::patch('/curricula/update/{id}', array('as'=> 'curricula.update', 'uses'=> 'App\Http\Controllers\CurriculaController@updates'));
-Route::get('/curricula/delete/{id}', array('as'=> 'curricula.delete', 'uses'=>'App\Http\Controllers\CurriculaController@deletes'));
-Route::delete('/curricula/destroy/{id}', array('as'=> 'curricula.destroy', 'uses'=>'App\Http\Controllers\CurriculaController@destroy'));
-Route::get('/curricula/download/{id}', array('as'=> 'curricula.download', 'uses'=>'App\Http\Controllers\CurriculaController@download'));
-
-//Routes for Manateq
-Route::get('/manteqa', array('as'=> 'manteqa.index', 'uses'=> 'App\Http\Controllers\ManteqaController@index'));
-Route::get('/manteqa/add', array('as' => 'manteqa.create', 'uses' =>'App\Http\Controllers\ManteqaController@create'));
-Route::post('/manteqa/insert', array('as' => 'manteqa.insert', 'uses' => 'App\Http\Controllers\ManteqaController@insert'));
-Route::get('/manteqa/edit/{id}', array('as' => 'manteqa.edit', 'uses' => 'App\Http\Controllers\ManteqaController@edit'));
-Route::patch('/manteqa/update/{id}', array('as'=> 'manteqa.update', 'uses'=> 'App\Http\Controllers\ManteqaController@updates'));
-Route::get('/manteqa/delete/{id}', array('as'=> 'manteqa.delete', 'uses'=>'App\Http\Controllers\ManteqaController@deletes'));
-Route::delete('/manteqa/destroy/{id}', array('as'=> 'manteqa.destroy', 'uses'=>'App\Http\Controllers\ManteqaController@destroy'));
-
-//Routes for Districts
-Route::get('/district', array('as'=> 'district.index', 'uses'=> 'App\Http\Controllers\DistrictController@index'));
-Route::get('/district/add', array('as' => 'district.create', 'uses' =>'App\Http\Controllers\DistrictController@create'));
-Route::post('/district/insert', array('as' => 'district.insert', 'uses' => 'App\Http\Controllers\DistrictController@insert'));
-Route::get('/district/edit/{id}', array('as' => 'district.edit', 'uses' => 'App\Http\Controllers\DistrictController@edit'));
-Route::patch('/district/update/{id}', array('as'=> 'district.update', 'uses'=> 'App\Http\Controllers\DistrictController@updates'));
-Route::get('/district/delete/{id}', array('as'=> 'district.delete', 'uses'=>'App\Http\Controllers\DistrictController@deletes'));
-Route::delete('/district/destroy/{id}', array('as'=> 'district.destroy', 'uses'=>'App\Http\Controllers\DistrictController@destroy'));
-
-//Routes for Qetaat
-Route::get('/qetaa', array('as'=> 'qetaa.index', 'uses'=> 'App\Http\Controllers\QetaaController@index'));
-Route::get('/qetaa/add', array('as' => 'qetaa.create', 'uses' =>'App\Http\Controllers\QetaaController@create'));
-Route::post('/qetaa/insert', array('as' => 'qetaa.insert', 'uses' => 'App\Http\Controllers\QetaaController@insert'));
-Route::get('/qetaa/edit/{id}', array('as' => 'qetaa.edit', 'uses' => 'App\Http\Controllers\QetaaController@edit'));
-Route::patch('/qetaa/update/{id}', array('as'=> 'qetaa.update', 'uses'=> 'App\Http\Controllers\QetaaController@updates'));
-Route::get('/qetaa/delete/{id}', array('as'=> 'qetaa.delete', 'uses'=>'App\Http\Controllers\QetaaController@deletes'));
-Route::delete('/qetaa/destroy/{id}', array('as'=> 'qetaa.destroy', 'uses'=>'App\Http\Controllers\QetaaController@destroy'));
-
-//Routes for Faculty
-Route::get('/faculty', array('as'=> 'faculty.index', 'uses'=> 'App\Http\Controllers\FacultyController@index'));
-Route::get('/faculty/add', array('as' => 'faculty.create', 'uses' =>'App\Http\Controllers\FacultyController@create'));
-Route::post('/faculty/insert', array('as' => 'faculty.insert', 'uses' => 'App\Http\Controllers\FacultyController@insert'));
-Route::get('/faculty/edit/{id}', array('as' => 'faculty.edit', 'uses' => 'App\Http\Controllers\FacultyController@edit'));
-Route::patch('/faculty/update/{id}', array('as'=> 'faculty.update', 'uses'=> 'App\Http\Controllers\FacultyController@updates'));
-Route::get('/faculty/delete/{id}', array('as'=> 'faculty.delete', 'uses'=>'App\Http\Controllers\FacultyController@deletes'));
-Route::delete('/faculty/destroy/{id}', array('as'=> 'faculty.destroy', 'uses'=>'App\Http\Controllers\FacultyController@destroy'));
-
-
-
-//Route for Seasons
-Route::get('/season', array('as'=> 'season.index', 'uses'=> 'App\Http\Controllers\SeasonController@index'));
-Route::get('/season/add', array('as' => 'season.create', 'uses' =>'App\Http\Controllers\SeasonController@create'));
-Route::post('/season/insert', array('as' => 'season.insert', 'uses' => 'App\Http\Controllers\SeasonController@insert'));
-Route::get('/season/edit/{id}', array('as' => 'season.edit', 'uses' => 'App\Http\Controllers\SeasonController@edit'));
-Route::patch('/season/update/{id}', array('as'=> 'season.update', 'uses'=> 'App\Http\Controllers\SeasonController@updates'));
-Route::get('/season/delete/{id}', array('as'=> 'season.delete', 'uses'=>'App\Http\Controllers\SeasonController@deletes'));
-Route::delete('/season/destroy/{id}', array('as'=> 'season.destroy', 'uses'=>'App\Http\Controllers\SeasonController@destroy'));
-
-//Route for SeasonsEvents
-Route::get('/season-event', array('as'=> 'season-event.index', 'uses'=> 'App\Http\Controllers\SeasonEventController@index'));
-Route::get('/season-event/add', array('as' => 'season-event.create', 'uses' =>'App\Http\Controllers\SeasonEventController@create'));
-Route::post('/season-event/insert', array('as' => 'season-event.insert', 'uses' => 'App\Http\Controllers\SeasonEventController@insert'));
-Route::get('/season-event/edit/{id}', array('as' => 'season-event.edit', 'uses' => 'App\Http\Controllers\SeasonEventController@edit'));
-Route::patch('/season-event/update/{id}', array('as'=> 'season-event.update', 'uses'=> 'App\Http\Controllers\SeasonEventController@update'));
-Route::get('/season-event/delete/{id}', array('as'=> 'season-event.delete', 'uses'=>'App\Http\Controllers\SeasonEventController@deletes'));
-Route::delete('/season-event/destroy/{id}', array('as'=> 'season-event.destroy', 'uses'=>'App\Http\Controllers\SeasonEventController@destroy'));
-
-//Routes for University
-Route::get('/university', array('as'=> 'university.index', 'uses'=> 'App\Http\Controllers\UniversityController@index'));
-Route::get('/university/add', array('as' => 'university.create', 'uses' =>'App\Http\Controllers\UniversityController@create'));
-Route::post('/university/insert', array('as' => 'university.insert', 'uses' => 'App\Http\Controllers\UniversityController@insert'));
-Route::get('/university/edit/{id}', array('as' => 'university.edit', 'uses' => 'App\Http\Controllers\UniversityController@edit'));
-Route::patch('/university/update/{id}', array('as'=> 'university.update', 'uses'=> 'App\Http\Controllers\UniversityController@updates'));
-Route::get('/university/delete/{id}', array('as'=> 'university.delete', 'uses'=>'App\Http\Controllers\UniversityController@deletes'));
-Route::delete('/university/destroy/{id}', array('as'=> 'university.destroy', 'uses'=>'App\Http\Controllers\UniversityController@destroy'));
-
-
-
-// Custody Request Routes
-Route::get('/custody-requests/create', [CustodyRequestController::class, 'create'])->name('custody_requests.create');
-Route::post('/custody-requests',        [CustodyRequestController::class, 'store'])->name('custody_requests.store');
-Route::get('/custody-requests/my',      [CustodyRequestController::class, 'my'])->name('custody_requests.my');
-Route::get('/custody-requests/{id}',    [CustodyRequestController::class, 'show'])->name('custody_requests.show');
-Route::get('/custody-requests/{id}/edit', [CustodyRequestController::class, 'edit'])->name('custody_requests.edit');
-Route::patch('/custody-requests/{id}',    [CustodyRequestController::class, 'update'])->name('custody_requests.update');
-Route::delete('/custody-requests/{id}',   [CustodyRequestController::class, 'destroy'])->name('custody_requests.destroy');
-
-// Admin Custody (protect with middleware/role)
-Route::get('/admin/custody-requests',           [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
-Route::get('/admin/custody-requests/{id}',      [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
-Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
-Route::post('/admin/custody-requests/{id}/reject',  [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
-
-
-//Routes for Marhala Deraseyya
-Route::get('/marhala', array('as'=> 'marhala.index', 'uses'=> 'App\Http\Controllers\MarhalaDeraseyyaController@index'));
-Route::get('/marhala/add', array('as' => 'marhala.create', 'uses' =>'App\Http\Controllers\MarhalaDeraseyyaController@create'));
-Route::post('/marhala/insert', array('as' => 'marhala.insert', 'uses' => 'App\Http\Controllers\MarhalaDeraseyyaController@insert'));
-Route::get('/marhala/edit/{id}', array('as' => 'marhala.edit', 'uses' => 'App\Http\Controllers\MarhalaDeraseyyaController@edit'));
-Route::patch('/marhala/update/{id}', array('as'=> 'marhala.update', 'uses'=> 'App\Http\Controllers\MarhalaDeraseyyaController@updates'));
-Route::get('/marhala/delete/{id}', array('as'=> 'marhala.delete', 'uses'=>'App\Http\Controllers\MarhalaDeraseyyaController@deletes'));
-Route::delete('/marhala/destroy/{id}', array('as'=> 'marhala.destroy', 'uses'=>'App\Http\Controllers\MarhalaDeraseyyaController@destroy'));
-
-//Routes for Sana Marhala
-Route::get('/sana-marhala', array('as'=> 'sana-marhala.index', 'uses'=> 'App\Http\Controllers\SanaMarhalaDeraseyyaController@index'));
-Route::get('/sana-marhala/add', array('as' => 'sana-marhala.create', 'uses' =>'App\Http\Controllers\SanaMarhalaDeraseyyaController@create'));
-Route::post('/sana-marhala/insert', array('as' => 'sana-marhala.insert', 'uses' => 'App\Http\Controllers\SanaMarhalaDeraseyyaController@insert'));
-Route::get('/sana-marhala/edit/{id}', array('as' => 'sana-marhala.edit', 'uses' => 'App\Http\Controllers\SanaMarhalaDeraseyyaController@edit'));
-Route::patch('/sana-marhala/update/{id}', array('as'=> 'sana-marhala.update', 'uses'=> 'App\Http\Controllers\SanaMarhalaDeraseyyaController@updates'));
-Route::get('/sana-marhala/delete/{id}', array('as'=> 'sana-marhala.delete', 'uses'=>'App\Http\Controllers\SanaMarhalaDeraseyyaController@deletes'));
-Route::delete('/sana-marhala/destroy/{id}', array('as'=> 'sana-marhala.destroy', 'uses'=>'App\Http\Controllers\SanaMarhalaDeraseyyaController@destroy'));
-
-//Routes for Entry Questions
-Route::get('/entry-questions', array('as'=> 'entry-questions.index', 'uses'=>'App\Http\Controllers\MarhalaEntryQuestionsController@index'));
-Route::get('/entry-questions/add', array('as' => 'entry-questions.create', 'uses' =>'App\Http\Controllers\MarhalaEntryQuestionsController@create'));
-Route::post('/entry-questions/insert', array('as' => 'entry-questions.insert', 'uses' => 'App\Http\Controllers\MarhalaEntryQuestionsController@insert'));
-Route::get('/entry-questions/edit/{id}', array('as' => 'entry-questions.edit', 'uses' => 'App\Http\Controllers\MarhalaEntryQuestionsController@edit'));
-Route::patch('/entry-questions/update/{id}', array('as'=> 'entry-questions.update', 'uses'=> 'App\Http\Controllers\MarhalaEntryQuestionsController@updates'));
-Route::get('/entry-questions/delete/{id}', array('as'=> 'entry-questions.delete', 'uses'=>'App\Http\Controllers\MarhalaEntryQuestionsController@deletes'));
-Route::delete('/entry-questions/destroy/{id}', array('as'=> 'entry-questions.destroy', 'uses'=>'App\Http\Controllers\MarhalaEntryQuestionsController@destroy'));
-
-//Routes for Entry Questions
-Route::get('/liveform-maxlimits', array('as'=> 'liveform-maxlimits.index', 'uses'=>'App\Http\Controllers\LiveFormMaxLimitsController@index'));
-Route::get('/liveform-maxlimits/add', array('as' => 'liveform-maxlimits.create', 'uses' =>'App\Http\Controllers\LiveFormMaxLimitsController@create'));
-Route::post('/liveform-maxlimits/insert', array('as' => 'liveform-maxlimits.insert', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@insert'));
-Route::get('/liveform-maxlimits/edit/{id}', array('as' => 'liveform-maxlimits.edit', 'uses' => 'App\Http\Controllers\LiveFormMaxLimitsController@edit'));
-Route::patch('/liveform-maxlimits/update/{id}', array('as'=> 'liveform-maxlimits.update', 'uses'=> 'App\Http\Controllers\LiveFormMaxLimitsController@updates'));
-Route::get('/liveform-maxlimits/delete/{id}', array('as'=> 'liveform-maxlimits.delete', 'uses'=>'App\Http\Controllers\LiveFormMaxLimitsController@deletes'));
-Route::delete('/liveform-maxlimits/destroy/{id}', array('as'=> 'liveform-maxlimits.destroy', 'uses'=>'App\Http\Controllers\LiveFormMaxLimitsController@destroy'));
+    // Group Person (normal)
+    Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
+    Route::get('/group-person/add-makhdoom', [GroupPersonController::class, 'createMakhdoom'])->name('group-person.create-makhdoom');
+    Route::post('/group-person/insert', [GroupPersonController::class, 'insert'])->name('group-person.insert');
+    Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
+    Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
 });
 
-Route::view('/feedback', 'feedback.index'); // Shows the form
-Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.create'); // Handles submission
+/*
+|--------------------------------------------------------------------------
+| Person (SuperAdmin|Admin|Khadem)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin|Khadem'])->group(function () {
 
+    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
+    Route::post('/person/insert', [PersonNewController::class, 'insert'])->name('person.insert');
 
-Route::group(['middleware' => ['auth']], function() {
-    Route::post('/logout', 'App\Http\Controllers\LogoutController@perform')->name('logout');
-    Route::get('/change-password', function () {return view('change-password');});
+    Route::get('/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestions'])->name('person.entry-questions');
+    Route::post('/person/entry-questions/submit', [PersonNewController::class, 'submitQuestions'])->name('person.entry-questions-submit');
+
+    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
+    Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
+    Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
 });
 
-// SuperAdmin-only password management
-Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function() {
-    Route::get('/admin/passwords', 'App\Http\Controllers\AdminPasswordController@index')->name('admin.passwords'); // List users
-    Route::get('/admin/passwords/{id}/edit', 'App\Http\Controllers\AdminPasswordController@edit')->name('admin.passwords.edit'); // Edit form
-    Route::post('/admin/passwords/{id}/update', 'App\Http\Controllers\AdminPasswordController@update')->name('admin.passwords.update'); // Update password
-    
-// Whatsapp Integration
+/*
+|--------------------------------------------------------------------------
+| Admin Area (SuperAdmin|Admin)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
 
-    Route::post('/whatsapp/send', 'App\\Http\\Controllers\\WhatsAppBridgeController@send')->name('whatsapp.send');
-    Route::post('/whatsapp/sendWithHeader', 'App\\Http\\Controllers\\WhatsAppBridgeController@sendWithHeader')->name('whatsapp.sendWithHeader');
+    // New Enrolments (admin lists)
+    Route::get('/new-enrolments', [PersonNewController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
+    Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
+    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
+    Route::get('/new-enrolments/count/marahel', [PersonNewController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
+    Route::get('/new-enrolments/count/qetaat', [PersonNewController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
+
+    // Delete Persons
+    Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
+    Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
+
+    // Events
+    Route::get('/event', [EventController::class, 'index'])->name('event.index');
+    Route::get('/event/add-recursive', [EventController::class, 'createRecursive'])->name('event.create-recursive');
+    Route::post('/event/insert-recursive', [EventController::class, 'insertRecursive'])->name('event.insert-recursive');
+    Route::get('/event/add', [EventController::class, 'create'])->name('event.create');
+    Route::post('/event/insert', [EventController::class, 'insert'])->name('event.insert');
+    Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
+    Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
+    Route::get('/event/delete/{id}', [EventController::class, 'deletes'])->name('event.delete');
+    Route::delete('/event/destroy/{id}', [EventController::class, 'destroy'])->name('event.destroy');
+
+    // Event Types
+    Route::get('/event-type', [EventTypeController::class, 'index'])->name('event-type.index');
+    Route::get('/event-type/add', [EventTypeController::class, 'create'])->name('event-type.create');
+    Route::post('/event-type/insert', [EventTypeController::class, 'insert'])->name('event-type.insert');
+    Route::get('/event-type/edit/{id}', [EventTypeController::class, 'edit'])->name('event-type.edit');
+    Route::patch('/event-type/update/{id}', [EventTypeController::class, 'updates'])->name('event-type.update');
+    Route::get('/event-type/delete/{id}', [EventTypeController::class, 'deletes'])->name('event-type.delete');
+    Route::delete('/event-type/destroy/{id}', [EventTypeController::class, 'destroy'])->name('event-type.destroy');
+
+    // Media
+    Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    Route::get('/media/add', [MediaController::class, 'create'])->name('media.create');
+    Route::post('/media/insert', [MediaController::class, 'insert'])->name('media.insert');
+    Route::get('/media/edit/{id}', [MediaController::class, 'edit'])->name('media.edit');
+    Route::patch('/media/update/{id}', [MediaController::class, 'update'])->name('media.update');
+    Route::get('/media/delete/{id}', [MediaController::class, 'delete'])->name('media.delete');
+    Route::delete('/media/destroy/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+
+    Route::get('/media/events', [MediaController::class, 'getEventsForSeason'])->name('media.getEventsForSeason');
+    Route::get('/media/pages', [MediaController::class, 'pages'])->name('media.pages');
+    Route::get('/media/pages/events', [MediaController::class, 'getEventsForPages'])->name('media.getEventsForPages');
+    Route::get('/media/pages/media', [MediaController::class, 'getMediaForEvent'])->name('media.getMediaForEvent');
+
+    // Group Type
+    Route::get('/group-type', [GroupTypeController::class, 'index'])->name('group-type.index');
+    Route::get('/group-type/add', [GroupTypeController::class, 'create'])->name('group-type.create');
+    Route::post('/group-type/insert', [GroupTypeController::class, 'insert'])->name('group-type.insert');
+    Route::get('/group-type/edit/{id}', [GroupTypeController::class, 'edit'])->name('group-type.edit');
+    Route::patch('/group-type/update/{id}', [GroupTypeController::class, 'updates'])->name('group-type.update');
+    Route::get('/group-type/delete/{id}', [GroupTypeController::class, 'deletes'])->name('group-type.delete');
+    Route::delete('/group-type/destroy/{id}', [GroupTypeController::class, 'destroy'])->name('group-type.destroy');
+
+    // Group
+    Route::get('/group', [GroupController::class, 'index'])->name('group.index');
+    Route::get('/group/add', [GroupController::class, 'create'])->name('group.create');
+    Route::post('/group/insert', [GroupController::class, 'insert'])->name('group.insert');
+    Route::get('/group/edit/{id}', [GroupController::class, 'edit'])->name('group.edit');
+    Route::patch('/group/update/{id}', [GroupController::class, 'updates'])->name('group.update');
+    Route::get('/group/delete/{id}', [GroupController::class, 'deletes'])->name('group.delete');
+    Route::delete('/group/destroy/{id}', [GroupController::class, 'destroy'])->name('group.destroy');
+
+    // Rotab
+    Route::get('/rotab', [RotbaKashfeyaController::class, 'index'])->name('rotab.index');
+    Route::get('/rotab/add', [RotbaKashfeyaController::class, 'create'])->name('rotab.create');
+    Route::post('/rotab/insert', [RotbaKashfeyaController::class, 'insert'])->name('rotab.insert');
+    Route::get('/rotab/edit/{id}', [RotbaKashfeyaController::class, 'edit'])->name('rotab.edit');
+    Route::patch('/rotab/update/{id}', [RotbaKashfeyaController::class, 'updates'])->name('rotab.update');
+    Route::get('/rotab/delete/{id}', [RotbaKashfeyaController::class, 'deletes'])->name('rotab.delete');
+    Route::delete('/rotab/destroy/{id}', [RotbaKashfeyaController::class, 'destroy'])->name('rotab.destroy');
+
+    // Inventory
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/add', [InventoryController::class, 'create'])->name('inventory.create');
+    Route::post('/inventory/insert', [InventoryController::class, 'insert'])->name('inventory.insert');
+    Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
+    Route::patch('/inventory/update/{id}', [InventoryController::class, 'updates'])->name('inventory.update');
+    Route::get('/inventory/delete/{id}', [InventoryController::class, 'deletes'])->name('inventory.delete');
+    Route::delete('/inventory/destroy/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+
+    // Inventory Issue
+    Route::get('/inventory-issue', [InventoryIssueController::class, 'index'])->name('inventory-issue.index');
+    Route::get('/inventory-issue/getEventsForSeason', [InventoryIssueController::class, 'getEventsForSeason'])->name('inventory-issue.getEventsForSeason');
+    Route::post('/inventory-issue/generate', [InventoryIssueController::class, 'generate'])->name('inventory-issue.generate');
+
+    // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
+    Route::get('/max-limits', [LiveFormMaxLimitsController::class, 'index'])->name('max-limits.index');
+    Route::get('/max-limits/add', [LiveFormMaxLimitsController::class, 'create'])->name('max-limits.create');
+    Route::post('/max-limits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('max-limits.insert');
+    Route::get('/max-limits/edit/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'edit'])->name('max-limits.edit');
+    Route::patch('/max-limits/update/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'updates'])->name('max-limits.update');
+    Route::get('/max-limits/delete/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('max-limits.delete');
+    Route::delete('/max-limits/destroy/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('max-limits.destroy');
+
+    // Betaka
+    Route::get('/betaka', [BetakaTakaddomController::class, 'index'])->name('betaka.index');
+    Route::get('/betaka/add', [BetakaTakaddomController::class, 'create'])->name('betaka.create');
+    Route::post('/betaka/insert', [BetakaTakaddomController::class, 'insert'])->name('betaka.insert');
+    Route::get('/betaka/edit/{id}', [BetakaTakaddomController::class, 'edit'])->name('betaka.edit');
+    Route::patch('/betaka/update/{id}', [BetakaTakaddomController::class, 'updates'])->name('betaka.update');
+    Route::get('/betaka/delete/{id}', [BetakaTakaddomController::class, 'deletes'])->name('betaka.delete');
+    Route::delete('/betaka/destroy/{id}', [BetakaTakaddomController::class, 'destroy'])->name('betaka.destroy');
+
+    // Blood
+    Route::get('/blood', [BloodTypeController::class, 'index'])->name('blood.index');
+    Route::get('/blood/add', [BloodTypeController::class, 'create'])->name('blood.create');
+    Route::post('/blood/insert', [BloodTypeController::class, 'insert'])->name('blood.insert');
+    Route::get('/blood/edit/{id}', [BloodTypeController::class, 'edit'])->name('blood.edit');
+    Route::patch('/blood/update/{id}', [BloodTypeController::class, 'updates'])->name('blood.update');
+    Route::get('/blood/delete/{id}', [BloodTypeController::class, 'deletes'])->name('blood.delete');
+    Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy');
+
+    // CurriculaCategory
+    Route::get('/CurriculaCategory', [CurriculaCategoryController::class, 'index'])->name('CurriculaCategory.index');
+    Route::get('/CurriculaCategory/add', [CurriculaCategoryController::class, 'create'])->name('CurriculaCategory.create');
+    Route::post('/CurriculaCategory/insert', [CurriculaCategoryController::class, 'insert'])->name('CurriculaCategory.insert');
+    Route::get('/CurriculaCategory/edit/{id}', [CurriculaCategoryController::class, 'edit'])->name('CurriculaCategory.edit');
+    Route::patch('/CurriculaCategory/update/{id}', [CurriculaCategoryController::class, 'updates'])->name('CurriculaCategory.update');
+    Route::get('/CurriculaCategory/delete/{id}', [CurriculaCategoryController::class, 'deletes'])->name('CurriculaCategory.delete');
+    Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
+
+    // Curricula
+    Route::get('/curricula', [CurriculaController::class, 'index'])->name('curricula.index');
+    Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
+    Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
+    Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
+    Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
+    Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
+    Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
+    Route::get('/curricula/download/{id}', [CurriculaController::class, 'download'])->name('curricula.download');
+
+    // Manteqa
+    Route::get('/manteqa', [ManteqaController::class, 'index'])->name('manteqa.index');
+    Route::get('/manteqa/add', [ManteqaController::class, 'create'])->name('manteqa.create');
+    Route::post('/manteqa/insert', [ManteqaController::class, 'insert'])->name('manteqa.insert');
+    Route::get('/manteqa/edit/{id}', [ManteqaController::class, 'edit'])->name('manteqa.edit');
+    Route::patch('/manteqa/update/{id}', [ManteqaController::class, 'updates'])->name('manteqa.update');
+    Route::get('/manteqa/delete/{id}', [ManteqaController::class, 'deletes'])->name('manteqa.delete');
+    Route::delete('/manteqa/destroy/{id}', [ManteqaController::class, 'destroy'])->name('manteqa.destroy');
+
+    // District
+    Route::get('/district', [DistrictController::class, 'index'])->name('district.index');
+    Route::get('/district/add', [DistrictController::class, 'create'])->name('district.create');
+    Route::post('/district/insert', [DistrictController::class, 'insert'])->name('district.insert');
+    Route::get('/district/edit/{id}', [DistrictController::class, 'edit'])->name('district.edit');
+    Route::patch('/district/update/{id}', [DistrictController::class, 'updates'])->name('district.update');
+    Route::get('/district/delete/{id}', [DistrictController::class, 'deletes'])->name('district.delete');
+    Route::delete('/district/destroy/{id}', [DistrictController::class, 'destroy'])->name('district.destroy');
+
+    // Qetaa
+    Route::get('/qetaa', [QetaaController::class, 'index'])->name('qetaa.index');
+    Route::get('/qetaa/add', [QetaaController::class, 'create'])->name('qetaa.create');
+    Route::post('/qetaa/insert', [QetaaController::class, 'insert'])->name('qetaa.insert');
+    Route::get('/qetaa/edit/{id}', [QetaaController::class, 'edit'])->name('qetaa.edit');
+    Route::patch('/qetaa/update/{id}', [QetaaController::class, 'updates'])->name('qetaa.update');
+    Route::get('/qetaa/delete/{id}', [QetaaController::class, 'deletes'])->name('qetaa.delete');
+    Route::delete('/qetaa/destroy/{id}', [QetaaController::class, 'destroy'])->name('qetaa.destroy');
+
+    // Faculty
+    Route::get('/faculty', [FacultyController::class, 'index'])->name('faculty.index');
+    Route::get('/faculty/add', [FacultyController::class, 'create'])->name('faculty.create');
+    Route::post('/faculty/insert', [FacultyController::class, 'insert'])->name('faculty.insert');
+    Route::get('/faculty/edit/{id}', [FacultyController::class, 'edit'])->name('faculty.edit');
+    Route::patch('/faculty/update/{id}', [FacultyController::class, 'updates'])->name('faculty.update');
+    Route::get('/faculty/delete/{id}', [FacultyController::class, 'deletes'])->name('faculty.delete');
+    Route::delete('/faculty/destroy/{id}', [FacultyController::class, 'destroy'])->name('faculty.destroy');
+
+    // Season
+    Route::get('/season', [SeasonController::class, 'index'])->name('season.index');
+    Route::get('/season/add', [SeasonController::class, 'create'])->name('season.create');
+    Route::post('/season/insert', [SeasonController::class, 'insert'])->name('season.insert');
+    Route::get('/season/edit/{id}', [SeasonController::class, 'edit'])->name('season.edit');
+    Route::patch('/season/update/{id}', [SeasonController::class, 'updates'])->name('season.update');
+    Route::get('/season/delete/{id}', [SeasonController::class, 'deletes'])->name('season.delete');
+    Route::delete('/season/destroy/{id}', [SeasonController::class, 'destroy'])->name('season.destroy');
+
+    // Season Event
+    Route::get('/season-event', [SeasonEventController::class, 'index'])->name('season-event.index');
+    Route::get('/season-event/add', [SeasonEventController::class, 'create'])->name('season-event.create');
+    Route::post('/season-event/insert', [SeasonEventController::class, 'insert'])->name('season-event.insert');
+    Route::get('/season-event/edit/{id}', [SeasonEventController::class, 'edit'])->name('season-event.edit');
+    Route::patch('/season-event/update/{id}', [SeasonEventController::class, 'update'])->name('season-event.update');
+    Route::get('/season-event/delete/{id}', [SeasonEventController::class, 'deletes'])->name('season-event.delete');
+    Route::delete('/season-event/destroy/{id}', [SeasonEventController::class, 'destroy'])->name('season-event.destroy');
+
+    // University
+    Route::get('/university', [UniversityController::class, 'index'])->name('university.index');
+    Route::get('/university/add', [UniversityController::class, 'create'])->name('university.create');
+    Route::post('/university/insert', [UniversityController::class, 'insert'])->name('university.insert');
+    Route::get('/university/edit/{id}', [UniversityController::class, 'edit'])->name('university.edit');
+    Route::patch('/university/update/{id}', [UniversityController::class, 'updates'])->name('university.update');
+    Route::get('/university/delete/{id}', [UniversityController::class, 'deletes'])->name('university.delete');
+    Route::delete('/university/destroy/{id}', [UniversityController::class, 'destroy'])->name('university.destroy');
+
+    // Custody Requests (user side but admin group in your file)
+    Route::get('/custody-requests/create', [CustodyRequestController::class, 'create'])->name('custody_requests.create');
+    Route::post('/custody-requests', [CustodyRequestController::class, 'store'])->name('custody_requests.store');
+    Route::get('/custody-requests/my', [CustodyRequestController::class, 'my'])->name('custody_requests.my');
+    Route::get('/custody-requests/{id}', [CustodyRequestController::class, 'show'])->name('custody_requests.show');
+    Route::get('/custody-requests/{id}/edit', [CustodyRequestController::class, 'edit'])->name('custody_requests.edit');
+    Route::patch('/custody-requests/{id}', [CustodyRequestController::class, 'update'])->name('custody_requests.update');
+    Route::delete('/custody-requests/{id}', [CustodyRequestController::class, 'destroy'])->name('custody_requests.destroy');
+
+    // Admin Custody
+    Route::get('/admin/custody-requests', [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
+    Route::get('/admin/custody-requests/{id}', [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
+    Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
+    Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
+
+    // Marhala
+    Route::get('/marhala', [MarhalaDeraseyyaController::class, 'index'])->name('marhala.index');
+    Route::get('/marhala/add', [MarhalaDeraseyyaController::class, 'create'])->name('marhala.create');
+    Route::post('/marhala/insert', [MarhalaDeraseyyaController::class, 'insert'])->name('marhala.insert');
+    Route::get('/marhala/edit/{id}', [MarhalaDeraseyyaController::class, 'edit'])->name('marhala.edit');
+    Route::patch('/marhala/update/{id}', [MarhalaDeraseyyaController::class, 'updates'])->name('marhala.update');
+    Route::get('/marhala/delete/{id}', [MarhalaDeraseyyaController::class, 'deletes'])->name('marhala.delete');
+    Route::delete('/marhala/destroy/{id}', [MarhalaDeraseyyaController::class, 'destroy'])->name('marhala.destroy');
+
+    // Sana Marhala
+    Route::get('/sana-marhala', [SanaMarhalaDeraseyyaController::class, 'index'])->name('sana-marhala.index');
+    Route::get('/sana-marhala/add', [SanaMarhalaDeraseyyaController::class, 'create'])->name('sana-marhala.create');
+    Route::post('/sana-marhala/insert', [SanaMarhalaDeraseyyaController::class, 'insert'])->name('sana-marhala.insert');
+    Route::get('/sana-marhala/edit/{id}', [SanaMarhalaDeraseyyaController::class, 'edit'])->name('sana-marhala.edit');
+    Route::patch('/sana-marhala/update/{id}', [SanaMarhalaDeraseyyaController::class, 'updates'])->name('sana-marhala.update');
+    Route::get('/sana-marhala/delete/{id}', [SanaMarhalaDeraseyyaController::class, 'deletes'])->name('sana-marhala.delete');
+    Route::delete('/sana-marhala/destroy/{id}', [SanaMarhalaDeraseyyaController::class, 'destroy'])->name('sana-marhala.destroy');
+
+    // Entry Questions
+    Route::get('/entry-questions', [MarhalaEntryQuestionsController::class, 'index'])->name('entry-questions.index');
+    Route::get('/entry-questions/add', [MarhalaEntryQuestionsController::class, 'create'])->name('entry-questions.create');
+    Route::post('/entry-questions/insert', [MarhalaEntryQuestionsController::class, 'insert'])->name('entry-questions.insert');
+    Route::get('/entry-questions/edit/{id}', [MarhalaEntryQuestionsController::class, 'edit'])->name('entry-questions.edit');
+    Route::patch('/entry-questions/update/{id}', [MarhalaEntryQuestionsController::class, 'updates'])->name('entry-questions.update');
+    Route::get('/entry-questions/delete/{id}', [MarhalaEntryQuestionsController::class, 'deletes'])->name('entry-questions.delete');
+    Route::delete('/entry-questions/destroy/{id}', [MarhalaEntryQuestionsController::class, 'destroy'])->name('entry-questions.destroy');
+
+    // Liveform MaxLimits (duplicate in your original file, keep one set)
+    Route::get('/liveform-maxlimits', [LiveFormMaxLimitsController::class, 'index'])->name('liveform-maxlimits.index');
+    Route::get('/liveform-maxlimits/add', [LiveFormMaxLimitsController::class, 'create'])->name('liveform-maxlimits.create');
+    Route::post('/liveform-maxlimits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('liveform-maxlimits.insert');
+    Route::get('/liveform-maxlimits/edit/{id}', [LiveFormMaxLimitsController::class, 'edit'])->name('liveform-maxlimits.edit');
+    Route::patch('/liveform-maxlimits/update/{id}', [LiveFormMaxLimitsController::class, 'updates'])->name('liveform-maxlimits.update');
+    Route::get('/liveform-maxlimits/delete/{id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('liveform-maxlimits.delete');
+    Route::delete('/liveform-maxlimits/destroy/{id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('liveform-maxlimits.destroy');
+
+    // Locations
+    Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
+    Route::get('/locations/create', [LocationController::class, 'create'])->name('locations.create');
+    Route::post('/locations/insert', [LocationController::class, 'insert'])->name('locations.insert');
+    Route::get('/locations/edit/{id}', [LocationController::class, 'edit'])->name('locations.edit');
+    Route::patch('/locations/updates/{id}', [LocationController::class, 'updates'])->name('locations.updates');
+    Route::get('/locations/deletes/{id}', [LocationController::class, 'deletes'])->name('locations.deletes');
+    Route::delete('/locations/destroy/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');
+
+    // PlaceTypes
+    Route::get('/place',                  [PlaceController::class, 'index'])->name('place.index');
+    Route::get('/place/add',              [PlaceController::class, 'create'])->name('place.create');
+    Route::post('/place/insert',          [PlaceController::class, 'insert'])->name('place.insert');
+    Route::get('/place/edit/{id}',        [PlaceController::class, 'edit'])->name('place.edit');
+    Route::patch('/place/update/{id}',    [PlaceController::class, 'updates'])->name('place.update');
+    Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
+    Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
 });
 
-// Profile routes for every person
-Route::middleware(['auth'])->group(function() {
-    Route::get('/profile', 'App\\Http\\Controllers\\PersonProfileController@show')->name('profile.show');
-    Route::get('/profile/edit', 'App\\Http\\Controllers\\PersonProfileController@edit')->name('profile.edit');
-    Route::post('/profile/update', 'App\\Http\\Controllers\\PersonProfileController@update')->name('profile.update');
-    Route::post('/profile/updatePassword', 'App\\Http\\Controllers\\PersonProfileController@updatePassword') ->name('profile.updatePassword');
+/*
+|--------------------------------------------------------------------------
+| Feedback
+|--------------------------------------------------------------------------
+*/
+Route::view('/feedback', 'feedback.index');
+Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
 
+/*
+|--------------------------------------------------------------------------
+| Attendance
+|--------------------------------------------------------------------------
+*/
+Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
+Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class, 'save'])->name('attendance.save');
 
-});
-
-//Attendance Routes
-Route::get('/attendance/manage', [AttendanceController::class,'manage'])->name('attendance.manage');
-Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class,'save'])->name('attendance.save');
-
-
-
+/*
+|--------------------------------------------------------------------------
+| Testing
+|--------------------------------------------------------------------------
+*/
 Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
 Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
-
-
-
-// (Google Drive routes removed — uploads now stored locally in SecretaryDocuments)

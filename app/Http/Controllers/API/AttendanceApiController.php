@@ -9,13 +9,170 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceApiController extends Controller
 {
-    /**
-     * GET /api/attendance/events
-     *
-     * Modes:
-     *  - ?person_id=55  → returns seasons[] each with its allowed events[] (for that person)
-     *  - ?season_id=3   → returns flat events[] for that season (for the authenticated user)
-     */
+
+/**
+ * @OA\Tag(
+ *   name="Attendance",
+ *   description="Attendance related endpoints"
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/attendance/events",
+ *   operationId="attendanceEvents",
+ *   tags={"Attendance"},
+ *   summary="Get seasons/events or events by season",
+ *   description="If person_id is provided, returns seasons with events for that person (only if person_id matches authenticated user). Otherwise requires season_id and returns events for that season for the authenticated user.",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="person_id",
+ *     in="query",
+ *     required=false,
+ *     description="Person ID (must match authenticated user). If provided, season_id is ignored.",
+ *     @OA\Schema(type="integer", example=55)
+ *   ),
+ *   @OA\Parameter(
+ *     name="season_id",
+ *     in="query",
+ *     required=false,
+ *     description="Season ID (required if person_id not provided).",
+ *     @OA\Schema(type="integer", example=2024)
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Success",
+ *     @OA\JsonContent(
+ *       oneOf={
+ *         @OA\Schema(
+ *           type="object",
+ *           @OA\Property(property="ok", type="boolean", example=true),
+ *           @OA\Property(
+ *             property="seasons",
+ *             type="array",
+ *             @OA\Items(
+ *               type="object",
+ *               @OA\Property(property="SeasonID", type="integer", example=1),
+ *               @OA\Property(property="SeasonName", type="string", example="Season A"),
+ *               @OA\Property(property="SeasonYear", type="integer", example=2025),
+ *               @OA\Property(
+ *                 property="events",
+ *                 type="array",
+ *                 @OA\Items(
+ *                   type="object",
+ *                   @OA\Property(property="SeasonEventID", type="integer", example=999),
+ *                   @OA\Property(property="EventID", type="integer", example=10),
+ *                   @OA\Property(property="EventName", type="string", example="Weekly Meeting"),
+ *                   @OA\Property(property="EventStartDate", type="string", format="date-time", example="2025-09-01 18:00:00"),
+ *                   @OA\Property(property="EventEndDate", type="string", format="date-time", example="2025-09-01 20:00:00")
+ *                 )
+ *               )
+ *             )
+ *           )
+ *         ),
+ *         @OA\Schema(
+ *           type="object",
+ *           @OA\Property(property="ok", type="boolean", example=true),
+ *           @OA\Property(
+ *             property="events",
+ *             type="array",
+ *             @OA\Items(
+ *               type="object",
+ *               @OA\Property(property="SeasonEventID", type="integer", example=999),
+ *               @OA\Property(property="SeasonID", type="integer", example=2024),
+ *               @OA\Property(property="EventID", type="integer", example=10),
+ *               @OA\Property(property="EventName", type="string", example="Weekly Meeting"),
+ *               @OA\Property(property="EventStartDate", type="string", format="date-time", example="2025-09-01 18:00:00"),
+ *               @OA\Property(property="EventEndDate", type="string", format="date-time", example="2025-09-01 20:00:00")
+ *             )
+ *           )
+ *         )
+ *       }
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/attendance/persons",
+ *   operationId="attendancePersonsLegacy",
+ *   tags={"Attendance"},
+ *   summary="Get persons list for a season event (legacy query)",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="season_event_id",
+ *     in="query",
+ *     required=true,
+ *     description="SeasonEventID",
+ *     @OA\Schema(type="integer", example=999)
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Success",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(
+ *         property="persons",
+ *         type="array",
+ *         @OA\Items(
+ *           type="object",
+ *           @OA\Property(property="PersonID", type="integer", example=101),
+ *           @OA\Property(property="PersonName", type="string", example="John Doe"),
+ *           @OA\Property(property="PhoneNumber", type="string", example="01000000000"),
+ *           @OA\Property(property="QetaaName", type="string", example="Qetaa A, Qetaa B"),
+ *           @OA\Property(property="SanaMarhalaName", type="string", example="Level 1"),
+ *           @OA\Property(property="Attended", type="boolean", example=true)
+ *         )
+ *       )
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/attendance/persons/{seasonEventId}",
+ *   operationId="attendancePersons",
+ *   tags={"Attendance"},
+ *   summary="Get persons list for a season event",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="seasonEventId",
+ *     in="path",
+ *     required=true,
+ *     description="SeasonEventID",
+ *     @OA\Schema(type="integer", example=999)
+ *   ),
+ *   @OA\Response(response=200, description="Success", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Post(
+ *   path="/api/attendance/save",
+ *   operationId="attendanceSave",
+ *   tags={"Attendance"},
+ *   summary="Save attendance",
+ *   description="Caller can only save for themselves (ServentID must match authenticated user).",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\RequestBody(
+ *     required=true,
+ *     @OA\JsonContent(
+ *       type="object",
+ *       required={"SeasonEventID","ServentID"},
+ *       @OA\Property(property="SeasonEventID", type="integer", example=999),
+ *       @OA\Property(property="ServentID", type="integer", example=55),
+ *       @OA\Property(property="Served", type="array", @OA\Items(type="integer", example=101))
+ *     )
+ *   ),
+ *   @OA\Response(response=200, description="Saved", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=500, description="Server error", @OA\JsonContent(type="object"))
+ * )
+ */
+    
     public function events(Request $request)
     {
         $authPersonId = optional(Auth::user())->PersonID ?? Auth::id();
