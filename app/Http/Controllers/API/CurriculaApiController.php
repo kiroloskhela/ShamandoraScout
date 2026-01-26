@@ -17,6 +17,59 @@ class CurriculaApiController extends Controller
      *  - ?q=search text
      *  - ?limit=50 (default 50, max 200)
      */
+
+
+    
+
+  /**
+ * @OA\Tag(
+ *   name="Curricula",
+ *   description="Endpoints related to curricula management"
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/curricula",
+ *   tags={"Curricula"},
+ *   summary="List curricula",
+ *   @OA\Parameter(name="category_id", in="query", required=false, @OA\Schema(type="integer")),
+ *   @OA\Parameter(name="marhala_id", in="query", required=false, @OA\Schema(type="integer")),
+ *   @OA\Parameter(name="q", in="query", required=false, @OA\Schema(type="string")),
+ *   @OA\Parameter(name="limit", in="query", required=false, @OA\Schema(type="integer", default=50, maximum=200)),
+ *   @OA\Response(response=200, description="OK")
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/curricula/{id}",
+ *   tags={"Curricula"},
+ *   summary="Get curriculum by id",
+ *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+ *   @OA\Response(response=200, description="OK"),
+ *   @OA\Response(response=404, description="Not found")
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/curricula/{id}/download",
+ *   tags={"Curricula"},
+ *   summary="Download curriculum file",
+ *   @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+ *   @OA\Response(response=200, description="File download"),
+ *   @OA\Response(response=404, description="File not found")
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/curricula/meta",
+ *   tags={"Curricula"},
+ *   summary="Get curricula metadata",
+ *   @OA\Response(response=200, description="OK")
+ * )
+ */
+
+
+
+
+
+
+
     public function index(Request $request)
     {
         $limit = (int) ($request->query('limit', 50));
@@ -144,4 +197,10 @@ class CurriculaApiController extends Controller
             'marhalat'   => $marhalat,
         ]);
     }
+
+
+    
 }
+
+
+   

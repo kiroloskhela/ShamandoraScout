@@ -11,6 +11,213 @@ class CustodyApiController extends Controller
 {
     // ---------------- helpers ----------------
 
+    /**
+ * @OA\Tag(
+ *   name="Custody",
+ *   description="Custody requests (inventory borrowing) endpoints"
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/custody/meta",
+ *   operationId="custodyMeta",
+ *   tags={"Custody"},
+ *   summary="Get custody metadata",
+ *   description="Returns inventory items, qetaat, and event types for dropdowns.",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Response(
+ *     response=200,
+ *     description="Success",
+ *     @OA\JsonContent(type="object")
+ *   ),
+ *   @OA\Response(
+ *     response=401,
+ *     description="Unauthorized",
+ *     @OA\JsonContent(type="object")
+ *   )
+ * )
+ *
+ * @OA\Post(
+ *   path="/api/custody/requests",
+ *   operationId="custodyCreateRequest",
+ *   tags={"Custody"},
+ *   summary="Create custody request",
+ *   description="Creates a new custody request with items. No duplicate inventory items allowed.",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\RequestBody(
+ *     required=true,
+ *     @OA\JsonContent(
+ *       type="object",
+ *       required={"date_from","date_to","items"},
+ *       @OA\Property(property="date_from", type="string", format="date", example="2026-01-21"),
+ *       @OA\Property(property="date_to", type="string", format="date", example="2026-01-22"),
+ *       @OA\Property(property="qetaa_id", type="integer", nullable=true, example=1),
+ *       @OA\Property(property="event_type_id", type="integer", nullable=true, example=2),
+ *       @OA\Property(property="user_note", type="string", nullable=true, example="Need items for event"),
+ *       @OA\Property(
+ *         property="items",
+ *         type="array",
+ *         minItems=1,
+ *         @OA\Items(
+ *           type="object",
+ *           required={"inventory_id","qty"},
+ *           @OA\Property(property="inventory_id", type="integer", example=5),
+ *           @OA\Property(property="qty", type="integer", minimum=1, example=2)
+ *         )
+ *       )
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=201,
+ *     description="Created",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(property="message", type="string", example="Custody request created"),
+ *       @OA\Property(property="RequestID", type="integer", example=123)
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=500, description="Server error", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/custody/requests",
+ *   operationId="custodyListRequests",
+ *   tags={"Custody"},
+ *   summary="List my custody requests",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Response(
+ *     response=200,
+ *     description="Success",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(property="count", type="integer", example=2),
+ *       @OA\Property(property="requests", type="array", @OA\Items(type="object"))
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Get(
+ *   path="/api/custody/requests/{id}",
+ *   operationId="custodyShowRequest",
+ *   tags={"Custody"},
+ *   summary="Show one custody request (must be mine)",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="id",
+ *     in="path",
+ *     required=true,
+ *     description="RequestID",
+ *     @OA\Schema(type="integer", example=123)
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Success",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(property="request", type="object"),
+ *       @OA\Property(property="items", type="array", @OA\Items(type="object"))
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(
+ *     response=404,
+ *     description="Not found",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=false),
+ *       @OA\Property(property="message", type="string", example="Request not found")
+ *     )
+ *   )
+ * )
+ *
+ * @OA\Put(
+ *   path="/api/custody/requests/{id}",
+ *   operationId="custodyUpdateRequest",
+ *   tags={"Custody"},
+ *   summary="Update pending custody request (must be mine)",
+ *   description="Updates request fields and replaces items. Only allowed while status is pending.",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="id",
+ *     in="path",
+ *     required=true,
+ *     description="RequestID",
+ *     @OA\Schema(type="integer", example=123)
+ *   ),
+ *   @OA\RequestBody(
+ *     required=true,
+ *     @OA\JsonContent(
+ *       type="object",
+ *       required={"date_from","date_to","items"},
+ *       @OA\Property(property="date_from", type="string", format="date", example="2026-01-21"),
+ *       @OA\Property(property="date_to", type="string", format="date", example="2026-01-22"),
+ *       @OA\Property(property="qetaa_id", type="integer", nullable=true, example=1),
+ *       @OA\Property(property="event_type_id", type="integer", nullable=true, example=2),
+ *       @OA\Property(property="user_note", type="string", nullable=true, example="Updated note"),
+ *       @OA\Property(
+ *         property="items",
+ *         type="array",
+ *         minItems=1,
+ *         @OA\Items(
+ *           type="object",
+ *           required={"inventory_id","qty"},
+ *           @OA\Property(property="inventory_id", type="integer", example=5),
+ *           @OA\Property(property="qty", type="integer", minimum=1, example=2)
+ *         )
+ *       )
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Updated",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(property="message", type="string", example="Request updated")
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=404, description="Not found", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=500, description="Server error", @OA\JsonContent(type="object"))
+ * )
+ *
+ * @OA\Delete(
+ *   path="/api/custody/requests/{id}",
+ *   operationId="custodyDeleteRequest",
+ *   tags={"Custody"},
+ *   summary="Delete pending custody request (must be mine)",
+ *   description="Only allowed while status is pending.",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(
+ *     name="id",
+ *     in="path",
+ *     required=true,
+ *     description="RequestID",
+ *     @OA\Schema(type="integer", example=123)
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Deleted",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="ok", type="boolean", example=true),
+ *       @OA\Property(property="message", type="string", example="Request deleted")
+ *     )
+ *   ),
+ *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=404, description="Not found", @OA\JsonContent(type="object")),
+ *   @OA\Response(response=500, description="Server error", @OA\JsonContent(type="object"))
+ * )
+ */
+
     private function currentPersonId(): ?int
     {
         return auth()->user()->PersonID ?? null;

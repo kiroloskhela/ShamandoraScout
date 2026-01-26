@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;// Trust all proxies For Testing Purposes with Ngrok
+namespace App\Providers;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 

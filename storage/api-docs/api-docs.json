@@ -1,0 +1,1138 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Mobile API",
+        "description": "All mobile API endpoints for Athanasius Scouts",
+        "contact": {
+            "name": "Athanasius Scouts",
+            "email": "support@example.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/api/attendance/events": {
+            "get": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Get seasons/events or events by season",
+                "description": "If person_id is provided, returns seasons with events for that person (only if person_id matches authenticated user). Otherwise requires season_id and returns events for that season for the authenticated user.",
+                "operationId": "attendanceEvents",
+                "parameters": [
+                    {
+                        "name": "person_id",
+                        "in": "query",
+                        "description": "Person ID (must match authenticated user). If provided, season_id is ignored.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 55
+                        }
+                    },
+                    {
+                        "name": "season_id",
+                        "in": "query",
+                        "description": "Season ID (required if person_id not provided).",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2024
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "ok": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "seasons": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "SeasonID": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "SeasonName": {
+                                                                "type": "string",
+                                                                "example": "Season A"
+                                                            },
+                                                            "SeasonYear": {
+                                                                "type": "integer",
+                                                                "example": 2025
+                                                            },
+                                                            "events": {
+                                                                "type": "array",
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "SeasonEventID": {
+                                                                            "type": "integer",
+                                                                            "example": 999
+                                                                        },
+                                                                        "EventID": {
+                                                                            "type": "integer",
+                                                                            "example": 10
+                                                                        },
+                                                                        "EventName": {
+                                                                            "type": "string",
+                                                                            "example": "Weekly Meeting"
+                                                                        },
+                                                                        "EventStartDate": {
+                                                                            "type": "string",
+                                                                            "format": "date-time",
+                                                                            "example": "2025-09-01 18:00:00"
+                                                                        },
+                                                                        "EventEndDate": {
+                                                                            "type": "string",
+                                                                            "format": "date-time",
+                                                                            "example": "2025-09-01 20:00:00"
+                                                                        }
+                                                                    },
+                                                                    "type": "object"
+                                                                }
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "properties": {
+                                                "ok": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "events": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "SeasonEventID": {
+                                                                "type": "integer",
+                                                                "example": 999
+                                                            },
+                                                            "SeasonID": {
+                                                                "type": "integer",
+                                                                "example": 2024
+                                                            },
+                                                            "EventID": {
+                                                                "type": "integer",
+                                                                "example": 10
+                                                            },
+                                                            "EventName": {
+                                                                "type": "string",
+                                                                "example": "Weekly Meeting"
+                                                            },
+                                                            "EventStartDate": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2025-09-01 18:00:00"
+                                                            },
+                                                            "EventEndDate": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2025-09-01 20:00:00"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attendance/persons": {
+            "get": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Get persons list for a season event (legacy query)",
+                "operationId": "attendancePersonsLegacy",
+                "parameters": [
+                    {
+                        "name": "season_event_id",
+                        "in": "query",
+                        "description": "SeasonEventID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 999
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "persons": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "PersonID": {
+                                                        "type": "integer",
+                                                        "example": 101
+                                                    },
+                                                    "PersonName": {
+                                                        "type": "string",
+                                                        "example": "John Doe"
+                                                    },
+                                                    "PhoneNumber": {
+                                                        "type": "string",
+                                                        "example": "01000000000"
+                                                    },
+                                                    "QetaaName": {
+                                                        "type": "string",
+                                                        "example": "Qetaa A, Qetaa B"
+                                                    },
+                                                    "SanaMarhalaName": {
+                                                        "type": "string",
+                                                        "example": "Level 1"
+                                                    },
+                                                    "Attended": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attendance/persons/{seasonEventId}": {
+            "get": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Get persons list for a season event",
+                "operationId": "attendancePersons",
+                "parameters": [
+                    {
+                        "name": "seasonEventId",
+                        "in": "path",
+                        "description": "SeasonEventID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 999
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/attendance/save": {
+            "post": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Save attendance",
+                "description": "Caller can only save for themselves (ServentID must match authenticated user).",
+                "operationId": "attendanceSave",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "SeasonEventID",
+                                    "ServentID"
+                                ],
+                                "properties": {
+                                    "SeasonEventID": {
+                                        "type": "integer",
+                                        "example": 999
+                                    },
+                                    "ServentID": {
+                                        "type": "integer",
+                                        "example": 55
+                                    },
+                                    "Served": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 101
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Saved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/curricula": {
+            "get": {
+                "tags": [
+                    "Curricula"
+                ],
+                "summary": "List curricula",
+                "operationId": "3d8cf61d684568a4e875c4ae26f5eebc",
+                "parameters": [
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "marhala_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "maximum": 200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/curricula/{id}": {
+            "get": {
+                "tags": [
+                    "Curricula"
+                ],
+                "summary": "Get curriculum by id",
+                "operationId": "55da6497f580f97aa8a696ef816a6f77",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/api/curricula/{id}/download": {
+            "get": {
+                "tags": [
+                    "Curricula"
+                ],
+                "summary": "Download curriculum file",
+                "operationId": "89b2f6d5900305823925afde10ab05bf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File download"
+                    },
+                    "404": {
+                        "description": "File not found"
+                    }
+                }
+            }
+        },
+        "/api/curricula/meta": {
+            "get": {
+                "tags": [
+                    "Curricula"
+                ],
+                "summary": "Get curricula metadata",
+                "operationId": "7a83076868867e0db86330b47e306eb5",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/custody/meta": {
+            "get": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "Get custody metadata",
+                "description": "Returns inventory items, qetaat, and event types for dropdowns.",
+                "operationId": "custodyMeta",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/custody/requests": {
+            "get": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "List my custody requests",
+                "operationId": "custodyListRequests",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "requests": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "Create custody request",
+                "description": "Creates a new custody request with items. No duplicate inventory items allowed.",
+                "operationId": "custodyCreateRequest",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date_from",
+                                    "date_to",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "date_from": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-21"
+                                    },
+                                    "date_to": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-22"
+                                    },
+                                    "qetaa_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "event_type_id": {
+                                        "type": "integer",
+                                        "example": 2,
+                                        "nullable": true
+                                    },
+                                    "user_note": {
+                                        "type": "string",
+                                        "example": "Need items for event",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "inventory_id",
+                                                "qty"
+                                            ],
+                                            "properties": {
+                                                "inventory_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "qty": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "minItems": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Custody request created"
+                                        },
+                                        "RequestID": {
+                                            "type": "integer",
+                                            "example": 123
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/custody/requests/{id}": {
+            "get": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "Show one custody request (must be mine)",
+                "operationId": "custodyShowRequest",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "RequestID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "request": {
+                                            "type": "object"
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Request not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "Update pending custody request (must be mine)",
+                "description": "Updates request fields and replaces items. Only allowed while status is pending.",
+                "operationId": "custodyUpdateRequest",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "RequestID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date_from",
+                                    "date_to",
+                                    "items"
+                                ],
+                                "properties": {
+                                    "date_from": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-21"
+                                    },
+                                    "date_to": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-01-22"
+                                    },
+                                    "qetaa_id": {
+                                        "type": "integer",
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "event_type_id": {
+                                        "type": "integer",
+                                        "example": 2,
+                                        "nullable": true
+                                    },
+                                    "user_note": {
+                                        "type": "string",
+                                        "example": "Updated note",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "inventory_id",
+                                                "qty"
+                                            ],
+                                            "properties": {
+                                                "inventory_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "qty": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "example": 2
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "minItems": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Request updated"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Custody"
+                ],
+                "summary": "Delete pending custody request (must be mine)",
+                "description": "Only allowed while status is pending.",
+                "operationId": "custodyDeleteRequest",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "RequestID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 123
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ok": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Request deleted"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Attendance",
+            "description": "Endpoints related to attendance management"
+        },
+        {
+            "name": "Curricula",
+            "description": "Endpoints related to curricula management"
+        },
+        {
+            "name": "Custody",
+            "description": "Custody requests (inventory borrowing) endpoints"
+        }
+    ]
+}
