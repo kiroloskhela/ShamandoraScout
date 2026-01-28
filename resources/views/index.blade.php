@@ -43,7 +43,8 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="#" title="طلب عهده" color="amber">
+                <x-card-stat href="{{ route('custody_requests.my', ['id' => Auth::id()]) }}" title="طلبات حجز عهده"
+                    color="yellow">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -52,7 +53,8 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="#" title="طلب غرفه" color="pink">
+                <x-card-stat href="{{ route('place_bookings.my', ['id' => Auth::id()]) }}" title="طلبات حجز الأماكن"
+                    color="pink">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
