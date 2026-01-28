@@ -15,6 +15,9 @@ use App\Http\Controllers\API\AttendanceApiController;
 use App\Http\Controllers\API\CurriculaApiController;
 use App\Http\Controllers\API\MediaApiController;
 use App\Http\Controllers\API\CustodyApiController;
+use App\Http\Controllers\API\PlaceBookingApiController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -54,15 +57,20 @@ use App\Http\Controllers\API\CustodyApiController;
     Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
 
     // Custody
-
-
     Route::get('/custody/meta', [CustodyApiController::class, 'meta']);
-
     Route::get('/custody/requests', [CustodyApiController::class, 'index']);
     Route::post('/custody/requests', [CustodyApiController::class, 'store']);
     Route::get('/custody/requests/{id}', [CustodyApiController::class, 'show']);
     Route::put('/custody/requests/{id}', [CustodyApiController::class, 'update']);
     Route::delete('/custody/requests/{id}', [CustodyApiController::class, 'destroy']);
 
+    // Place Bookings
+    Route::get('/place_bookings/meta', [PlaceBookingApiController::class, 'meta']);
+    Route::get('/place_bookings/places/{locationId}', [PlaceBookingApiController::class, 'placesByLocation']);
+    Route::get('/place_bookings', [PlaceBookingApiController::class, 'index']);
+    Route::post('/place_bookings', [PlaceBookingApiController::class, 'store']);
+    Route::get('/place_bookings/{id}', [PlaceBookingApiController::class, 'show']);
+    Route::put('/place_bookings/{id}', [PlaceBookingApiController::class, 'update']);
+    Route::delete('/place_bookings/{id}', [PlaceBookingApiController::class, 'destroy']);
 
 });
