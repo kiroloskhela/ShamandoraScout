@@ -46,10 +46,17 @@ class PersonNewController extends Controller
 
             $persons = DB::select("SELECT DISTINCT  pi.PersonID,
                                                     pi.ShamandoraCode,
-                                                    pi.FirstName, 
-                                                    pi.SecondName, 
-                                                    pi.ThirdName, 
-                                                    pi.FourthName, 
+                                                                pi.FirstName,
+                                                        pi.SecondName,
+                                                        pi.ThirdName,
+                                                        pi.FourthName,
+                                                 CONCAT_WS(' ',
+                                                        pi.FirstName,
+                                                        pi.SecondName,
+                                                        pi.ThirdName,
+                                                        pi.FourthName
+                                                    ) AS FullName,
+
                                                     q.QetaaName,
                                                     pi.ScoutJoiningYear,
                                                     sm.SanaMarhalaName, 
@@ -96,6 +103,14 @@ class PersonNewController extends Controller
                                                     nui.SecondName, 
                                                     nui.ThirdName, 
                                                     nui.FourthName, 
+
+
+                                                            CONCAT_WS(' ',
+                                                        nui.FirstName,
+                                                        nui.SecondName,
+                                                        nui.ThirdName,
+                                                        nui.FourthName
+                                                    ) AS FullName,
                                                     nui.QetaaName, 
                                                     sm.SanaMarhalaName, 
                                                     nui.RaqamQawmy,

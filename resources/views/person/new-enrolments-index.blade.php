@@ -10,7 +10,7 @@
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
-                'key' => 'full_name',
+                'key' => 'FullName',
                 'label' => 'الاسم',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
