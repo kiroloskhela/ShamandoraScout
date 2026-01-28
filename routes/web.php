@@ -63,6 +63,9 @@ use App\Http\Controllers\PlaceController;
 
 use App\Http\Controllers\WhatsAppBridgeController;
 
+
+use App\Http\Controllers\AdminPlaceBookingController;
+use App\Http\Controllers\PlaceBookingController;
 /*
 |--------------------------------------------------------------------------
 | Public / UI Pages
@@ -120,6 +123,16 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function ()
     Route::delete('/secretary/destroy/{id}',[SecretaryController::class, 'destroy'])->name('secretary.destroy');
 
     Route::post('/secretary/upload',        [SecretaryController::class, 'upload'])->name('secretary.upload');
+
+    Route::get('/admin/place-bookings', [AdminPlaceBookingController::class, 'index'])->name('admin.place_bookings.index');
+    Route::get('/admin/place-bookings/{id}', [AdminPlaceBookingController::class, 'show'])->name('admin.place_bookings.show');
+
+    Route::post('/admin/place-bookings/{id}/approve', [AdminPlaceBookingController::class, 'approve'])->name('admin.place_bookings.approve');
+    Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
+    Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
+
+
+    
 });
 
 /*
@@ -514,6 +527,19 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::patch('/place/update/{id}',    [PlaceController::class, 'updates'])->name('place.update');
     Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
     Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
+
+
+    // Place Bookings
+    Route::get('/place-bookings/create', [PlaceBookingController::class, 'create'])->name('place_bookings.create');
+    Route::post('/place-bookings',       [PlaceBookingController::class, 'store'])->name('place_bookings.store');
+    Route::get('/place-bookings/my',     [PlaceBookingController::class, 'my'])->name('place_bookings.my');
+    Route::get('/place-bookings/{id}',   [PlaceBookingController::class, 'show'])->name('place_bookings.show');
+    Route::get('/place-bookings/{id}/edit', [PlaceBookingController::class, 'edit'])->name('place_bookings.edit');
+    Route::patch('/place-bookings/{id}',    [PlaceBookingController::class, 'update'])->name('place_bookings.update');
+    Route::delete('/place-bookings/{id}', [PlaceBookingController::class, 'destroy'])->name('place_bookings.destroy');
+    // AJAX dropdown
+    Route::get('/ajax/places/{locationId}', [PlaceBookingController::class, 'placesByLocation'])
+        ->name('ajax.places_by_location');
 });
 
 /*

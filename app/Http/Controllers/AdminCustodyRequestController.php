@@ -10,8 +10,8 @@ class AdminCustodyRequestController extends Controller
 {
     public function __construct()
     {
-        // Ensure only users with admin/superadmin roles can access these actions
-        $this->middleware(['auth', 'checkAuth:SuperAdmin|Admin']);
+        // Ensure only users with admin/superadmin/adminInventory roles can access these actions
+        $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
     }
 
     private function currentAdminPersonId()
