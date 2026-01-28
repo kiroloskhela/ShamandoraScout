@@ -150,11 +150,19 @@ Route::post('/liveform/person/insert', [PersonNewController::class, 'insertNewPe
 Route::get('/liveform/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestionsLiveForm'])->name('person.liveform-entry-questions');
 Route::post('/liveform/person/entry-questions/submit', [PersonNewController::class, 'submitQuestionsLiveForm'])->name('person.entry-questions-submit-liveform');
 
+Route::get('/liveform/person/delete/{id}', array('as'=> 'person.liveform-delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletesLiveForm'));
+Route::delete('/liveform/person/destroy/{id}', array('as'=> 'person.liveform-destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroyLiveForm'));
+
+Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitLiveFormQuestions'));
+Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@getLiveFormQuestions'));
 Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');
 Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'destroyLiveForm'])->name('person.liveform-destroy');
-
+Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
 Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
 Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
+Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletes'));
+Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
+
 
 /*
 |--------------------------------------------------------------------------
