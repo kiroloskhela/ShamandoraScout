@@ -177,6 +177,7 @@ class PersonApiController extends Controller
             ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
             ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+            ->leftJoin( 'PersonImages', 'PersonImages.PersonID', '=', 'PersonInformation.PersonID')
             ->where('PersonInformation.PersonID', $id)
             ->select('PersonInformation.*',
                 'BloodType.BloodTypeName',
@@ -191,7 +192,7 @@ class PersonApiController extends Controller
                 'PersonSpiritualFatherInformation.SpiritualFatherName', 'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
                 'PersonSystemPassword.Password',
                 'PersonalPhysicalAddress.BuildingNumber', 'PersonalPhysicalAddress.FloorNumber', 'PersonalPhysicalAddress.AppartmentNumber', 'PersonalPhysicalAddress.MainStreetName', 'PersonalPhysicalAddress.SubStreetName', 'PersonalPhysicalAddress.NearestLandmark',
-                'Manteqa.ManteqaName', 'Districts.DistrictName'
+                'Manteqa.ManteqaName', 'Districts.DistrictName' , 'PersonImages.PersonSystemImagePath'
             )
             ->first();
 
