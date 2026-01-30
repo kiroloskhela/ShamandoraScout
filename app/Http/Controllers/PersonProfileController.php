@@ -66,7 +66,7 @@ class PersonProfileController extends Controller
             'PersonPersonalMobileNumber' => 'required|string|max:50',
 
             // photo
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5000',
         ]);
 
         // 1) Update PersonInformation
