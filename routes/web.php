@@ -70,13 +70,6 @@ use App\Http\Controllers\PlaceBookingController;
 |--------------------------------------------------------------------------
 | Public / UI Pages
 |--------------------------------------------------------------------------
-*/
-Route::view('/cards', 'cards');
-Route::view('/charts', 'charts');
-Route::view('/blank', 'blank');
-Route::view('/buttons', 'buttons');
-Route::view('/utilities-animation', 'utilities-animation');
-Route::view('/adv', 'Adv');
 
 /*
 |--------------------------------------------------------------------------
@@ -95,52 +88,14 @@ Route::get('/forgot-password', function () {
 Route::post('/forgot-password', [ForgotPasswordController::class, 'handle'])
     ->name('forgot-password.handle');
 
-/*
-|--------------------------------------------------------------------------
-| Home (SuperAdmin|Admin)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
-    Route::get('/', [HomeController::class, 'index'])->name('home');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Secretary (SuperAdmin|Secretary)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function () {
-    Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
-    Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
-    Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
-
-    Route::get('/secretary/edit/{id}',      [SecretaryController::class, 'edit'])->name('secretary.edit');
-    Route::patch('/secretary/update/{id}',  [SecretaryController::class, 'updates'])->name('secretary.update');
-
-    Route::get('/secretary/download/{id}',  [SecretaryController::class, 'download'])->name('secretary.download');
-
-    Route::get('/secretary/delete/{id}',    [SecretaryController::class, 'deletes'])->name('secretary.delete');
-    Route::delete('/secretary/destroy/{id}',[SecretaryController::class, 'destroy'])->name('secretary.destroy');
-
-    Route::post('/secretary/upload',        [SecretaryController::class, 'upload'])->name('secretary.upload');
-
-    Route::get('/admin/place-bookings', [AdminPlaceBookingController::class, 'index'])->name('admin.place_bookings.index');
-    Route::get('/admin/place-bookings/{id}', [AdminPlaceBookingController::class, 'show'])->name('admin.place_bookings.show');
-
-    Route::post('/admin/place-bookings/{id}/approve', [AdminPlaceBookingController::class, 'approve'])->name('admin.place_bookings.approve');
-    Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
-    Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
-
-
-    
-});
 
 /*
 |--------------------------------------------------------------------------
 | Live Form (Public)
 |--------------------------------------------------------------------------
 */
-Route::get('/de7k', [PersonNewController::class, 'showLiveForm'])->name('person.de7k');
+
 Route::get('/liveform', [PersonNewController::class, 'createLiveForm'])->name('person.liveform');
 Route::post('/liveform/insert', [PersonNewController::class, 'insertLiveForm'])->name('person.liveform-insert');
 
@@ -176,6 +131,32 @@ Route::get('/new-enrolments/person/approve/{id}', [PersonNewController::class, '
 Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
 Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
 Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
+
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Testing
+|--------------------------------------------------------------------------
+*/
+// Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
+// Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
+
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Feedback
+|--------------------------------------------------------------------------
+*/
+Route::view('/feedback', 'feedback.index');
+Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -218,45 +199,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Show ALL persons
     Route::get('/person/ShowPersons', [PersonNewController::class, 'ShowPersons'])->name('person.ShowPersons');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated (Any User)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-
-    // Logout
-    Route::post('/logout', [LogoutController::class, 'perform'])->name('logout');
-
-    // Change Password page
-    Route::view('/change-password', 'change-password');
-
-    // Profile
-    // Route::get('/profile', [PersonProfileController::class, 'show'])->name('profile.show');
-    // Route::get('/profile/edit', [PersonProfileController::class, 'edit'])->name('profile.edit');
-    // Route::post('/profile/update', [PersonProfileController::class, 'update'])->name('profile.update');
-    // Route::post('/profile/updatePassword', [PersonProfileController::class, 'updatePassword'])->name('profile.updatePassword');
-
-
-
-
-        // show profile
-    Route::get('/profile', [PersonProfileController::class, 'show'])
-        ->name('profile.show');
-
-    // edit profile page
-    Route::get('/profile/edit', [PersonProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    // update profile data + photo
-    Route::put('/profile', [PersonProfileController::class, 'update'])
-        ->name('profile.update');
-
-    // ✅ update password
-    Route::put('/profile/password', [PersonProfileController::class, 'updatePassword'])
-        ->name('profile.password.update');
 
     // Group Person (normal)
     Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
@@ -264,14 +207,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/group-person/insert', [GroupPersonController::class, 'insert'])->name('group-person.insert');
     Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
     Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Person (SuperAdmin|Admin|Khadem)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin|Khadem'])->group(function () {
+
 
     Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
     Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
@@ -283,14 +220,9 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin|Khadem'])->group(function
     Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
     Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
     Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
-});
 
-/*
-|--------------------------------------------------------------------------
-| Admin Area (SuperAdmin|Admin)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
+
+
 
     // New Enrolments (admin lists)
     Route::get('/new-enrolments', [PersonNewController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
@@ -332,10 +264,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::get('/media/delete/{id}', [MediaController::class, 'delete'])->name('media.delete');
     Route::delete('/media/destroy/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
 
-    Route::get('/media/events', [MediaController::class, 'getEventsForSeason'])->name('media.getEventsForSeason');
-    Route::get('/media/pages', [MediaController::class, 'pages'])->name('media.pages');
-    Route::get('/media/pages/events', [MediaController::class, 'getEventsForPages'])->name('media.getEventsForPages');
-    Route::get('/media/pages/media', [MediaController::class, 'getMediaForEvent'])->name('media.getMediaForEvent');
 
     // Group Type
     Route::get('/group-type', [GroupTypeController::class, 'index'])->name('group-type.index');
@@ -363,20 +291,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::patch('/rotab/update/{id}', [RotbaKashfeyaController::class, 'updates'])->name('rotab.update');
     Route::get('/rotab/delete/{id}', [RotbaKashfeyaController::class, 'deletes'])->name('rotab.delete');
     Route::delete('/rotab/destroy/{id}', [RotbaKashfeyaController::class, 'destroy'])->name('rotab.destroy');
-
-    // Inventory
-    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
-    Route::get('/inventory/add', [InventoryController::class, 'create'])->name('inventory.create');
-    Route::post('/inventory/insert', [InventoryController::class, 'insert'])->name('inventory.insert');
-    Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
-    Route::patch('/inventory/update/{id}', [InventoryController::class, 'updates'])->name('inventory.update');
-    Route::get('/inventory/delete/{id}', [InventoryController::class, 'deletes'])->name('inventory.delete');
-    Route::delete('/inventory/destroy/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
-
-    // Inventory Issue
-    Route::get('/inventory-issue', [InventoryIssueController::class, 'index'])->name('inventory-issue.index');
-    Route::get('/inventory-issue/getEventsForSeason', [InventoryIssueController::class, 'getEventsForSeason'])->name('inventory-issue.getEventsForSeason');
-    Route::post('/inventory-issue/generate', [InventoryIssueController::class, 'generate'])->name('inventory-issue.generate');
 
     // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
     Route::get('/max-limits', [LiveFormMaxLimitsController::class, 'index'])->name('max-limits.index');
@@ -414,15 +328,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::get('/CurriculaCategory/delete/{id}', [CurriculaCategoryController::class, 'deletes'])->name('CurriculaCategory.delete');
     Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
 
-    // Curricula
-    Route::get('/curricula', [CurriculaController::class, 'index'])->name('curricula.index');
-    Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
-    Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
-    Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
-    Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
-    Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
-    Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
-    Route::get('/curricula/download/{id}', [CurriculaController::class, 'download'])->name('curricula.download');
+
 
     // Manteqa
     Route::get('/manteqa', [ManteqaController::class, 'index'])->name('manteqa.index');
@@ -487,20 +393,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::get('/university/delete/{id}', [UniversityController::class, 'deletes'])->name('university.delete');
     Route::delete('/university/destroy/{id}', [UniversityController::class, 'destroy'])->name('university.destroy');
 
-    // Custody Requests (user side but admin group in your file)
-    Route::get('/custody-requests/create', [CustodyRequestController::class, 'create'])->name('custody_requests.create');
-    Route::post('/custody-requests', [CustodyRequestController::class, 'store'])->name('custody_requests.store');
-    Route::get('/custody-requests/my', [CustodyRequestController::class, 'my'])->name('custody_requests.my');
-    Route::get('/custody-requests/{id}', [CustodyRequestController::class, 'show'])->name('custody_requests.show');
-    Route::get('/custody-requests/{id}/edit', [CustodyRequestController::class, 'edit'])->name('custody_requests.edit');
-    Route::patch('/custody-requests/{id}', [CustodyRequestController::class, 'update'])->name('custody_requests.update');
-    Route::delete('/custody-requests/{id}', [CustodyRequestController::class, 'destroy'])->name('custody_requests.destroy');
-
-    // Admin Custody
-    Route::get('/admin/custody-requests', [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
-    Route::get('/admin/custody-requests/{id}', [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
-    Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
-    Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
 
     // Marhala
     Route::get('/marhala', [MarhalaDeraseyyaController::class, 'index'])->name('marhala.index');
@@ -557,39 +449,139 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Admin'])->group(function () {
     Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
 
 
+
+
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| Secretary (SuperAdmin|Secretary)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function () {
+    Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
+    Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
+    Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
+
+    Route::get('/secretary/edit/{id}',      [SecretaryController::class, 'edit'])->name('secretary.edit');
+    Route::patch('/secretary/update/{id}',  [SecretaryController::class, 'updates'])->name('secretary.update');
+
+    Route::get('/secretary/download/{id}',  [SecretaryController::class, 'download'])->name('secretary.download');
+
+    Route::get('/secretary/delete/{id}',    [SecretaryController::class, 'deletes'])->name('secretary.delete');
+    Route::delete('/secretary/destroy/{id}',[SecretaryController::class, 'destroy'])->name('secretary.destroy');
+
+    Route::post('/secretary/upload',        [SecretaryController::class, 'upload'])->name('secretary.upload');
+
+    Route::get('/admin/place-bookings', [AdminPlaceBookingController::class, 'index'])->name('admin.place_bookings.index');
+    Route::get('/admin/place-bookings/{id}', [AdminPlaceBookingController::class, 'show'])->name('admin.place_bookings.show');
+
+    Route::post('/admin/place-bookings/{id}/approve', [AdminPlaceBookingController::class, 'approve'])->name('admin.place_bookings.approve');
+    Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
+    Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
+
+
+    
+});
+
+
+
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Inventory'])->group(function () {
+
+
+    // Admin Custody
+    Route::get('/admin/custody-requests', [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
+    Route::get('/admin/custody-requests/{id}', [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
+    Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
+    Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
+    
+
+    // Inventory
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/add', [InventoryController::class, 'create'])->name('inventory.create');
+    Route::post('/inventory/insert', [InventoryController::class, 'insert'])->name('inventory.insert');
+    Route::get('/inventory/edit/{id}', [InventoryController::class, 'edit'])->name('inventory.edit');
+    Route::patch('/inventory/update/{id}', [InventoryController::class, 'updates'])->name('inventory.update');
+    Route::get('/inventory/delete/{id}', [InventoryController::class, 'deletes'])->name('inventory.delete');
+    Route::delete('/inventory/destroy/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
+
+    // Inventory Issue
+    Route::get('/inventory-issue', [InventoryIssueController::class, 'index'])->name('inventory-issue.index');
+    Route::get('/inventory-issue/getEventsForSeason', [InventoryIssueController::class, 'getEventsForSeason'])->name('inventory-issue.getEventsForSeason');
+    Route::post('/inventory-issue/generate', [InventoryIssueController::class, 'generate'])->name('inventory-issue.generate');
+
+
+
+
+});
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated (Any User)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->group(function () {
+
+    // Home
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+
+    // Logout
+    Route::post('/logout', [LogoutController::class, 'perform'])->name('logout');
+
+    // Profile
+    Route::get('/profile', [PersonProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [PersonProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [PersonProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [PersonProfileController::class, 'updatePassword'])->name('profile.password.update');
+
+    // Custody Requests
+    Route::get('/custody-requests/create', [CustodyRequestController::class, 'create'])->name('custody_requests.create');
+    Route::post('/custody-requests', [CustodyRequestController::class, 'store'])->name('custody_requests.store');
+    Route::get('/custody-requests/my', [CustodyRequestController::class, 'my'])->name('custody_requests.my');
+    Route::get('/custody-requests/{id}', [CustodyRequestController::class, 'show'])->name('custody_requests.show');
+    Route::get('/custody-requests/{id}/edit', [CustodyRequestController::class, 'edit'])->name('custody_requests.edit');
+    Route::patch('/custody-requests/{id}', [CustodyRequestController::class, 'update'])->name('custody_requests.update');
+    Route::delete('/custody-requests/{id}', [CustodyRequestController::class, 'destroy'])->name('custody_requests.destroy');
+
+    // Media
+    Route::get('/media/events', [MediaController::class, 'getEventsForSeason'])->name('media.getEventsForSeason');
+    Route::get('/media/pages', [MediaController::class, 'pages'])->name('media.pages');
+    Route::get('/media/pages/events', [MediaController::class, 'getEventsForPages'])->name('media.getEventsForPages');
+    Route::get('/media/pages/media', [MediaController::class, 'getMediaForEvent'])->name('media.getMediaForEvent');
+
+    // Curricula
+    Route::get('/curricula', [CurriculaController::class, 'index'])->name('curricula.index');
+    Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
+    Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
+    Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
+    Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
+    Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
+    Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
+    Route::get('/curricula/download/{id}', [CurriculaController::class, 'download'])->name('curricula.download');
+
+    // Attendance
+    Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
+    Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class, 'save'])->name('attendance.save');
+
     // Place Bookings
     Route::get('/place-bookings/create', [PlaceBookingController::class, 'create'])->name('place_bookings.create');
-    Route::post('/place-bookings',       [PlaceBookingController::class, 'store'])->name('place_bookings.store');
-    Route::get('/place-bookings/my',     [PlaceBookingController::class, 'my'])->name('place_bookings.my');
-    Route::get('/place-bookings/{id}',   [PlaceBookingController::class, 'show'])->name('place_bookings.show');
+    Route::post('/place-bookings', [PlaceBookingController::class, 'store'])->name('place_bookings.store');
+    Route::get('/place-bookings/my', [PlaceBookingController::class, 'my'])->name('place_bookings.my');
+    Route::get('/place-bookings/{id}', [PlaceBookingController::class, 'show'])->name('place_bookings.show');
     Route::get('/place-bookings/{id}/edit', [PlaceBookingController::class, 'edit'])->name('place_bookings.edit');
-    Route::patch('/place-bookings/{id}',    [PlaceBookingController::class, 'update'])->name('place_bookings.update');
+    Route::patch('/place-bookings/{id}', [PlaceBookingController::class, 'update'])->name('place_bookings.update');
     Route::delete('/place-bookings/{id}', [PlaceBookingController::class, 'destroy'])->name('place_bookings.destroy');
+
     // AJAX dropdown
     Route::get('/ajax/places/{locationId}', [PlaceBookingController::class, 'placesByLocation'])
         ->name('ajax.places_by_location');
+
+
+
+    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
 });
-
-/*
-|--------------------------------------------------------------------------
-| Feedback
-|--------------------------------------------------------------------------
-*/
-Route::view('/feedback', 'feedback.index');
-Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
-
-/*
-|--------------------------------------------------------------------------
-| Attendance
-|--------------------------------------------------------------------------
-*/
-Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
-Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class, 'save'])->name('attendance.save');
-
-/*
-|--------------------------------------------------------------------------
-| Testing
-|--------------------------------------------------------------------------
-*/
-Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
-Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
