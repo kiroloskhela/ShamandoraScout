@@ -164,6 +164,7 @@ Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Htt
 Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
 
 
+
 /*
 |--------------------------------------------------------------------------
 | New Enrolments (Public)
@@ -233,10 +234,29 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/change-password', 'change-password');
 
     // Profile
-    Route::get('/profile', [PersonProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile/edit', [PersonProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('/profile/update', [PersonProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/updatePassword', [PersonProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    // Route::get('/profile', [PersonProfileController::class, 'show'])->name('profile.show');
+    // Route::get('/profile/edit', [PersonProfileController::class, 'edit'])->name('profile.edit');
+    // Route::post('/profile/update', [PersonProfileController::class, 'update'])->name('profile.update');
+    // Route::post('/profile/updatePassword', [PersonProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+
+
+
+
+        // show profile
+    Route::get('/profile', [PersonProfileController::class, 'show'])
+        ->name('profile.show');
+
+    // edit profile page
+    Route::get('/profile/edit', [PersonProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    // update profile data + photo
+    Route::put('/profile', [PersonProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // ✅ update password
+    Route::put('/profile/password', [PersonProfileController::class, 'updatePassword'])
+        ->name('profile.password.update');
 
     // Group Person (normal)
     Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
