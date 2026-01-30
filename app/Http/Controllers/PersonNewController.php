@@ -26,7 +26,8 @@ use Illuminate\Validation\Rule;
 use \Illuminate\Http\Response;
 use \Illuminate\Database\QueryException;
 use Exception;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PersonNewController extends Controller
 {
@@ -37,44 +38,103 @@ class PersonNewController extends Controller
         *
         * @return Response
         */
-        public function index()
-        {
-            /*$persons = DB::table('PersonInformation')
-            ->leftJoin('PersonPhoneNumbers', 'PersonInformation.PersonID', '=', 'PersonPhoneNumbers.PersonID')
-            ->select('PersonInformation.*', 'PersonPhoneNumbers.PersonPersonalMobileNumber')
-            ->get();*/
+       public function index(Request $request)
+            {
+                // ✅ Get the user ID from the request
+                $userId = $request->query('id') ?? Auth::id();
+                Log::info("Request: " . $request);
+                Log::info("Fetching persons for user ID: " . $userId);
 
-            $persons = DB::select("SELECT DISTINCT  pi.PersonID,
-                                                    pi.ShamandoraCode,
-                                                                pi.FirstName,
-                                                        pi.SecondName,
-                                                        pi.ThirdName,
-                                                        pi.FourthName,
-                                                 CONCAT_WS(' ',
-                                                        pi.FirstName,
-                                                        pi.SecondName,
-                                                        pi.ThirdName,
-                                                        pi.FourthName
-                                                    ) AS FullName,
 
-                                                    q.QetaaName,
-                                                    pi.ScoutJoiningYear,
-                                                    sm.SanaMarhalaName, 
-                                                    pi.RaqamQawmy,
-                                                    ppn.PersonPersonalMobileNumber,
-                                                    q.QetaaName,
-                                                    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions
-                                                FROM PersonInformation pi
-                                                LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-                                                LEFT JOIN PersonSanaMarhala psm ON psm.PersonID = pi.PersonID
-                                                LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-                                                LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-                                                LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-                                                LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID;");
+                // ✅ Run the raw SQL with group filtering
+                $rawPersons = DB::select("
+                SELECT DISTINCT  
+                pi.PersonID,
+                pi.ShamandoraCode,
+                pi.FirstName, 
+                pi.SecondName, 
+                pi.ThirdName, 
+                pi.FourthName, 
+                q.QetaaName,
+                pi.ScoutJoiningYear,
+                sm.SanaMarhalaName, 
+                pi.RaqamQawmy,
+                ppn.PersonPersonalMobileNumber,
+                q.QetaaName,
+                GT.GroupID,
+                PG.PersonID,
+                IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+                psm.sanamarhalaid
+                FROM PersonInformation pi
+                LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
+                LEFT JOIN PersonSanaMarhala psm ON psm.PersonID = pi.PersonID
+                LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+                LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+                LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+                LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+                LEFT JOIN PersonGroup PG ON PG.personId = pi.PersonID
+                left Join GroupTable GT on q.QetaaID = GT.GroupID
+                WHERE  GT.GroupID IN (
+                                    SELECT GroupID 
+                                    FROM PersonGroup 
+                                WHERE personId = ?
+                                )
+                    ORDER BY pi.PersonID ASC;
+                    ", [$userId]);
 
-            return view("person.person-index", array('persons' => $persons));
-        }
+                // ✅ Convert to collection and add full_name field
+                $persons = collect($rawPersons)->map(function ($person) {
+                    $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+                    return $person;
+                });
 
+                // ✅ Return the view with filtered persons
+                return view("person.person-index", ['persons' => $persons]);
+                        }
+
+
+public function ShowPersons(Request $request)
+{
+
+
+    $rawPersons = DB::select("
+        SELECT DISTINCT
+            pi.PersonID,
+            pi.ShamandoraCode,
+            pi.FirstName, 
+            pi.SecondName, 
+            pi.ThirdName, 
+            pi.FourthName, 
+            q.QetaaName,
+            pi.ScoutJoiningYear,
+            sm.SanaMarhalaName, 
+            pi.RaqamQawmy,
+            ppn.PersonPersonalMobileNumber,
+            q.QetaaID,
+            PG.PersonID AS GroupPersonID,
+            IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+            psm.SanaMarhalaID
+        FROM PersonInformation pi
+        LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
+        LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+        LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+        LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+        LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+        LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+        LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+        JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
+        JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+ 
+        ORDER BY pi.ShamandoraCode ASC
+    ");
+
+    $persons = collect($rawPersons)->map(function ($person) {
+        $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+        return $person;
+    });
+
+    return view("person.person-showAllPersons", ['persons' => $persons]);
+}
 
         public function indexNewEnrolmentsAndMigrations()
         {        

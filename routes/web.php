@@ -482,7 +482,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function ()
     Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
     Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
 
-
+Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
     
 });
 
@@ -583,5 +583,9 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
+   
+    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+
+    Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
+    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
 });
