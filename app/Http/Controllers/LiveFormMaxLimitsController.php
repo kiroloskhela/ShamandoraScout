@@ -34,7 +34,8 @@ class LiveFormMaxLimitsController extends Controller
         {
             $qetaat = DB::table('Qetaa')->get();
             $seneen_marahel = DB::table('SanaMarhala')->get();
-            return view("max-limits.create", array('qetaat'=>$qetaat, 'seneen_marahel'=>$seneen_marahel));
+            $season = DB::table('Season')->get();
+            return view("max-limits.create", array('qetaat'=>$qetaat, 'seneen_marahel'=>$seneen_marahel, 'season'=>$season));
         }
 
         public function insert(Request  $request)

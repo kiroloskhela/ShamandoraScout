@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'الملتحقين الجدد - عام 2024'])
+@extends('layouts.app', ['pageTitle' => 'الملتحقين الجدد'])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
