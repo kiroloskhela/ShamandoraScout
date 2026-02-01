@@ -1,6 +1,6 @@
 <?php
 
-return [
+
 
     /*
     |--------------------------------------------------------------------------
@@ -15,11 +15,16 @@ return [
     |
     */
 
-    'paths' => ['api/*',  'storage/*',  'sanctum/csrf-cookie'],
+return [
+
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [
+        'https://shamandora.web.app',
+        'http://localhost:PORT',
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -29,6 +34,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
-
+    'supports_credentials' => true,
 ];
