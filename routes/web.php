@@ -66,6 +66,12 @@ use App\Http\Controllers\WhatsAppBridgeController;
 
 use App\Http\Controllers\AdminPlaceBookingController;
 use App\Http\Controllers\PlaceBookingController;
+
+
+
+use App\Http\Controllers\PersonSeasonEventFinanceController;
+use App\Http\Controllers\SeasonEventFinanceController;
+use App\Http\Controllers\BookingController;
 /*
 |--------------------------------------------------------------------------
 | Public / UI Pages
@@ -452,7 +458,159 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
 
+/*
+|--------------------------------------------------------------------------
+| Finance / Enrollment Routes
+|--------------------------------------------------------------------------
+*/
+
+
+
 });
+
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Secretary (SuperAdmin|Finance)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance'])->group(function () {
+
+
+Route::group(['prefix' => 'finance'], function () {
+
+    /* =========================
+       MAIN LIST
+       ========================= */
+    Route::get('/', 
+        [PersonSeasonEventFinanceController::class, 'index']
+    )->name('finance.index');
+
+    /* =========================
+       CREATE / BOOKING
+       ========================= */
+    Route::get('/create', 
+        [PersonSeasonEventFinanceController::class, 'create']
+    )->name('finance.create');
+
+    Route::post('/insert', 
+        [PersonSeasonEventFinanceController::class, 'insert']
+    )->name('finance.insert');
+
+    /* =========================
+       SHOW DETAILS + PAYMENTS
+       ========================= */
+    Route::get('/show/{id}', 
+        [PersonSeasonEventFinanceController::class, 'show']
+    )->name('finance.show');
+
+    /* =========================
+       ADD PAYMENT
+       ========================= */
+    Route::post('/payment/{id}', 
+        [PersonSeasonEventFinanceController::class, 'addPayment']
+    )->name('finance.payment');
+
+    /* =========================
+       CANCEL (ADMIN DECIDES REFUND)
+       ========================= */
+    Route::get('/cancel/{id}', 
+        [PersonSeasonEventFinanceController::class, 'cancelForm']
+    )->name('finance.cancel.form');
+
+    Route::post('/cancel/{id}', 
+        [PersonSeasonEventFinanceController::class, 'cancel']
+    )->name('finance.cancel');
+
+});
+
+
+
+
+Route::prefix('season-event-finance')->group(function () {
+
+    Route::get('/', [SeasonEventFinanceController::class, 'index'])
+        ->name('seasonEventFinance.index');
+
+    Route::get('/create', [SeasonEventFinanceController::class, 'create'])
+        ->name('seasonEventFinance.create');
+
+    Route::post('/insert', [SeasonEventFinanceController::class, 'insert'])
+        ->name('seasonEventFinance.insert');
+
+    Route::get('/edit/{id}', [SeasonEventFinanceController::class, 'edit'])
+        ->name('seasonEventFinance.edit');
+
+    Route::post('/update/{id}', [SeasonEventFinanceController::class, 'update'])
+        ->name('seasonEventFinance.update');
+
+    Route::get('/delete/{id}', [SeasonEventFinanceController::class, 'delete'])
+        ->name('seasonEventFinance.delete');
+
+    Route::post('/destroy/{id}', [SeasonEventFinanceController::class, 'destroy'])
+        ->name('seasonEventFinance.destroy');
+
+    Route::get('/get-events-for-season',
+        [SeasonEventFinanceController::class, 'getEventsForSeason']
+    )->name('seasonEventFinance.getEventsForSeason');
+
+});
+
+
+
+Route::prefix('booking')->group(function () {
+
+    // Step 1: choose event (only finance-enabled)
+    Route::get('/create', [BookingController::class, 'create'])
+        ->name('booking.create');
+
+    // Step 2: event selected -> search persons page
+    Route::get('/event/{seasonEventID}', [BookingController::class, 'choosePerson'])
+        ->name('booking.choosePerson');
+
+    // AJAX spotlight search
+    Route::get('/search-person', [BookingController::class, 'searchPerson'])
+        ->name('booking.searchPerson');
+
+    // Step 3: person selected -> booking details page
+    Route::get('/event/{seasonEventID}/person/{personID}', [BookingController::class, 'details'])
+        ->name('booking.details');
+
+    // Save booking + optional payment (then invoice)
+    Route::post('/store', [BookingController::class, 'store'])
+        ->name('booking.store');
+
+    // Print invoice
+    Route::get('/invoice/{personSeasonEventID}', [BookingController::class, 'invoice'])
+        ->name('booking.invoice');
+
+Route::prefix('transactions')->group(function () {
+
+    Route::get('/edit/{id}', [BookingController::class, 'editTransaction'])->name('transactions.edit');
+    Route::post('/update/{id}', [BookingController::class, 'updateTransaction'])->name('transactions.update');
+
+    Route::get('/delete/{id}', [BookingController::class, 'deleteTransaction'])->name('transactions.delete');
+    Route::post('/destroy/{id}', [BookingController::class, 'destroyTransaction'])->name('transactions.destroy');
+
+    // ✅ Refund
+    Route::get('/refund/{id}', [BookingController::class, 'refundForm'])->name('transactions.refund.form');
+    Route::post('/refund/{id}', [BookingController::class, 'refundStore'])->name('transactions.refund.store');
+
+    // ✅ Print invoice for a specific payment transaction
+    Route::get('/invoice/{id}', [BookingController::class, 'invoiceByTransaction'])->name('transactions.invoice');
+});
+
+ 
+});
+
+});
+
+
+
+
 
 
 /*
