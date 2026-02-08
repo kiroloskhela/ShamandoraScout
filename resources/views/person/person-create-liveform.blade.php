@@ -1,520 +1,985 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>كشافة الشمندورة | إدخال بيانات</title>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <title>كشافة الشمندورة - ادخال بيانات</title>
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Custom fonts for this template-->
-    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 999px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="url"],
+        select {
+            height: 50px;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left 0.75rem center;
+            background-size: 1.25rem;
+            padding-left: 2.5rem;
+            line-height: 50px;
+        }
+
+        select option {
+            text-align: right;
+            direction: rtl;
+        }
     </style>
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 </head>
 
-<body class="bg-gradient-primary">
-    @if(session('status'))
-    <div class="alert alert-success">
-        {{ session('status') }}
-    </div>
+<body class="min-h-screen bg-white py-8">
+
+    @if (session('status'))
+        <div class="max-w-6xl mx-auto px-4 mb-4">
+            <div class="rounded-xl bg-emerald-600 text-white px-5 py-4 shadow">
+                {{ session('status') }}
+            </div>
+        </div>
     @endif
-    <div class="container mt-4">
-        <div class="container">
-            <form class="user" id="regForm2" method="POST" action="{{ route('person.liveform-insert-person') }}">
-                @csrf
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="col">
-                            <div class="col-lg-12">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;">
-                                            ادخال بيانات ملتحق جديد</h1>
-                                        <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;">
-                                            الجزء الأول: البيانات الشخصية</h2>
+
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
+
+            <!-- Header: logo top middle + centered title -->
+            <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
+                <div class="flex flex-col items-center justify-center gap-4 text-center">
+
+                    <!-- Logo -->
+                    <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
+
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
+                            إدخال بيانات ملتحق جديد
+                        </h1>
+                        <p class="text-slate-500 mt-2">
+                            الحقول المطلوبة عليها علامة <span class="font-bold text-rose-700">*</span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="p-6 md:p-10">
+                <form id="regForm2" method="POST" action="{{ route('person.liveform-insert-person') }}" novalidate
+                    enctype="multipart/form-data">
+                    @csrf
+
+                    <!-- ============================ Section 1 ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">الجزء الأول: البيانات الشخصية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">أدخل بيانات الملتحق الأساسية.</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                1 / 4
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <!-- names -->
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    الاسم الأول <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="first_name" name="first_name" type="text"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="الاسم الأول">
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    الاسم الثاني <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="second_name" name="second_name" type="text"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="الاسم الثاني">
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    الاسم الثالث <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="third_name" name="third_name" type="text"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="الاسم الثالث">
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الرابع</label>
+                                <input id="fourth_name" name="fourth_name" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="اختياري">
+                            </div>
+
+                            <!-- gender -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    نوع الملتحق <span class="text-rose-700">*</span>
+                                </label>
+                                <select required id="gender" name="gender"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    @if ($gender == 'Male')
+                                        <option value="Male" selected>ذكر</option>
+                                        <option value="Female">أنثى</option>
+                                    @else
+                                        <option value="Female" selected>أنثى</option>
+                                        <option value="Male">ذكر</option>
+                                    @endif
+                                </select>
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+
+                            <!-- email -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">البريد الإلكتروني</label>
+                                <input id="email_input" name="email_input" type="email" dir="ltr"
+                                    class="field-email w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="example@email.com">
+                                <p class="error-email hidden mt-1 text-sm text-rose-700">البريد الإلكتروني غير صحيح</p>
+                            </div>
+
+                            <!-- birthdate -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    تاريخ الميلاد <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="birthdate_input" name="birthdate_input" type="date"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+
+                            <!-- joining year -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة الالتحاق</label>
+                                <select id="joining_year_input" name="joining_year_input"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+                                    @for ($year = date('Y'); $year >= 2000; $year--)
+                                        <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
+                                            {{ $year }}
+                                        </option>
+                                    @endfor
+
+                                </select>
+                            </div>
+
+
+                            <!-- national id -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    الرقم القومي (14 رقم) <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="input_raqam_qawmy" name="input_raqam_qawmy" inputmode="numeric"
+                                    pattern="\d{14}" maxlength="14" type="text"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="أدخل 14 رقم">
+                                <p class="error hidden mt-1 text-sm text-rose-700" data-error="nid">
+                                    الرقم القومي يجب أن يكون 14 رقم
+                                </p>
+                            </div>
+
+                            <!-- Facebook -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">رابط Facebook (إن
+                                    وُجد)</label>
+                                <input id="inputFacebookLink" name="inputFacebookLink" type="url"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="https://facebook.com/...">
+                            </div>
+
+                            <!-- Instagram -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">رابط Instagram (إن
+                                    وُجد)</label>
+                                <input id="inputInstagramLink" name="inputInstagramLink" type="url"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="https://instagram.com/...">
+                            </div>
+
+                            <!-- blood type -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    فصيلة الدم <span class="text-rose-700">*</span>
+                                    <span class="text-xs text-slate-500 font-normal ms-2">اختر "غير محدد" عند عدم
+                                        التأكد</span>
+                                </label>
+                                <select required id="blood_type_input" name="blood_type_input"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="" disabled selected>اختر فصيلة الدم</option>
+                                    @foreach ($blood as $blood_element)
+                                        <option value="{{ $blood_element->BloodTypeID }}">
+                                            {{ $blood_element->BloodTypeName }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ Section 2 ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">الجزء الثاني: بيانات التواصل</h2>
+                                <p class="text-slate-500 mt-1 text-sm">أدخل أرقام التواصل والعنوان.</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                2 / 4
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <!-- phones -->
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    موبايل الملتحق (11 رقم) <span class="text-rose-700">*</span>
+                                </label>
+                                <input required id="personal_phone_number" name="personal_phone_number"
+                                    inputmode="numeric" pattern="\d{11}" maxlength="11" type="text"
+                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="مثال: 01xxxxxxxxx">
+                                <p class="error hidden mt-1 text-sm text-rose-700" data-error="phone">
+                                    رقم الموبايل يجب أن يكون 11 رقم
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأب (إن
+                                    وُجد)</label>
+                                <input id="father_phone_number" name="father_phone_number" type="text"
+                                    inputmode="numeric"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="اختياري">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأم (إن
+                                    وُجد)</label>
+                                <input id="mother_phone_number" name="mother_phone_number" type="text"
+                                    inputmode="numeric"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="اختياري">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">هاتف أرضي (إن
+                                    وُجد)</label>
+                                <input id="home_phone_number" name="home_phone_number" type="text"
+                                    inputmode="numeric"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="اختياري">
+                            </div>
+
+                            <!-- whatsapp -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">هل رقم الموبايل الأساسي
+                                    عليه Whatsapp؟</label>
+                                <select id="has_whatsapp" name="has_whatsapp"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="" disabled selected>اختر نعم أم لا</option>
+                                    <option value="True">نعم</option>
+                                    <option value="False">لا</option>
+                                </select>
+                            </div>
+
+                            <!-- address -->
+                            <div class="md:col-span-12 mt-2">
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h3 class="font-bold text-slate-800">العنوان</h3>
                                     </div>
-                                    <div class="form-group row" dir="rtl">
-                                        <div class="col-sm-3 mb-3 mb-sm-0">
-                                            <input type="text" class="form-control form-control-user" name="first_name"
-                                                id="first_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الأول **" onclick="validate('first_name')"
-                                                onfocusout="validate('first_name')">
+
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                رقم العمارة <span class="text-rose-700">*</span>
+                                            </label>
+                                            <input required id="building_number" name="building_number"
+                                                type="text" inputmode="numeric"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="رقم العمارة">
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
                                         </div>
 
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="second_name"
-                                                id="second_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثاني **" onclick="validate('second_name')"
-                                                onfocusout="validate('second_name')">
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                رقم الدور <span class="text-rose-700">*</span>
+                                            </label>
+                                            <input required id="floor_number" name="floor_number" type="text"
+                                                inputmode="numeric"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="رقم الدور">
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
                                         </div>
 
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="third_name"
-                                                id="third_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثالث **" onclick="validate('third_name')"
-                                                onfocusout="validate('third_name')">
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                رقم الشقة <span class="text-rose-700">*</span>
+                                            </label>
+                                            <input required id="appartment_number" name="appartment_number"
+                                                type="text" inputmode="numeric"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="رقم الشقة">
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
                                         </div>
 
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="fourth_name"
-                                                id="fourth_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الرابع">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label style="font-family: 'Cairo', sans-serif;">نوع الملتحق <strong>(ذكر أم
-                                                أنثى)</strong>**</label>
-                                        <br />
-                                        <select class="form-control" name="gender" id="gender" onChange=""
-                                            placeholder="اختر النوع">
-                                            @if($gender=="Male")
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                value="{{$gender}}" selected>ذكر</option>
-                                            @else
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                value="{{$gender}}" selected>أنثى</option>
-                                            @endif
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;">البريد الالكتروني</label>
-                                        <input dir="rtl" type="email" name="email_input" id="email_input"
-                                            class="form-control form-control-user"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            placeholder="أدخل البريد الالكتروني للملتحق بشكل صحيح">
-                                    </div>
-
-                                    <div class="form-group row text-center" dir="rtl">
-                                        <div class="col-sm-6 mb-3 mb-sm-0">
-                                            <label class="text-center" for="birthdate_input"
-                                                style="font-family: 'Cairo', sans-serif;">تاريخ الميلاد **</label>
-                                            <input type="date" class="form-control form-control-user"
-                                                id="birthdate_input" name="birthdate_input"
-                                                style="margin-left: 5px;;font-family: 'Cairo', sans-serif; font-size: large"
-                                                placeholder="تاريخ الميلاد" onclick="validate('birthdate_input')"
-                                                onfocusout="validate('birthdate_input')">
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                اسم الشارع <span class="text-rose-700">*</span>
+                                            </label>
+                                            <input required id="sub_street_name" name="sub_street_name"
+                                                type="text"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="اسم الشارع">
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
                                         </div>
 
-                                        <div class="col-sm-6 text-center">
-                                            <label for="joining_year_input"
-                                                style="font-family: 'Cairo', sans-serif;">سنة الالتحاق</label>
-                                            <br />
-                                            <select class="form-control" style="margin-top: 8px;"
-                                                name="joining_year_input" id="joining_year_input" onChange=""
-                                                placeholder="اختار سنة الالتحاق بالكشافة">
-                                                <option
-                                                    style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                    value="2024" selected>2024</option>
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                اسم أقرب شارع رئيسي <span class="text-rose-700">*</span>
+                                            </label>
+                                            <input required id="main_street_name" name="main_street_name"
+                                                type="text"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="أقرب شارع رئيسي">
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                                        </div>
+
+                                        <div class="md:col-span-12">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب علامة
+                                                مميزة</label>
+                                            <input id="nearest_landmark" name="nearest_landmark" type="text"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="اختياري">
+                                        </div>
+
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                المنطقة <span class="text-rose-700">*</span>
+                                            </label>
+                                            <select required id="manteqa_id" name="manteqa_id"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                <option value="" disabled selected>اختر المنطقة السكنية</option>
+                                                @foreach ($manateq as $manteqa)
+                                                    <option value="{{ $manteqa->ManteqaID }}">
+                                                        {{ $manteqa->ManteqaName }}</option>
+                                                @endforeach
                                             </select>
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
                                         </div>
-                                    </div>
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label for="joindate" style="font-family: 'Cairo', sans-serif;">الرقم القومي
-                                            **</label>
-                                        <input dir="rtl" type="number" class="form-control form-control-user"
-                                            id="input_raqam_qawmy" name="input_raqam_qawmy"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            placeholder="أدخل الرقم القومي المكون من 14 رقماً"
-                                            onclick="validate('input_raqam_qawmy')"
-                                            onfocusout="validate('input_raqam_qawmy')">
 
-                                    </div>
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label for="inputFacebookLink"
-                                            style="font-family: 'Cairo', sans-serif;">Facebook Account URL/Link (if
-                                            Found)</label>
-                                        <input dir="rtl" type="text" class="form-control form-control-user"
-                                            name="inputFacebookLink" id="inputFacebookLink"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            placeholder="أدخل لينك حساب الفيسبوك الخاص بالمتلحق (إن وُجِد)">
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                                الحي <span class="text-rose-700">*</span>
+                                            </label>
+                                            <select required id="district_id" name="district_id"
+                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                <option value="" disabled selected>اختر الحي</option>
+                                                @foreach ($districts as $district)
+                                                    <option value="{{ $district->DistrictID }}">
+                                                        {{ $district->DistrictName }}</option>
+                                                @endforeach
+                                            </select>
+                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
+                                        </div>
 
-                                    </div>
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label for="instagramLink" style="font-family: 'Cairo', sans-serif;">Instagram
-                                            Account URL/Link (if Found)</label>
-                                        <input dir="rtl" type="text" class="form-control form-control-user"
-                                            name="inputInstagramLink" id="inputInstagramLink"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            placeholder="أدخل لينك حساب انستجرام الخاص بالمتلحق (إن وُجِد)">
-
-                                    </div>
-                                    <div class="form-group row text-center" dir="rtl">
-                                        <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر فصيلة الدم
-                                            الصحيحة <strong>(اختر "غير محدد" عند عدم التأكد)</strong>**</label>
-                                        <br />
-                                        <select class="form-control col-sm-4" style="margin-right: 20px;"
-                                            name="blood_type_input" id="blood_type_input" onChange=""
-                                            placeholder="اختار سنة الالتحاق بالكشافة"
-                                            onclick="validate('blood_type_input')"
-                                            onfocusout="validate('blood_type_input')">
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                value="" disabled selected>اختر فصيلة الدم</option>
-                                            @foreach($blood as $blood_element)
-                                            <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="{{$blood_element->BloodTypeID}}">
-                                                {{$blood_element->BloodTypeName}}</option>
-                                            @endforeach
-                                        </select>
                                     </div>
                                 </div>
-                                <hr>
                             </div>
+
                         </div>
-                    </div>
-                    <div class="col-lg-12">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال
-                                    بيانات ملتحق جديد</h1>
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
-                                    الثاني: بيانات التواصل</h2>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ Section 3 ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">الجزء الثالث: البيانات الدراسية والكنسية
+                                </h2>
+                                <p class="text-slate-500 mt-1 text-sm">البيانات التعليمية والكنسية (إن وُجدت).</p>
                             </div>
-                            <div class="form-group row text-center" dir="rtl">
-                                <div class="col-sm-3 mb-3 mb-sm-0">
-                                    <label class="text-center" for="personal_phone_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم موبايل الملتحق (الأساسي)
-                                        **</label>
-                                    <input type="number" class="form-control form-control-user"
-                                        name="personal_phone_number" id="personal_phone_number"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="رقم الموبايل الشخصي" onclick="validate('personal_phone_number')"
-                                        onfocusout="validate('personal_phone_number')">
-                                </div>
-
-                                <div class="col-sm-3 text-center" dir="rtl">
-                                    <label class="text-center" for="father_phone_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم موبايل الأب (إن وُجِد)</label>
-                                    <input type="number" class="form-control form-control-user"
-                                        name="father_phone_number" id="father_phone_number"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="رقم موبايل الأب">
-                                </div>
-
-                                <div class="col-sm-3 text-center" dir="rtl">
-                                    <label class="text-center" for="mother_phone_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم موبايل الأم (إن وُجِد)</label>
-                                    <input type="text" class="form-control form-control-user" name="mother_phone_number"
-                                        id="mother_phone_number"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="رقم موبايل الأم">
-                                </div>
-
-                                <div class="col-sm-3 text-center" dir="rtl">
-                                    <label class="text-center" for="home_phone_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم التليفون الأرضي (إن وُجِد)</label>
-                                    <input type="text" class="form-control form-control-user" name="home_phone_number"
-                                        id="home_phone_number"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="رقم التليفون الأرضي">
-                                </div>
-                            </div>
-                            <div class="form-group row text-center" dir="rtl">
-                                <label for="has_whatsapp" style="font-family: 'Cairo', sans-serif; margin-top: 5px;">هل
-                                    رقم الموبايل الأساسي للملتحق عليه برنامج Whatsapp<strong>(نعم أم
-                                        لا)</strong></label>
-                                <br />
-                                <select class="form-control col-sm-4" style="margin-right: 20px;" name="has_whatsapp"
-                                    id="has_whatsapp" onChange="" placeholder="هل الموبايل الأساسي عليه واتساب؟"
-                                    id="has_whatsapp">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="" disabled selected>اختر نعم أم لا</option>
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;" value="True">نعم
-                                    </option>
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;" value="False">لا
-                                    </option>
-                                </select>
-
-                            </div>
-                            <br />
-                            <hr>
-                            <div class="form-group row text-center" dir="rtl">
-                                <div class="col-sm-4 mb-3 mb-sm-0" dir="rtl">
-                                    <label class="text-center" for="building_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم العمارة **</label>
-                                    <input type="number" class="form-control form-control-user" name="building_number"
-                                        id="building_number" style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="أدخل رقم العمارة" onclick="validate('building_number')"
-                                        onfocusout="validate('building_number')">
-                                </div>
-
-                                <div class="col-sm-4 mb-3 mb-sm-0 text-center" dir="rtl">
-                                    <label class="text-center" for="floor_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم الدور **</label>
-                                    <input type="number" class="form-control form-control-user" name="floor_number"
-                                        id="floor_number" style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="أدخل رقم الدور">
-                                </div>
-
-                                <div class="col-sm-4 mb-3 mb-sm-0 text-center" dir="rtl">
-                                    <label class="text-center" for="appartment_number"
-                                        style="font-family: 'Cairo', sans-serif;">رقم الشقة **</label>
-                                    <input type="number" class="form-control form-control-user" name="appartment_number"
-                                        id="appartment_number"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="أدخل رقم الشقة">
-                                </div>
-
-                            </div>
-                            <div class="form-group row text-center" dir="rtl">
-                                <div class="col-sm-6 mb-5 mb-sm-0">
-                                    <label class="text-center" for="sub_street_name"
-                                        style="font-family: 'Cairo', sans-serif;">اسم الشارع **</label>
-                                    <input type="text" class="form-control form-control-user" name="sub_street_name"
-                                        id="sub_street_name" style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="أدخل اسم الشارع" onclick="validate('sub_street_name')"
-                                        onfocusout="validate('sub_street_name')">
-                                </div>
-
-                                <div class="col-sm-6 mb-5 mb-sm-0 text-center" dir="rtl">
-                                    <label class="text-center" for="main_street_name"
-                                        style="font-family: 'Cairo', sans-serif;">اسم أقرب شارع رئيسي **</label>
-                                    <input type="text" class="livesearch form-control form-control-user"
-                                        name="main_street_name" id="main_street_name"
-                                        style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                        placeholder="أدخل اسم أقرب شارع رئيسي للمنزل">
-                                </div>
-                            </div>
-                            <div class="form-group text-center" dir="rtl">
-                                <label class="text-center" for="nearest_landmark"
-                                    style="font-family: 'Cairo', sans-serif;">أقرب علامة مميزة</label>
-                                <input dir="rtl" type="text" name="nearest_landmark" id="nearest_landmark"
-                                    class="form-control form-control-user" id="nearest_landmark"
-                                    style="font-family: 'Cairo', sans-serif; font-size: large"
-                                    placeholder="أدخل أقرب علامة مميزة لعنوان الملتحق">
-                            </div>
-                            <div class="form-group text-center" dir="rtl">
-                                <div class="col-sm-6" dir="rtl">
-                                    <label for="manteqa_id" style="font-family: 'Cairo', sans-serif;">المنطقة **</label>
-                                    <br />
-                                    <select class="form-control" style="margin-top: 8px;" name="manteqa_id"
-                                        id="manteqa_id" placeholder="اختار المنطقة" onclick="validate('manteqa_id')"
-                                        onfocusout="validate('manteqa_id')">
-                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="" disabled selected> اختر المنطقة السكنية</option>
-                                        @foreach($manateq as $manteqa)
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                            value="{{$manteqa->ManteqaID}}">{{$manteqa->ManteqaName}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-sm-6 text-center" dir="rtl">
-                                    <label for="district_id" style="font-family: 'Cairo', sans-serif;">الحي **</label>
-                                    <br />
-                                    <select class="form-control" style="margin-top: 8px;" name="district_id"
-                                        id="district_id" onChange="" placeholder="اختار الحي"
-                                        onclick="validate('district_id')" onfocusout="validate('district_id')">
-                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="" disabled selected> اختر الحي</option>
-                                        @foreach($districts as $district)
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                            value="{{$district->DistrictID}}">{{$district->DistrictName}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <hr>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                3 / 4
+                            </span>
                         </div>
-                    </div>
 
-                    <div class="col-lg-12">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال
-                                    بيانات ملتحق جديد</h1>
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
-                                    الثالث: البيانات الدراسية والكنسية</h2>
-                            </div>
-                            <div class="form-group text-center" dir="rtl">
-                                <label for="sana_marhala_id" style="font-family: 'Cairo', sans-serif;">السنة والمرحلة
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">السنة والمرحلة
                                     الدراسية</label>
-                                <br />
-                                <select class="form-control" style="margin-top: 8px;" name="sana_marhala_id"
-                                    id="sana_marhala_id">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="{{$sana_marhala_id}}" selected>{{$sana_marhala_name}}</option>
+                                <select
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    name="sana_marhala_id" id="sana_marhala_id">
+                                    <option value="{{ $sana_marhala_id }}" selected>{{ $sana_marhala_name }}</option>
                                 </select>
                             </div>
-                            <br />
 
-                            <div class="form-group text-center" dir="rtl">
-                                <label for="person_school" style="font-family: 'Cairo', sans-serif;">اسم المدرسة</label>
-                                <input dir="rtl" type="text" name="person_school" id="person_school"
-                                    class="form-control form-control-user"
-                                    style="font-family: 'Cairo', sans-serif; font-size: large"
+                            <div class="md:col-span-8">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">اسم المدرسة</label>
+                                <input id="person_school" name="person_school" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="أدخل اسم المدرسة">
                             </div>
-                            <br />
 
-                            <div class="form-group text-center">
-                                <label for="school_grad_year" style="font-family: 'Cairo', sans-serif;">سنة التخرج من
-                                    المدرسة (في حالة الانتهاء من المدرسة)</label>
-                                <br />
-                                <select class="form-control rtl" style="margin-top: 8px; text-align: right;"
-                                    name="school_grad_year" id="school_grad_year" onChange=""
-                                    placeholder="اختار سنة التخرج من المدرسة">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="" disabled selected>اختر سنة التخرج من المدرسة</option>
-                                    @for($i = 1970; $i <= date('Y'); $i++) <option
-                                        style="font-family: 'Cairo', sans-serif; color: black;" value={{$i}}>{{$i}}
-                                        </option>
-                                        @endfor
+                            <div class="md:col-span-4">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
+                                    المدرسة</label>
+                                <select
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    name="school_grad_year" id="school_grad_year">
+                                    <option value="" disabled selected>اختر سنة التخرج من المدرسة</option>
+                                    @for ($i = 1970; $i <= date('Y'); $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
                                 </select>
                             </div>
 
-                            @if($sana_marhala_id>14)
-                            <div class="form-group text-center" dir="rtl">
-                                <label class="text-center" for="person_faculty"
-                                    style="font-family: 'Cairo', sans-serif;">اسم الكلية</label>
-                                <select class="form-control" style="margin-top: 8px;" name="person_faculty"
-                                    id="person_faculty" placeholder="اختار الكلية">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="" disabled selected> اختر الكلية</option>
-                                    @foreach($faculties as $faculty)
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                        value="{{$faculty->FacultyID}}">{{$faculty->FacultyName}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            </br>
-                            <div class="form-group text-center" dir="rtl">
-                                <label class="text-center" for="person_university"
-                                    style="font-family: 'Cairo', sans-serif;">اسم الجامعة</label>
-                                <select class="form-control" style="margin-top: 8px;" name="person_university"
-                                    id="person_university" placeholder="اختار الجامعة">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="" disabled selected> اختر الجامعة</option>
-                                    @foreach($universities as $university)
-                                    <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                        value="{{$university->UniversityID}}">{{$university->UniversityName}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            </br>
-                            <div class="form-group text-center">
-                                <label for="university_grad_year" style="font-family: 'Cairo', sans-serif;">سنة التخرج
-                                    من الجامعة (في حالة الانتهاء من الجامعة)</label>
-                                <br />
-                                <select class="form-control" style="margin-top: 8px; text-align: right;"
-                                    name="university_grad_year" id="university_grad_year" onChange=""
-                                    placeholder="اختار سنة التخرج من الجامعة">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="" disabled selected>اختر سنة التخرج من الجامعة</option>
-                                    @for($i = 1970; $i <= date('Y'); $i++) <option
-                                        style="font-family: 'Cairo', sans-serif; color: black;" value={{$i}}>{{$i}}
-                                        </option>
+                            @if ($sana_marhala_id > 14)
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الكلية</label>
+                                    <select
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        name="person_faculty" id="person_faculty">
+                                        <option value="" disabled selected>اختر الكلية</option>
+                                        @foreach ($faculties as $faculty)
+                                            <option value="{{ $faculty->FacultyID }}">{{ $faculty->FacultyName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الجامعة</label>
+                                    <select
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        name="person_university" id="person_university">
+                                        <option value="" disabled selected>اختر الجامعة</option>
+                                        @foreach ($universities as $university)
+                                            <option value="{{ $university->UniversityID }}">
+                                                {{ $university->UniversityName }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
+                                        الجامعة</label>
+                                    <select
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        name="university_grad_year" id="university_grad_year">
+                                        <option value="" disabled selected>اختر سنة التخرج من الجامعة</option>
+                                        @for ($i = 1970; $i <= date('Y'); $i++)
+                                            <option value="{{ $i }}">{{ $i }}</option>
                                         @endfor
-                                </select>
-                            </div>
+                                    </select>
+                                </div>
                             @endif
 
-                            <div class="form-group text-center" dir="rtl">
-                                <label class="text-center" for="spiritual_father"
-                                    style="font-family: 'Cairo', sans-serif;">الأب الروحي / أب الاعتراف</label>
-                                <input dir="rtl" type="text" name="spiritual_father" id="spiritual_father"
-                                    class="form-control form-control-user"
-                                    style="font-family: 'Cairo', sans-serif; font-size: large"
-                                    placeholder="أدخل اسم أب الاعتراف أو الأب الروحي للملتحق">
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">الأب الروحي / أب
+                                    الاعتراف</label>
+                                <input id="spiritual_father" name="spiritual_father" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="أدخل الاسم">
                             </div>
-                            <div class="form-group text-center" dir="rtl">
-                                <label class="text-center" for="spiritual_father_church"
-                                    style="font-family: 'Cairo', sans-serif;">كنيسة الأب الروحي / أب الاعتراف</label>
-                                <input dir="rtl" type="text" name="spiritual_father_church" id="spiritual_father_church"
-                                    class="form-control form-control-user"
-                                    style="font-family: 'Cairo', sans-serif; font-size: large"
-                                    placeholder="أدخل كنيسة أب الاعتراف أو الأب الروحي للملتحق">
-                            </div>
-                            <hr>
-                        </div>
-                    </div>
 
-                    <div class="col-lg-12">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال
-                                    بيانات ملتحق جديد</h1>
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
-                                    الرابع: البيانات الكشفية</h2>
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">كنيسة الأب الروحي / أب
+                                    الاعتراف</label>
+                                <input id="spiritual_father_church" name="spiritual_father_church" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="أدخل الكنيسة">
                             </div>
-                            <div class="form-group text-center" dir="rtl">
-                                <label style="font-family: 'Cairo', sans-serif;">القطاع الكشفي</label>
-                                <br />
-                                <select class="form-control" style="margin-top: 8px;" name="qetaa_id" id="qetaa_id"
-                                    onChange="" placeholder="اختار القطاع">
-                                    <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                        value="{{$qetaa_id}}" selected>{{$qetaa_name}}</option>
+                        </div>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ PHOTOS SECTION ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">قسم الصور</h2>
+                                <p class="text-slate-500 mt-1 text-sm">ارفع صورة شخصية وصورة الزي الرسمي (إن وُجد).</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                صور
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+                            <!-- Profile image -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    صورة شخصية
+                                    <span class="text-xs text-slate-500 font-normal ms-2">JPG/PNG/WebP - حد أقصى 5
+                                        ميجا</span>
+                                </label>
+
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-upload>
+                                    <div class="flex items-center gap-4">
+
+                                        <div
+                                            class="h-24 w-24 rounded-2xl bg-white ring-1 ring-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                                            <img data-preview class="hidden h-full w-full object-cover"
+                                                alt="">
+                                            <svg data-placeholder class="h-10 w-10 text-slate-300" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        <div class="flex-1 min-w-0">
+                                            <input type="file" name="profile_image"
+                                                accept="image/jpeg,image/png,image/webp" class="hidden" data-file
+                                                data-error-key="profile_image">
+
+                                            <div class="flex flex-col gap-2">
+                                                <button type="button" data-pick
+                                                    class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700">
+                                                    اختيار ملف
+                                                </button>
+
+                                                <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+
+                                                <p class="error-photo hidden mt-1 text-sm text-rose-700"
+                                                    data-error="profile_image">
+                                                    الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                </p>
+                                            </div>
+
+                                            <p class="mt-2 text-xs text-slate-500">يفضل صورة واضحة للوجه بخلفية بيضاء
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Uniform image -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    صورة الزي الرسمي
+                                    <span class="text-xs text-slate-500 font-normal ms-2">اختياري - JPG/PNG/WebP - حد
+                                        أقصى 5 ميجا</span>
+                                </label>
+
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-upload>
+                                    <div class="flex items-center gap-4">
+
+                                        <div
+                                            class="h-24 w-24 rounded-2xl bg-white ring-1 ring-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                                            <img data-preview class="hidden h-full w-full object-cover"
+                                                alt="">
+                                            <svg data-placeholder class="h-10 w-10 text-slate-300" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        <div class="flex-1 min-w-0">
+                                            <input type="file" name="scout_uniform_image"
+                                                accept="image/jpeg,image/png,image/webp" class="hidden" data-file
+                                                data-error-key="scout_uniform_image">
+
+                                            <div class="flex flex-col gap-2">
+                                                <button type="button" data-pick
+                                                    class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700">
+                                                    اختيار ملف
+                                                </button>
+
+                                                <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+
+                                                <p class="error-photo hidden mt-1 text-sm text-rose-700"
+                                                    data-error="scout_uniform_image">
+                                                    الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                </p>
+                                            </div>
+
+                                            <p class="mt-2 text-xs text-slate-500">اختياري — صورة كاملة بالزي الكشفي إن
+                                                أمكن</p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ Section 4 ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">الجزء الرابع: البيانات الكشفية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">تحديد القطاع الكشفي ثم المتابعة لباقي الأسئلة.
+                                </p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                4 / 4
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع الكشفي</label>
+                                <select
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    name="qetaa_id" id="qetaa_id">
+                                    <option value="{{ $qetaa_id }}" selected>{{ $qetaa_name }}</option>
                                 </select>
-                                <label name="qetaa_name" id="qetaa_name" value="{{$qetaa_name}}" hidden></label>
+                                <label name="qetaa_name" id="qetaa_name" value="{{ $qetaa_name }}" hidden></label>
                             </div>
-                            <div style="text-align:center">
-                                <label><strong>برجاء التأكد من البيانات مرة أخرى قبل ضغط "استمرار" علماً بأن سيتم
-                                        الانتقال إلى باقي الأسئلة الخاصة بالقطاع بعد الضغط</strong></label>
-                            </div>
-                            <input type="submit" class="btn-google btn-user btn-block" style="background-color: brown;"
-                                id="submit-button" value="استمرار" onsubmit=""></input>
-                        </div>
-                    </div>
-                </div>
-        </div>
-        </form>
 
+                            <div class="md:col-span-12">
+                                <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
+                                    <div class="font-bold mb-1">تنبيه مهم</div>
+                                    <div class="text-sm leading-relaxed">
+                                        برجاء التأكد من البيانات مرة أخرى قبل ضغط "استمرار".
+                                        سيتم الانتقال إلى باقي الأسئلة الخاصة بالقطاع بعد الضغط.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-12 flex justify-end mt-2">
+                                <button id="submitBtn" type="submit"
+                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-700 px-10 py-3.5 font-bold text-white shadow hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span>استمرار</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
-    function validate(ElementId) {
-        const element = document.getElementById(ElementId);
-        if (element.value == '') {
-            element.style.backgroundColor = '#C53939';
-            element.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-        } else {
-            element.style.backgroundColor = 'White';
-            element.style.color = '#1D43EC';
-            document.getElementById('submit-button').disabled = false;
+        const form = document.getElementById('regForm2');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Track if field has been interacted with
+        const touchedFields = new Set();
+
+        function onlyDigits(value) {
+            // ✅ IMPORTANT: must be /\D/g not /\\D/g
+            return (value || '').replace(/\D/g, '');
         }
-    }
+
+        function normalizeEmail(value) {
+            return (value || '')
+                .trim()
+                .replace(/[\u200E\u200F\u061C\u202A-\u202E]/g, ''); // safe in RTL
+        }
+
+        // ✅ Better email regex (still simple and works with your examples)
+        function isValidEmail(email) {
+            return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
+        }
+
+        function showError(el, show, customKey = null) {
+            const wrapper = el.closest('div');
+            if (!wrapper) return;
+
+            if (show) {
+                el.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.remove('border-slate-300');
+            } else {
+                el.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.add('border-slate-300');
+            }
+
+            const requiredMsg = wrapper.querySelector('.error');
+            if (requiredMsg && !customKey) requiredMsg.classList.toggle('hidden', !show);
+            if (requiredMsg && customKey) requiredMsg.classList.add('hidden');
+
+            const phoneMsg = wrapper.querySelector('[data-error="phone"]');
+            const nidMsg = wrapper.querySelector('[data-error="nid"]');
+
+            if (phoneMsg) phoneMsg.classList.add('hidden');
+            if (nidMsg) nidMsg.classList.add('hidden');
+
+            if (show && customKey === 'phone' && phoneMsg) phoneMsg.classList.remove('hidden');
+            if (show && customKey === 'nid' && nidMsg) nidMsg.classList.remove('hidden');
+        }
+
+        function showEmailError(el, show) {
+            const wrapper = el.closest('div');
+            if (!wrapper) return;
+
+            if (show) {
+                el.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.remove('border-slate-300');
+            } else {
+                el.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.add('border-slate-300');
+            }
+
+            const emailMsg = wrapper.querySelector('.error-email');
+            if (emailMsg) emailMsg.classList.toggle('hidden', !show);
+        }
+
+        function validateRequired(el) {
+            if (el.hasAttribute('required') && !el.value.trim()) {
+                showError(el, true);
+                return false;
+            }
+            showError(el, false);
+            return true;
+        }
+
+        function validatePhone(el) {
+            el.value = onlyDigits(el.value).slice(0, 11);
+            if (!el.value.trim()) return validateRequired(el);
+            const ok = el.value.length === 11;
+            showError(el, !ok, 'phone');
+            return ok;
+        }
+
+        function validateNID(el) {
+            el.value = onlyDigits(el.value).slice(0, 14);
+            if (!el.value.trim()) return validateRequired(el);
+            const ok = el.value.length === 14;
+            showError(el, !ok, 'nid');
+            return ok;
+        }
+
+        // ✅ ONLY ONE function now (no duplicates)
+        function validateEmailField(el) {
+            const cleaned = normalizeEmail(el.value);
+            el.value = cleaned;
+
+            // optional
+            if (!cleaned) {
+                showEmailError(el, false);
+                return true;
+            }
+
+            const ok = isValidEmail(cleaned);
+            showEmailError(el, !ok);
+            return ok;
+        }
+
+        function validateField(el) {
+            if (!touchedFields.has(el.id)) return true;
+
+            if (!el.classList.contains('field') && !el.classList.contains('field-email')) return true;
+
+            if (el.id === 'personal_phone_number') return validatePhone(el);
+            if (el.id === 'input_raqam_qawmy') return validateNID(el);
+            if (el.id === 'email_input') return validateEmailField(el);
+
+            return validateRequired(el);
+        }
+
+        function validateAll() {
+            let ok = true;
+
+            const fields = form.querySelectorAll('.field[required]');
+            fields.forEach(el => {
+                if (touchedFields.has(el.id) && !validateField(el)) ok = false;
+            });
+
+            const emailField = document.getElementById('email_input');
+            if (emailField && touchedFields.has(emailField.id)) {
+                if (!validateEmailField(emailField)) ok = false;
+            }
+
+            submitBtn.disabled = !ok;
+            return ok;
+        }
+
+        // blur: mark touched + validate
+        form.addEventListener('blur', (e) => {
+            const el = e.target;
+            if (!el.classList.contains('field') && !el.classList.contains('field-email')) return;
+
+            touchedFields.add(el.id);
+            validateField(el);
+            validateAll();
+        }, true);
+
+        // input: validate live (only touched)
+        form.addEventListener('input', (e) => {
+            const el = e.target;
+            if (!touchedFields.has(el.id)) return;
+
+            if (el.id === 'personal_phone_number') {
+                if (el.value.trim()) validatePhone(el);
+            } else if (el.id === 'input_raqam_qawmy') {
+                if (el.value.trim()) validateNID(el);
+            } else if (el.id === 'email_input') {
+                validateEmailField(el);
+            }
+            validateAll();
+        });
+
+        // submit: validate all
+        form.addEventListener('submit', (e) => {
+            const allFields = form.querySelectorAll('.field[required], .field-email');
+            allFields.forEach(el => touchedFields.add(el.id));
+
+            let ok = true;
+            const requiredFields = form.querySelectorAll('.field[required]');
+            requiredFields.forEach(el => {
+                if (!validateField(el)) ok = false;
+            });
+
+            const emailField = document.getElementById('email_input');
+            if (emailField && emailField.value.trim() && !validateEmailField(emailField)) ok = false;
+
+            if (!ok) {
+                e.preventDefault();
+                const firstInvalid = form.querySelector('.ring-rose-200');
+                if (firstInvalid) firstInvalid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        });
+
+        // Initial state
+        submitBtn.disabled = false;
+
+        // ================= PHOTO UPLOAD + PREVIEW (no ids) =================
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 بايت';
+            const k = 1024;
+            const sizes = ['بايت', 'كيلو بايت', 'ميجا بايت'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function resetPhotoUI(root) {
+            const input = root.querySelector('input[data-file]');
+            const img = root.querySelector('[data-preview]');
+            const placeholder = root.querySelector('[data-placeholder]');
+            const filename = root.querySelector('[data-filename]');
+            const errorKey = input?.getAttribute('data-error-key') || '';
+            const err = errorKey ? root.querySelector(`[data-error="${errorKey}"]`) : null;
+
+            if (err) err.classList.add('hidden');
+
+            if (img) {
+                img.src = '';
+                img.classList.add('hidden');
+            }
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (filename) filename.textContent = 'لم يتم اختيار ملف';
+        }
+
+        function setPreview(root) {
+            const input = root.querySelector('input[data-file]');
+            const img = root.querySelector('[data-preview]');
+            const placeholder = root.querySelector('[data-placeholder]');
+            const filename = root.querySelector('[data-filename]');
+            if (!input) return;
+
+            const errorKey = input.getAttribute('data-error-key') || '';
+            const err = errorKey ? root.querySelector(`[data-error="${errorKey}"]`) : null;
+
+            if (!input.files || !input.files[0]) {
+                resetPhotoUI(root);
+                return;
+            }
+
+            const file = input.files[0];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024;
+
+            if (!allowedTypes.includes(file.type)) {
+                if (err) {
+                    err.textContent = 'الصورة يجب أن تكون بصيغة JPG أو PNG أو WebP';
+                    err.classList.remove('hidden');
+                }
+                input.value = '';
+                resetPhotoUI(root);
+                return;
+            }
+
+            if (file.size > maxSize) {
+                if (err) {
+                    err.textContent = `حجم الصورة كبير جداً (${formatFileSize(file.size)}). الحد الأقصى 5 ميجا بايت`;
+                    err.classList.remove('hidden');
+                }
+                input.value = '';
+                resetPhotoUI(root);
+                return;
+            }
+
+            if (filename) filename.textContent = file.name;
+
+            const url = URL.createObjectURL(file);
+            if (img) {
+                img.src = url;
+                img.classList.remove('hidden');
+            }
+            if (placeholder) placeholder.classList.add('hidden');
+        }
+
+        document.querySelectorAll('[data-upload]').forEach(root => {
+            const pickBtn = root.querySelector('[data-pick]');
+            const input = root.querySelector('input[data-file]');
+            if (!pickBtn || !input) return;
+
+            resetPhotoUI(root);
+            pickBtn.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => setPreview(root));
+        });
     </script>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
-    <!-- Parsley Javascript Validation Form Library -->
-    <script src="jquery.js"></script>
-    <script src="parsley.min.js"></script>
 
 </body>
 

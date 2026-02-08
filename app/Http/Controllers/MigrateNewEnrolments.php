@@ -128,6 +128,14 @@ class MigrateNewEnrolments extends Controller
                     )
                 );
 
+                    DB::table('PersonImages')->insert(
+                    array(
+                        'PersonID'=>$thisPersonID,
+                        'PersonSystemImagePath'=>$person->PersonalImagePath,
+                        'ScoutOfficialUniformImagePath'=>$person->ScoutImagePath
+                    )
+                );
+
                 DB::table('PersonalPhysicalAddress')->insert(
                     array(
                         'PersonID'=>$thisPersonID,

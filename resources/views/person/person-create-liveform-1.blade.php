@@ -1,144 +1,199 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>كشافة الشمندورة - التحاق جديد</title>
 
-    <!-- Custom fonts for this template-->
-    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Cairo font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        select {
+            height: 50px;
+        }
     </style>
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 </head>
 
-<body class="bg-gradient-primary">
+<body class="min-h-screen bg-white text-slate-800">
+    <main class="min-h-screen flex items-center justify-center px-4 py-10">
+        <div class="w-full max-w-3xl">
 
-    <div class="container">
+            <!-- Card -->
+            <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
 
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-sm-5">
-                        <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
-                    </div>
-                    <div class="col-sm-7">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">التحاق جديد</h1>
-                            </div>
-                            <form class="user" id="regForm" method="POST"
-                                action="{{ route('person.liveform-insert') }}">
-                                @csrf
-                                <div class="text-center">
-                                    <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;"> ادخال
-                                        بيانات ملتحق جديد</h1>
-                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
-                                        الأول: البيانات الدراسية</h2>
-                                </div>
-                                <div class="form-group text-center" dir="rtl">
-                                    <label for="sana_marhala_id" style="font-family: 'Cairo', sans-serif;">السنة
-                                        والمرحلة الدراسية</label>
-                                    <br />
-                                    <select class="form-control" style="margin-top: 8px;" name="sana_marhala_id"
-                                        id="sana_marhala_id" onselect="checkMarhala()"
-                                        placeholder="اختار السنة والمرحلة الدراسية"
-                                        onclick="validate('sana_marhala_id')" onfocusout="validate('sana_marhala_id')">
-                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="" disabled selected> اختر السنة والمرحلة الدراسية</option>
-                                        @foreach ($seneen_marahel as $sana_marhala)
-                                            <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="{{ $sana_marhala->SanaMarhalaID }}">
-                                                {{ $sana_marhala->SanaMarhalaName }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                <div class="p-6 sm:p-10">
 
-                                <div class="form-group text-center" dir="rtl">
-                                    <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر نوع الملتحق
-                                        <strong>(ذكر أم أنثى)</strong></label>
-                                    <br />
-                                    <select class="form-control" name="gender" id="gender" onChange=""
-                                        placeholder="اختر النوع">
-                                        <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                            value="" disabled selected>اختر النوع</option>
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="Male">
-                                            ذكر</option>
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="Female">
-                                            أنثى</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group text-center" dir="rtl">
-                                    <label>تقديم لمدرسة اعداد قادة؟</label>
-                                    <input type="checkbox" name="newLeadersSchool" checked='' />
-                                </div>
-
-                                <input type="submit" class="btn btn-primary btn-user btn-block" id="submit-button"
-                                    value="اضغط للاستمرار"></input>
-                                <hr>
-                            </form>
-
-                            <div class="container my-auto">
-                                <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout 2024</span>
-                                    <br />
-                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
-                                        الكشفية</span>
-                                </div>
-                            </div>
+                    <!-- Logo -->
+                    <div class="flex justify-center mb-6">
+                        <div
+                            class="h-28 w-28 rounded-full bg-white ring-4 ring-white shadow-md border border-slate-200 overflow-hidden">
+                            <img src="{{ asset('img/shamandora.png') }}" class="h-full w-full object-contain p-3"
+                                alt="Shamandora" />
                         </div>
                     </div>
+
+                    <!-- Header -->
+                    <div class="text-center">
+                        <h1 class="text-2xl font-bold text-slate-900">
+                            التحاق جديد
+                        </h1>
+                        <p class="mt-2 text-sm text-slate-500">
+                            الجزء الأول: البيانات الدراسية
+                        </p>
+                    </div>
+
+                    <!-- Form -->
+                    <form id="regForm" method="POST" action="{{ route('person.liveform-insert') }}"
+                        class="mt-8 space-y-6" novalidate>
+                        @csrf
+
+                        <!-- السنة والمرحلة -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                السنة والمرحلة الدراسية <span class="text-rose-700">*</span>
+                            </label>
+                            <select required id="sana_marhala_id" name="sana_marhala_id"
+                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5
+                                focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="" disabled selected>اختر السنة والمرحلة الدراسية</option>
+                                @foreach ($seneen_marahel as $sana_marhala)
+                                    <option value="{{ $sana_marhala->SanaMarhalaID }}">
+                                        {{ $sana_marhala->SanaMarhalaName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="error hidden mt-1 text-sm text-rose-700">
+                                هذا الحقل مطلوب
+                            </p>
+                        </div>
+
+                        <!-- النوع -->
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                نوع الملتحق <span class="text-rose-700">*</span>
+                            </label>
+                            <select required id="gender" name="gender"
+                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5
+                                focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="" disabled selected>اختر النوع</option>
+                                <option value="Male">ذكر</option>
+                                <option value="Female">أنثى</option>
+                            </select>
+                            <p class="error hidden mt-1 text-sm text-rose-700">
+                                هذا الحقل مطلوب
+                            </p>
+                        </div>
+
+                        <!-- checkbox -->
+                        <div
+                            class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                            <label class="text-sm font-semibold text-slate-700">
+                                تقديم لمدرسة إعداد قادة؟
+                            </label>
+                            <input type="checkbox" name="newLeadersSchool"
+                                class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-200" />
+                        </div>
+
+                        <!-- Submit -->
+                        <button id="submitBtn" type="submit"
+                            class="w-full rounded-2xl bg-indigo-600 px-4 py-3 font-bold text-white
+                            shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400
+                            disabled:opacity-50 disabled:cursor-not-allowed">
+                            اضغط للاستمرار →
+                        </button>
+
+                        <!-- Footer -->
+                        <div class="pt-4 border-t border-slate-200 text-center">
+                            <p class="text-xs text-slate-500">© 2024 Shamandora Scout</p>
+                            <p class="text-sm font-bold text-indigo-700">
+                                مجموعة الشمندورة الكشفية
+                            </p>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+    </main>
 
-    </div>
-
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
+    <!-- ================= Live Validation ================= -->
     <script>
-        function validate(ElementId) {
-            const element = document.getElementById(ElementId);
-            if (element.value == '') {
-                //element.style.backgroundColor = '#C53939';
-                //element.style.color = '#FFFFFF';
-                document.getElementById('submit-button').disabled = true;
+        const form = document.getElementById('regForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const touched = new Set();
+
+        function showError(el, show) {
+            const wrapper = el.parentElement;
+            const msg = wrapper.querySelector('.error');
+
+            if (show) {
+                el.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.remove('border-slate-300');
+                if (msg) msg.classList.remove('hidden');
             } else {
-                //element.style.backgroundColor = 'White';
-                //element.style.color = '#1D43EC';
-                document.getElementById('submit-button').disabled = false;
+                el.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.add('border-slate-300');
+                if (msg) msg.classList.add('hidden');
             }
         }
-    </script>
 
+        function validateField(el) {
+            if (!touched.has(el.id)) return true;
+            const ok = el.value.trim() !== '';
+            showError(el, !ok);
+            return ok;
+        }
+
+        function validateAll() {
+            let ok = true;
+            document.querySelectorAll('.field[required]').forEach(el => {
+                if (!validateField(el)) ok = false;
+            });
+            submitBtn.disabled = !ok;
+            return ok;
+        }
+
+        form.addEventListener('blur', e => {
+            if (!e.target.classList.contains('field')) return;
+            touched.add(e.target.id);
+            validateField(e.target);
+            validateAll();
+        }, true);
+
+        form.addEventListener('change', e => {
+            if (!e.target.classList.contains('field')) return;
+            if (!touched.has(e.target.id)) return;
+            validateField(e.target);
+            validateAll();
+        });
+
+        form.addEventListener('submit', e => {
+            document.querySelectorAll('.field[required]').forEach(el => touched.add(el.id));
+            if (!validateAll()) {
+                e.preventDefault();
+                const firstError = document.querySelector('.ring-rose-200');
+                if (firstError) {
+                    firstError.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
+        });
+
+        submitBtn.disabled = true;
+    </script>
 </body>
 
 </html>

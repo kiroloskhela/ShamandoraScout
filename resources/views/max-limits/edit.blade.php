@@ -98,7 +98,7 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Summer 2024
+                Summer
             </div>
 
             <!-- Nav Item - Pages Collapse Menu -->
@@ -387,7 +387,7 @@
                                                 placeholder="اختار سنة الالتحاق">
                                                 <option
                                                     style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                    value="2024" selected>2024</option>
+                                                    value="2024" selected></option>
                                             </select>
 
                                         </div>

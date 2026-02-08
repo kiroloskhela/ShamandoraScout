@@ -15,6 +15,7 @@ use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+use Illuminate\Support\Facades\Storage;
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ use \Illuminate\Database\QueryException;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PersonNewController extends Controller
 {
@@ -228,10 +230,12 @@ public function ShowPersons(Request $request)
             ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'NewUsersInformation.SanaMarhalaID')
             ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformation.ManteqaID')
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
+
             ->get()->first();
             
             $questions = DB::table('NewUsersPersonEntryQuestions')
             ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'NewUsersPersonEntryQuestions.QuestionID')
+
             ->select('MarhalaEntryQuestions.QuestionText','NewUsersPersonEntryQuestions.Answer')
             ->where('NewUsersPersonEntryQuestions.PersonID', $id)->get();
 
@@ -273,7 +277,7 @@ public function ShowPersons(Request $request)
             $approvedInt = 1;
             DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt]);
             $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
-            return redirect()->route('person.new-enrolments-show-qetaa', $qetaa_id);
+            return redirect()->route('person.new-enrolments-index', $qetaa_id);
         }
 
 
@@ -448,126 +452,208 @@ public function ShowPersons(Request $request)
             //return $request->sana_marhala_id;
         }
 
+
+
+
+
+
+
+
+
         public function insertNewPersonLiveForm(Request $request)
         {
+            // ===== Upload diagnostics (helps if uploads fail again) =====
+            $logUploadState = function (Request $request, string $key) {
+                Log::info("[$key] upload state", [
+                    'content_type' => $request->header('Content-Type'),
+                    'all_files_keys' => array_keys($request->allFiles()),
+                    'hasFile' => $request->hasFile($key),
+                    'file_obj_class' => $request->file($key) ? get_class($request->file($key)) : null,
+                    'isValid' => $request->file($key) ? $request->file($key)->isValid() : null,
+                    'error' => $request->file($key) ? $request->file($key)->getError() : null,
+                    'errorMessage' => $request->file($key) ? $request->file($key)->getErrorMessage() : null,
+                    'clientName' => $request->file($key) ? $request->file($key)->getClientOriginalName() : null,
+                    'clientMime' => $request->file($key) ? $request->file($key)->getClientMimeType() : null,
+                    'mime' => $request->file($key) ? $request->file($key)->getMimeType() : null,
+                    'size' => $request->file($key) ? $request->file($key)->getSize() : null,
+                ]);
+            };
 
-            $raqamQawmyExistsObject = DB::selectOne('SELECT EXISTS(SELECT 1 FROM NewUsersInformation WHERE RaqamQawmy = :some_id) AS `exists`', ['some_id' => $request->input_raqam_qawmy]);
-              $raqamQawmyExists = $raqamQawmyExistsObject->exists; // 0 or 1
-              
-  
-              if($raqamQawmyExists)
-              {
-                  return view('person.person-already-exists');
-              }
-            
-            $lastPersonID = DB::table('NewUsersInformation')->orderBy('PersonID','desc')->first();
-            
-            if($lastPersonID==Null)
-                $thisPersonID = 1;
-            else
-                $thisPersonID = $lastPersonID->PersonID + 1;
-            
-            
-            $shamandoraCode="SH-";
+            Log::info("insertNewPersonLiveForm: request received", [
+                'ip' => $request->ip(),
+                'method' => $request->method(),
+                'content_type' => $request->header('Content-Type'),
+                'has_files' => count($request->allFiles()) > 0,
+                'files_keys' => array_keys($request->allFiles()),
+                'nid_len' => strlen((string) $request->input('input_raqam_qawmy')),
+                'phone_len' => strlen((string) $request->input('personal_phone_number')),
+            ]);
 
-            $shamandoraCodeNumberOfDigits = 5;
+            $logUploadState($request, 'profile_image');
+            $logUploadState($request, 'scout_uniform_image');
 
-            for ($i=0;$i<$shamandoraCodeNumberOfDigits-strlen((string)$thisPersonID);$i++)
-            {
-                $shamandoraCode = $shamandoraCode.'0';
+            // ===== Duplicate NID check =====
+            $raqam = $request->input('input_raqam_qawmy');
+            $existsObj = DB::selectOne(
+                'SELECT EXISTS(SELECT 1 FROM NewUsersInformation WHERE RaqamQawmy = :some_id) AS `exists`',
+                ['some_id' => $raqam]
+            );
+            $exists = (int) ($existsObj->exists ?? 0);
+
+            Log::info("insertNewPersonLiveForm: NID exists check", [
+                'nid_last4' => substr((string) $raqam, -4),
+                'exists' => $exists,
+            ]);
+
+            if ($exists) {
+                return view('person.person-already-exists');
             }
 
-            $shamandoraCode = $shamandoraCode. $thisPersonID;
-            
-            
-              
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-        $pass = array(); //remember to declare $pass as an array
-        $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-        for ($i = 0; $i < 8; $i++) {
-            $n = rand(0, $alphaLength);
-            $pass[] = $alphabet[$n];
-        }
-        $passString =  implode($pass); //turn the array into a string
+            // ===== Determine PersonID =====
+            $last = DB::table('NewUsersInformation')->orderBy('PersonID', 'desc')->first();
+            $thisPersonID = is_null($last) ? 1 : ((int) $last->PersonID + 1);
 
-        $QetaaName = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first()->QetaaName;
-        //return $QetaaName;
-        try{
+            // ===== ShamandoraCode =====
+            $shamandoraCode = "SH-" . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
 
-            $validatedData = $request->validate([
+            // ===== Password =====
+            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+            $pass = [];
+            $alphaLength = strlen($alphabet) - 1;
+            for ($i = 0; $i < 8; $i++) {
+                $n = rand(0, $alphaLength);
+                $pass[] = $alphabet[$n];
+            }
+            $passString = implode($pass);
+
+            // ===== QetaaName =====
+            $qetaaRow = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first();
+            $QetaaName = $qetaaRow ? $qetaaRow->QetaaName : null;
+
+            // ===== Validation (with logs) =====
+            $rules = [
                 'first_name' => 'required',
                 'second_name' => 'required',
                 'third_name' => 'required',
-                'gender'=>'required',
+                'gender' => 'required',
                 'birthdate_input' => 'required',
                 'joining_year_input' => 'required',
                 'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-                'blood_type_input'=>'required',
-                'personal_phone_number'=>'required|min_digits:11|max_digits:11',
-                'building_number'=>'required',
-                'floor_number'=>'required',
-                'appartment_number' =>'required',
+                'blood_type_input' => 'required',
+                'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+                'building_number' => 'required',
+                'floor_number' => 'required',
+                'appartment_number' => 'required',
                 'sub_street_name' => 'required',
-                'manteqa_id'=>'required',
-                'district_id'=>'required',
-              ]);
+                'manteqa_id' => 'required',
+                'district_id' => 'required',
 
-            DB::table('NewUsersInformation')->insert(
-                array(
-                    'PersonID'              => $thisPersonID,
-                    'ShamandoraCode'        => $shamandoraCode,
-                    'FirstName'             => $request->first_name,
-                    'SecondName'            => $request->second_name,
-                    'ThirdName'             => $request->third_name,
-                    'FourthName'            => $request->fourth_name,
-                    'Gender'                => $request->gender,
-                    'DateOfBirth'           => $request->birthdate_input,
-                    'RaqamQawmy'            => $request->input_raqam_qawmy,
-                    'ScoutJoiningYear'      => $request->joining_year_input,
-                    'BloodTypeID'           => $request->blood_type_input,
-                    'FacebookProfileURL'    => $request->inputFacebookLink,
-                    'InstagramProfileURL'   => $request->inputInstagramLink,
-                    'PersonalEmail'         => $request->email_input,
-                    'BuildingNumber'        => $request->building_number,
-                    'FloorNumber'           => $request->floor_number,
-                    'AppartmentNumber'      => $request->appartment_number,
-                    'MainStreetName'        => $request->main_street_name,
-                    'SubStreetName'         => $request->sub_street_name,
-                    'ManteqaID'             => $request->manteqa_id,
-                    'DistrictID'            => is_null($request->district_id)?1:$request->district_id,
-                    'NearestLandmark'       => $request->nearest_landmark,
-                    'SanaMarhalaID'         => $request->sana_marhala_id, 
-                    'SpiritualFatherName'   => $request->spiritual_father,
+                // images
+                'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+                'scout_uniform_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
+
+            if ($validator->fails()) {
+                Log::warning("insertNewPersonLiveForm: validation failed", [
+                    'errors' => $validator->errors()->toArray(),
+                    'files_keys' => array_keys($request->allFiles()),
+                ]);
+
+                return redirect()
+                    ->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            DB::beginTransaction();
+
+            try {
+                // ===== Store images first (so we can insert paths) =====
+                $personalImagePath = null;
+                $scoutImagePath = null;
+
+                if ($request->hasFile('profile_image')) {
+                    $personalImagePath = $request->file('profile_image')->store('person_images', 'public');
+                    Log::info("profile_image stored", [
+                        'PersonID' => $thisPersonID,
+                        'path' => $personalImagePath,
+                    ]);
+                }
+
+                if ($request->hasFile('scout_uniform_image')) {
+                    $scoutImagePath = $request->file('scout_uniform_image')->store('person_images', 'public');
+                    Log::info("scout_uniform_image stored", [
+                        'PersonID' => $thisPersonID,
+                        'path' => $scoutImagePath,
+                    ]);
+                }
+
+                // ===== Insert NewUsersInformation (WITH image paths) =====
+                DB::table('NewUsersInformation')->insert([
+                    'PersonID' => $thisPersonID,
+                    'ShamandoraCode' => $shamandoraCode,
+                    'FirstName' => $request->first_name,
+                    'SecondName' => $request->second_name,
+                    'ThirdName' => $request->third_name,
+                    'FourthName' => $request->fourth_name,
+                    'Gender' => $request->gender,
+                    'DateOfBirth' => $request->birthdate_input,
+                    'RaqamQawmy' => $request->input_raqam_qawmy,
+                    'ScoutJoiningYear' => $request->joining_year_input,
+                    'BloodTypeID' => $request->blood_type_input,
+                    'FacebookProfileURL' => $request->inputFacebookLink,
+                    'InstagramProfileURL' => $request->inputInstagramLink,
+                    'PersonalEmail' => $request->email_input,
+                    'BuildingNumber' => $request->building_number,
+                    'FloorNumber' => $request->floor_number,
+                    'AppartmentNumber' => $request->appartment_number,
+                    'MainStreetName' => $request->main_street_name,
+                    'SubStreetName' => $request->sub_street_name,
+                    'ManteqaID' => $request->manteqa_id,
+                    'DistrictID' => is_null($request->district_id) ? 1 : $request->district_id,
+                    'NearestLandmark' => $request->nearest_landmark,
+                    'SanaMarhalaID' => $request->sana_marhala_id,
+                    'SpiritualFatherName' => $request->spiritual_father,
                     'SpiritualFatherChurchName' => $request->spiritual_father_church,
-                    'Password'              => $passString, 
+                    'Password' => $passString,
                     'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                    'FatherMobileNumber'    => $request->father_phone_number,
-                    'MotherMobileNumber'    => $request->mother_phone_number,
-                    'HomePhoneNumber'       => $request->home_phone_number,
+                    'FatherMobileNumber' => $request->father_phone_number,
+                    'MotherMobileNumber' => $request->mother_phone_number,
+                    'HomePhoneNumber' => $request->home_phone_number,
                     'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-                    'SchoolName'            => $request->person_school,
-                    'SchoolGraduationYear'  => $request->school_grad_year,
-                    'QetaaID'               => $request->qetaa_id,
-                    'QetaaName'             => $QetaaName, 
-                    'FacultyID'             => $request->person_faculty,
-                    'UniversityID'          => $request->person_university,
+                    'SchoolName' => $request->person_school,
+                    'SchoolGraduationYear' => $request->school_grad_year,
+                    'QetaaID' => $request->qetaa_id,
+                    'QetaaName' => $QetaaName,
+                    'FacultyID' => $request->person_faculty,
+                    'UniversityID' => $request->person_university,
                     'UniversityGraduationYear' => $request->university_grad_year,
-                )
-            );
 
-        }
-        catch(Exception $e)
-        {
-            //return view('person.entry-error');
-            dd($e->getMessage());
-            DB::rollBack();
-            return view('person.entry-error-repeat-trial');
+                    // ✅ new columns
+                    'PersonalImagePath' => $personalImagePath,
+                    'ScoutImagePath' => $scoutImagePath,
+                ]);
+
+                DB::commit();
+
+                return redirect()->route('person.entry-questions-liveform', $thisPersonID);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+
+                Log::error("insertNewPersonLiveForm: exception", [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
+                throw $e;
+            }
         }
 
-            DB::commit();
 
-            return redirect()->route('person.entry-questions-liveform', $thisPersonID);
-        }
+
 
         public function getLiveformQuestions ($id)
         {

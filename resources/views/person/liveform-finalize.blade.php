@@ -1,98 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>كشافة الشمندورة - التحاق جديد</title>
 
-    <!-- Custom fonts for this template-->
-    <link href="../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-</style>
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
 </head>
 
-<body class="bg-gradient-primary">
+<body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
 
-    <div class="container">
+    <div class="w-full max-w-3xl">
 
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-sm-7">
-                    <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
-                    </div>
-                    <div class="col-sm-5">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">شكراً</h1>
-                            </div>
-                                
-                                <div class="text-center">
-                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> تم تقديم طلبكم بنجاح وسوف يتواصل معك أحد قادة القطاع قريباً جداً
-                                    </h2>
-                                </div>
-                                <hr>
+        <!-- Card -->
+        <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
 
-                                <div class="container my-auto">
-                                    <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout 2024</span>
-                                        <br />
-                                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة الكشفية</span>
-                                    </div>
-                                </div>
-                        </div>
+            <!-- Header -->
+            <div class="px-6 py-10 border-b border-slate-200 bg-slate-50 text-center">
+
+                <!-- Logo (ONLY HERE) -->
+                <img src="{{ asset('img/shamandora.png') }}" alt="Shamandora Logo"
+                    class="mx-auto h-24 w-24 object-contain mb-4" />
+
+                <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
+                    شكراً
+                </h1>
+                <p class="text-slate-500 mt-2">
+                    تم استلام طلب الالتحاق بنجاح
+                </p>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 md:p-8 text-center">
+
+                <div class="rounded-2xl bg-emerald-50 border border-emerald-200 p-5 text-emerald-900">
+                    <div class="font-bold text-lg mb-2">تم تقديم طلبكم بنجاح ✅</div>
+                    <div class="text-sm leading-relaxed">
+                        سوف يتواصل معك أحد قادة القطاع قريباً جداً.
                     </div>
                 </div>
+
+                <div class="my-6 h-px bg-slate-200"></div>
+
+                <!-- Footer -->
+                <div class="text-slate-600 text-sm">
+                    <div>Copyright &copy; Shamandora Scout 2024</div>
+                    <div class="mt-2 font-bold text-indigo-600 text-lg">
+                        مجموعة الشمندورة الكشفية
+                    </div>
+                </div>
+
+                <!-- Button -->
+                {{-- <div class="mt-6">
+                    <a href="{{ url('/') }}"
+                        class="inline-flex items-center justify-center rounded-2xl bg-rose-700 px-8 py-3 font-bold text-white shadow hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        الرجوع للرئيسية
+                    </a>
+                </div> --}}
+
             </div>
         </div>
-
     </div>
-
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../../vendor/jquery/jquery.min.js"></script>
-    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
-    <script>
-        function validate(ElementId) {
-            const element = document.getElementById(ElementId);
-            if(element.value=='') {
-                //element.style.backgroundColor = '#C53939';
-                //element.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-            }
-            else {
-                //element.style.backgroundColor = 'White';
-                //element.style.color = '#1D43EC';
-                document.getElementById('submit-button').disabled = false;
-            }
-        }
-    </script>
 
 </body>
 

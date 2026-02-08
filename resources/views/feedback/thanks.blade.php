@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,9 +16,9 @@
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+    </style>
     <!-- Custom styles for this template-->
     <link href="../css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
@@ -39,27 +38,29 @@
                 <!-- Nested Row within Card Body -->
                 <div class="row">
                     <div class="col-sm-7">
-                    <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
+                        <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
                     </div>
                     <div class="col-sm-5">
                         <div class="p-5">
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">شكراً</h1>
                             </div>
-                                
-                                <div class="text-center">
-                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> تم تقديم رأيكم بنجاح
-                                    </h2>
-                                </div>
-                                <hr>
 
-                                <div class="container my-auto">
-                                    <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout 2024</span>
-                                        <br />
-                                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة الكشفية</span>
-                                    </div>
+                            <div class="text-center">
+                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> تم تقديم
+                                    رأيكم بنجاح
+                                </h2>
+                            </div>
+                            <hr>
+
+                            <div class="container my-auto">
+                                <div class="copyright text-center my-auto">
+                                    <span>Copyright &copy; Shamandora Scout </span>
+                                    <br />
+                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
+                                        الكشفية</span>
                                 </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,12 +83,11 @@
     <script>
         function validate(ElementId) {
             const element = document.getElementById(ElementId);
-            if(element.value=='') {
+            if (element.value == '') {
                 //element.style.backgroundColor = '#C53939';
                 //element.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-            }
-            else {
+                document.getElementById('submit-button').disabled = true;
+            } else {
                 //element.style.backgroundColor = 'White';
                 //element.style.color = '#1D43EC';
                 document.getElementById('submit-button').disabled = false;

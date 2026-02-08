@@ -1,241 +1,262 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>كشافة الشمندورة - ادخال بيانات</title>
 
-    <!-- Custom fonts for this template-->
-    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 999px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af
+        }
+
+        input[type="text"],
+        select {
+            height: 50px;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left 0.75rem center;
+            background-size: 1.25rem;
+            padding-left: 2.5rem;
+            line-height: 50px;
+        }
+
+        select option {
+            text-align: right;
+            direction: rtl;
+        }
     </style>
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 </head>
 
-<body class="bg-gradient-primary">
-    <div class="container mt-4">
-        <div class="container">
-            <form class="user" id="regForm" method="POST" action="{{route('person.entry-questions-submit-liveform')}}">
-                @csrf
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="col">
-                            <div class="col-lg-12">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;">
-                                            استكمال بيانات ملتحق جديد</h1>
+<body class="min-h-screen bg-white py-8">
+
+    <div class="max-w-6xl mx-auto px-4">
+
+        <!-- Outer Card -->
+        <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
+
+            <!-- Header (Logo top middle + centered title/subtitle) -->
+            <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
+                <div class="flex flex-col items-center justify-center gap-4 text-center">
+                    <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
+
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
+                            استكمال بيانات جديد
+                        </h1>
+                        <p class="text-slate-500 mt-2">
+                            الحقول المطلوبة عليها علامة <span class="font-bold text-rose-700">**</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-10">
+
+                <form id="regForm" method="POST" action="{{ route('person.entry-questions-submit-liveform') }}"
+                    novalidate>
+                    @csrf
+
+                    <!-- IMPORTANT: use hidden inputs so values are sent -->
+                    <input type="hidden" name="person_id" id="person_id" value="{{ $person->PersonID }}">
+                    <input type="hidden" name="qetaa_id" id="qetaa_id" value="{{ $person->QetaaID }}">
+
+                    <!-- ============================ Info Section ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">بيانات الطلب</h2>
+                                <p class="text-slate-500 mt-1 text-sm">هذه البيانات للعرض فقط.</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                معلومات
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+
+                            <!-- Order number (readonly not disabled so it can be submitted if needed) -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الطلب</label>
+                                <input type="text" readonly value="{{ $person->PersonID }}"
+                                    class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                            </div>
+
+                            <!-- Sector name -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع</label>
+                                <input type="text" readonly value="{{ $person->QetaaName }}"
+                                    class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                            </div>
+
+                            <!-- Names -->
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 mb-3 text-center">الاسم</label>
+
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    <div class="md:col-span-3">
+                                        <input type="text" readonly value="{{ $person->FirstName }}"
+                                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
+                                            placeholder="الاسم الأول">
                                     </div>
 
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;">رقم الطلب</label>
-                                        <input dir="rtl" type="text" name="email_input" id="email_input"
-                                            class="form-control form-control-user"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            value="{{$person->PersonID}}" disabled>
+                                    <div class="md:col-span-3">
+                                        <input type="text" readonly value="{{ $person->SecondName }}"
+                                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
+                                            placeholder="الاسم الثاني">
                                     </div>
 
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;" hidden>ID</label>
-                                        <input dir="rtl" type="texy" name="person_id" id="person_id"
-                                            class="form-control form-control-user"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            value="{{$person->PersonID}}" hidden>
+                                    <div class="md:col-span-3">
+                                        <input type="text" readonly value="{{ $person->ThirdName }}"
+                                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
+                                            placeholder="الاسم الثالث">
                                     </div>
 
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;" hidden>ID</label>
-                                        <input dir="rtl" type="texy" name="qetaa_id" id="qetaa_id"
-                                            class="form-control form-control-user"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            value="{{$person->QetaaID}}" hidden>
-                                    </div>
-
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;">القطاع</label>
-                                        <input dir="rtl" type="text" name="email_input" id="email_input"
-                                            class="form-control form-control-user"
-                                            style="font-family: 'Cairo', sans-serif; font-size: large"
-                                            value="{{$person->QetaaName}}" disabled>
-                                    </div>
-                                    <br />
-
-                                    <div class="form-group text-center" dir="rtl">
-                                        <label class="text-center" for="email_input"
-                                            style="font-family: 'Cairo', sans-serif;text-align:center">الاسم</label>
-
-                                    </div>
-
-                                    <div class="form-group row" dir="rtl">
-                                        <div class="col-sm-3 mb-sm-0">
-                                            <input type="text" class="form-control form-control-user" name="first_name"
-                                                id="first_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الأول" disabled value="{{$person->FirstName}}">
+                                    @if ($person->FourthName != null)
+                                        <div class="md:col-span-3">
+                                            <input type="text" readonly value="{{ $person->FourthName }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
+                                                placeholder="الاسم الرابع">
                                         </div>
-
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="second_name"
-                                                id="second_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثاني" disabled value="{{$person->SecondName}}">
-                                        </div>
-
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="third_name"
-                                                id="third_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثالث" disabled value="{{$person->ThirdName}}">
-                                        </div>
-                                        @if($person->FourthName!=NULL)
-                                        <div class="col-sm-3">
-                                            <input type="text" class="form-control form-control-user" name="fourth_name"
-                                                id="fourth_name"
-                                                style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الرابع" disabled value="{{$person->FourthName}}">
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <br />
-                                    <h2 class="h4 mb-4"
-                                        style="font-family: 'Cairo', sans-serif; color: brown; text-align:center"> الجزء
-                                        الأخير: الأسئلة الخاصة بكل قطاع</h2>
-                                    <h3 class="h4 mb-4"
-                                        style="font-family: 'Cairo', sans-serif; color: rgb(65, 42, 165); text-align:center">
-                                        ملحوظة: الأسئلة التي يتبعها العلامة (**) هي أسئلة اجبارية يجب الاجابة عليها
-                                        لاستكمال طلب التسجيل بنجاح</h3>
-                                    @php
-                                    $noQuestionsFlag = true;
-                                    @endphp
-                                    @foreach($questions as $question)
-                                    @if($question->NotToBeShown==0)
-                                    {{$noQuestionsFlag = false;}}
-                                    @if($question->RequiredAnswerType=="MultipleChoice")
-                                    <div class="form-group">
-                                        <div style="text-align:right">
-                                            @if($question->IsRequired==1)
-                                            <label style="font-family: 'Cairo', sans-serif; color:brown">**</label>
-                                            @endif
-                                            <label
-                                                style="font-family: 'Cairo', sans-serif;">{{$question->QuestionText}}</label>
-                                            <br />
-                                        </div>
-                                        <select class="form-control col-sm-4"
-                                            style="margin-right: 20px;; text-align:right"
-                                            name="{{$question->QuestionID}}" id="{{$question->QuestionID}}">
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black; font-size: large; text-align:right"
-                                                value="" disabled selected>اختر من الاجابات المتاحة</option>
-                                            @foreach(explode('|',$question->MCAnswer) as $answer)
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black;; text-align:right"
-                                                value="{{$answer}}">{{$answer}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    @elseif($question->RequiredAnswerType=="OpenQuestion")
-                                    <div class="form-group">
-                                        <div style="text-align:right">
-                                            @if($question->IsRequired==1)
-                                            <label style="font-family: 'Cairo', sans-serif; color:brown">**</label>
-                                            @endif
-                                            <label
-                                                style="font-family: 'Cairo', sans-serif; text-align:right">{{$question->QuestionText}}</label>
-                                            <br />
-                                        </div>
-                                        <input type="text" class="form-control form-control-user; text-align:right"
-                                            name="{{$question->QuestionID}}" id="{{$question->QuestionID}}"
-                                            style="font-family: 'Cairo', sans-serif; font-size: medium; text-align:right"
-                                            placeholder="أدخل اجابة السؤال  هنا" value="">
-                                        <br />
-                                    </div>
-                                    @elseif($question->RequiredAnswerType=="TrueOrFalse")
-                                    <div class="form-group">
-                                        <div style="text-align:right">
-                                            @if($question->IsRequired==1)
-                                            <label style="font-family: 'Cairo', sans-serif; color:brown">**</label>
-                                            @endif
-                                            <label for="joindate"
-                                                style="font-family: 'Cairo', sans-serif;; text-align:right">{{$question->QuestionText}}</label>
-                                            <br />
-                                        </div>
-                                        <select class="form-control col-sm-4"
-                                            style="margin-right: 20px;; text-align:right"
-                                            name="{{$question->QuestionID}}" id="{{$question->QuestionID}}">
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black; font-size: large; text-align:right"
-                                                value="" disabled selected>اختر نعم أم لا</option>
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black;; text-align:right"
-                                                value="نعم">نعم</option>
-                                            <option
-                                                style="font-family: 'Cairo', sans-serif; color: black;; text-align:right"
-                                                value="لا">لا</option>
-                                        </select>
-                                    </div>
                                     @endif
-                                    @endif
-                                    <br />
-                                    @endforeach
-                                    @if($noQuestionsFlag==true)
-                                    <h2 class="text-center"
-                                        style="font-family: 'Cairo', sans-serif; text-align: center;">لا يوجد أسئلة
-                                        مختصة لهذا القطاع</h2>
-                                    @endif
-                                </div>
-                                <div class="p-5">
-                                    <input type="submit" class="btn-google btn-user btn-block"
-                                        style="background-color: brown; color: azure; font-weight: bolder;"
-                                        id="submit-button" value="تأكيد"></input>
                                 </div>
                             </div>
 
                         </div>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ Questions Section ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">الجزء الأخير: الأسئلة الخاصة بكل قطاع</h2>
+                                <p class="text-slate-500 mt-1 text-sm">أجب على الأسئلة التالية لاستكمال الطلب.</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-rose-50 text-rose-800 px-4 py-2 text-sm font-semibold border border-rose-200">
+                                أسئلة
+                            </span>
+                        </div>
+
+                        <div class="rounded-2xl bg-indigo-50 border border-indigo-200 p-4 text-indigo-900 mb-6">
+                            <div class="font-bold mb-1">ملحوظة</div>
+                            <div class="text-sm leading-relaxed">
+                                الأسئلة التي يتبعها العلامة <span class="font-bold">(**)</span> هي أسئلة إجبارية ويجب
+                                الإجابة عليها لاستكمال طلب التسجيل بنجاح.
+                            </div>
+                        </div>
+
+                        @php
+                            $noQuestionsFlag = true;
+                        @endphp
+
+                        <div class="space-y-6">
+                            @foreach ($questions as $question)
+                                @if ($question->NotToBeShown == 0)
+                                    @php $noQuestionsFlag = false; @endphp
+
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:p-5">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="font-semibold text-slate-900 leading-relaxed text-right">
+                                                @if ($question->IsRequired == 1)
+                                                    <span class="text-rose-700 font-bold ms-2">**</span>
+                                                @endif
+                                                {{ $question->QuestionText }}
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-4">
+
+                                            @if ($question->RequiredAnswerType == 'MultipleChoice')
+                                                <select name="{{ $question->QuestionID }}"
+                                                    id="{{ $question->QuestionID }}"
+                                                    class="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                    <option value="" disabled selected>اختر من الاجابات المتاحة
+                                                    </option>
+                                                    @foreach (explode('|', $question->MCAnswer) as $answer)
+                                                        <option value="{{ $answer }}">{{ $answer }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            @elseif($question->RequiredAnswerType == 'OpenQuestion')
+                                                <input type="text" name="{{ $question->QuestionID }}"
+                                                    id="{{ $question->QuestionID }}"
+                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    placeholder="أدخل إجابة السؤال هنا" value="">
+                                            @elseif($question->RequiredAnswerType == 'TrueOrFalse')
+                                                <select name="{{ $question->QuestionID }}"
+                                                    id="{{ $question->QuestionID }}"
+                                                    class="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                    <option value="" disabled selected>اختر نعم أم لا</option>
+                                                    <option value="نعم">نعم</option>
+                                                    <option value="لا">لا</option>
+                                                </select>
+                                            @endif
+
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+
+                        @if ($noQuestionsFlag == true)
+                            <div
+                                class="mt-6 rounded-2xl bg-amber-50 border border-amber-200 p-5 text-amber-900 text-center">
+                                لا يوجد أسئلة مختصة لهذا القطاع
+                            </div>
+                        @endif
+
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- Submit -->
+                    <div class="flex justify-end">
+                        <button type="submit" id="submit-button"
+                            class="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-700 px-10 py-3.5 font-bold text-white shadow hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                            <span>تأكيد</span>
+                            <span>✓</span>
+                        </button>
                     </div>
 
-                </div>
+                </form>
+
+            </div>
         </div>
     </div>
-    </div>
-    </form>
-    </div>
-    </div>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
-    <!-- Parsley Javascript Validation Form Library -->
-    <script src="jquery.js"></script>
-    <script src="parsley.min.js"></script>
 
 </body>
 
