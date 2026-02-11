@@ -254,6 +254,165 @@
 
                     <div class="my-8 h-px bg-slate-200"></div>
 
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ NEW SECTION: Allergy ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">قسم الحساسية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">اكتب الحساسية إن وُجدت (افصل بين العناصر
+                                    بفاصلة).</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                صحي
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <!-- Food Allergy (Dropdown + Other text) -->
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    حساسية من طعام (إن وُجد)
+                                </label>
+
+                                <select id="allergy_food_select"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="" selected>لا يوجد / اختر...</option>
+                                    <option value="بقوليات (فول)">بقوليات (فول)</option>
+                                    <option value="لبن">لبن</option>
+                                    <option value="سمك">سمك</option>
+                                    <option value="فراولة">فراولة</option>
+                                    <option value="أخرى">أخرى</option>
+                                </select>
+
+                                <!-- shown only if "أخرى" -->
+                                <div id="allergy_food_other_wrap" class="hidden mt-3">
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اكتب نوع
+                                        الاكل</label>
+                                    <input id="allergy_food_other" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                        placeholder="مثال: موز">
+                                    <p class="mt-2 text-xs text-slate-500">سيتم حفظه ضمن حساسية الطعام.</p>
+                                </div>
+
+                                <!-- this is what gets submitted to backend -->
+                                <input type="hidden" id="allergy_food" name="allergy_food" value="">
+                            </div>
+
+                            <script>
+                                (function() {
+                                    const select = document.getElementById('allergy_food_select');
+                                    const otherWrap = document.getElementById('allergy_food_other_wrap');
+                                    const otherInput = document.getElementById('allergy_food_other');
+                                    const hidden = document.getElementById('allergy_food');
+
+                                    function syncFoodAllergy() {
+                                        const v = (select.value || '').trim();
+
+                                        if (!v) {
+                                            hidden.value = '';
+                                            otherWrap.classList.add('hidden');
+                                            otherInput.value = '';
+                                            return;
+                                        }
+
+                                        if (v === 'أخرى') {
+                                            otherWrap.classList.remove('hidden');
+                                            hidden.value = (otherInput.value || '').trim(); // store what user types
+                                        } else {
+                                            otherWrap.classList.add('hidden');
+                                            otherInput.value = '';
+                                            hidden.value = v;
+                                        }
+                                    }
+
+                                    // init + events
+                                    select.addEventListener('change', syncFoodAllergy);
+                                    otherInput.addEventListener('input', syncFoodAllergy);
+
+                                    syncFoodAllergy();
+                                })();
+                            </script>
+
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">
+                                    حساسية من دواء (إن وُجد)
+                                </label>
+                                <input id="allergy_medicine" name="allergy_medicine" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="مثال: بنسلين">
+                                <p class="mt-2 text-xs text-slate-500">يمكنك كتابة أكثر من دواء مفصول بفاصلة.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
+                    <!-- ============================ NEW SECTION: Medical History ============================ -->
+                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">قسم التاريخ المرضي</h2>
+                                <p class="text-slate-500 mt-1 text-sm">اختياري — يساعدنا في الحالات الطارئة.</p>
+                            </div>
+                            <span
+                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
+                                صحي
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">أمراض مزمنة / تشخيص (إن
+                                    وُجد)</label>
+                                <input id="medical_diseases" name="medical_diseases" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="مثال: ربو، سكر، ضغط">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">الأدوية الحالية (إن
+                                    وُجد)</label>
+                                <input id="medical_medications" name="medical_medications" type="text"
+                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="مثال: بخاخ، أنسولين">
+                            </div>
+
+                            <div class="md:col-span-12">
+                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                        <div>
+                                            <label
+                                                class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                                <input id="has_emergency_case" name="has_emergency_case"
+                                                    type="checkbox" value="1"
+                                                    class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                                هل يوجد حالات طوارئ سابقة؟
+                                            </label>
+                                            <p class="text-xs text-slate-500 mt-1">مثل: حساسية شديدة، إغماء، دخول
+                                                مستشفى…</p>
+                                        </div>
+
+                                        <div class="w-full md:w-2/3">
+                                            <input id="emergency_details" name="emergency_details" type="text"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                placeholder="اكتب تفاصيل الحالة (إذا نعم)">
+                                            <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-700">
+                                                من فضلك اكتب تفاصيل الحالة لأنك اخترت "نعم"
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <div class="my-8 h-px bg-slate-200"></div>
+
                     <!-- ============================ Section 2 ============================ -->
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
@@ -431,6 +590,9 @@
 
                     <div class="my-8 h-px bg-slate-200"></div>
 
+
+
+
                     <!-- ============================ Section 3 ============================ -->
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
@@ -578,7 +740,7 @@
                                         <div class="flex-1 min-w-0">
                                             <input type="file" name="profile_image"
                                                 accept="image/jpeg,image/png,image/webp" class="hidden" data-file
-                                                data-error-key="profile_image">
+                                                data-error-key="profile_image" data-max-size="5242880">
 
                                             <div class="flex flex-col gap-2">
                                                 <button type="button" data-pick
@@ -628,7 +790,7 @@
                                         <div class="flex-1 min-w-0">
                                             <input type="file" name="scout_uniform_image"
                                                 accept="image/jpeg,image/png,image/webp" class="hidden" data-file
-                                                data-error-key="scout_uniform_image">
+                                                data-error-key="scout_uniform_image" data-max-size="5242880">
 
                                             <div class="flex flex-col gap-2">
                                                 <button type="button" data-pick
@@ -707,6 +869,7 @@
         </div>
     </div>
 
+
     <script>
         const form = document.getElementById('regForm2');
         const submitBtn = document.getElementById('submitBtn');
@@ -715,17 +878,15 @@
         const touchedFields = new Set();
 
         function onlyDigits(value) {
-            // ✅ IMPORTANT: must be /\D/g not /\\D/g
             return (value || '').replace(/\D/g, '');
         }
 
         function normalizeEmail(value) {
             return (value || '')
                 .trim()
-                .replace(/[\u200E\u200F\u061C\u202A-\u202E]/g, ''); // safe in RTL
+                .replace(/[\u200E\u200F\u061C\u202A-\u202E]/g, '');
         }
 
-        // ✅ Better email regex (still simple and works with your examples)
         function isValidEmail(email) {
             return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
         }
@@ -797,7 +958,6 @@
             return ok;
         }
 
-        // ✅ ONLY ONE function now (no duplicates)
         function validateEmailField(el) {
             const cleaned = normalizeEmail(el.value);
             el.value = cleaned;
@@ -838,8 +998,49 @@
                 if (!validateEmailField(emailField)) ok = false;
             }
 
+            // Emergency details validation (if section exists)
+            if (!validateEmergencyDetails()) ok = false;
+
             submitBtn.disabled = !ok;
             return ok;
+        }
+
+        // ================= Emergency details logic =================
+        const emergencyCheckbox = document.getElementById('has_emergency_case');
+        const emergencyDetails = document.getElementById('emergency_details');
+        const emergencyDetailsError = document.getElementById('emergency_details_error');
+
+        function validateEmergencyDetails() {
+            if (!emergencyCheckbox || !emergencyDetails) return true;
+
+            const needs = emergencyCheckbox.checked;
+            const val = (emergencyDetails.value || '').trim();
+
+            if (needs && !val) {
+                if (emergencyDetailsError) emergencyDetailsError.classList.remove('hidden');
+                emergencyDetails.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                emergencyDetails.classList.remove('border-slate-300');
+                return false;
+            } else {
+                if (emergencyDetailsError) emergencyDetailsError.classList.add('hidden');
+                emergencyDetails.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+                emergencyDetails.classList.add('border-slate-300');
+                return true;
+            }
+        }
+
+        if (emergencyCheckbox && emergencyDetails) {
+            emergencyCheckbox.addEventListener('change', () => {
+                touchedFields.add('emergency_details'); // so it shows error properly
+                validateEmergencyDetails();
+                validateAll();
+            });
+
+            emergencyDetails.addEventListener('input', () => {
+                touchedFields.add('emergency_details');
+                validateEmergencyDetails();
+                validateAll();
+            });
         }
 
         // blur: mark touched + validate
@@ -863,38 +1064,14 @@
                 if (el.value.trim()) validateNID(el);
             } else if (el.id === 'email_input') {
                 validateEmailField(el);
+            } else {
+                validateField(el);
             }
+
             validateAll();
         });
 
-        // submit: validate all
-        form.addEventListener('submit', (e) => {
-            const allFields = form.querySelectorAll('.field[required], .field-email');
-            allFields.forEach(el => touchedFields.add(el.id));
-
-            let ok = true;
-            const requiredFields = form.querySelectorAll('.field[required]');
-            requiredFields.forEach(el => {
-                if (!validateField(el)) ok = false;
-            });
-
-            const emailField = document.getElementById('email_input');
-            if (emailField && emailField.value.trim() && !validateEmailField(emailField)) ok = false;
-
-            if (!ok) {
-                e.preventDefault();
-                const firstInvalid = form.querySelector('.ring-rose-200');
-                if (firstInvalid) firstInvalid.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
-            }
-        });
-
-        // Initial state
-        submitBtn.disabled = false;
-
-        // ================= PHOTO UPLOAD + PREVIEW (no ids) =================
+        // ================= PHOTO UPLOAD + PREVIEW (max 5MB) =================
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 بايت';
             const k = 1024;
@@ -938,7 +1115,7 @@
 
             const file = input.files[0];
             const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-            const maxSize = 5 * 1024 * 1024;
+            const maxSize = parseInt(input.getAttribute('data-max-size') || (5 * 1024 * 1024), 10);
 
             if (!allowedTypes.includes(file.type)) {
                 if (err) {
@@ -970,6 +1147,27 @@
             if (placeholder) placeholder.classList.add('hidden');
         }
 
+        function validateFilesBeforeSubmit() {
+            let ok = true;
+
+            document.querySelectorAll('[data-upload]').forEach(root => {
+                const input = root.querySelector('input[data-file]');
+                if (!input || !input.files || !input.files[0]) return;
+
+                const file = input.files[0];
+                const maxSize = parseInt(input.getAttribute('data-max-size') || (5 * 1024 * 1024), 10);
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+                // If invalid, force UI to show message + clear file
+                if (!allowedTypes.includes(file.type) || file.size > maxSize) {
+                    setPreview(root); // this will reset + show the correct message
+                    ok = false;
+                }
+            });
+
+            return ok;
+        }
+
         document.querySelectorAll('[data-upload]').forEach(root => {
             const pickBtn = root.querySelector('[data-pick]');
             const input = root.querySelector('input[data-file]');
@@ -979,7 +1177,40 @@
             pickBtn.addEventListener('click', () => input.click());
             input.addEventListener('change', () => setPreview(root));
         });
+
+        // submit: validate all + emergency + files
+        form.addEventListener('submit', (e) => {
+            const allFields = form.querySelectorAll('.field[required], .field-email');
+            allFields.forEach(el => touchedFields.add(el.id));
+
+            let ok = true;
+
+            const requiredFields = form.querySelectorAll('.field[required]');
+            requiredFields.forEach(el => {
+                if (!validateField(el)) ok = false;
+            });
+
+            const emailField = document.getElementById('email_input');
+            if (emailField && emailField.value.trim() && !validateEmailField(emailField)) ok = false;
+
+            if (!validateEmergencyDetails()) ok = false;
+            if (!validateFilesBeforeSubmit()) ok = false;
+
+            if (!ok) {
+                e.preventDefault();
+                const firstInvalid = form.querySelector('.ring-rose-200');
+                if (firstInvalid) firstInvalid.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        });
+
+        // Initial state
+        submitBtn.disabled = false;
     </script>
+
+
 
 </body>
 

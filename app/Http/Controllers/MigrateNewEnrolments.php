@@ -13,176 +13,216 @@ use Throwable;
 
 class MigrateNewEnrolments extends Controller
 {
-    public function migrate($qetaaID)
-    {
-        $personsBeforeMigration = DB::select("  SELECT      NewUsersInformation.*, 
-                                                                GROUP_CONCAT(CONCAT(NewUsersPersonEntryQuestions.QuestionID, ':', NewUsersPersonEntryQuestions.Answer) SEPARATOR ', ') AS AnsweredQuestions
-                                                FROM        NewUsersInformation
-                                                JOIN        NewUsersPersonEntryQuestions ON NewUsersInformation.PersonID = NewUsersPersonEntryQuestions.PersonID
-                                                WHERE       IsApproved = 1 AND NewUsersInformation.QetaaID = ?
-                                                GROUP BY    NewUsersInformation.PersonID
-                                                ", [$qetaaID]);
-        
-         foreach($personsBeforeMigration as $person)
-         {
-        
-        try{
+ public function migrate($qetaaID)
+{
+    $personsBeforeMigration = DB::select("
+        SELECT  NewUsersInformation.*,
+                GROUP_CONCAT(CONCAT(NewUsersPersonEntryQuestions.QuestionID, ':', NewUsersPersonEntryQuestions.Answer) SEPARATOR ', ') AS AnsweredQuestions
+        FROM    NewUsersInformation
+        JOIN    NewUsersPersonEntryQuestions ON NewUsersInformation.PersonID = NewUsersPersonEntryQuestions.PersonID
+        WHERE   IsApproved = 1 AND NewUsersInformation.QetaaID = ?
+        GROUP BY NewUsersInformation.PersonID
+    ", [$qetaaID]);
 
-                $questionsAnswersPairs = explode(', ', $person->AnsweredQuestions);
+    // helper: split comma / Arabic comma / semicolon / new lines into clean unique array
+    $splitList = function ($value) {
+        if ($value === null) return [];
+        $value = trim((string)$value);
+        if ($value === '') return [];
 
-                $lastPersonID = DB::table('PersonInformation')->orderBy('PersonID','desc')->first();
-                    
-                if($lastPersonID==Null)
-                    $thisPersonID = 1;
-                else
-                    $thisPersonID = $lastPersonID->PersonID + 1;
-                
-                $shamandoraCode="SH-";
+        $value = str_replace(["\r\n", "\n", "،", ";"], ",", $value);
+        $parts = array_filter(array_map('trim', explode(',', $value)), fn($x) => $x !== '');
+        $parts = array_values(array_unique($parts));
+        return $parts;
+    };
 
-                $shamandoraCodeNumberOfDigits = 5;
+    foreach ($personsBeforeMigration as $person) {
 
-                for ($i=0;$i<$shamandoraCodeNumberOfDigits-strlen((string)$thisPersonID);$i++)
-                {
-                    $shamandoraCode = $shamandoraCode.'0';
-                }
+        try {
+            $questionsAnswersPairs = $person->AnsweredQuestions ? explode(', ', $person->AnsweredQuestions) : [];
 
-                $shamandoraCode = $shamandoraCode. $thisPersonID;
-                
-                $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-                $pass = array();
-                $alphaLength = strlen($alphabet) - 1;
-                for ($i = 0; $i < 8; $i++) {
-                    $n = rand(0, $alphaLength);
-                    $pass[] = $alphabet[$n];
-                }
-                $passString =  implode($pass);
-            
-                DB::beginTransaction();
+            $lastPersonID = DB::table('PersonInformation')->orderBy('PersonID', 'desc')->first();
+            $thisPersonID = is_null($lastPersonID) ? 1 : ((int)$lastPersonID->PersonID + 1);
 
-                DB::table('PersonInformation')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'ShamandoraCode'=>$shamandoraCode,
-                        'FirstName' => $person->FirstName,
-                        'SecondName' => $person->SecondName,
-                        'ThirdName'   => $person->ThirdName,
-                        'FourthName' => $person->FourthName,
-                        'Gender' => $person->Gender,
-                        'DateOfBirth' => $person->DateOfBirth,
-                        'RaqamQawmy' => $person->RaqamQawmy,
-                        'ScoutJoiningYear'  => $person->ScoutJoiningYear,
-                        'BloodTypeID' => $person->BloodTypeID,
-                        'FacebookProfileURL' =>$person->FacebookProfileURL,
-                        'InstagramProfileURL' =>$person->InstagramProfileURL,
-                        'PersonalEmail' => $person->PersonalEmail,
-                        'RequestPersonID' => 0,
-                    )
-                );
+            $shamandoraCode = "SH-";
+            $shamandoraCodeNumberOfDigits = 5;
+            for ($i = 0; $i < $shamandoraCodeNumberOfDigits - strlen((string)$thisPersonID); $i++) {
+                $shamandoraCode .= '0';
+            }
+            $shamandoraCode .= $thisPersonID;
 
+            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+            $pass = [];
+            $alphaLength = strlen($alphabet) - 1;
+            for ($i = 0; $i < 8; $i++) {
+                $n = rand(0, $alphaLength);
+                $pass[] = $alphabet[$n];
+            }
+            $passString = implode($pass);
 
-                DB::table('PersonPhoneNumbers')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'PersonPersonalMobileNumber' => $person->PersonPersonalMobileNumber,
-                        'FatherMobileNumber' => $person->FatherMobileNumber,
-                        'MotherMobileNumber'   => $person->MotherMobileNumber,
-                        'HomePhoneNumber' => $person->HomePhoneNumber,
-                        'IsOPersonalPhoneNumberHavingWhatsapp' => $person->IsOPersonalPhoneNumberHavingWhatsapp,
-                    )
-                );
+            DB::beginTransaction();
 
-                DB::table('PersonLearningInformation')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'SchoolName'=>$person->SchoolName,
-                        'SchoolGraduationYear'=>$person->SchoolGraduationYear,
-                    )
-                );
+            // ================== Person tables ==================
+            DB::table('PersonInformation')->insert([
+                'PersonID' => $thisPersonID,
+                'ShamandoraCode' => $shamandoraCode,
+                'FirstName' => $person->FirstName,
+                'SecondName' => $person->SecondName,
+                'ThirdName' => $person->ThirdName,
+                'FourthName' => $person->FourthName,
+                'Gender' => $person->Gender,
+                'DateOfBirth' => $person->DateOfBirth,
+                'RaqamQawmy' => $person->RaqamQawmy,
+                'ScoutJoiningYear' => $person->ScoutJoiningYear,
+                'BloodTypeID' => $person->BloodTypeID,
+                'FacebookProfileURL' => $person->FacebookProfileURL,
+                'InstagramProfileURL' => $person->InstagramProfileURL,
+                'PersonalEmail' => $person->PersonalEmail,
+                'RequestPersonID' => 0,
+            ]);
 
-                DB::table('PersonQetaa')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'QetaaID'=>$person->QetaaID
-                    )
-                );
+            DB::table('PersonPhoneNumbers')->insert([
+                'PersonID' => $thisPersonID,
+                'PersonPersonalMobileNumber' => $person->PersonPersonalMobileNumber,
+                'FatherMobileNumber' => $person->FatherMobileNumber,
+                'MotherMobileNumber' => $person->MotherMobileNumber,
+                'HomePhoneNumber' => $person->HomePhoneNumber,
+                'IsOPersonalPhoneNumberHavingWhatsapp' => $person->IsOPersonalPhoneNumberHavingWhatsapp,
+            ]);
 
-                DB::table('PersonSanaMarhala')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'SanaMarhalaID'=>$person->SanaMarhalaID
-                    )
-                );
+            DB::table('PersonLearningInformation')->insert([
+                'PersonID' => $thisPersonID,
+                'SchoolName' => $person->SchoolName,
+                'SchoolGraduationYear' => $person->SchoolGraduationYear,
+            ]);
 
-                DB::table('PersonSpiritualFatherInformation')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'SpiritualFatherName'=>$person->SpiritualFatherName,
-                        'SpiritualFatherChurchName'=>$person->SpiritualFatherChurchName
-                    )
-                );
+            DB::table('PersonQetaa')->insert([
+                'PersonID' => $thisPersonID,
+                'QetaaID' => $person->QetaaID
+            ]);
 
-                DB::table('PersonSystemPassword')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'Password'=>$passString 
-                    )
-                );
+            DB::table('PersonSanaMarhala')->insert([
+                'PersonID' => $thisPersonID,
+                'SanaMarhalaID' => $person->SanaMarhalaID
+            ]);
 
-                    DB::table('PersonImages')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'PersonSystemImagePath'=>$person->PersonalImagePath,
-                        'ScoutOfficialUniformImagePath'=>$person->ScoutImagePath
-                    )
-                );
+            DB::table('PersonSpiritualFatherInformation')->insert([
+                'PersonID' => $thisPersonID,
+                'SpiritualFatherName' => $person->SpiritualFatherName,
+                'SpiritualFatherChurchName' => $person->SpiritualFatherChurchName
+            ]);
 
-                DB::table('PersonalPhysicalAddress')->insert(
-                    array(
-                        'PersonID'=>$thisPersonID,
-                        'BuildingNumber'=>$person->BuildingNumber,
-                        'FloorNumber'=>$person->FloorNumber,
-                        'AppartmentNumber'=>$person->AppartmentNumber,
-                        'MainStreetName'=>$person->MainStreetName,
-                        'SubStreetName'=>$person->SubStreetName,
-                        'ManteqaID'=>$person->ManteqaID,
-                        'DistrictID'=>is_null($person->DistrictID)?1:$person->DistrictID,
-                        'NearestLandmark'=>$person->NearestLandmark
-                    )
-                );
+            DB::table('PersonSystemPassword')->insert([
+                'PersonID' => $thisPersonID,
+                'Password' => $passString
+            ]);
 
-                
-                
-                foreach($questionsAnswersPairs as $pair)
-                    {
-                        //return $pair;
-                        list($questionID, $answer) = explode(':', $pair);
+            DB::table('PersonImages')->insert([
+                'PersonID' => $thisPersonID,
+                'PersonSystemImagePath' => $person->PersonalImagePath,
+                'ScoutOfficialUniformImagePath' => $person->ScoutImagePath
+            ]);
 
-                        DB::table('PersonEntryQuestions')->insert(
-                            array(
-                                'PersonID' => $thisPersonID,
-                                'QuestionID' => $questionID,
-                                'Answer' => $answer
-                            )
-                        );
+            DB::table('PersonalPhysicalAddress')->insert([
+                'PersonID' => $thisPersonID,
+                'BuildingNumber' => $person->BuildingNumber,
+                'FloorNumber' => $person->FloorNumber,
+                'AppartmentNumber' => $person->AppartmentNumber,
+                'MainStreetName' => $person->MainStreetName,
+                'SubStreetName' => $person->SubStreetName,
+                'ManteqaID' => $person->ManteqaID,
+                'DistrictID' => is_null($person->DistrictID) ? 1 : $person->DistrictID,
+                'NearestLandmark' => $person->NearestLandmark
+            ]);
 
-                        DB::table('NewUsersPersonEntryQuestions')->where('PersonID',$person->PersonID)->where('QuestionID',$questionID)->delete();
-                    }
+            // ================== NEW: Allergies ==================
+            // expects NewUsersInformation columns: AllergyFood, AllergyMedicine
+            $foodAllergies = $splitList($person->AllergyFood ?? null);
+            foreach ($foodAllergies as $a) {
+                DB::table('PeopleAllergies')->insert([
+                    'PersonID' => $thisPersonID,
+                    'AllergyType' => 'Food',
+                    'AllergyName' => $a,
+                ]);
+            }
 
-            DB::table('NewUsersInformation')->where('PersonID',$person->PersonID)->delete();
-            
+            $medAllergies = $splitList($person->AllergyMedicine ?? null);
+            foreach ($medAllergies as $a) {
+                DB::table('PeopleAllergies')->insert([
+                    'PersonID' => $thisPersonID,
+                    'AllergyType' => 'Medicine',
+                    'AllergyName' => $a,
+                ]);
+            }
+
+            // ================== NEW: Medical History ==================
+            // expects NewUsersInformation columns: MedicalDiseases, MedicalMedications, HasEmergencyCase, EmergencyDetails
+            $diseases = $splitList($person->MedicalDiseases ?? null);
+            $medications = $splitList($person->MedicalMedications ?? null);
+
+            // Make pairs if possible; otherwise store what exists.
+            $max = max(count($diseases), count($medications), 1);
+
+            $hasEmergency = (int)($person->HasEmergencyCase ?? 0);
+            $emergencyDetails = $hasEmergency ? ($person->EmergencyDetails ?? null) : null;
+
+            for ($i = 0; $i < $max; $i++) {
+                $d = $diseases[$i] ?? null;
+                $m = $medications[$i] ?? null;
+
+                // If both null, skip (unless you want a single "emergency-only" row)
+                if ($d === null && $m === null) continue;
+
+                DB::table('PeopleMedicalHistory')->insert([
+                    'PersonID' => $thisPersonID,
+                    'Disease' => $d ?? 'غير محدد',
+                    'Medication' => $m,
+                    'HasEmergencyCase' => $hasEmergency,
+                    'EmergencyDetails' => $emergencyDetails,
+                ]);
+            }
+
+            // If user has emergency but no disease/medication, still store 1 row
+            if ($hasEmergency === 1 && count($diseases) === 0 && count($medications) === 0) {
+                DB::table('PeopleMedicalHistory')->insert([
+                    'PersonID' => $thisPersonID,
+                    'Disease' => 'غير محدد',
+                    'Medication' => null,
+                    'HasEmergencyCase' => 1,
+                    'EmergencyDetails' => $emergencyDetails,
+                ]);
+            }
+
+            // ================== Entry Questions migration ==================
+            foreach ($questionsAnswersPairs as $pair) {
+                if (strpos($pair, ':') === false) continue;
+
+                [$questionID, $answer] = explode(':', $pair, 2);
+
+                DB::table('PersonEntryQuestions')->insert([
+                    'PersonID' => $thisPersonID,
+                    'QuestionID' => $questionID,
+                    'Answer' => $answer
+                ]);
+
+                DB::table('NewUsersPersonEntryQuestions')
+                    ->where('PersonID', $person->PersonID)
+                    ->where('QuestionID', $questionID)
+                    ->delete();
+            }
+
+            // delete new user row after everything migrated
+            DB::table('NewUsersInformation')->where('PersonID', $person->PersonID)->delete();
+
             DB::commit();
-            
-        }
-        catch(Throwable $e)
-        {
-            dd($e->getMessage());
+        } catch (Throwable $e) {
             DB::rollBack();
+            dd($e->getMessage());
             return view('person.entry-error');
         }
+    }
 
-        
-    }
-    
-        return view('person.migrate-new-enrolments-status');    
-    }
+    return view('person.migrate-new-enrolments-status');
+}
+
 }
