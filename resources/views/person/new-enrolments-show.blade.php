@@ -73,6 +73,7 @@
             <div class="p-6 md:p-10 space-y-8">
 
                 <!-- ===================== Section 1: Personal ===================== -->
+                {{-- ===================== Section 1: Personal ===================== --}}
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                     <div class="flex items-start justify-between gap-4 mb-5">
                         <div>
@@ -101,7 +102,6 @@
                                 return $p;
                             }
 
-                            // مسارات public مباشرة
                             if (
                                 str_starts_with($p, 'storage/') ||
                                 str_starts_with($p, 'uploads/') ||
@@ -110,15 +110,42 @@
                                 return asset($p);
                             }
 
-                            // نفترض إنه داخل storage/app/public ومخزن بدون "storage/"
                             return asset('storage/' . ltrim($p, '/'));
                         };
 
                         $personalUrl = $buildImgUrl($personalPath);
                         $scoutUrl = $buildImgUrl($scoutPath);
+
+                        // ==== NEW: Allergy / Medical history values ====
+                        $allergyFood = trim((string) ($person->AllergyFood ?? ($person->allergy_food ?? '')));
+                        $allergyMedicine = trim(
+                            (string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? '')),
+                        );
+                        $medicalDiseases = trim(
+                            (string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? '')),
+                        );
+                        $medicalMedications = trim(
+                            (string) ($person->MedicalMedications ?? ($person->medical_medications ?? '')),
+                        );
+                        $hasEmergency = $person->HasEmergencyCase ?? ($person->has_emergency_case ?? null);
+                        $emergencyDetailsVal = trim(
+                            (string) ($person->EmergencyDetails ?? ($person->emergency_details ?? '')),
+                        );
+
+                        $hasAllergy = $allergyFood !== '' || $allergyMedicine !== '';
+                        $hasMedical =
+                            $medicalDiseases !== '' ||
+                            $medicalMedications !== '' ||
+                            $hasEmergency == 1 ||
+                            $hasEmergency === true ||
+                            $hasEmergency === '1';
+
+                        $yesNo = function ($v) {
+                            return $v == 1 || $v === true || $v === '1' || $v === 'True' ? 'نعم' : 'لا';
+                        };
                     @endphp
 
-                    <!-- ✅ Photos INSIDE Section 1 -->
+                    {{-- ✅ Photos INSIDE Section 1 --}}
                     @if ($personalUrl || $scoutUrl)
                         <div class="mb-6">
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
@@ -157,8 +184,88 @@
                         </div>
                     @endif
 
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    {{-- ✅ NEW: Allergy + Medical History (show only if found) --}}
+                    @if ($hasAllergy)
+                        <div class="mb-6">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <div class="flex items-center justify-between gap-3 mb-4">
+                                    <div class="font-bold text-slate-800">قسم الحساسية</div>
+                                    <div class="text-xs text-slate-500">يظهر فقط عند وجود بيانات</div>
+                                </div>
 
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    @if ($allergyFood !== '')
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">حساسية من
+                                                طعام</label>
+                                            <input type="text" readonly value="{{ $allergyFood }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+
+                                    @if ($allergyMedicine !== '')
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">حساسية من
+                                                دواء</label>
+                                            <input type="text" readonly value="{{ $allergyMedicine }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($hasMedical)
+                        <div class="mb-6">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                                <div class="flex items-center justify-between gap-3 mb-4">
+                                    <div class="font-bold text-slate-800">قسم التاريخ المرضي</div>
+                                    <div class="text-xs text-slate-500">يظهر فقط عند وجود بيانات</div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    @if ($medicalDiseases !== '')
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">أمراض مزمنة /
+                                                تشخيص</label>
+                                            <input type="text" readonly value="{{ $medicalDiseases }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+
+                                    @if ($medicalMedications !== '')
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">الأدوية
+                                                الحالية</label>
+                                            <input type="text" readonly value="{{ $medicalMedications }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+
+                                    @if ($hasEmergency !== null)
+                                        <div class="md:col-span-12">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">هل يوجد حالات
+                                                طوارئ سابقة؟</label>
+                                            <input type="text" readonly value="{{ $yesNo($hasEmergency) }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+
+                                    @if ($emergencyDetailsVal !== '')
+                                        <div class="md:col-span-12">
+                                            <label class="block text-sm font-semibold text-slate-700 mb-1">تفاصيل
+                                                الحالة</label>
+                                            <input type="text" readonly value="{{ $emergencyDetailsVal }}"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div class="md:col-span-3">
                             <label class="block text-sm font-semibold text-slate-700 mb-1">تسلسل الطلب</label>
                             <input type="text" readonly value="{{ $person->PersonID }}"
@@ -240,9 +347,13 @@
                             <input type="text" readonly value="{{ $person->BloodTypeName ?? 'لا يوجد' }}"
                                 class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                         </div>
-
                     </div>
                 </section>
+
+
+
+
+
 
                 <!-- ===================== Section 2: Contact ===================== -->
                 <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
