@@ -141,57 +141,57 @@ class PersonApiController extends Controller
  */
 
 
-public function ShowPersons(Request $request)
+
+public function showPersons(Request $request)
 {
-    $userId = $request->input('id');
+    $userId = (int) $request->input('id');
 
-    $rawPersons = DB::select("
-SELECT DISTINCT
-    pi.PersonID,
-    pi.ShamandoraCode,
-    pi.FirstName, 
-    pi.SecondName, 
-    pi.ThirdName, 
-    pi.FourthName, 
-    q.QetaaName,
-    pi.ScoutJoiningYear,
-    sm.SanaMarhalaName, 
-    pi.RaqamQawmy,
-    ppn.PersonPersonalMobileNumber,
-    q.QetaaID,
-    PG.PersonID AS GroupPersonID,
-    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-    psm.SanaMarhalaID,
-    pim.PersonSystemImagePath,         
-FROM PersonInformation pi
-LEFT JOIN PersonEntryQuestions peq 
-    ON pi.PersonID = peq.PersonID 
-LEFT JOIN PersonSanaMarhala psm 
-    ON pi.PersonID = psm.PersonID
-LEFT JOIN SanaMarhala sm 
-    ON sm.SanaMarhalaID = psm.SanaMarhalaID
-LEFT JOIN PersonQetaa pq 
-    ON pi.PersonID = pq.PersonID
-LEFT JOIN Qetaa q 
-    ON pq.QetaaID = q.QetaaID
-LEFT JOIN PersonPhoneNumbers ppn 
-    ON pi.PersonID = ppn.PersonID
-LEFT JOIN PersonGroup PG 
-    ON PG.PersonID = pi.PersonID
-LEFT JOIN PersonImages pim          -- ✅ Added join
-    ON pim.PersonID = pi.PersonID
-JOIN GroupQetaa gq 
-    ON gq.QetaaID = q.QetaaID
-JOIN PersonGroup pg2 
-    ON pg2.GroupID = gq.GroupID
-WHERE pg2.PersonID = ?
-ORDER BY pi.ShamandoraCode ASC;
-", [$userId]);
+    if ($userId <= 0) {
+        return response()->json([
+            'message' => 'Invalid id provided.',
+            'persons' => [],
+        ], 422);
+    }
 
-    $persons = collect($rawPersons)->map(function ($person) {
-        $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-        return $person;
-    });
+    $persons = DB::table('PersonInformation as pi')
+        ->leftJoin('PersonEntryQuestions as peq', 'pi.PersonID', '=', 'peq.PersonID')
+        ->leftJoin('PersonSanaMarhala as psm', 'pi.PersonID', '=', 'psm.PersonID')
+        ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
+        ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
+        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+        ->leftJoin('PersonPhoneNumbers as ppn', 'pi.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('PersonGroup as pg_main', 'pg_main.PersonID', '=', 'pi.PersonID')
+         ->leftJoin( 'PersonImages as pi_img', 'pi_img.PersonID', '=', 'pi.PersonID')
+        ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'q.QetaaID')
+        ->join('PersonGroup as pg2', 'pg2.GroupID', '=', 'gq.GroupID')
+        ->where('pg2.PersonID', $userId)
+        ->select([
+            'pi.PersonID',
+            'pi.ShamandoraCode',
+            'pi.FirstName',
+            'pi.SecondName',
+            'pi.ThirdName',
+            'pi.FourthName',
+            'q.QetaaName',
+            'pi.ScoutJoiningYear',
+            'sm.SanaMarhalaName',
+            'pi.RaqamQawmy',
+            'ppn.PersonPersonalMobileNumber',
+            'q.QetaaID',
+            'pi_img.PersonSystemImagePath',
+            DB::raw('pg_main.PersonID AS GroupPersonID'),
+            DB::raw("IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions"),
+            'psm.SanaMarhalaID',
+        ])
+        ->distinct()
+        ->orderBy('pi.ShamandoraCode', 'asc')
+        ->get()
+        ->map(function ($person) {
+            $person->full_name = trim(
+                "{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}"
+            );
+            return $person;
+        });
 
     return response()->json(['persons' => $persons]);
 }
@@ -255,22 +255,22 @@ ORDER BY pi.ShamandoraCode ASC;
     }
 
 
-    public function ShowCalendar($id)
-    {
-        $events = DB::select("
-                SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
-                FROM PersonGroup pg
-                JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
-                JOIN Qetaa q ON gq.QetaaID = q.QetaaID
-                JOIN EventQetaa eq ON q.QetaaID = eq.QetaaID
-                JOIN Event e ON eq.EventID = e.EventID
-                JOIN EventType et ON e.EventTypeID = et.EventTypeID
-                JOIN SeasonEvent se on se.EventID = e.EventID
-                JOIN Season S on S.SeasonID = se.SeasonID
-                WHERE pg.PersonID = ?
-                ORDER BY e.EventStartDate ASC
-        ", [$id]);
+public function ShowCalendar($id)
+{
+    $events = DB::select("
+            SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
+            FROM PersonGroup pg
+            JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
+            JOIN Qetaa q ON gq.QetaaID = q.QetaaID
+            JOIN EventQetaa eq ON q.QetaaID = eq.QetaaID
+            JOIN Event e ON eq.EventID = e.EventID
+            JOIN EventType et ON e.EventTypeID = et.EventTypeID
+            JOIN SeasonEvent se on se.EventID = e.EventID
+            JOIN Season S on S.SeasonID = se.SeasonID
+            WHERE pg.PersonID = ?
+            ORDER BY e.EventStartDate ASC
+    ", [$id]);
 
-        return response()->json(['events' => $events]);
-    }
+    return response()->json(['events' => $events]);
+}
 }
