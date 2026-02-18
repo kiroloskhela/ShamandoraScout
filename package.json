@@ -15,7 +15,7 @@
         "postcss": "^8.5.4",
         "sass": "^1.56.1",
         "tailwindcss": "^4.1.8",
-        "vite": "^6.3.5"
+        "vite": "^4.5.14"
     },
     "dependencies": {
         "jquery": "^3.7.1",
