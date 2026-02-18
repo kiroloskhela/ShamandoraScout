@@ -146,6 +146,9 @@
         }
 
         .logo-container::after {
+
+
+
             content: '';
             position: absolute;
             top: -2px;
