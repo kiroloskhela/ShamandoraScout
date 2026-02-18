@@ -133,6 +133,8 @@
         }
 
         .card-instagram:hover .icon-ring img {
+
+
             filter: none;
         }
 
