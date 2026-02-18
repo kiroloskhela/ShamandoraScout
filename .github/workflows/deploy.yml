@@ -8,12 +8,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Test SSH port reachability
+      - name: Install SSH key
         run: |
-          echo "Testing TCP 22 to ${{ secrets.VPS_HOST }}"
-          timeout 10 bash -c 'cat < /dev/null > /dev/tcp/${{ secrets.VPS_HOST }}/22' \
-            && echo "✅ Port 22 reachable" \
-            || (echo "❌ Port 22 NOT reachable" && exit 1)
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
 
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -21,7 +20,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           port: 22
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          key_path: ~/.ssh/id_ed25519
           timeout: 60s
           command_timeout: 30m
           debug: true
