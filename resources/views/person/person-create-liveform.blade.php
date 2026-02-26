@@ -110,13 +110,14 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <!-- names -->
-                            <div class="md:col-span-3">
+<div class="md:col-span-3">
     <label class="block text-sm font-semibold text-slate-700 mb-1">
         الاسم الأول <span class="text-rose-700">*</span>
         <span class="text-xs text-slate-500">(بالعربي)</span>
     </label>
     <input required id="first_name" name="first_name" type="text"
-        pattern="^[\u0600-\u06FF\s]+$"
+        pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+        oninput="this.value=this.value.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]/g,'')"
         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         placeholder="الاسم الأول">
     <p class="error hidden mt-1 text-sm text-rose-700">
@@ -130,7 +131,8 @@
         <span class="text-xs text-slate-500">(بالعربي)</span>
     </label>
     <input required id="second_name" name="second_name" type="text"
-        pattern="^[\u0600-\u06FF\s]+$"
+        pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+        oninput="this.value=this.value.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]/g,'')"
         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         placeholder="الاسم الثاني">
     <p class="error hidden mt-1 text-sm text-rose-700">
@@ -144,7 +146,8 @@
         <span class="text-xs text-slate-500">(بالعربي)</span>
     </label>
     <input required id="third_name" name="third_name" type="text"
-        pattern="^[\u0600-\u06FF\s]+$"
+        pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+        oninput="this.value=this.value.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]/g,'')"
         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         placeholder="الاسم الثالث">
     <p class="error hidden mt-1 text-sm text-rose-700">
@@ -154,11 +157,12 @@
 
 <div class="md:col-span-3">
     <label class="block text-sm font-semibold text-slate-700 mb-1">
-        الاسم الرابع 
+        الاسم الرابع
         <span class="text-xs text-slate-500">(بالعربي)</span>
     </label>
     <input id="fourth_name" name="fourth_name" type="text"
-        pattern="^[\u0600-\u06FF\s]+$"
+        pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+        oninput="this.value=this.value.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]/g,'')"
         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         placeholder="اختياري">
 </div>
@@ -642,17 +646,23 @@
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
-                                    المدرسة</label>
-                                <select
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    name="school_grad_year" id="school_grad_year">
-                                    <option value="" disabled selected>اختر سنة التخرج من المدرسة</option>
-                                    @for ($i = 1970; $i <= date('Y'); $i++)
-                                        <option value="{{ $i }}">{{ $i }}</option>
-                                    @endfor
-                                </select>
-                            </div>
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        سنة التخرج من المدرسة
+    </label>
+    <select
+        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        name="school_grad_year" id="school_grad_year">
+        
+        <option value="" disabled selected>
+            اختر سنة التخرج من المدرسة
+        </option>
+
+        @for ($i = 1970; $i <= 2050; $i++)
+            <option value="{{ $i }}">{{ $i }}</option>
+        @endfor
+
+    </select>
+</div>
 
                             @if ($sana_marhala_id > 14)
                                 <div class="md:col-span-6">
