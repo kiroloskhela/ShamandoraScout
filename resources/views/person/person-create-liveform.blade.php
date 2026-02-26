@@ -111,41 +111,57 @@
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <!-- names -->
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الأول <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="first_name" name="first_name" type="text"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الأول">
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        الاسم الأول <span class="text-rose-700">*</span>
+        <span class="text-xs text-slate-500">(بالعربي)</span>
+    </label>
+    <input required id="first_name" name="first_name" type="text"
+        pattern="^[\u0600-\u06FF\s]+$"
+        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder="الاسم الأول">
+    <p class="error hidden mt-1 text-sm text-rose-700">
+        يرجى إدخال أحرف عربية فقط
+    </p>
+</div>
 
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الثاني <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="second_name" name="second_name" type="text"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الثاني">
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
+<div class="md:col-span-3">
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        الاسم الثاني <span class="text-rose-700">*</span>
+        <span class="text-xs text-slate-500">(بالعربي)</span>
+    </label>
+    <input required id="second_name" name="second_name" type="text"
+        pattern="^[\u0600-\u06FF\s]+$"
+        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder="الاسم الثاني">
+    <p class="error hidden mt-1 text-sm text-rose-700">
+        يرجى إدخال أحرف عربية فقط
+    </p>
+</div>
 
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الثالث <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="third_name" name="third_name" type="text"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الثالث">
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
+<div class="md:col-span-3">
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        الاسم الثالث <span class="text-rose-700">*</span>
+        <span class="text-xs text-slate-500">(بالعربي)</span>
+    </label>
+    <input required id="third_name" name="third_name" type="text"
+        pattern="^[\u0600-\u06FF\s]+$"
+        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder="الاسم الثالث">
+    <p class="error hidden mt-1 text-sm text-rose-700">
+        يرجى إدخال أحرف عربية فقط
+    </p>
+</div>
 
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الرابع</label>
-                                <input id="fourth_name" name="fourth_name" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="اختياري">
-                            </div>
+<div class="md:col-span-3">
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        الاسم الرابع 
+        <span class="text-xs text-slate-500">(بالعربي)</span>
+    </label>
+    <input id="fourth_name" name="fourth_name" type="text"
+        pattern="^[\u0600-\u06FF\s]+$"
+        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder="اختياري">
+</div>
 
                             <!-- gender -->
                             <div class="md:col-span-6">
@@ -666,17 +682,23 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
-                                        الجامعة</label>
-                                    <select
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        name="university_grad_year" id="university_grad_year">
-                                        <option value="" disabled selected>اختر سنة التخرج من الجامعة</option>
-                                        @for ($i = 1970; $i <= date('Y'); $i++)
-                                            <option value="{{ $i }}">{{ $i }}</option>
-                                        @endfor
-                                    </select>
-                                </div>
+    <label class="block text-sm font-semibold text-slate-700 mb-1">
+        سنة التخرج من الجامعة
+    </label>
+    <select
+        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        name="university_grad_year" id="university_grad_year">
+
+        <option value="" disabled selected>
+            اختر سنة التخرج من الجامعة
+        </option>
+
+        @for ($i = 1970; $i <= 2050; $i++)
+            <option value="{{ $i }}">{{ $i }}</option>
+        @endfor
+
+    </select>
+</div>
                             @endif
 
                             <div class="md:col-span-6">
