@@ -359,7 +359,7 @@ public function ShowPersons(Request $request)
                         $gender = "Female";
                     }
                 }
-                elseif($request->sana_marhala_id<14&&$request->sana_marhala_id>11)
+                elseif($request->sana_marhala_id<=14&&$request->sana_marhala_id>11)
                 {
                     if($request->gender=="Male")
                     {
