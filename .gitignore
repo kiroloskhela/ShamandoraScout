@@ -26,3 +26,9 @@ yarn-error.log
 /storage/logs
 /public/build
 .env
+
+
+# Database backups
+db_backups/
+*.sql
+*.sql.gz
