@@ -321,10 +321,12 @@
                                     href="{{ route('person.index', ['id' => Auth::user()->id]) }}">
                                     بيانات المخدومين
                                 </a>
-
-
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('attendance.manage') }}">حضور و انصراف المخدومين</a>
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href="{{ route('personspecialcase.index') }}">الحالات الخاصة للمخدومين</a>
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href="{{ route('personblacklist.index') }}">القائمة السوداء</a>
                             </div>
                         </div>
                     </div>

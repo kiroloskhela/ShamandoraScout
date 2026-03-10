@@ -72,6 +72,11 @@ use App\Http\Controllers\PlaceBookingController;
 use App\Http\Controllers\PersonSeasonEventFinanceController;
 use App\Http\Controllers\SeasonEventFinanceController;
 use App\Http\Controllers\BookingController;
+
+use App\Http\Controllers\PersonBlackListController;
+use App\Http\Controllers\PersonSpecialCaseController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Public / UI Pages
@@ -454,19 +459,36 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
     Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
 
+    // Person Blacklist
+    Route::get('/personblacklist', [PersonBlackListController::class, 'index'])->name('personblacklist.index');
+    Route::get('/personblacklist/create', [PersonBlackListController::class, 'create'])->name('personblacklist.create');
+    Route::post('/personblacklist/insert', [PersonBlackListController::class, 'insert'])->name('personblacklist.insert');
+    Route::get('/personblacklist/edit/{id}', [PersonBlackListController::class, 'edit'])->name('personblacklist.edit');
+    Route::post('/personblacklist/updates/{id}', [PersonBlackListController::class, 'updates'])->name('personblacklist.updates');
+    Route::get('/personblacklist/delete/{id}', [PersonBlackListController::class, 'deletes'])->name('personblacklist.delete');
+    Route::post('/personblacklist/destroy/{id}', [PersonBlackListController::class, 'destroy'])->name('personblacklist.destroy');
+    Route::get('/personblacklist/search-persons', [PersonBlackListController::class, 'searchPersons'])->name('personblacklist.searchPersons');
+
+    
 
 
-
-
-/*
-|--------------------------------------------------------------------------
-| Finance / Enrollment Routes
-|--------------------------------------------------------------------------
-*/
+    // Person Special Cases
+    Route::get('/personspecialcase', [PersonSpecialCaseController::class, 'index'])->name('personspecialcase.index');
+    Route::get('/personspecialcase/create', [PersonSpecialCaseController::class, 'create'])->name('personspecialcase.create');
+    Route::post('/personspecialcase/insert', [PersonSpecialCaseController::class, 'insert'])->name('personspecialcase.insert');
+    Route::get('/personspecialcase/edit/{id}', [PersonSpecialCaseController::class, 'edit'])->name('personspecialcase.edit');
+    Route::post('/personspecialcase/updates/{id}', [PersonSpecialCaseController::class, 'updates'])->name('personspecialcase.updates');
+    Route::get('/personspecialcase/delete/{id}', [PersonSpecialCaseController::class, 'deletes'])->name('personspecialcase.delete');
+    Route::post('/personspecialcase/destroy/{id}', [PersonSpecialCaseController::class, 'destroy'])->name('personspecialcase.destroy');
+    Route::get('/personspecialcase/search-persons', [PersonSpecialCaseController::class, 'searchPersons'])->name('personspecialcase.searchPersons');
 
 
 
 });
+
+
+
+
 
 
 
