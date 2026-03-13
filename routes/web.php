@@ -75,6 +75,8 @@ use App\Http\Controllers\BookingController;
 
 use App\Http\Controllers\PersonBlackListController;
 use App\Http\Controllers\PersonSpecialCaseController;
+use App\Http\Controllers\SeasonEventBookingFinanceController;
+
 
 
 /*
@@ -502,130 +504,170 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance'])->group(function () {
 
 
-Route::group(['prefix' => 'finance'], function () {
+// Route::group(['prefix' => 'finance'], function () {
 
-    /* =========================
-       MAIN LIST
-       ========================= */
-    Route::get('/', 
-        [PersonSeasonEventFinanceController::class, 'index']
-    )->name('finance.index');
+//     /* =========================
+//        MAIN LIST
+//        ========================= */
+//     Route::get('/', 
+//         [PersonSeasonEventFinanceController::class, 'index']
+//     )->name('finance.index');
 
-    /* =========================
-       CREATE / BOOKING
-       ========================= */
-    Route::get('/create', 
-        [PersonSeasonEventFinanceController::class, 'create']
-    )->name('finance.create');
+//     /* =========================
+//        CREATE / BOOKING
+//        ========================= */
+//     Route::get('/create', 
+//         [PersonSeasonEventFinanceController::class, 'create']
+//     )->name('finance.create');
 
-    Route::post('/insert', 
-        [PersonSeasonEventFinanceController::class, 'insert']
-    )->name('finance.insert');
+//     Route::post('/insert', 
+//         [PersonSeasonEventFinanceController::class, 'insert']
+//     )->name('finance.insert');
 
-    /* =========================
-       SHOW DETAILS + PAYMENTS
-       ========================= */
-    Route::get('/show/{id}', 
-        [PersonSeasonEventFinanceController::class, 'show']
-    )->name('finance.show');
+//     /* =========================
+//        SHOW DETAILS + PAYMENTS
+//        ========================= */
+//     Route::get('/show/{id}', 
+//         [PersonSeasonEventFinanceController::class, 'show']
+//     )->name('finance.show');
 
-    /* =========================
-       ADD PAYMENT
-       ========================= */
-    Route::post('/payment/{id}', 
-        [PersonSeasonEventFinanceController::class, 'addPayment']
-    )->name('finance.payment');
+//     /* =========================
+//        ADD PAYMENT
+//        ========================= */
+//     Route::post('/payment/{id}', 
+//         [PersonSeasonEventFinanceController::class, 'addPayment']
+//     )->name('finance.payment');
 
-    /* =========================
-       CANCEL (ADMIN DECIDES REFUND)
-       ========================= */
-    Route::get('/cancel/{id}', 
-        [PersonSeasonEventFinanceController::class, 'cancelForm']
-    )->name('finance.cancel.form');
+//     /* =========================
+//        CANCEL (ADMIN DECIDES REFUND)
+//        ========================= */
+//     Route::get('/cancel/{id}', 
+//         [PersonSeasonEventFinanceController::class, 'cancelForm']
+//     )->name('finance.cancel.form');
 
-    Route::post('/cancel/{id}', 
-        [PersonSeasonEventFinanceController::class, 'cancel']
-    )->name('finance.cancel');
+//     Route::post('/cancel/{id}', 
+//         [PersonSeasonEventFinanceController::class, 'cancel']
+//     )->name('finance.cancel');
 
-});
-
-
-
-
-Route::prefix('season-event-finance')->group(function () {
-
-    Route::get('/', [SeasonEventFinanceController::class, 'index'])
-        ->name('seasonEventFinance.index');
-
-    Route::get('/create', [SeasonEventFinanceController::class, 'create'])
-        ->name('seasonEventFinance.create');
-
-    Route::post('/insert', [SeasonEventFinanceController::class, 'insert'])
-        ->name('seasonEventFinance.insert');
-
-    Route::get('/edit/{id}', [SeasonEventFinanceController::class, 'edit'])
-        ->name('seasonEventFinance.edit');
-
-    Route::post('/update/{id}', [SeasonEventFinanceController::class, 'update'])
-        ->name('seasonEventFinance.update');
-
-    Route::get('/delete/{id}', [SeasonEventFinanceController::class, 'delete'])
-        ->name('seasonEventFinance.delete');
-
-    Route::post('/destroy/{id}', [SeasonEventFinanceController::class, 'destroy'])
-        ->name('seasonEventFinance.destroy');
-
-    Route::get('/get-events-for-season',
-        [SeasonEventFinanceController::class, 'getEventsForSeason']
-    )->name('seasonEventFinance.getEventsForSeason');
-
-});
+// });
 
 
 
-Route::prefix('booking')->group(function () {
 
-    // Step 1: choose event (only finance-enabled)
-    Route::get('/create', [BookingController::class, 'create'])
-        ->name('booking.create');
+// Route::prefix('season-event-finance')->group(function () {
 
-    // Step 2: event selected -> search persons page
-    Route::get('/event/{seasonEventID}', [BookingController::class, 'choosePerson'])
-        ->name('booking.choosePerson');
+//     Route::get('/', [SeasonEventFinanceController::class, 'index'])
+//         ->name('seasonEventFinance.index');
 
-    // AJAX spotlight search
-    Route::get('/search-person', [BookingController::class, 'searchPerson'])
-        ->name('booking.searchPerson');
+//     Route::get('/create', [SeasonEventFinanceController::class, 'create'])
+//         ->name('seasonEventFinance.create');
 
-    // Step 3: person selected -> booking details page
-    Route::get('/event/{seasonEventID}/person/{personID}', [BookingController::class, 'details'])
-        ->name('booking.details');
+//     Route::post('/insert', [SeasonEventFinanceController::class, 'insert'])
+//         ->name('seasonEventFinance.insert');
 
-    // Save booking + optional payment (then invoice)
-    Route::post('/store', [BookingController::class, 'store'])
-        ->name('booking.store');
+//     Route::get('/edit/{id}', [SeasonEventFinanceController::class, 'edit'])
+//         ->name('seasonEventFinance.edit');
 
-    // Print invoice
-    Route::get('/invoice/{personSeasonEventID}', [BookingController::class, 'invoice'])
-        ->name('booking.invoice');
+//     Route::post('/update/{id}', [SeasonEventFinanceController::class, 'update'])
+//         ->name('seasonEventFinance.update');
 
-Route::prefix('transactions')->group(function () {
+//     Route::get('/delete/{id}', [SeasonEventFinanceController::class, 'delete'])
+//         ->name('seasonEventFinance.delete');
 
-    Route::get('/edit/{id}', [BookingController::class, 'editTransaction'])->name('transactions.edit');
-    Route::post('/update/{id}', [BookingController::class, 'updateTransaction'])->name('transactions.update');
+//     Route::post('/destroy/{id}', [SeasonEventFinanceController::class, 'destroy'])
+//         ->name('seasonEventFinance.destroy');
 
-    Route::get('/delete/{id}', [BookingController::class, 'deleteTransaction'])->name('transactions.delete');
-    Route::post('/destroy/{id}', [BookingController::class, 'destroyTransaction'])->name('transactions.destroy');
+//     Route::get('/get-events-for-season',
+//         [SeasonEventFinanceController::class, 'getEventsForSeason']
+//     )->name('seasonEventFinance.getEventsForSeason');
 
-    // ✅ Refund
-    Route::get('/refund/{id}', [BookingController::class, 'refundForm'])->name('transactions.refund.form');
-    Route::post('/refund/{id}', [BookingController::class, 'refundStore'])->name('transactions.refund.store');
+// });
 
-    // ✅ Print invoice for a specific payment transaction
-    Route::get('/invoice/{id}', [BookingController::class, 'invoiceByTransaction'])->name('transactions.invoice');
-});
+
+
+// Route::prefix('booking')->group(function () {
+
+//     // Step 1: choose event (only finance-enabled)
+//     Route::get('/create', [BookingController::class, 'create'])
+//         ->name('booking.create');
+
+//     // Step 2: event selected -> search persons page
+//     Route::get('/event/{seasonEventID}', [BookingController::class, 'choosePerson'])
+//         ->name('booking.choosePerson');
+
+//     // AJAX spotlight search
+//     Route::get('/search-person', [BookingController::class, 'searchPerson'])
+//         ->name('booking.searchPerson');
+
+//     // Step 3: person selected -> booking details page
+//     Route::get('/event/{seasonEventID}/person/{personID}', [BookingController::class, 'details'])
+//         ->name('booking.details');
+
+//     // Save booking + optional payment (then invoice)
+//     Route::post('/store', [BookingController::class, 'store'])
+//         ->name('booking.store');
+
+//     // Print invoice
+//     Route::get('/invoice/{personSeasonEventID}', [BookingController::class, 'invoice'])
+//         ->name('booking.invoice');
+
+// Route::prefix('transactions')->group(function () {
+
+//     Route::get('/edit/{id}', [BookingController::class, 'editTransaction'])->name('transactions.edit');
+//     Route::post('/update/{id}', [BookingController::class, 'updateTransaction'])->name('transactions.update');
+
+//     Route::get('/delete/{id}', [BookingController::class, 'deleteTransaction'])->name('transactions.delete');
+//     Route::post('/destroy/{id}', [BookingController::class, 'destroyTransaction'])->name('transactions.destroy');
+
+//     // ✅ Refund
+//     Route::get('/refund/{id}', [BookingController::class, 'refundForm'])->name('transactions.refund.form');
+//     Route::post('/refund/{id}', [BookingController::class, 'refundStore'])->name('transactions.refund.store');
+
+//     // ✅ Print invoice for a specific payment transaction
+//     Route::get('/invoice/{id}', [BookingController::class, 'invoiceByTransaction'])->name('transactions.invoice');
+// });
 
  
+// });
+
+
+
+
+
+
+Route::prefix('finance')->name('finance.')->group(function () {
+    Route::get('/', [SeasonEventFinanceController::class, 'index'])->name('index');
+    Route::get('/create', [SeasonEventFinanceController::class, 'create'])->name('create');
+    Route::get('/get-events-for-season', [SeasonEventFinanceController::class, 'getEventsForSeason'])->name('getEventsForSeason');
+    Route::post('/store', [SeasonEventFinanceController::class, 'store'])->name('store');
+    Route::get('/edit/{id}', [SeasonEventFinanceController::class, 'edit'])->name('edit');
+    Route::post('/update/{id}', [SeasonEventFinanceController::class, 'update'])->name('update');
+    Route::get('/delete/{id}', [SeasonEventFinanceController::class, 'delete'])->name('delete');
+    Route::post('/destroy/{id}', [SeasonEventFinanceController::class, 'destroy'])->name('destroy');
+});
+
+
+
+Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(function () {
+    Route::get('/selector', [SeasonEventBookingFinanceController::class, 'selector'])->name('selector');
+    Route::get('/get-events-with-plan', [SeasonEventBookingFinanceController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
+
+    Route::get('/event/{seasonEventID}', [SeasonEventBookingFinanceController::class, 'index'])->name('index');
+
+    Route::get('/event/{seasonEventID}/create', [SeasonEventBookingFinanceController::class, 'create'])->name('create');
+    Route::get('/event/{seasonEventID}/search-eligible-persons', [SeasonEventBookingFinanceController::class, 'searchEligiblePersons'])->name('searchEligiblePersons');
+    Route::post('/event/{seasonEventID}/store', [SeasonEventBookingFinanceController::class, 'store'])->name('store');
+
+    Route::get('/booking/{bookingID}/installment/create', [SeasonEventBookingFinanceController::class, 'createInstallment'])->name('createInstallment');
+    Route::post('/booking/{bookingID}/installment/store', [SeasonEventBookingFinanceController::class, 'storeInstallment'])->name('storeInstallment');
+
+    Route::get('/payment/{paymentID}/edit-last', [SeasonEventBookingFinanceController::class, 'editLastPayment'])->name('editLastPayment');
+    Route::post('/payment/{paymentID}/update-last', [SeasonEventBookingFinanceController::class, 'updateLastPayment'])->name('updateLastPayment');
+
+    Route::get('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundPage'])->name('refundPage');
+    Route::post('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundStore'])->name('refundStore');
+
+    Route::get('/receipt/{paymentID}/print', [SeasonEventBookingFinanceController::class, 'printReceipt'])->name('printReceipt');
 });
 
 });

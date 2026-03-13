@@ -207,7 +207,14 @@
                                 </button>
 
                                 <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                    {{-- finance links here --}}
+                                    @if ($isSuperAdmin || $isFinance)
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ route('finance.index') }}">إدارة الماليه</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ route('eventBookingFinance.selector') }}">إدارة الحجوزات
+                                            المالية</a>
+                                    @endif
+
                                 </div>
                             </div>
                         </div>
