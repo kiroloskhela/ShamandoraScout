@@ -253,7 +253,7 @@
 <body>
     <div class="page">
         @php
-            $copies = ['نسخة الإدارة', 'نسخة المشترك'];
+            $copies = ['نسخة الماليه', 'نسخة المشترك'];
         @endphp
 
         @foreach ($copies as $copyLabel)
@@ -262,7 +262,7 @@
                     <div class="header">
                         <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="logo-top">
                         <div class="title">إيصال {{ $receipt->PaymentType === 'REFUND' ? 'استرداد' : 'دفع' }}</div>
-                        <div class="subtitle">جمعية شمندورة الكشفية</div>
+                        <div class="subtitle">مجموعة الشمندورة الكشفية</div>
                         <div class="copy-badge">{{ $copyLabel }}</div>
                     </div>
 
