@@ -77,7 +77,7 @@ use App\Http\Controllers\PersonBlackListController;
 use App\Http\Controllers\PersonSpecialCaseController;
 use App\Http\Controllers\SeasonEventBookingFinanceController;
 
-
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -221,8 +221,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
     Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
 
-
-
     Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
     Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
     Route::post('/person/insert', [PersonNewController::class, 'insert'])->name('person.insert');
@@ -233,8 +231,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
     Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
     Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
-
-
 
 
     // New Enrolments (admin lists)
@@ -484,8 +480,10 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/personspecialcase/destroy/{id}', [PersonSpecialCaseController::class, 'destroy'])->name('personspecialcase.destroy');
     Route::get('/personspecialcase/search-persons', [PersonSpecialCaseController::class, 'searchPersons'])->name('personspecialcase.searchPersons');
 
-
-
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/create', [NotificationController::class, 'create']);
+    Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 });
 
 
