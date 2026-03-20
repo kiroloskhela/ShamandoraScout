@@ -11,7 +11,7 @@ use App\Models\RefreshToken;
 use \Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
-
+use Illuminate\Support\Facades\DB;
 
 class LoginApiController extends Controller
 {
@@ -102,6 +102,8 @@ class LoginApiController extends Controller
     $request->validate([
         'id'       => 'required|integer',
         'password' => 'required',
+        'fcm_token'  => 'nullable|string',
+        'platform'   => 'nullable|string|in:android,ios,web',
     ]);
 
     $user = User::find($request->id);
@@ -123,6 +125,23 @@ class LoginApiController extends Controller
         'ip'         => $request->ip(),
         'user_agent' => substr((string) $request->userAgent(), 0, 1000),
     ]);
+
+
+if ($request->filled('fcm_token')) {
+
+    DB::table('devices')->updateOrInsert(
+        [
+            'PersonID' => $user->PersonID,
+            'platform' => $request->platform,
+        ],
+        [
+            'fcm_token' => $request->fcm_token,
+            'updated_at'=> now(),
+            'created_at'=> now(),
+        ]
+    );
+}
+
 
     return response()->json([
         'access_token'   => $accessToken,
