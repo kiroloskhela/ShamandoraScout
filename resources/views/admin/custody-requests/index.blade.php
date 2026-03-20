@@ -97,6 +97,7 @@
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
                             <th class="p-3 border-b">رقم الطلب</th>
+                            <th class="p-3 border-b">المستخدم</th>
                             <th class="p-3 border-b">من</th>
                             <th class="p-3 border-b">إلى</th>
                             <th class="p-3 border-b">الحالة</th>
@@ -112,6 +113,7 @@
                             @endphp
                             <tr class="border-b hover:bg-slate-50 transition {{ $rowClass }}">
                                 <td class="p-3 font-semibold text-slate-900">#{{ $r->RequestID }}</td>
+                                <td class="p-3">{{ $r->UserName }}</td>
                                 <td class="p-3">{{ $r->DateFrom }}</td>
                                 <td class="p-3">{{ $r->DateTo }}</td>
                                 <td class="p-3">

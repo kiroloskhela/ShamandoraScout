@@ -5,14 +5,45 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\FcmService;
 
 class AdminCustodyRequestController extends Controller
 {
-    public function __construct()
+
+
+protected $fcm;
+
+        public function __construct(FcmService $fcm)
+        {
+            $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
+            $this->fcm = $fcm;
+        }
+
+    private function sendNotificationToUser($personId, $title, $body)
     {
-        // Ensure only users with admin/superadmin/adminInventory roles can access these actions
-        $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
+        try {
+                $tokens = DB::table('devices')
+                ->where('PersonID', $personId)
+                ->pluck('fcm_token')
+                ->toArray();
+
+            Log::info('FCM Tokens Debug', [
+                'personId' => $personId,
+                'tokens' => $tokens
+            ]);
+
+            if (!empty($tokens)) {
+                $this->fcm->sendToMultiple($tokens, $title, $body);
+            }
+
+            } catch (\Throwable $e) {
+                Log::error('FCM إرسال فشل', [
+                'personId' => $personId,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
+
 
     private function currentAdminPersonId()
     {
@@ -34,11 +65,13 @@ class AdminCustodyRequestController extends Controller
             ->leftJoin('Qetaa as Q', 'R.QetaaID', '=', 'Q.QetaaID')
             ->leftJoin('EventType as E', 'R.EventTypeID', '=', 'E.EventTypeID')
             ->leftJoin('PersonInformation as A', 'R.ReviewedBy', '=', 'A.PersonID')
+             ->leftJoin('PersonInformation as U', 'R.PersonID', '=', 'U.PersonID')
             ->select([
                 'R.*',
                 'Q.QetaaName',
                 'E.EventTypeName',
                    DB::raw("CONCAT(A.FirstName, ' ', A.SecondName) as ReviewerName"),
+                   DB::raw("CONCAT(U.FirstName, ' ', U.SecondName, ' ', COALESCE(U.ThirdName,'')) as UserName"),
             ])
             ->orderByRaw("FIELD(R.Status,'pending','approved','rejected')")
             ->orderByDesc('R.created_at')
@@ -183,6 +216,14 @@ class AdminCustodyRequestController extends Controller
             }
 
             DB::commit();
+
+      $this->sendNotificationToUser(
+                $requestRow->PersonID,
+                'تم اعتماد طلب العهدة الخاص بك',
+                "تم اعتماد طلب العهدة الخاص بك من تاريخ {$requestRow->DateFrom} إلى {$requestRow->DateTo}.\n\nملاحظة الأدمن:\n{$adminNote}"
+            );
+
+
             return redirect()->route('admin.custody_requests.show', $id)
                 ->with('success', '✅ تم اعتماد الطلب بنجاح.');
         } catch (\Throwable $e) {
@@ -230,6 +271,13 @@ class AdminCustodyRequestController extends Controller
             if ($affected === 0) {
                 return back()->with('error', '❌ لا يمكن رفض طلب تم مراجعته بالفعل.');
             }
+
+                 // 🔔 Send Notification
+            $this->sendNotificationToUser(
+                $requestRow->PersonID,
+                '❌ الغرف تم رفض طلب الحجز',
+                $adminNote
+            );
 
             return redirect()->route('admin.custody_requests.show', $id)->with('success', '✅ تم رفض الطلب.');
         } catch (\Throwable $e) {
