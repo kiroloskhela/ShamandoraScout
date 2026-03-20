@@ -271,7 +271,7 @@ public function ShowPersons(Request $request)
 
             
 
-            return redirect()->route('person.new-enrolments-show-qetaa', $person->QetaaID);
+            return redirect()->route('person.new-enrolments-index');
         }
 
         public function approveNewEnrolments($id)
