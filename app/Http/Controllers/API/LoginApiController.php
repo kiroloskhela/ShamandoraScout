@@ -143,9 +143,6 @@ if ($request->filled('fcm_token')) {
 
 }
 
-
-
-
     return response()->json([
         'access_token'   => $accessToken,
         'token_type'     => 'Bearer',
