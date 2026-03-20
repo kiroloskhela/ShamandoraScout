@@ -228,7 +228,7 @@
                                     class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="أدخل 14 رقم">
                                 <p class="error hidden mt-1 text-sm text-rose-700" data-error="nid">
-                                    الرقم القومي يجب أن يكون 14 رقم
+                                    الرقم القومي يجب أن يكون 14 رقم و ان يكون صحيح
                                 </p>
                             </div>
 
@@ -1012,11 +1012,40 @@
             return ok;
         }
 
+        function validateNIDWithDOB(nid, dob) {
+            if (!nid || nid.length !== 14) return false;
+            if (!dob) return true; // skip if no DOB yet
+
+            const birthDate = new Date(dob);
+
+            const year = birthDate.getFullYear();
+            const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+            const day = String(birthDate.getDate()).padStart(2, '0');
+
+            const century = year >= 2000 ? '3' : '2';
+            const shortYear = String(year).slice(-2);
+
+            const expectedPrefix = century + shortYear + month + day;
+
+            return nid.startsWith(expectedPrefix);
+        }
+
         function validateNID(el) {
             el.value = onlyDigits(el.value).slice(0, 14);
+
             if (!el.value.trim()) return validateRequired(el);
-            const ok = el.value.length === 14;
+
+            const basicValid = el.value.length === 14;
+
+            const dobInput = document.getElementById('birthdate_input');
+            const dob = dobInput ? dobInput.value : null;
+
+            const matchesDOB = validateNIDWithDOB(el.value, dob);
+
+            const ok = basicValid && matchesDOB;
+
             showError(el, !ok, 'nid');
+
             return ok;
         }
 
@@ -1072,6 +1101,14 @@
         const emergencyCheckbox = document.getElementById('has_emergency_case');
         const emergencyDetails = document.getElementById('emergency_details');
         const emergencyDetailsError = document.getElementById('emergency_details_error');
+
+        document.getElementById('birthdate_input').addEventListener('change', () => {
+            const nidField = document.getElementById('input_raqam_qawmy');
+            if (touchedFields.has(nidField.id)) {
+                validateNID(nidField);
+                validateAll();
+            }
+        });
 
         function validateEmergencyDetails() {
             if (!emergencyCheckbox || !emergencyDetails) return true;
