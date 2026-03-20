@@ -140,7 +140,10 @@ if ($request->filled('fcm_token')) {
             'created_at'=> now(),
         ]
     );
+
 }
+
+
 
 
     return response()->json([
