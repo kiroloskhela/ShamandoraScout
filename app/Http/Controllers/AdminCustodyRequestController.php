@@ -13,11 +13,11 @@ class AdminCustodyRequestController extends Controller
 
 protected $fcm;
 
-        public function __construct(FcmService $fcm)
-        {
-            $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
-            $this->fcm = $fcm;
-        }
+    public function __construct(FcmService $fcm)
+    {
+        $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
+        $this->fcm = $fcm;
+    }
 
     private function sendNotificationToUser($personId, $title, $body)
     {
@@ -43,7 +43,6 @@ protected $fcm;
             ]);
         }
     }
-
 
     private function currentAdminPersonId()
     {
