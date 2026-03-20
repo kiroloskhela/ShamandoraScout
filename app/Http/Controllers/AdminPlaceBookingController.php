@@ -5,14 +5,45 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\FcmService;
 
 class AdminPlaceBookingController extends Controller
 {
-    public function __construct()
+    protected $fcm;
+
+    public function __construct(FcmService $fcm)
     {
         $this->middleware(['auth', 'checkAuth:SuperAdmin|Secretary']);
+        $this->fcm = $fcm;
     }
 
+    private function sendNotificationToUser($personId, $title, $body)
+    {
+        try {
+            $tokens = DB::table('devices')
+                ->where('PersonID', $personId)
+                ->pluck('fcm_token')
+                ->toArray();
+
+            Log::info('FCM Tokens Debug', [
+                'personId' => $personId,
+                'tokens' => $tokens
+            ]);
+
+            if (!empty($tokens)) {
+                $this->fcm->sendToMultiple($tokens, $title, $body);
+            }
+
+        } catch (\Throwable $e) {
+            Log::error('FCM إرسال فشل', [
+                'personId' => $personId,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+
+    
     private function currentAdminPersonId()
     {
         $user = auth()->user();
@@ -226,7 +257,16 @@ public function approve(Request $request, $id)
         }
 
         DB::commit();
-        return redirect()->route('admin.place_bookings.show', $id)->with('success', '✅ تم اعتماد الطلب بنجاح.');
+        // 🔔 Send Notification
+        $this->sendNotificationToUser(
+                $booking->PersonID,
+                '✅ تم قبول طلب الحجز الغرفه',
+                "تم قبول طلبك بتاريخ {$validated['approved_booking_date']} من {$validated['approved_time_from']} إلى {$validated['approved_time_to']}"
+            );
+
+return redirect()->route('admin.place_bookings.show', $id)
+    ->with('success', '✅ تم اعتماد الطلب بنجاح.');
+      
     } catch (\Throwable $e) {
     DB::rollBack();
 
@@ -278,6 +318,13 @@ public function approve(Request $request, $id)
             if ($affected === 0) {
                 return back()->with('error', '❌ لا يمكن رفض طلب تم مراجعته بالفعل.');
             }
+
+            // 🔔 Send Notification
+            $this->sendNotificationToUser(
+                $booking->PersonID,
+                '❌ الغرف تم رفض طلب الحجز',
+                $adminNote
+            );
 
             return redirect()->route('admin.place_bookings.show', $id)->with('success', '✅ تم رفض الحجز.');
         } catch (\Throwable $e) {
@@ -337,7 +384,11 @@ public function approve(Request $request, $id)
             if ($affected === 0) {
                 return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.');
             }
-
+            $this->sendNotificationToUser(
+                $booking->PersonID,
+                '✅ تم قبول الحجز مع تعديل',
+                "تم تعديل الحجز الخاص بك من {$validated['approved_time_from']} إلى {$validated['approved_time_to']}"
+            );
             return redirect()->route('admin.place_bookings.show', $id)->with('success', '✅ تم اعتماد الحجز مع تعديل.');
         } catch (\Throwable $e) {
             Log::error('Error approving place booking with edit', ['exception' => $e, 'bookingId' => $id]);
