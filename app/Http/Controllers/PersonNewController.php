@@ -2,34 +2,23 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use \Illuminate\Http\Response;
-use \Illuminate\Database\QueryException;
 use Exception;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request as HttpRequest; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
-use Illuminate\Support\Facades\Storage;
-
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use \Illuminate\Http\Response;
-use \Illuminate\Database\QueryException;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+
 
 class PersonNewController extends Controller
 {
@@ -252,7 +241,7 @@ public function ShowPersons(Request $request)
 
         public function deleteNewEnrolments($id)
         {
-            $person = DB::table('NewUsersInformation')->where('PersonID','=',$id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.ShamandoraCode')->first();
+            $person = DB::table('NewUsersInformation')->where('PersonID','=',$id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.ShamandoraCode' ,   DB::raw("CONCAT(FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) as FullName"))->first();
 
             return view("person.new-enrolments-delete", array('person' => $person));
         }
