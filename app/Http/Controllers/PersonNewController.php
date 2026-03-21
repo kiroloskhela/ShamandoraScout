@@ -288,8 +288,157 @@ public function ShowPersons(Request $request)
         }
 
 
+        public function editNewEnrolments($id)
+{
+    $person = DB::table('NewUsersInformation')
+        ->where('PersonID', $id)
+        ->leftJoin('BloodType', 'BloodType.BloodTypeID','=','NewUsersInformation.BloodTypeID')
+        ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'NewUsersInformation.QetaaID')
+        ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'NewUsersInformation.SanaMarhalaID')
+        ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformation.ManteqaID')
+        ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
+        ->first();
 
+    $questions = DB::table('NewUsersPersonEntryQuestions')
+        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'NewUsersPersonEntryQuestions.QuestionID')
+        ->select('MarhalaEntryQuestions.QuestionText','NewUsersPersonEntryQuestions.Answer', 'MarhalaEntryQuestions.QuestionID')
+        ->where('NewUsersPersonEntryQuestions.PersonID', $id)->get();
 
+    $blood = DB::table('BloodType')->get();
+    $manateq = DB::table('Manteqa')->get();
+    $districts = DB::table('Districts')->get();
+    $seneen_marahel = DB::table('SanaMarhala')->get();
+
+    return view('person.new-enrolments-edit', [
+        'person' => $person,
+        'questions' => $questions,
+        'blood' => $blood,
+        'manateq' => $manateq,
+        'districts' => $districts,
+        'seneen_marahel' => $seneen_marahel,
+    ]);
+        }
+
+        public function updateNewEnrolments(Request $request, $id)
+        {
+            // ✅ Check duplicate national ID
+            $exists = DB::selectOne(
+                'SELECT COUNT(*) as count FROM NewUsersInformation WHERE RaqamQawmy = ? AND PersonID != ?',
+                [$request->input_raqam_qawmy, $id]
+            );
+
+            if ($exists->count > 0) {
+                return view('person.person-already-exists');
+            }
+
+            // ✅ Validation
+            $validator = Validator::make($request->all(), [
+                'first_name' => 'required',
+                'second_name' => 'required',
+                'third_name' => 'required',
+                'gender' => 'required',
+                'birthdate_input' => 'required',
+                'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
+                'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // ✅ National ID validation with birth date
+            $birthDate = $request->birthdate_input;
+            $nid = $request->input_raqam_qawmy;
+            if (strlen($nid) == 14) {
+                $year = substr($birthDate, 2, 2); // 13 from 2013
+                $month = substr($birthDate, 5, 2); // 11
+                $day = substr($birthDate, 8, 2); // 15
+                $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2); // positions 2-3,4-5,6-7
+                $actual = $year . $month . $day;
+                if ($expected !== $actual) {
+                    return redirect()->back()->withErrors(['input_raqam_qawmy' => 'الرقم القومي لا يتطابق مع تاريخ الميلاد'])->withInput();
+                }
+            }
+
+            DB::beginTransaction();
+
+            try {
+
+                DB::table('NewUsersInformation')
+                    ->where('PersonID', $id)
+                    ->update([
+                        'FirstName' => $request->first_name,
+                        'SecondName' => $request->second_name,
+                        'ThirdName' => $request->third_name,
+                        'FourthName' => $request->fourth_name,
+                        'Gender' => $request->gender,
+                        'DateOfBirth' => $request->birthdate_input,
+                        'RaqamQawmy' => $request->input_raqam_qawmy,
+                        'ScoutJoiningYear' => $request->joining_year_input,
+                        'BloodTypeID' => $request->blood_type_input,
+                        'PersonPersonalMobileNumber' => $request->personal_phone_number,
+                        'PersonalEmail' => $request->personal_email,
+                        'FacebookProfileURL' => $request->facebook_profile_url,
+                        'InstagramProfileURL' => $request->instagram_profile_url,
+                        'FatherMobileNumber' => $request->father_mobile_number,
+                        'MotherMobileNumber' => $request->mother_mobile_number,
+                        'HomePhoneNumber' => $request->home_phone_number,
+                        'IsOPersonalPhoneNumberHavingWhatsapp' => $request->is_personal_phone_has_whatsapp,
+                        'BuildingNumber' => $request->building_number,
+                        'FloorNumber' => $request->floor_number,
+                        'AppartmentNumber' => $request->appartment_number,
+                        'SubStreetName' => $request->sub_street_name,
+                        'MainStreetName' => $request->main_street_name,
+                        'NearestLandmark' => $request->nearest_landmark,
+                        'ManteqaID' => $request->manteqa_id,
+                        'DistrictID' => $request->district_id,
+                        'SanaMarhalaID' => $request->sana_marhala_id,
+                        'SchoolName' => $request->school_name,
+                        'SchoolGraduationYear' => $request->school_graduation_year,
+                        'SpiritualFatherName' => $request->spiritual_father_name,
+                        'SpiritualFatherChurchName' => $request->spiritual_father_church_name,
+
+                        // 🔥 NEW FIELDS (important)
+                        'AllergyFood' => $request->allergy_food,
+                        'AllergyMedicine' => $request->allergy_medicine,
+                        'MedicalDiseases' => $request->medical_diseases,
+                        'MedicalMedications' => $request->medical_medications,
+                        'HasEmergencyCase' => $request->has_emergency_case ? 1 : 0,
+                        'EmergencyDetails' => $request->emergency_details,
+                    ]);
+
+                // Update questions
+                $questions = DB::table('MarhalaEntryQuestions')
+                    ->join('NewUsersPersonEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'NewUsersPersonEntryQuestions.QuestionID')
+                    ->where('NewUsersPersonEntryQuestions.PersonID', $id)
+                    ->select('MarhalaEntryQuestions.QuestionID')
+                    ->get();
+
+                foreach ($questions as $question) {
+                    $answer = $request->input('question_' . $question->QuestionID);
+                    if ($answer !== null) {
+                        DB::table('NewUsersPersonEntryQuestions')
+                            ->where('PersonID', $id)
+                            ->where('QuestionID', $question->QuestionID)
+                            ->update(['Answer' => $answer]);
+                    }
+                }
+
+                DB::commit();
+
+                return redirect()->route('person.new-enrolments-index');
+
+            } catch (\Exception $e) {
+
+                DB::rollBack();
+
+                Log::error("Update New Enrolment Error", [
+                    'message' => $e->getMessage()
+                ]);
+
+                return back()->with('error', 'Something went wrong');
+            }
+        }
 
         public function createLiveForm()
         {
@@ -591,6 +740,20 @@ public function ShowPersons(Request $request)
         $validator->sometimes('emergency_details', 'required|string|max:255', function () use ($hasEmergency) {
             return $hasEmergency === true;
         });
+
+        // ✅ National ID validation with birth date
+        $birthDate = $request->birthdate_input;
+        $nid = $request->input_raqam_qawmy;
+        if (strlen($nid) == 14) {
+            $year = substr($birthDate, 2, 2); // 13 from 2013
+            $month = substr($birthDate, 5, 2); // 11
+            $day = substr($birthDate, 8, 2); // 15
+            $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2); // positions 2-3,4-5,6-7
+            $actual = $year . $month . $day;
+            if ($expected !== $actual) {
+                $validator->errors()->add('input_raqam_qawmy', 'الرقم القومي لا يتطابق مع تاريخ الميلاد');
+            }
+        }
 
         if ($validator->fails()) {
             Log::warning("insertNewPersonLiveForm: validation failed", [
