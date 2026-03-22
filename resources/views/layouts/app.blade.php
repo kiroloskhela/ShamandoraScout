@@ -12,6 +12,16 @@
         body {
             font-family: 'Cairo', sans-serif;
         }
+
+        @keyframes shamandora-spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
     @stack('styles')
     <script src="//unpkg.com/alpinejs" defer></script>
@@ -406,37 +416,35 @@
             <!-- Main Content Area -->
             <main class="flex-1 flex flex-col min-w-0 w-full">
                 <!-- Header Bar -->
-                <header
-                    class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-                    <!-- Mobile Menu Button -->
-                    <button id="sidebarToggle" type="button"
-                        class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
+                <header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-10"
+                    style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
 
-                    <!-- Logo (Always visible) and Page Title (Desktop only) -->
-
-                    <div class="flex items-center gap-3">
-                        <!-- Page Title - Only on desktop -->
+                    <!-- Right: Mobile menu button / Page title -->
+                    <div class="flex items-center gap-3 justify-start">
+                        <button id="sidebarToggle" type="button"
+                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
                         @if (isset($pageTitle))
-                            <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl">{{ $pageTitle }}
-                            </h1>
+                            <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl truncate">
+                                {{ $pageTitle }}</h1>
                         @endif
                     </div>
-                    <div class="flex items-center gap-3">
-                        <!-- Logo - Clickable to go to the top index -->
+
+                    <!-- Center: Logo always locked in center -->
+                    <div class="flex items-center justify-center">
                         <a href="{{ url('/') }}">
                             <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
                                 class="h-14 w-auto sm:h-14 lg:h-20">
                         </a>
                     </div>
 
-                    <!-- Desktop Logout Button -->
-                    <div class="hidden lg:block">
-                        <form method="POST" action="{{ route('logout') }}">
+                    <!-- Left: Logout button -->
+                    <div class="flex items-center justify-end">
+                        <form method="POST" action="{{ route('logout') }}" class="hidden lg:block">
                             @csrf
                             <button type="submit"
                                 class="flex items-center gap-2 px-4 py-2 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
@@ -448,6 +456,7 @@
                             </button>
                         </form>
                     </div>
+
                 </header>
 
                 <!-- Content Area -->
@@ -467,6 +476,38 @@
 
     </div>
 
+    <!-- Page loading overlay -->
+    <!-- Page loading overlay -->
+    <div id="pageLoadingOverlay" class="fixed inset-0 z-50 bg-white/70 backdrop-blur-sm"
+        style="display: none; align-items: center; justify-content: center;">
+        <div class="flex flex-col items-center gap-4">
+
+            {{-- Spinner + Logo --}}
+            <div class="relative flex items-center justify-center" style="width: 160px; height: 160px;">
+
+                {{-- Spinning ring --}}
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="72" fill="none" stroke="#e5e7eb"
+                        stroke-width="4" />
+                    <circle cx="80" cy="80" r="72" fill="none" stroke="#1D9E75" stroke-width="4"
+                        stroke-linecap="round" stroke-dasharray="110 340"
+                        style="transform-origin: 80px 80px; animation: shamandora-spin 1.1s linear infinite;" />
+                </svg>
+
+                {{-- Logo circle --}}
+                <div class="relative z-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden"
+                    style="width: 128px; height: 128px;">
+                    <img src="{{ asset('img/shamandora.png') }}" alt="شماندورة"
+                        style="width: 108px; height: 108px; object-fit: contain;">
+                </div>
+            </div>
+
+            {{-- Label --}}
+            <p class="text-sm text-gray-500" style="font-family: 'Cairo', sans-serif;">جاري التحميل ...</p>
+        </div>
+    </div>
+
+
     <!-- JavaScript -->
     <script>
         // Sidebar functionality
@@ -474,6 +515,19 @@
         const sidebarToggle = document.getElementById('sidebarToggle');
         const closeSidebar = document.getElementById('closeSidebar');
         const overlay = document.getElementById('sidebarOverlay');
+        const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
+
+        const showLoading = () => {
+            if (pageLoadingOverlay) {
+                pageLoadingOverlay.style.display = 'flex';
+            }
+        };
+
+        const hideLoading = () => {
+            if (pageLoadingOverlay) {
+                pageLoadingOverlay.style.display = 'none';
+            }
+        };
 
         function openSidebar() {
             sidebar.classList.remove('translate-x-full');
@@ -491,6 +545,39 @@
         sidebarToggle?.addEventListener('click', openSidebar);
         closeSidebar?.addEventListener('click', closeSidebarFunc);
         overlay?.addEventListener('click', closeSidebarFunc);
+
+        // Intercept internal link clicks to show page loading state
+        document.querySelectorAll('a[href]').forEach((link) => {
+            const url = new URL(link.href, window.location.origin);
+            if (url.origin !== window.location.origin) {
+                return;
+            }
+
+            if (link.target === '_blank' || link.hasAttribute('download') || link.getAttribute('href').startsWith(
+                    '#') || link.getAttribute('href').startsWith('javascript:')) {
+                return;
+            }
+
+            link.addEventListener('click', (event) => {
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event
+                    .shiftKey || event.altKey) {
+                    return;
+                }
+                showLoading();
+            });
+        });
+
+        // Show on form submit
+        document.querySelectorAll('form').forEach((form) => {
+            form.addEventListener('submit', () => {
+                showLoading();
+            });
+        });
+
+        // Also show while navigating away
+        window.addEventListener('beforeunload', () => {
+            showLoading();
+        });
 
         // Close sidebar on desktop resize
         window.addEventListener('resize', () => {
