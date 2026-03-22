@@ -59,10 +59,12 @@ class GamesController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function show($id)
+     public function show($id)
     {
-        //
+        $game = DB::table('Games')->where('GameID', $id)->first();
+        return view("games.show", array('game' => $game, 'title' => "تفاصيل اللعبة"));
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -93,6 +95,7 @@ class GamesController extends Controller
         return redirect()->route('games.index')->with('status', 'تم تعديل اللعبة بنجاح: ' . $request->title);
     }
 
+   
     public function deletes($id)
     {
         $game = DB::table('Games')->where('GameID', $id)->first();

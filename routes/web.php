@@ -497,7 +497,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
     Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
     Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
-    
+    Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
 });
 
 
