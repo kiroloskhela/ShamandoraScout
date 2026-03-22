@@ -25,6 +25,7 @@
                 'key' => 'QetaaName',
                 'label' => 'القطاع',
                 'type' => 'label',
+                'filter' => true,
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
