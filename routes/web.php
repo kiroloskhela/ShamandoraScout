@@ -78,6 +78,7 @@ use App\Http\Controllers\PersonSpecialCaseController;
 use App\Http\Controllers\SeasonEventBookingFinanceController;
 
 use App\Http\Controllers\NotificationController;
+  use App\Http\Controllers\GamesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -240,15 +241,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/new-enrolments/count/marahel', [PersonNewController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
     Route::get('/new-enrolments/count/qetaat', [PersonNewController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
 
-    Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])
-    ->name('person.new-enrolments-edit');
-
-    Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments'])
-
-
-
-    
-        ->name('person.new-enrolments-update');
+    Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
+    Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
     // Delete Persons
     Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
     Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
@@ -493,6 +487,17 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/create', [NotificationController::class, 'create']);
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
+
+
+    // Games
+    Route::get('/games', [GamesController::class, 'index'])->name('games.index');
+    Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
+    Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
+    Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
+    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+    Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
+    Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
+    
 });
 
 
