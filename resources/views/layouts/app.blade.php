@@ -532,12 +532,13 @@
 
     <!-- JavaScript -->
     <script>
-        // Sidebar functionality
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const closeSidebar = document.getElementById('closeSidebar');
         const overlay = document.getElementById('sidebarOverlay');
         const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
+
+        let loadingTimer = null;
 
         const showLoading = () => {
             if (pageLoadingOverlay) {
@@ -546,9 +547,20 @@
         };
 
         const hideLoading = () => {
+            if (loadingTimer) {
+                clearTimeout(loadingTimer);
+                loadingTimer = null;
+            }
             if (pageLoadingOverlay) {
                 pageLoadingOverlay.style.display = 'none';
             }
+        };
+
+        const showLoadingDelayed = () => {
+            hideLoading();
+            loadingTimer = setTimeout(() => {
+                showLoading();
+            }, 120); // avoid flashing on fast nav
         };
 
         function openSidebar() {
@@ -563,52 +575,54 @@
             document.body.style.overflow = '';
         }
 
-        // Event listeners
         sidebarToggle?.addEventListener('click', openSidebar);
         closeSidebar?.addEventListener('click', closeSidebarFunc);
         overlay?.addEventListener('click', closeSidebarFunc);
 
-        // Intercept internal link clicks to show page loading state
-        document.querySelectorAll('a[href]').forEach((link) => {
-            const url = new URL(link.href, window.location.origin);
-            if (url.origin !== window.location.origin) {
-                return;
-            }
+        // Always clear stale loader when page is ready or restored from Back/Forward
+        document.addEventListener('DOMContentLoaded', hideLoading);
+        window.addEventListener('load', hideLoading);
+        window.addEventListener('pageshow', hideLoading);
 
-            if (link.target === '_blank' || link.hasAttribute('download') || link.getAttribute('href').startsWith(
-                    '#') || link.getAttribute('href').startsWith('javascript:')) {
-                return;
-            }
+        document.querySelectorAll('a[href]').forEach((link) => {
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            if (link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const url = new URL(link.href, window.location.origin);
+            if (url.origin !== window.location.origin) return;
 
             link.addEventListener('click', (event) => {
-                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event
-                    .shiftKey || event.altKey) {
+                if (
+                    event.defaultPrevented ||
+                    event.button !== 0 ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                ) {
                     return;
                 }
-                showLoading();
+
+                // don't show loader for same-page navigation
+                if (url.href === window.location.href) return;
+
+                showLoadingDelayed();
             });
         });
 
-        // Show on form submit
         document.querySelectorAll('form').forEach((form) => {
             form.addEventListener('submit', () => {
-                showLoading();
+                showLoadingDelayed();
             });
         });
 
-        // Also show while navigating away
-        window.addEventListener('beforeunload', () => {
-            showLoading();
-        });
-
-        // Close sidebar on desktop resize
         window.addEventListener('resize', () => {
             if (window.innerWidth >= 1024) {
                 closeSidebarFunc();
             }
         });
 
-        // Escape key handler
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && window.innerWidth < 1024) {
                 closeSidebarFunc();
