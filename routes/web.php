@@ -126,6 +126,12 @@ Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'des
 Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');
 Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'destroyLiveForm'])->name('person.liveform-destroy');
 
+// !! IMPORTANT !! THIS ROUTES SHOULD BE DELETED AFTER ALL CONFLICTS RESOLVED AND LIVEFORM QUESTIONS MIGRATED TO NEW SYSTEM, IT'S ONLY FOR RESUMING LEGACY LIVEFORM QUESTIONS IN CASE OF ANY ISSUES
+Route::get('/liveform/resume/{id}', [PersonNewController::class, 'resumeLegacyLiveformQuestions'])
+    ->name('person.liveform-resume-questions');
+
+Route::post('/liveform/resume/{id}', [PersonNewController::class, 'submitLegacyLiveformQuestions'])
+    ->name('person.liveform-resume-questions-submit');
 
 
 Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));

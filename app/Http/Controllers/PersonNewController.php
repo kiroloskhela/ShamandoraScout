@@ -691,10 +691,12 @@ public function getLiveformQuestions()
         'RaqamQawmy' => $step2['input_raqam_qawmy'],
     ];
 
-    return view('person.person-questions-liveform', [
-        'questions' => $questions,
-        'person' => $person,
-    ]);
+ return view('person.person-questions-liveform', [
+    'questions' => $questions,
+    'person' => $person,
+    'existingAnswers' => [],
+    'is_resume_mode' => false,
+]);
 }
 
 public function submitLiveformQuestions(Request $request)
@@ -1207,5 +1209,98 @@ private function finalizeTempLiveformFile(?string $path): ?string
         }
 
 
+
+public function resumeLegacyLiveformQuestions($id)
+{
+    $person = DB::table('NewUsersInformation')
+        ->where('PersonID', $id)
+        ->first();
+
+    if (!$person) {
+        abort(404);
+    }
+
+    $questions = DB::table('MarhalaEntryQuestions')
+        ->where('QetaaID', $person->QetaaID)
+        ->where('NotToBeShown', 0)
+        ->get();
+
+    $existingAnswers = DB::table('NewUsersPersonEntryQuestions')
+        ->where('PersonID', $id)
+        ->pluck('Answer', 'QuestionID');
+
+    return view('person.person-questions-liveform', [
+        'person' => $person,
+        'questions' => $questions,
+        'existingAnswers' => $existingAnswers,
+        'is_resume_mode' => true,
+    ]);
+}
+
+public function submitLegacyLiveformQuestions(Request $request, $id)
+{
+    $person = DB::table('NewUsersInformation')
+        ->where('PersonID', $id)
+        ->first();
+
+    if (!$person) {
+        abort(404);
+    }
+
+    $questions = DB::table('MarhalaEntryQuestions')
+        ->where('QetaaID', $person->QetaaID)
+        ->where('NotToBeShown', 0)
+        ->get();
+
+    foreach ($questions as $question) {
+        $answer = $request->input($question->QuestionID);
+
+        if ($question->IsRequired && ($answer === null || $answer === '')) {
+            return view('person.entry-error-repeat-trial');
+        }
+    }
+
+    DB::beginTransaction();
+
+    try {
+        foreach ($questions as $question) {
+            $answer = $request->input($question->QuestionID);
+
+            $exists = DB::table('NewUsersPersonEntryQuestions')
+                ->where('PersonID', $id)
+                ->where('QuestionID', $question->QuestionID)
+                ->exists();
+
+            if ($exists) {
+                DB::table('NewUsersPersonEntryQuestions')
+                    ->where('PersonID', $id)
+                    ->where('QuestionID', $question->QuestionID)
+                    ->update([
+                        'Answer' => $answer,
+                    ]);
+            } else {
+                DB::table('NewUsersPersonEntryQuestions')->insert([
+                    'PersonID' => $id,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $answer,
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        return view('person.liveform-finalize');
+    } catch (\Throwable $e) {
+        DB::rollBack();
+
+        Log::error('submitLegacyLiveformQuestions failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return view('person.entry-error');
+    }
+}
 
 }
