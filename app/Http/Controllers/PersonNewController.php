@@ -590,16 +590,19 @@ public function saveLiveFormStep2(Request $request)
         return redirect()->back()->withErrors($validator)->withInput();
     }
 
-    $raqam = $request->input('input_raqam_qawmy');
+ $raqam = $request->input('input_raqam_qawmy');
 
-    $exists = DB::table('NewUsersInformation')
-        ->where('RaqamQawmy', $raqam)
-        ->exists();
+$existsInNewUsers = DB::table('NewUsersInformation')
+    ->where('RaqamQawmy', $raqam)
+    ->exists();
 
-    if ($exists) {
-        return view('person.person-already-exists');
-    }
+$existsInPersonInformation = DB::table('PersonInformation')
+    ->where('RaqamQawmy', $raqam)
+    ->exists();
 
+if ($existsInNewUsers || $existsInPersonInformation) {
+    return view('person.person-already-exists');
+}
     $profileImagePath = session('liveform.step2.profile_image');
     $scoutImagePath = session('liveform.step2.scout_uniform_image');
 
