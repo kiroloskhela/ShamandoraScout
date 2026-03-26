@@ -1190,130 +1190,241 @@ public function partialRefundStore(Request $request, $bookingID)
 }
 
 
-public function exportToday(Request $request, $seasonEventID)
-{
-    return $this->downloadBookingsCsv($seasonEventID, true, $request->summary_date);
-}
-
-public function exportAll($seasonEventID)
-{
-    return $this->downloadBookingsCsv($seasonEventID, false);
-}
-
-private function downloadBookingsCsv($seasonEventID, $filteredDayOnly = false, $summaryDate = null)
-{
-    $event = $this->getSeasonEventFullInfo($seasonEventID);
-    if (!$event) {
-        abort(404);
+    public function exportToday(Request $request, $seasonEventID)
+    {
+        return $this->downloadBookingsCsv($seasonEventID, true, $request->summary_date);
     }
 
-    $query = DB::table('SeasonEventParticipantFinance as b')
+    public function exportAll($seasonEventID)
+    {
+        return $this->downloadBookingsCsv($seasonEventID, false);
+    }
+
+    private function downloadBookingsCsv($seasonEventID, $filteredDayOnly = false, $summaryDate = null)
+    {
+        $event = $this->getSeasonEventFullInfo($seasonEventID);
+        if (!$event) {
+            abort(404);
+        }
+
+        $query = DB::table('SeasonEventParticipantFinance as b')
+            ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+            ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
+            ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+            ->where('b.SeasonEventID', $seasonEventID)
+            ->select(
+                'b.PersonID',
+                'b.FirstPaymentDate',
+                'b.OriginalPrice',
+                'b.DiscountAmount',
+                'b.FinalRequiredAmount',
+                'b.AmountPaid',
+                'b.RemainingAmount',
+                'b.InstallmentsNumber',
+                'b.SpecialCaseType',
+                'b.IsRefunded',
+                'b.ShirtSize',
+                'ppn.PersonPersonalMobileNumber',
+                'b.HasPersonSpecialCase',
+                DB::raw("CASE WHEN b.HasPersonSpecialCase = 1 THEN 'نعم' ELSE 'لا' END as HasPersonSpecialCaseText"),
+                DB::raw("TRIM(CONCAT(
+                    COALESCE(p.FirstName,''), ' ',
+                    COALESCE(p.SecondName,''), ' ',
+                    COALESCE(p.ThirdName,''), ' ',
+                    COALESCE(p.FourthName,'')
+                )) as PersonFullName"),
+                DB::raw("GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ') as QetaaNames")
+            )
+            ->groupBy(
+                'b.PersonID',
+                'b.FirstPaymentDate',
+                'b.OriginalPrice',
+                'b.DiscountAmount',
+                'b.FinalRequiredAmount',
+                'b.AmountPaid',
+                'b.RemainingAmount',
+                'b.InstallmentsNumber',
+                'b.SpecialCaseType',
+                'b.IsRefunded',
+                'b.ShirtSize',
+                'ppn.PersonPersonalMobileNumber',
+                'p.FirstName',
+                'p.SecondName',
+                'p.ThirdName',
+                'p.FourthName',
+                'b.HasPersonSpecialCase',
+            );
+
+    if ($filteredDayOnly) {
+        $dateToUse = $summaryDate ?: Carbon::today()->toDateString();
+        $query->whereDate('b.FirstPaymentDate', $dateToUse);
+    }
+
+        $rows = $query->orderBy('PersonFullName')->get();
+
+        $fileName = $filteredDayOnly
+            ? 'event-bookings-today-' . $seasonEventID . '.csv'
+            : 'event-bookings-all-' . $seasonEventID . '.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel Arabic support
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        fputcsv($handle, [
+        'PersonID',
+        'الاسم',
+        'الموبايل',
+        'القطاع',
+        'حجم القميص',
+        'أخوه رب / PersonSpecialCase',
+        'الحالة',
+        'تاريخ أول دفعة',
+        'السعر الأصلي',
+        'الخصم',
+        'المطلوب النهائي',
+        'المدفوع',
+        'المتبقي',
+        'عدد الأقساط',
+        'مسترد؟',
+    ]);
+
+            foreach ($rows as $row) {
+            fputcsv($handle, [
+        $row->PersonID,
+        $row->PersonFullName,
+        $row->PersonPersonalMobileNumber,
+        $row->QetaaNames,
+        $row->ShirtSize,
+        $row->HasPersonSpecialCaseText,
+        $row->SpecialCaseType,
+        $row->FirstPaymentDate,
+        $row->OriginalPrice,
+        $row->DiscountAmount,
+        $row->FinalRequiredAmount,
+        $row->AmountPaid,
+        $row->RemainingAmount,
+        $row->InstallmentsNumber,
+        $row->IsRefunded ? 'نعم' : 'لا',
+    ]);
+            }
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function show($bookingID)
+{
+    $booking = DB::table('SeasonEventParticipantFinance as b')
+        ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
+        ->join('Season as sn', 'se.SeasonID', '=', 'sn.SeasonID')
+        ->join('Event as e', 'se.EventID', '=', 'e.EventID')
         ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
         ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
-        ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
-        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-        ->where('b.SeasonEventID', $seasonEventID)
+        ->leftJoin('PersonInformation as s', 'b.ServentID', '=', 's.PersonID')
+        ->where('b.SeasonEventParticipantFinanceID', $bookingID)
         ->select(
-            'b.PersonID',
-            'b.FirstPaymentDate',
-            'b.OriginalPrice',
-            'b.DiscountAmount',
-            'b.FinalRequiredAmount',
-            'b.AmountPaid',
-            'b.RemainingAmount',
-            'b.InstallmentsNumber',
-            'b.SpecialCaseType',
-            'b.IsRefunded',
-            'b.ShirtSize',
+            'b.*',
+            'se.SeasonEventID',
+            'sn.SeasonName',
+            'sn.SeasonYear',
+            'e.EventName',
+            'e.EventStartDate',
+            'e.EventEndDate',
             'ppn.PersonPersonalMobileNumber',
-            'b.HasPersonSpecialCase',
-            DB::raw("CASE WHEN b.HasPersonSpecialCase = 1 THEN 'نعم' ELSE 'لا' END as HasPersonSpecialCaseText"),
             DB::raw("TRIM(CONCAT(
                 COALESCE(p.FirstName,''), ' ',
                 COALESCE(p.SecondName,''), ' ',
                 COALESCE(p.ThirdName,''), ' ',
                 COALESCE(p.FourthName,'')
             )) as PersonFullName"),
-            DB::raw("GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ') as QetaaNames")
+            DB::raw("TRIM(CONCAT(
+                COALESCE(s.FirstName,''), ' ',
+                COALESCE(s.SecondName,''), ' ',
+                COALESCE(s.ThirdName,''), ' ',
+                COALESCE(s.FourthName,'')
+            )) as ServentFullName")
         )
-        ->groupBy(
-            'b.PersonID',
-            'b.FirstPaymentDate',
-            'b.OriginalPrice',
-            'b.DiscountAmount',
-            'b.FinalRequiredAmount',
-            'b.AmountPaid',
-            'b.RemainingAmount',
-            'b.InstallmentsNumber',
-            'b.SpecialCaseType',
-            'b.IsRefunded',
-            'b.ShirtSize',
-            'ppn.PersonPersonalMobileNumber',
-            'p.FirstName',
-            'p.SecondName',
-            'p.ThirdName',
-            'p.FourthName',
-            'b.HasPersonSpecialCase',
-        );
+        ->first();
 
- if ($filteredDayOnly) {
-    $dateToUse = $summaryDate ?: Carbon::today()->toDateString();
-    $query->whereDate('b.FirstPaymentDate', $dateToUse);
-}
+    if (!$booking) {
+        abort(404);
+    }
 
-    $rows = $query->orderBy('PersonFullName')->get();
+    $payments = DB::table('SeasonEventParticipantFinancePayment as p')
+        ->leftJoin('PersonInformation as s', 'p.ServentID', '=', 's.PersonID')
+        ->where('p.SeasonEventParticipantFinanceID', $bookingID)
+        ->select(
+            'p.*',
+            DB::raw("TRIM(CONCAT(
+                COALESCE(s.FirstName,''), ' ',
+                COALESCE(s.SecondName,''), ' ',
+                COALESCE(s.ThirdName,''), ' ',
+                COALESCE(s.FourthName,'')
+            )) as ServentFullName")
+        )
+        ->orderBy('p.PaymentDate')
+        ->orderBy('p.PaymentID')
+        ->get()
+        ->map(function ($payment) {
+            $payment->PaymentDateFormatted = $payment->PaymentDate
+                ? \Carbon\Carbon::parse($payment->PaymentDate)->format('Y-m-d h:i A')
+                : '-';
 
-    $fileName = $filteredDayOnly
-        ? 'event-bookings-today-' . $seasonEventID . '.csv'
-        : 'event-bookings-all-' . $seasonEventID . '.csv';
+            $payment->AmountFormatted = number_format((float) $payment->Amount, 2);
 
-    return response()->streamDownload(function () use ($rows) {
-        $handle = fopen('php://output', 'w');
+            return $payment;
+        });
 
-        // UTF-8 BOM for Excel Arabic support
-        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+    $canAddInstallment =
+        ((int) $booking->IsRefunded === 0
+            && (float) $booking->RemainingAmount > 0
+            && $this->getPaymentsCount($bookingID) < (int) $booking->InstallmentsNumber);
 
-      fputcsv($handle, [
-    'PersonID',
-    'الاسم',
-    'الموبايل',
-    'القطاع',
-    'حجم القميص',
-    'أخوه رب / PersonSpecialCase',
-    'الحالة',
-    'تاريخ أول دفعة',
-    'السعر الأصلي',
-    'الخصم',
-    'المطلوب النهائي',
-    'المدفوع',
-    'المتبقي',
-    'عدد الأقساط',
-    'مسترد؟',
-]);
+    $canRefund =
+        ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0);
 
-        foreach ($rows as $row) {
-         fputcsv($handle, [
-    $row->PersonID,
-    $row->PersonFullName,
-    $row->PersonPersonalMobileNumber,
-    $row->QetaaNames,
-    $row->ShirtSize,
-    $row->HasPersonSpecialCaseText,
-    $row->SpecialCaseType,
-    $row->FirstPaymentDate,
-    $row->OriginalPrice,
-    $row->DiscountAmount,
-    $row->FinalRequiredAmount,
-    $row->AmountPaid,
-    $row->RemainingAmount,
-    $row->InstallmentsNumber,
-    $row->IsRefunded ? 'نعم' : 'لا',
-]);
+    return view('event_booking_finance.show', compact(
+        'booking',
+        'payments',
+        'canAddInstallment',
+        'canRefund'
+    ));
+    }
+
+    public function updateShirtSize(Request $request, $bookingID)
+    {
+        $validator = Validator::make($request->all(), [
+            'shirt_size' => 'required|in:XS,S,M,L,XL,2XL,3XL',
+        ], [
+            'shirt_size.required' => 'يجب اختيار مقاس القميص.',
+            'shirt_size.in' => 'مقاس القميص غير صحيح.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        fclose($handle);
-    }, $fileName, [
-        'Content-Type' => 'text/csv; charset=UTF-8',
-    ]);
-}
+        $booking = DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventParticipantFinanceID', $bookingID)
+            ->first();
+
+        if (!$booking) {
+            abort(404);
+        }
+
+        DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventParticipantFinanceID', $bookingID)
+            ->update([
+                'ShirtSize' => $request->shirt_size,
+            ]);
+
+        return redirect()->route('eventBookingFinance.show', $bookingID)
+            ->with('success', 'تم تحديث مقاس القميص بنجاح.');
+    }
+
 }

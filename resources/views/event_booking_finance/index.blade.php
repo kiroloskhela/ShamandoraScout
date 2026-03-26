@@ -338,6 +338,14 @@
                 'cssClass' =>
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors duration-200',
             ],
+            [
+                'name' => 'show',
+                'label' => 'عرض',
+                'route' => route('eventBookingFinance.show', ':id'),
+                'idField' => 'SeasonEventParticipantFinanceID',
+                'cssClass' =>
+                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
+            ],
         ]" :searchable="true"
             :sortable="true" :pagination="true" :per-page="10" />
     </div>

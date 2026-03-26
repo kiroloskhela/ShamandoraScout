@@ -679,18 +679,25 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
     Route::get('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundPage'])->name('refundPage');
     Route::post('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundStore'])->name('refundStore');
 
- Route::get('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundPage'])
-        ->name('partialRefundPage');
+    Route::get('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundPage'])
+            ->name('partialRefundPage');
 
     Route::post('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundStore'])
         ->name('partialRefundStore');
     Route::get('/receipt/{paymentID}/print', [SeasonEventBookingFinanceController::class, 'printReceipt'])->name('printReceipt');
 
-Route::get('/event/{seasonEventID}/export/today', [SeasonEventBookingFinanceController::class, 'exportToday'])
-    ->name('exportToday');
+    Route::get('/event/{seasonEventID}/export/today', [SeasonEventBookingFinanceController::class, 'exportToday'])
+        ->name('exportToday');
 
-Route::get('/event/{seasonEventID}/export/all', [SeasonEventBookingFinanceController::class, 'exportAll'])
-    ->name('exportAll');
+    Route::get('/event/{seasonEventID}/export/all', [SeasonEventBookingFinanceController::class, 'exportAll'])
+        ->name('exportAll');
+
+
+    Route::get('/booking/{bookingID}/show', [SeasonEventBookingFinanceController::class, 'show'])
+    ->name('show');
+
+    Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])
+        ->name('updateShirtSize');
     });
 
 });
