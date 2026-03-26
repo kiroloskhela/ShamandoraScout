@@ -91,7 +91,7 @@
             </div>
 
             <div class="p-6 md:p-10">
-                <form id="regForm2" method="POST" action="{{ route('person.liveform-insert-person') }}" novalidate
+                <form id="regForm2" method="POST" action="{{ route('person.liveform-step2-save') }}" novalidate
                     enctype="multipart/form-data">
                     @csrf
 

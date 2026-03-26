@@ -122,6 +122,17 @@ Route::post('/liveform/person/entry-questions/submit', [PersonNewController::cla
 Route::get('/liveform/person/delete/{id}', array('as'=> 'person.liveform-delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletesLiveForm'));
 Route::delete('/liveform/person/destroy/{id}', array('as'=> 'person.liveform-destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroyLiveForm'));
 
+
+Route::get('/liveform', [PersonNewController::class, 'createLiveForm'])->name('person.liveform-create');
+Route::post('/liveform/step1', [PersonNewController::class, 'insertLiveForm'])->name('person.liveform-insert');
+
+Route::get('/liveform/step2', [PersonNewController::class, 'showLiveFormStep2'])->name('person.liveform-step2');
+Route::post('/liveform/step2', [PersonNewController::class, 'saveLiveFormStep2'])->name('person.liveform-step2-save');
+
+Route::get('/liveform/questions', [PersonNewController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
+Route::post('/liveform/questions', [PersonNewController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
+
+
 Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitLiveFormQuestions'));
 Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@getLiveFormQuestions'));
 Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');

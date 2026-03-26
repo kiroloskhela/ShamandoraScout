@@ -18,7 +18,7 @@ use \Illuminate\Http\Response;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 
 class PersonNewController extends Controller
 {
@@ -429,799 +429,495 @@ public function ShowPersons(Request $request)
             }
         }
 
-        public function createLiveForm()
-        {
+public function createLiveForm()
+{
+    $seneen_marahel = DB::table('SanaMarhala')->get();
 
-            $seneen_marahel = DB::table('SanaMarhala')->get();
+    return view('person.person-create-liveform-1', [
+        'seneen_marahel' => $seneen_marahel,
+    ]);
+}
 
-            return view("person.person-create-liveform-1", array(
-                'seneen_marahel'=>$seneen_marahel
-            ));
-        }
+public function insertLiveForm(Request $request)
+{
+    $request->validate([
+        'sana_marhala_id' => 'required',
+        'gender' => 'required|in:Male,Female',
+        'newLeadersSchool' => 'nullable',
+    ]);
 
-        public function insertLiveForm(Request $request)
-        {
-            if($request->newLeadersSchool)
-            {
-                if($request->sana_marhala_id==NULL||$request->gender==NULL)
-                {
-                    $seneen_marahel = DB::table('SanaMarhala')->get();
+    [$qetaa_id, $qetaa_name, $gender] = $this->resolveLiveFormQetaa(
+        (int) $request->sana_marhala_id,
+        $request->gender,
+        (bool) $request->newLeadersSchool
+    );
 
-                    return view("person.person-create-liveform-1", array(
-                        'seneen_marahel'=>$seneen_marahel
-                    ));
-                }
+    $marhala_limit = DB::table('MarhalaLiveFormLimit')
+        ->where('QetaaID', $qetaa_id)
+        ->where('SanaMarhalaID', $request->sana_marhala_id)
+        ->value('MaxLimit') ?? 0;
 
-                $qetaa_name = "اعداد قادة";
-                $qetaa_id = 10;
-                $gender = $request->gender;
+    $numberOfStudentsCurrentlySubmittedInSanaMarhala = DB::table('NewUsersInformation')
+        ->where('QetaaID', $qetaa_id)
+        ->where('SanaMarhalaID', $request->sana_marhala_id)
+        ->count();
 
-            }
-            else
-            {
-                if($request->sana_marhala_id==NULL||$request->gender==NULL)
-                {
-                    $seneen_marahel = DB::table('SanaMarhala')->get();
+    if ($marhala_limit == 0 || $numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit) {
+        return view('person.liveform-limit-exceeded');
+    }
 
-                    return view("person.person-create-liveform-1", array(
-                        'seneen_marahel'=>$seneen_marahel
-                    ));
-                }
+    $sana_marhala_name = DB::table('SanaMarhala')
+        ->where('SanaMarhalaID', $request->sana_marhala_id)
+        ->value('SanaMarhalaName');
 
-                if($request->sana_marhala_id<5&&$request->sana_marhala_id>2)
-                {
-                    $qetaa_name = "براعم";
-                    $qetaa_id = 1;
-                    $gender = $request->gender;
-                }
-                elseif($request->sana_marhala_id<9&&$request->sana_marhala_id>4)
-                {
-                    if($request->gender=="Male")
-                    {
-                        $qetaa_name = "أشبال";
-                        $qetaa_id = 2;
-                        $gender = "Male";
-                    }
-                    elseif($request->gender=="Female")
-                    {
-                        $qetaa_name = "زهرات";
-                        $qetaa_id = 9;
-                        $gender = "Female";
-                    }
-                }
-                elseif($request->sana_marhala_id<12&&$request->sana_marhala_id>8)
-                {
-                    if($request->gender=="Male")
-                    {
-                        $qetaa_name = "كشافة";
-                        $qetaa_id = 8;
-                        $gender = "Male";
-                    }
-                    elseif($request->gender=="Female")
-                    {
-                        $qetaa_name = "مرشدات";
-                        $qetaa_id = 6;
-                        $gender = "Female";
-                    }
-                }
-                elseif($request->sana_marhala_id<=14&&$request->sana_marhala_id>11)
-                {
-                    if($request->gender=="Male")
-                    {
-                        $qetaa_name = "متقدم";
-                        $qetaa_id = 3;
-                        $gender = "Male";
-                    }
-                    elseif($request->gender=="Female")
-                    {
-                        $qetaa_name = "رائدات";
-                        $qetaa_id = 4;
-                        $gender = "Female";
-                    }
-                }
-                elseif($request->sana_marhala_id<21&&$request->sana_marhala_id>14)
-                {
-                        $qetaa_name = "جوالة";
-                        $qetaa_id = 5;
-                        $gender = $request->gender;
-                }
-                else
-                {
-                    $qetaa_name = "قادة";
-                    $qetaa_id = 7;
-                    $gender = $request->gender;
-                }
-            }
-            $marhala_limit = 0;
-            //return $request->sana_marhala_id;
-            if(DB::table('MarhalaLiveFormLimit')
-            ->where('MarhalaLiveFormLimit.QetaaID', $qetaa_id)
-            ->where('MarhalaLiveFormLimit.SanaMarhalaID', $request->sana_marhala_id)
-            ->select('MarhalaLiveFormLimit.MaxLimit')
-            ->exists())
-            {
-            $marhala_limit = DB::table('MarhalaLiveFormLimit')
-                        ->where('MarhalaLiveFormLimit.QetaaID', $qetaa_id)
-                        ->where('MarhalaLiveFormLimit.SanaMarhalaID', $request->sana_marhala_id)
-                        ->select('MarhalaLiveFormLimit.MaxLimit')
-                        ->first()->MaxLimit;
-            //return $marhala_limit;
-            }
-            //return $marhala_limit;
-            $numberOfStudentsCurrentlySubmittedInSanaMarhala = 
-                        DB::table('NewUsersInformation')
-                        ->where('NewUsersInformation.QetaaID', $qetaa_id)
-                        ->where('NewUsersInformation.SanaMarhalaID', $request->sana_marhala_id)
-                        ->count();
-            //return $numberOfStudentsCurrentlySubmittedInSanaMarhala;
+    session([
+        'liveform.step1' => [
+            'sana_marhala_id' => (int) $request->sana_marhala_id,
+            'sana_marhala_name' => $sana_marhala_name,
+            'gender' => $gender,
+            'qetaa_id' => $qetaa_id,
+            'qetaa_name' => $qetaa_name,
+            'newLeadersSchool' => (bool) $request->newLeadersSchool,
+        ],
+    ]);
 
-            if($numberOfStudentsCurrentlySubmittedInSanaMarhala>$marhala_limit||$marhala_limit==0)
-            {      
-                return view('person.liveform-limit-exceeded');  
-            }
+    return redirect()->route('person.liveform-step2');
+}
 
-            $marahel = DB::table('Marhala')->get();
-            $faculties = DB::table('Faculty')->get();
-            $universities = DB::table('University')->get();
-            $rotab = DB::table('RotbaInformation')->get();
-            $sana_marhala_name = DB::table('SanaMarhala')
-                                -> where('SanaMarhala.SanaMarhalaID',$request->sana_marhala_id)
-                                -> select('SanaMarhalaName')
-                                -> first()
-                                -> SanaMarhalaName;
+public function showLiveFormStep2()
+{
+    $step1 = session('liveform.step1');
 
-            $questionTypes = DB::table('QuestionsTypes')->get();
-            $blood = DB::table('BloodType')->get();
-            //$betakat = DB::table('EgazetBetakatTaqaddom')->get();
-            $manateq = DB::table('Manteqa')->get();
-            $districts = DB::table('Districts')->get();
-            
+    if (!$step1) {
+        return redirect()->route('person.liveform-create');
+    }
 
-            return view("person.person-create-liveform", 
-            array('marahel'=>$marahel, 
-                    'rotab'=>$rotab,
-                    'sana_marhala_id'=>$request->sana_marhala_id,
-                    'sana_marhala_name'=>$sana_marhala_name,
-                    'qetaa_id'=>$qetaa_id,
-                    'qetaa_name'=>$qetaa_name,
-                    'gender'=>$gender, 
-                    'questionTypes'=>$questionTypes, 
-                    'blood'=>$blood, 
-                    'manateq'=>$manateq, 
-                    'districts'=>$districts,
-                    'faculties' =>$faculties,
-                    'universities' =>$universities,
-                ));
-            //return view('person.person-create-liveform', array('sana_marhala_id' => $request->sana_marhala_id));
-            //return redirect()->route('person.de7k', $marhala_limit);
-            //return $request->sana_marhala_id;
-        }
+    return view('person.person-create-liveform', array_merge(
+        $this->getLiveFormStep2Lookups(),
+        [
+            'sana_marhala_id' => $step1['sana_marhala_id'],
+            'sana_marhala_name' => $step1['sana_marhala_name'],
+            'qetaa_id' => $step1['qetaa_id'],
+            'qetaa_name' => $step1['qetaa_name'],
+            'gender' => $step1['gender'],
+        ]
+    ));
+}
 
+public function saveLiveFormStep2(Request $request)
+{
+    $step1 = session('liveform.step1');
 
+    if (!$step1) {
+        return redirect()->route('person.liveform-create');
+    }
 
+    $rules = [
+        'first_name' => 'required|string|max:255',
+        'second_name' => 'required|string|max:255',
+        'third_name' => 'required|string|max:255',
+        'fourth_name' => 'nullable|string|max:255',
+        'birthdate_input' => 'required|date',
+        'joining_year_input' => 'required',
+        'input_raqam_qawmy' => 'required|digits:14',
+        'blood_type_input' => 'required',
+        'personal_phone_number' => 'required|digits:11',
+        'father_phone_number' => 'nullable',
+        'mother_phone_number' => 'nullable',
+        'home_phone_number' => 'nullable',
+        'building_number' => 'required',
+        'floor_number' => 'required',
+        'appartment_number' => 'required',
+        'main_street_name' => 'nullable|string|max:255',
+        'sub_street_name' => 'required|string|max:255',
+        'nearest_landmark' => 'nullable|string|max:255',
+        'manteqa_id' => 'required',
+        'district_id' => 'required',
+        'inputFacebookLink' => 'nullable|string|max:500',
+        'inputInstagramLink' => 'nullable|string|max:500',
+        'email_input' => 'nullable|email|max:255',
+        'spiritual_father' => 'nullable|string|max:255',
+        'spiritual_father_church' => 'nullable|string|max:255',
+        'person_school' => 'nullable|string|max:255',
+        'school_grad_year' => 'nullable',
+        'person_faculty' => 'nullable',
+        'person_university' => 'nullable',
+        'university_grad_year' => 'nullable',
 
+        'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'scout_uniform_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
 
+        'allergy_food' => 'nullable|string|max:2000',
+        'allergy_medicine' => 'nullable|string|max:2000',
+        'medical_diseases' => 'nullable|string|max:2000',
+        'medical_medications' => 'nullable|string|max:2000',
+        'has_emergency_case' => 'nullable',
+        'emergency_details' => 'nullable|string|max:255',
+    ];
 
+    $validator = Validator::make($request->all(), $rules);
 
+    $hasEmergency = $request->boolean('has_emergency_case');
 
-    public function insertNewPersonLiveForm(Request $request)
-    {
-        // ===== Upload diagnostics (helps if uploads fail again) =====
-        $logUploadState = function (Request $request, string $key) {
-            Log::info("[$key] upload state", [
-                'content_type' => $request->header('Content-Type'),
-                'all_files_keys' => array_keys($request->allFiles()),
-                'hasFile' => $request->hasFile($key),
-                'file_obj_class' => $request->file($key) ? get_class($request->file($key)) : null,
-                'isValid' => $request->file($key) ? $request->file($key)->isValid() : null,
-                'error' => $request->file($key) ? $request->file($key)->getError() : null,
-                'errorMessage' => $request->file($key) ? $request->file($key)->getErrorMessage() : null,
-                'clientName' => $request->file($key) ? $request->file($key)->getClientOriginalName() : null,
-                'clientMime' => $request->file($key) ? $request->file($key)->getClientMimeType() : null,
-                'mime' => $request->file($key) ? $request->file($key)->getMimeType() : null,
-                'size' => $request->file($key) ? $request->file($key)->getSize() : null,
-            ]);
-        };
+    $validator->sometimes('emergency_details', 'required|string|max:255', function () use ($hasEmergency) {
+        return $hasEmergency === true;
+    });
 
-        Log::info("insertNewPersonLiveForm: request received", [
-            'ip' => $request->ip(),
-            'method' => $request->method(),
-            'content_type' => $request->header('Content-Type'),
-            'has_files' => count($request->allFiles()) > 0,
-            'files_keys' => array_keys($request->allFiles()),
-            'nid_len' => strlen((string) $request->input('input_raqam_qawmy')),
-            'phone_len' => strlen((string) $request->input('personal_phone_number')),
-        ]);
+    $validator->after(function ($validator) use ($request) {
+        $birthDate = (string) $request->birthdate_input;
+        $nid = (string) $request->input_raqam_qawmy;
 
-        $logUploadState($request, 'profile_image');
-        $logUploadState($request, 'scout_uniform_image');
+        if (strlen($nid) === 14 && strlen($birthDate) >= 10) {
+            $year = substr($birthDate, 2, 2);
+            $month = substr($birthDate, 5, 2);
+            $day = substr($birthDate, 8, 2);
 
-        // ===== Duplicate NID check =====
-        $raqam = $request->input('input_raqam_qawmy');
-        $existsObj = DB::selectOne(
-            'SELECT EXISTS(SELECT 1 FROM NewUsersInformation WHERE RaqamQawmy = :some_id) AS `exists`',
-            ['some_id' => $raqam]
-        );
-        $exists = (int) ($existsObj->exists ?? 0);
-
-        Log::info("insertNewPersonLiveForm: NID exists check", [
-            'nid_last4' => substr((string) $raqam, -4),
-            'exists' => $exists,
-        ]);
-
-        if ($exists) {
-            return view('person.person-already-exists');
-        }
-
-        // ===== Determine PersonID =====
-        $last = DB::table('NewUsersInformation')->orderBy('PersonID', 'desc')->first();
-        $thisPersonID = is_null($last) ? 1 : ((int) $last->PersonID + 1);
-
-        // ===== ShamandoraCode =====
-        $shamandoraCode = "SH-" . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
-
-        // ===== Password =====
-        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-        $pass = [];
-        $alphaLength = strlen($alphabet) - 1;
-        for ($i = 0; $i < 8; $i++) {
-            $n = rand(0, $alphaLength);
-            $pass[] = $alphabet[$n];
-        }
-        $passString = implode($pass);
-
-        // ===== QetaaName =====
-        $qetaaRow = DB::table('Qetaa')->where('Qetaa.QetaaID', $request->qetaa_id)->first();
-        $QetaaName = $qetaaRow ? $qetaaRow->QetaaName : null;
-
-        // ===== Helpers for NEW columns =====
-        $cleanList = function (?string $value): ?string {
-            if ($value === null) return null;
-            $value = trim($value);
-            if ($value === '') return null;
-
-            // Normalize separators (allow user to type: comma, Arabic comma, semicolon, new lines)
-            $value = str_replace(["\r\n", "\n", "،", ";"], ",", $value);
-
-            // Split -> trim -> remove empties -> unique -> join
-            $parts = array_filter(array_map('trim', explode(',', $value)), fn($x) => $x !== '');
-            $parts = array_values(array_unique($parts));
-
-            return count($parts) ? implode(', ', $parts) : null;
-        };
-
-        $hasEmergency = $request->boolean('has_emergency_case'); // handles 1/on/true
-
-        // ===== Validation (with logs) =====
-        $rules = [
-            'first_name' => 'required',
-            'second_name' => 'required',
-            'third_name' => 'required',
-            'gender' => 'required',
-            'birthdate_input' => 'required',
-            'joining_year_input' => 'required',
-            'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-            'blood_type_input' => 'required',
-            'personal_phone_number' => 'required|min_digits:11|max_digits:11',
-            'building_number' => 'required',
-            'floor_number' => 'required',
-            'appartment_number' => 'required',
-            'sub_street_name' => 'required',
-            'manteqa_id' => 'required',
-            'district_id' => 'required',
-
-            // images
-            'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'scout_uniform_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
-
-            // ✅ new medical/allergy fields
-            'allergy_food' => 'nullable|string|max:2000',
-            'allergy_medicine' => 'nullable|string|max:2000',
-            'medical_diseases' => 'nullable|string|max:2000',
-            'medical_medications' => 'nullable|string|max:2000',
-            'has_emergency_case' => 'nullable', // checkbox
-            'emergency_details' => 'nullable|string|max:255',
-        ];
-
-        $validator = Validator::make($request->all(), $rules);
-
-        // If user says "has emergency", require details (optional but nice)
-        $validator->sometimes('emergency_details', 'required|string|max:255', function () use ($hasEmergency) {
-            return $hasEmergency === true;
-        });
-
-        // ✅ National ID validation with birth date
-        $birthDate = $request->birthdate_input;
-        $nid = $request->input_raqam_qawmy;
-        if (strlen($nid) == 14) {
-            $year = substr($birthDate, 2, 2); // 13 from 2013
-            $month = substr($birthDate, 5, 2); // 11
-            $day = substr($birthDate, 8, 2); // 15
-            $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2); // positions 2-3,4-5,6-7
+            $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2);
             $actual = $year . $month . $day;
+
             if ($expected !== $actual) {
                 $validator->errors()->add('input_raqam_qawmy', 'الرقم القومي لا يتطابق مع تاريخ الميلاد');
             }
         }
+    });
 
-        if ($validator->fails()) {
-            Log::warning("insertNewPersonLiveForm: validation failed", [
-                'errors' => $validator->errors()->toArray(),
-                'files_keys' => array_keys($request->allFiles()),
-            ]);
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
 
-            return redirect()
-                ->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+    $raqam = $request->input('input_raqam_qawmy');
 
-        DB::beginTransaction();
+    $exists = DB::table('NewUsersInformation')
+        ->where('RaqamQawmy', $raqam)
+        ->exists();
 
-        try {
-            // ===== Store images first (so we can insert paths) =====
-            $personalImagePath = null;
-            $scoutImagePath = null;
+    if ($exists) {
+        return view('person.person-already-exists');
+    }
 
-            if ($request->hasFile('profile_image')) {
-                $personalImagePath = $request->file('profile_image')->store('person_images', 'public');
-                Log::info("profile_image stored", [
-                    'PersonID' => $thisPersonID,
-                    'path' => $personalImagePath,
-                ]);
-            }
+    $profileImagePath = session('liveform.step2.profile_image');
+    $scoutImagePath = session('liveform.step2.scout_uniform_image');
 
-            if ($request->hasFile('scout_uniform_image')) {
-                $scoutImagePath = $request->file('scout_uniform_image')->store('person_images', 'public');
-                Log::info("scout_uniform_image stored", [
-                    'PersonID' => $thisPersonID,
-                    'path' => $scoutImagePath,
-                ]);
-            }
+    if ($request->hasFile('profile_image')) {
+        $profileImagePath = $request->file('profile_image')->store('temp/liveform', 'public');
+    }
 
-            // ✅ Prepare NEW columns values
-            $allergyFood = $cleanList($request->input('allergy_food'));
-            $allergyMedicine = $cleanList($request->input('allergy_medicine'));
-            $medicalDiseases = $cleanList($request->input('medical_diseases'));
-            $medicalMedications = $cleanList($request->input('medical_medications'));
-            $emergencyDetails = $hasEmergency ? trim((string) $request->input('emergency_details')) : null;
-            if ($emergencyDetails === '') $emergencyDetails = null;
+    if ($request->hasFile('scout_uniform_image')) {
+        $scoutImagePath = $request->file('scout_uniform_image')->store('temp/liveform', 'public');
+    }
 
-            // ===== Insert NewUsersInformation (WITH image paths + new columns) =====
-            DB::table('NewUsersInformation')->insert([
-                'PersonID' => $thisPersonID,
-                'ShamandoraCode' => $shamandoraCode,
-                'FirstName' => $request->first_name,
-                'SecondName' => $request->second_name,
-                'ThirdName' => $request->third_name,
-                'FourthName' => $request->fourth_name,
-                'Gender' => $request->gender,
-                'DateOfBirth' => $request->birthdate_input,
-                'RaqamQawmy' => $request->input_raqam_qawmy,
-                'ScoutJoiningYear' => $request->joining_year_input,
-                'BloodTypeID' => $request->blood_type_input,
-                'FacebookProfileURL' => $request->inputFacebookLink,
-                'InstagramProfileURL' => $request->inputInstagramLink,
-                'PersonalEmail' => $request->email_input,
-                'BuildingNumber' => $request->building_number,
-                'FloorNumber' => $request->floor_number,
-                'AppartmentNumber' => $request->appartment_number,
-                'MainStreetName' => $request->main_street_name,
-                'SubStreetName' => $request->sub_street_name,
-                'ManteqaID' => $request->manteqa_id,
-                'DistrictID' => is_null($request->district_id) ? 1 : $request->district_id,
-                'NearestLandmark' => $request->nearest_landmark,
-                'SanaMarhalaID' => $request->sana_marhala_id,
-                'SpiritualFatherName' => $request->spiritual_father,
-                'SpiritualFatherChurchName' => $request->spiritual_father_church,
-                'Password' => $passString,
-                'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                'FatherMobileNumber' => $request->father_phone_number,
-                'MotherMobileNumber' => $request->mother_phone_number,
-                'HomePhoneNumber' => $request->home_phone_number,
-                'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-                'SchoolName' => $request->person_school,
-                'SchoolGraduationYear' => $request->school_grad_year,
-                'QetaaID' => $request->qetaa_id,
-                'QetaaName' => $QetaaName,
-                'FacultyID' => $request->person_faculty,
-                'UniversityID' => $request->person_university,
-                'UniversityGraduationYear' => $request->university_grad_year,
+    session([
+        'liveform.step2' => [
+            'first_name' => $request->first_name,
+            'second_name' => $request->second_name,
+            'third_name' => $request->third_name,
+            'fourth_name' => $request->fourth_name,
+            'birthdate_input' => $request->birthdate_input,
+            'joining_year_input' => $request->joining_year_input,
+            'input_raqam_qawmy' => $request->input_raqam_qawmy,
+            'blood_type_input' => $request->blood_type_input,
+            'personal_phone_number' => $request->personal_phone_number,
+            'father_phone_number' => $request->father_phone_number,
+            'mother_phone_number' => $request->mother_phone_number,
+            'home_phone_number' => $request->home_phone_number,
+            'has_whatsapp' => $request->has_whatsapp,
+            'building_number' => $request->building_number,
+            'floor_number' => $request->floor_number,
+            'appartment_number' => $request->appartment_number,
+            'main_street_name' => $request->main_street_name,
+            'sub_street_name' => $request->sub_street_name,
+            'nearest_landmark' => $request->nearest_landmark,
+            'manteqa_id' => $request->manteqa_id,
+            'district_id' => $request->district_id,
+            'inputFacebookLink' => $request->inputFacebookLink,
+            'inputInstagramLink' => $request->inputInstagramLink,
+            'email_input' => $request->email_input,
+            'spiritual_father' => $request->spiritual_father,
+            'spiritual_father_church' => $request->spiritual_father_church,
+            'person_school' => $request->person_school,
+            'school_grad_year' => $request->school_grad_year,
+            'person_faculty' => $request->person_faculty,
+            'person_university' => $request->person_university,
+            'university_grad_year' => $request->university_grad_year,
 
-                // images
-                'PersonalImagePath' => $personalImagePath,
-                'ScoutImagePath' => $scoutImagePath,
+            'allergy_food' => $request->allergy_food,
+            'allergy_medicine' => $request->allergy_medicine,
+            'medical_diseases' => $request->medical_diseases,
+            'medical_medications' => $request->medical_medications,
+            'has_emergency_case' => $hasEmergency ? 1 : 0,
+            'emergency_details' => $request->emergency_details,
 
-                // ✅ new columns (must match the ALTER TABLE names)
-                'AllergyFood' => $allergyFood,
-                'AllergyMedicine' => $allergyMedicine,
-                'MedicalDiseases' => $medicalDiseases,
-                'MedicalMedications' => $medicalMedications,
-                'HasEmergencyCase' => $hasEmergency ? 1 : 0,
-                'EmergencyDetails' => $emergencyDetails,
-            ]);
+            'profile_image' => $profileImagePath,
+            'scout_uniform_image' => $scoutImagePath,
+        ],
+    ]);
 
-            DB::commit();
+    return redirect()->route('person.entry-questions-liveform');
+}
 
-            return redirect()->route('person.entry-questions-liveform', $thisPersonID);
-        } catch (\Throwable $e) {
-            DB::rollBack();
+public function getLiveformQuestions()
+{
+    $step1 = session('liveform.step1');
+    $step2 = session('liveform.step2');
 
-            Log::error("insertNewPersonLiveForm: exception", [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
+    if (!$step1 || !$step2) {
+        return redirect()->route('person.liveform-create');
+    }
 
-            throw $e;
+    $questions = DB::table('MarhalaEntryQuestions')
+        ->where('QetaaID', $step1['qetaa_id'])
+        ->where('NotToBeShown', 0)
+        ->get();
+
+    $person = (object) [
+        'PersonID' => null,
+        'QetaaID' => $step1['qetaa_id'],
+        'QetaaName' => $step1['qetaa_name'],
+        'Gender' => $step1['gender'],
+        'SanaMarhalaID' => $step1['sana_marhala_id'],
+        'SanaMarhalaName' => $step1['sana_marhala_name'],
+        'FirstName' => $step2['first_name'],
+        'SecondName' => $step2['second_name'],
+        'ThirdName' => $step2['third_name'],
+        'FourthName' => $step2['fourth_name'],
+        'RaqamQawmy' => $step2['input_raqam_qawmy'],
+    ];
+
+    return view('person.person-questions-liveform', [
+        'questions' => $questions,
+        'person' => $person,
+    ]);
+}
+
+public function submitLiveformQuestions(Request $request)
+{
+    $step1 = session('liveform.step1');
+    $step2 = session('liveform.step2');
+
+    if (!$step1 || !$step2) {
+        return redirect()->route('person.liveform-create');
+    }
+
+    $questions = DB::table('MarhalaEntryQuestions')
+        ->where('QetaaID', $step1['qetaa_id'])
+        ->where('NotToBeShown', 0)
+        ->get();
+
+    foreach ($questions as $question) {
+        $q = $request->input($question->QuestionID);
+
+        if ($question->IsRequired && ($q === null || $q === '')) {
+            return view('person.entry-error-repeat-trial');
         }
     }
 
+    DB::beginTransaction();
 
+    try {
+        $exists = DB::table('NewUsersInformation')
+            ->where('RaqamQawmy', $step2['input_raqam_qawmy'])
+            ->lockForUpdate()
+            ->exists();
 
-
-
-        public function getLiveformQuestions ($id)
-        {
-            $person = DB::table('NewUsersInformation')
-                    ->where('NewUsersInformation.PersonID', $id)
-                    ->first();
-            
-
-            $questions = DB::table('MarhalaEntryQuestions')->where('QetaaID', $person->QetaaID)->where('NotToBeShown', '=', 0)->get();
-
-            return view('person.person-questions-liveform', array('questions'=>$questions, 'person'=>$person));
-        }
-
-        public function submitLiveformQuestions(Request $request)
-        {
-            //return $request[88];
-            //$data = $request->all();
-            $person = DB::table('NewUsersInformation')
-                    ->where('NewUsersInformation.PersonID', $request->person_id)
-                    ->first();
-            
-            
-            $questions = DB::table('MarhalaEntryQuestions')->where('QetaaID', '=' ,$person->QetaaID)->where('NotToBeShown', '=', 0)->get();
-            
-            DB::beginTransaction();
-        try{
-            
-            foreach ($questions as $question)
-            {  
-                
-                $q = $request[$question->QuestionID];
-
-                if($question->IsRequired&&$q==NULL)
-                {
-                    //return $question->QuestionID;
-                    //return $question->QuestionID;
-                    DB::rollBack();
-                    return view('person.entry-error-repeat-trial');
-                }
-                DB::table('NewUsersPersonEntryQuestions')->insert(
-                    array(
-                        'PersonID' => $request->person_id,
-                        'QuestionID' => $question->QuestionID,
-                        'Answer' => $q
-                    )
-                );
-            }
-        }
-        catch(Exception $e)
-        {
-            //dd($e->getMessage());
+        if ($exists) {
             DB::rollBack();
-            return view('person.entry-error');
+            return view('person.person-already-exists');
         }
+
+        $last = DB::table('NewUsersInformation')
+            ->orderBy('PersonID', 'desc')
+            ->lockForUpdate()
+            ->first();
+
+        $thisPersonID = is_null($last) ? 1 : ((int) $last->PersonID + 1);
+
+        $shamandoraCode = 'SH-' . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
+
+        $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        $pass = [];
+        $alphaLength = strlen($alphabet) - 1;
+        for ($i = 0; $i < 8; $i++) {
+            $pass[] = $alphabet[rand(0, $alphaLength)];
+        }
+        $passString = implode($pass);
+
+        $personalImagePath = $this->finalizeTempLiveformFile($step2['profile_image'] ?? null);
+        $scoutImagePath = $this->finalizeTempLiveformFile($step2['scout_uniform_image'] ?? null);
+
+        DB::table('NewUsersInformation')->insert([
+            'PersonID' => $thisPersonID,
+            'ShamandoraCode' => $shamandoraCode,
+            'FirstName' => $step2['first_name'],
+            'SecondName' => $step2['second_name'],
+            'ThirdName' => $step2['third_name'],
+            'FourthName' => $step2['fourth_name'],
+            'Gender' => $step1['gender'],
+            'DateOfBirth' => $step2['birthdate_input'],
+            'RaqamQawmy' => $step2['input_raqam_qawmy'],
+            'ScoutJoiningYear' => $step2['joining_year_input'],
+            'BloodTypeID' => $step2['blood_type_input'],
+            'FacebookProfileURL' => $step2['inputFacebookLink'],
+            'InstagramProfileURL' => $step2['inputInstagramLink'],
+            'PersonalEmail' => $step2['email_input'],
+            'BuildingNumber' => $step2['building_number'],
+            'FloorNumber' => $step2['floor_number'],
+            'AppartmentNumber' => $step2['appartment_number'],
+            'MainStreetName' => $step2['main_street_name'],
+            'SubStreetName' => $step2['sub_street_name'],
+            'ManteqaID' => $step2['manteqa_id'],
+            'DistrictID' => is_null($step2['district_id']) ? 1 : $step2['district_id'],
+            'NearestLandmark' => $step2['nearest_landmark'],
+            'SanaMarhalaID' => $step1['sana_marhala_id'],
+            'SpiritualFatherName' => $step2['spiritual_father'],
+            'SpiritualFatherChurchName' => $step2['spiritual_father_church'],
+            'Password' => $passString,
+            'PersonPersonalMobileNumber' => $step2['personal_phone_number'],
+            'FatherMobileNumber' => $step2['father_phone_number'],
+            'MotherMobileNumber' => $step2['mother_phone_number'],
+            'HomePhoneNumber' => $step2['home_phone_number'],
+            'IsOPersonalPhoneNumberHavingWhatsapp' => $step2['has_whatsapp'],
+            'SchoolName' => $step2['person_school'],
+            'SchoolGraduationYear' => $step2['school_grad_year'],
+            'QetaaID' => $step1['qetaa_id'],
+            'QetaaName' => $step1['qetaa_name'],
+            'FacultyID' => $step2['person_faculty'],
+            'UniversityID' => $step2['person_university'],
+            'UniversityGraduationYear' => $step2['university_grad_year'],
+            'PersonalImagePath' => $personalImagePath,
+            'ScoutImagePath' => $scoutImagePath,
+            'AllergyFood' => $this->cleanLiveFormList($step2['allergy_food'] ?? null),
+            'AllergyMedicine' => $this->cleanLiveFormList($step2['allergy_medicine'] ?? null),
+            'MedicalDiseases' => $this->cleanLiveFormList($step2['medical_diseases'] ?? null),
+            'MedicalMedications' => $this->cleanLiveFormList($step2['medical_medications'] ?? null),
+            'HasEmergencyCase' => !empty($step2['has_emergency_case']) ? 1 : 0,
+            'EmergencyDetails' => !empty($step2['has_emergency_case'])
+                ? trim((string) ($step2['emergency_details'] ?? ''))
+                : null,
+        ]);
+
+        foreach ($questions as $question) {
+            DB::table('NewUsersPersonEntryQuestions')->insert([
+                'PersonID' => $thisPersonID,
+                'QuestionID' => $question->QuestionID,
+                'Answer' => $request->input($question->QuestionID),
+            ]);
+        }
+
         DB::commit();
-            
+
+        session()->forget('liveform');
+
         return view('person.liveform-finalize');
+    } catch (\Throwable $e) {
+        DB::rollBack();
 
-        }
+        Log::error('submitLiveformQuestions failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
 
-        public function create()
-        {
-            $marahel = DB::table('Marhala')->get();
-            $rotab = DB::table('RotbaInformation')->get();
-            $seneen_marahel = DB::table('SanaMarhala')->get();
-            $questionTypes = DB::table('QuestionsTypes')->get();
-            $blood = DB::table('BloodType')->get();
-            $betakat = DB::table('EgazetBetakatTaqaddom')->get();
-            $manateq = DB::table('Manteqa')->get();
-            $districts = DB::table('Districts')->get();
-            $qetaat = DB::table('Qetaa')->get();
-            $faculties = DB::table('Faculty')->get();
-            $universities = DB::table('University')->get();
-            return view("person.person-create", 
-            array('marahel'=>$marahel, 
-                    'rotab'=>$rotab, 
-                    'seneen_marahel'=>$seneen_marahel, 
-                    'questionTypes'=>$questionTypes, 
-                    'blood'=>$blood, 
-                    'betakat'=>$betakat, 
-                    'manateq'=>$manateq, 
-                    'districts'=>$districts, 
-                    'qetaat'=>$qetaat,
-                    'faculties'=>$faculties,
-                    'universities'=>$universities,
-                ));
-        }
+        return view('person.entry-error');
+    }
+}
 
-        public function insert(Request  $request)
-        {
-            
-              $raqamQawmyExistsObject = DB::selectOne('SELECT EXISTS(SELECT 1 FROM PersonInformation WHERE RaqamQawmy = :some_id) AS `exists`', ['some_id' => $request->input_raqam_qawmy]);
-              $raqamQawmyExists = $raqamQawmyExistsObject->exists; // 0 or 1
-              
-            
-              if($raqamQawmyExists)
-              {
-                  return view('person.person-already-exists');
-              }
-            
-            $lastPersonID = DB::table('PersonInformation')->orderBy('PersonID','desc')->first();
-            
-            if($lastPersonID==Null)
-                $thisPersonID = 1;
-            else
-                $thisPersonID = $lastPersonID->PersonID + 1;
-            
-            $shamandoraCode="SH-";
+private function resolveLiveFormQetaa(int $sanaMarhalaId, string $gender, bool $newLeadersSchool): array
+{
+    if ($newLeadersSchool) {
+        return [10, 'اعداد قادة', $gender];
+    }
 
-            $shamandoraCodeNumberOfDigits = 5;
+    if ($sanaMarhalaId < 5 && $sanaMarhalaId > 2) {
+        return [1, 'براعم', $gender];
+    }
 
-            for ($i=0;$i<$shamandoraCodeNumberOfDigits-strlen((string)$thisPersonID);$i++)
-            {
-                $shamandoraCode = $shamandoraCode.'0';
-            }
+    if ($sanaMarhalaId < 9 && $sanaMarhalaId > 4) {
+        return $gender === 'Male'
+            ? [2, 'أشبال', 'Male']
+            : [9, 'زهرات', 'Female'];
+    }
 
-            $shamandoraCode = $shamandoraCode. $thisPersonID;
-            //dd($shamandoraCode);
-            
-            //print_r($shamandoraCode);
-            //return "".$thisPersonID."\n".$shamandoraCode;
+    if ($sanaMarhalaId < 12 && $sanaMarhalaId > 8) {
+        return $gender === 'Male'
+            ? [8, 'كشافة', 'Male']
+            : [6, 'مرشدات', 'Female'];
+    }
 
-            
-            
+    if ($sanaMarhalaId <= 14 && $sanaMarhalaId > 11) {
+        return $gender === 'Male'
+            ? [3, 'متقدم', 'Male']
+            : [4, 'رائدات', 'Female'];
+    }
 
-              
-              
+    if ($sanaMarhalaId < 21 && $sanaMarhalaId > 14) {
+        return [5, 'جوالة', $gender];
+    }
 
-            
-            
-        try{
+    return [7, 'قادة', $gender];
+}
 
-            $validatedData = $request->validate([
-                'first_name' => 'required',
-                'second_name' => 'required',
-                'third_name' => 'required',
-                'gender'=>'required',
-                'birthdate_input' => 'required',
-                'joining_year_input' => 'required',
-                'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-                'blood_type_input'=>'required',
-                'personal_phone_number'=>'required|min_digits:11|max_digits:11',
-                'building_number'=>'required',
-                'floor_number'=>'required',
-                'appartment_number' =>'required',
-                'sub_street_name' => 'required',
-                'manteqa_id'=>'required',
-                'district_id'=>'required',
-                'sana_marhala_id'=>'required',
-              ]);
-            
+private function getLiveFormStep2Lookups(): array
+{
+    return [
+        'marahel' => DB::table('Marhala')->get(),
+        'rotab' => DB::table('RotbaInformation')->get(),
+        'questionTypes' => DB::table('QuestionsTypes')->get(),
+        'blood' => DB::table('BloodType')->get(),
+        'manateq' => DB::table('Manteqa')->get(),
+        'districts' => DB::table('Districts')->get(),
+        'faculties' => DB::table('Faculty')->get(),
+        'universities' => DB::table('University')->get(),
+    ];
+}
 
-            DB::beginTransaction();
+private function cleanLiveFormList(?string $value): ?string
+{
+    if ($value === null) {
+        return null;
+    }
 
-            DB::table('PersonInformation')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'ShamandoraCode'=>$shamandoraCode,
-                    'FirstName' => $request->first_name,
-                    'SecondName' => $request->second_name,
-                    'ThirdName'   => $request->third_name,
-                    'FourthName' => $request->fourth_name,
-                    'Gender' => $request->gender,
-                    'DateOfBirth' => $request->birthdate_input,
-                    'RaqamQawmy' => $request->input_raqam_qawmy,
-                    'ScoutJoiningYear'  => $request->joining_year_input,
-                    'BloodTypeID' => $request->blood_type_input,
-                    'FacebookProfileURL' =>$request->inputFacebookLink,
-                    'InstagramProfileURL' =>$request->inputInstagramLink,
-                    'PersonalEmail' => $request->email_input,
-                    'RequestPersonID' => $request->RequestPersonID,
-                )
-            );
+    $value = trim($value);
 
+    if ($value === '') {
+        return null;
+    }
 
-            DB::table('PersonPhoneNumbers')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                    'FatherMobileNumber' => $request->father_phone_number,
-                    'MotherMobileNumber'   => $request->mother_phone_number,
-                    'HomePhoneNumber' => $request->home_phone_number,
-                    'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-                )
-            );
+    $value = str_replace(["\r\n", "\n", "،", ";"], ',', $value);
 
-            DB::table('PersonJob')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'JobName'=>$request->person_job,
-                    'WorkPlace'=>$request->person_job_place
-                )
-            );
+    $parts = array_filter(array_map('trim', explode(',', $value)), function ($x) {
+        return $x !== '';
+    });
 
-            DB::table('PersonLearningInformation')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'SchoolName'=>$request->school_name,
-                    'SchoolGraduationYear'=>$request->school_grad_year,
-                    'FacultyID'=>$request->person_faculty,
-                    'UniversityID'=>$request->person_university,
-                    'ActualFacultyGraduationYear'=>$request->university_grad_year
-                )
-            );
+    $parts = array_values(array_unique($parts));
 
+    return count($parts) ? implode(', ', $parts) : null;
+}
 
+private function finalizeTempLiveformFile(?string $path): ?string
+{
+    if (!$path) {
+        return null;
+    }
 
+    if (!Storage::disk('public')->exists($path)) {
+        return $path;
+    }
 
-            //$timestamp = time();
-            //$formatted = date('y-m-d h:i:s T', $timestamp);
+    if (str_starts_with($path, 'person_images/')) {
+        return $path;
+    }
 
-            DB::table('PersonRotbaKashfeyya')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'RotbaID'=>$request->rotba_kashfeyya_id
-                )
-            );
+    $basename = basename($path);
+    $target = 'person_images/' . $basename;
 
+    if (Storage::disk('public')->exists($target)) {
+        $target = 'person_images/' . uniqid() . '_' . $basename;
+    }
 
-            DB::table('PersonQetaa')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'QetaaID'=>$request->qetaa_id
-                )
-            );
+    Storage::disk('public')->move($path, $target);
 
-
-            DB::table('PersonEgazetBetakatTaqaddom')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'EgazetBetakatTaqaddomID'=>$request->betaka_id
-                )
-            );
-
-            DB::table('PersonSanaMarhala')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'SanaMarhalaID'=>$request->sana_marhala_id
-                )
-            );
-
-            DB::table('PersonSpiritualFatherInformation')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'SpiritualFatherName'=>$request->spiritual_father,
-                    'SpiritualFatherChurchName'=>$request->spiritual_father_church
-                )
-            );
-
-                $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-                $pass = array(); //remember to declare $pass as an array
-                $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
-                for ($i = 0; $i < 8; $i++) {
-                    $n = rand(0, $alphaLength);
-                    $pass[] = $alphabet[$n];
-                }
-                $passString =  implode($pass); //turn the array into a string
-
-            //return "".$thisPersonID."\n".$passString;
-
-            DB::table('PersonSystemPassword')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'Password'=>$passString 
-                )
-            );
-
-            DB::table('PersonalPhysicalAddress')->insert(
-                array(
-                    'PersonID'=>$thisPersonID,
-                    'BuildingNumber'=>$request->building_number,
-                    'FloorNumber'=>$request->floor_number,
-                    'AppartmentNumber'=>$request->appartment_number,
-                    'MainStreetName'=>$request->main_street_name,
-                    'SubStreetName'=>$request->sub_street_name,
-                    'ManteqaID'=>$request->manteqa_id,
-                    'DistrictID'=>is_null($request->district_id)?1:$request->district_id,
-                    'NearestLandmark'=>$request->nearest_landmark
-                )
-            );
-
-        }
-        catch(Exception $e)
-        {
-            dd($e->getMessage());
-            DB::rollBack();
-            return view('person.entry-error');
-        }
-
-            DB::commit();
-
-            return redirect()->route('person.entry-questions', $thisPersonID);
-
-        }
-
-        public function getQuestions ($id)
-        {
-            $person = DB::table('PersonInformation')
-                    ->where('PersonInformation.PersonID', $id)
-                    ->Join('PersonQetaa', 'PersonInformation.PersonID' , '=', 'PersonQetaa.PersonID')
-                    ->Join('Qetaa', 'PersonQetaa.QetaaID', '=', 'Qetaa.QetaaID')
-                    ->Join('PersonSystemPassword', 'PersonInformation.PersonID' , '=', 'PersonSystemPassword.PersonID')
-                    ->select('PersonInformation.*', 'PersonSystemPassword.Password', 'PersonQetaa.QetaaID', 'Qetaa.QetaaName')
-                    ->first();
-
-            $questions = DB::table('MarhalaEntryQuestions')->where('QetaaID', $person->QetaaID)->where('NotToBeShown', '=', 0)->get();
-
-            return view('person.person-questions', array('questions'=>$questions, 'person'=>$person));
-        }
-
-        public function submitQuestions(Request $request)
-        {
-            $person = DB::table('PersonInformation')
-                    ->where('PersonInformation.PersonID', $request->person_id)
-                    ->Join('PersonQetaa', 'PersonInformation.PersonID' , '=', 'PersonQetaa.PersonID')
-                    ->Join('Qetaa', 'PersonQetaa.QetaaID', '=', 'Qetaa.QetaaID')
-                    ->Join('PersonSystemPassword', 'PersonInformation.PersonID' , '=', 'PersonSystemPassword.PersonID')
-                    ->select('PersonInformation.*', 'PersonSystemPassword.Password', 'PersonQetaa.QetaaID', 'Qetaa.QetaaName')
-                    ->first();
-            
-                    $questions = DB::table('MarhalaEntryQuestions')->where('QetaaID', $person->QetaaID)->where('NotToBeShown', '=', 0)->get();
-            
-            
-
-
-            //return $request;
-            DB::beginTransaction();
-        try{
-            
-            foreach ($questions as $question)
-            {  
-                
-                $q = $request[$question->QuestionID];
-                //return $qs;
-
-                if($question->IsRequired&&$q==NULL)
-                {
-                    //return $question->QuestionID;
-                    DB::rollBack();
-                    return view('person.entry-error-repeat-trial');
-                }
-                DB::table('PersonEntryQuestions')->insert(
-                    array(
-                        'PersonID' => $request->person_id,
-                        'QuestionID' => $question->QuestionID,
-                        'Answer' => $q
-                    )
-                );
-            }
-        }
-        catch(Exception $e)
-        {
-            dd($e->getMessage());
-            DB::rollBack();
-            return view('person.entry-error');
-        }
-        DB::commit();
-            
-            return redirect()->route('person.index');
-
-        }
-    
+    return $target;
+}
         /**
             * Display the specified resource.
             *

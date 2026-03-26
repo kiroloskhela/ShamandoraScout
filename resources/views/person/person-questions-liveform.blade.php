@@ -88,7 +88,7 @@
                     @csrf
 
                     <!-- IMPORTANT: use hidden inputs so values are sent -->
-                    <input type="hidden" name="person_id" id="person_id" value="{{ $person->PersonID }}">
+
                     <input type="hidden" name="qetaa_id" id="qetaa_id" value="{{ $person->QetaaID }}">
 
                     <!-- ============================ Info Section ============================ -->
@@ -106,12 +106,6 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
 
-                            <!-- Order number (readonly not disabled so it can be submitted if needed) -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الطلب</label>
-                                <input type="text" readonly value="{{ $person->PersonID }}"
-                                    class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                            </div>
 
                             <!-- Sector name -->
                             <div class="md:col-span-6">
