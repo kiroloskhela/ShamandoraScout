@@ -463,7 +463,12 @@ public function insertLiveForm(Request $request)
         ->count();
 
     if ($marhala_limit == 0 || $numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit) {
-        return view('person.liveform-limit-exceeded');
+       return view('person.liveform-limit-exceeded', [
+    'qetaa_name' => $qetaa_name,
+    'sana_marhala_name' => $sana_marhala_name ?? null,
+    'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
+    'max_limit' => $marhala_limit,
+]);
     }
 
     $sana_marhala_name = DB::table('SanaMarhala')
