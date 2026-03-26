@@ -221,7 +221,7 @@
             ],
             [
                 'key' => 'PersonID',
-                'label' => 'PersonID',
+                'label' => 'رقم الهوية',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
