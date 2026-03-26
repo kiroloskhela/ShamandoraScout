@@ -28,7 +28,8 @@ class SeasonEventFinanceController extends Controller
             'sef.MinimumDeposit',
             'sef.AllowBelowMinimumDeposit',
             DB::raw("CONCAT(et.EventTypeName, ' - ', e.EventName) as EventDisplayName"),
-            DB::raw('COUNT(sefp.SeasonEventFinancePriceID) as IntervalsCount')
+            DB::raw('COUNT(sefp.SeasonEventFinancePriceID) as IntervalsCount'),
+            
         )
         ->groupBy(
             'sef.SeasonEventID',
@@ -87,229 +88,238 @@ class SeasonEventFinanceController extends Controller
         return response()->json($events);
     }
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'season_event_id' => 'required|integer|exists:SeasonEvent,SeasonEventID',
-            'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|numeric|min:0',
-            'allow_below_minimum_deposit' => 'required|in:0,1',
-            'start_date' => 'required|array|min:1',
-            'start_date.*' => 'required|date',
-            'end_date' => 'required|array|min:1',
-            'end_date.*' => 'required|date',
-            'price' => 'required|array|min:1',
-            'price.*' => 'required|numeric|min:0',
-        ], [
-            'season_event_id.required' => 'يجب اختيار الفعالية.',
-            'season_event_id.exists' => 'الفعالية المختارة غير موجودة.',
-            'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
-            'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
-            'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
-            'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
-            'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+   public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'season_event_id' => 'required|integer|exists:SeasonEvent,SeasonEventID',
+        'max_installments_number' => 'required|integer|min:1',
+        'minimum_deposit' => 'required|numeric|min:0',
+        'allow_below_minimum_deposit' => 'required|in:0,1',
+        'have_shirt' => 'required|in:0,1',
+        'start_date' => 'required|array|min:1',
+        'start_date.*' => 'required|date',
+        'end_date' => 'required|array|min:1',
+        'end_date.*' => 'required|date',
+        'price' => 'required|array|min:1',
+        'price.*' => 'required|numeric|min:0',
+    ], [
+        'season_event_id.required' => 'يجب اختيار الفعالية.',
+        'season_event_id.exists' => 'الفعالية المختارة غير موجودة.',
+        'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
+        'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
+        'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
+        'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
+        'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
+        'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
+        'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+        'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+        'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+    ]);
+
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
+
+    $seasonEventID = $request->season_event_id;
+
+    $existingPlan = DB::table('SeasonEventFinance')
+        ->where('SeasonEventID', $seasonEventID)
+        ->exists();
+
+    if ($existingPlan) {
+        return redirect()->back()->withErrors([
+            'season_event_id' => 'هذه الفعالية لها إعداد مالي بالفعل.'
+        ])->withInput();
+    }
+
+    $event = $this->getSeasonEventDetails($seasonEventID);
+    if (!$event) {
+        return redirect()->back()->withErrors([
+            'season_event_id' => 'تعذر العثور على بيانات الفعالية.'
+        ])->withInput();
+    }
+
+    $intervalsResult = $this->prepareAndValidateIntervals(
+        $request->start_date,
+        $request->end_date,
+        $request->price,
+        $event->EventStartDate
+    );
+
+    if (!$intervalsResult['success']) {
+        return redirect()->back()->withErrors([
+            'intervals' => $intervalsResult['message']
+        ])->withInput();
+    }
+
+    DB::beginTransaction();
+
+    try {
+        DB::table('SeasonEventFinance')->insert([
+            'SeasonEventID' => $seasonEventID,
+            'MaxInstallmentsNumber' => $request->max_installments_number,
+            'MinimumDeposit' => $request->minimum_deposit,
+            'AllowBelowMinimumDeposit' => $request->allow_below_minimum_deposit,
+            'HaveShirt' => $request->have_shirt,
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        $seasonEventID = $request->season_event_id;
-
-        $existingPlan = DB::table('SeasonEventFinance')
-            ->where('SeasonEventID', $seasonEventID)
-            ->exists();
-
-        if ($existingPlan) {
-            return redirect()->back()->withErrors([
-                'season_event_id' => 'هذه الفعالية لها إعداد مالي بالفعل.'
-            ])->withInput();
-        }
-
-        $event = $this->getSeasonEventDetails($seasonEventID);
-        if (!$event) {
-            return redirect()->back()->withErrors([
-                'season_event_id' => 'تعذر العثور على بيانات الفعالية.'
-            ])->withInput();
-        }
-
-        $intervalsResult = $this->prepareAndValidateIntervals(
-            $request->start_date,
-            $request->end_date,
-            $request->price,
-            $event->EventStartDate
-        );
-
-        if (!$intervalsResult['success']) {
-            return redirect()->back()->withErrors([
-                'intervals' => $intervalsResult['message']
-            ])->withInput();
-        }
-
-        DB::beginTransaction();
-
-        try {
-            DB::table('SeasonEventFinance')->insert([
+        foreach ($intervalsResult['intervals'] as $interval) {
+            DB::table('SeasonEventFinancePrice')->insert([
                 'SeasonEventID' => $seasonEventID,
+                'StartDate' => $interval['StartDate'],
+                'EndDate' => $interval['EndDate'],
+                'Price' => $interval['Price'],
+            ]);
+        }
+
+        DB::commit();
+
+        return redirect()->route('finance.index')->with('success', 'تم إضافة الخطة المالية بنجاح.');
+    } catch (Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->withErrors([
+            'general' => 'حدث خطأ أثناء حفظ الخطة المالية.'
+        ])->withInput();
+    }
+}
+
+public function edit($id)
+{
+    $finance = DB::table('SeasonEventFinance as sef')
+        ->join('SeasonEvent as se', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
+        ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
+        ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+        ->where('sef.SeasonEventID', $id)
+        ->select(
+            'sef.SeasonEventID',
+            'sef.MaxInstallmentsNumber',
+            'sef.MinimumDeposit',
+            'sef.AllowBelowMinimumDeposit',
+            'sef.HaveShirt',
+            's.SeasonName',
+            's.SeasonYear',
+            'e.EventName',
+            'e.EventStartDate',
+            'e.EventEndDate'
+        )
+        ->first();
+
+    if (!$finance) {
+        abort(404);
+    }
+
+    if ($this->hasPayments($id)) {
+        return redirect()->route('finance.index')->withErrors([
+            'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.'
+        ]);
+    }
+
+    $intervals = DB::table('SeasonEventFinancePrice')
+        ->where('SeasonEventID', $id)
+        ->orderBy('StartDate')
+        ->get();
+
+    return view('finance.edit', compact('finance', 'intervals'));
+}
+
+public function update(Request $request, $id)
+{
+    $financeExists = DB::table('SeasonEventFinance')
+        ->where('SeasonEventID', $id)
+        ->exists();
+
+    if (!$financeExists) {
+        abort(404);
+    }
+
+    if ($this->hasPayments($id)) {
+        return redirect()->route('finance.index')->withErrors([
+            'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.'
+        ]);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'max_installments_number' => 'required|integer|min:1',
+        'minimum_deposit' => 'required|numeric|min:0',
+        'allow_below_minimum_deposit' => 'required|in:0,1',
+        'have_shirt' => 'required|in:0,1',
+        'start_date' => 'required|array|min:1',
+        'start_date.*' => 'required|date',
+        'end_date' => 'required|array|min:1',
+        'end_date.*' => 'required|date',
+        'price' => 'required|array|min:1',
+        'price.*' => 'required|numeric|min:0',
+    ], [
+        'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
+        'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
+        'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
+        'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
+        'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
+        'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
+        'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+        'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+        'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+    ]);
+
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
+
+    $event = $this->getSeasonEventDetails($id);
+    if (!$event) {
+        return redirect()->back()->withErrors([
+            'general' => 'تعذر العثور على بيانات الفعالية.'
+        ])->withInput();
+    }
+
+    $intervalsResult = $this->prepareAndValidateIntervals(
+        $request->start_date,
+        $request->end_date,
+        $request->price,
+        $event->EventStartDate
+    );
+
+    if (!$intervalsResult['success']) {
+        return redirect()->back()->withErrors([
+            'intervals' => $intervalsResult['message']
+        ])->withInput();
+    }
+
+    DB::beginTransaction();
+
+    try {
+        DB::table('SeasonEventFinance')
+            ->where('SeasonEventID', $id)
+            ->update([
                 'MaxInstallmentsNumber' => $request->max_installments_number,
                 'MinimumDeposit' => $request->minimum_deposit,
                 'AllowBelowMinimumDeposit' => $request->allow_below_minimum_deposit,
+                'HaveShirt' => $request->have_shirt,
             ]);
 
-            foreach ($intervalsResult['intervals'] as $interval) {
-                DB::table('SeasonEventFinancePrice')->insert([
-                    'SeasonEventID' => $seasonEventID,
-                    'StartDate' => $interval['StartDate'],
-                    'EndDate' => $interval['EndDate'],
-                    'Price' => $interval['Price'],
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('finance.index')->with('success', 'تم إضافة الخطة المالية بنجاح.');
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء حفظ الخطة المالية.'
-            ])->withInput();
-        }
-    }
-
-    public function edit($id)
-    {
-        $finance = DB::table('SeasonEventFinance as sef')
-            ->join('SeasonEvent as se', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
-            ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
-            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
-            ->where('sef.SeasonEventID', $id)
-            ->select(
-                'sef.SeasonEventID',
-                'sef.MaxInstallmentsNumber',
-                'sef.MinimumDeposit',
-                'sef.AllowBelowMinimumDeposit',
-                's.SeasonName',
-                's.SeasonYear',
-                'e.EventName',
-                'e.EventStartDate',
-                'e.EventEndDate'
-            )
-            ->first();
-
-        if (!$finance) {
-            abort(404);
-        }
-
-        if ($this->hasPayments($id)) {
-            return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.'
-            ]);
-        }
-
-        $intervals = DB::table('SeasonEventFinancePrice')
+        DB::table('SeasonEventFinancePrice')
             ->where('SeasonEventID', $id)
-            ->orderBy('StartDate')
-            ->get();
+            ->delete();
 
-        return view('finance.edit', compact('finance', 'intervals'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $financeExists = DB::table('SeasonEventFinance')
-            ->where('SeasonEventID', $id)
-            ->exists();
-
-        if (!$financeExists) {
-            abort(404);
-        }
-
-        if ($this->hasPayments($id)) {
-            return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.'
+        foreach ($intervalsResult['intervals'] as $interval) {
+            DB::table('SeasonEventFinancePrice')->insert([
+                'SeasonEventID' => $id,
+                'StartDate' => $interval['StartDate'],
+                'EndDate' => $interval['EndDate'],
+                'Price' => $interval['Price'],
             ]);
         }
 
-        $validator = Validator::make($request->all(), [
-            'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|numeric|min:0',
-            'allow_below_minimum_deposit' => 'required|in:0,1',
-            'start_date' => 'required|array|min:1',
-            'start_date.*' => 'required|date',
-            'end_date' => 'required|array|min:1',
-            'end_date.*' => 'required|date',
-            'price' => 'required|array|min:1',
-            'price.*' => 'required|numeric|min:0',
-        ], [
-            'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
-            'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
-            'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
-            'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
-            'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-        ]);
+        DB::commit();
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
-
-        $event = $this->getSeasonEventDetails($id);
-        if (!$event) {
-            return redirect()->back()->withErrors([
-                'general' => 'تعذر العثور على بيانات الفعالية.'
-            ])->withInput();
-        }
-
-        $intervalsResult = $this->prepareAndValidateIntervals(
-            $request->start_date,
-            $request->end_date,
-            $request->price,
-            $event->EventStartDate
-        );
-
-        if (!$intervalsResult['success']) {
-            return redirect()->back()->withErrors([
-                'intervals' => $intervalsResult['message']
-            ])->withInput();
-        }
-
-        DB::beginTransaction();
-
-        try {
-            DB::table('SeasonEventFinance')
-                ->where('SeasonEventID', $id)
-                ->update([
-                    'MaxInstallmentsNumber' => $request->max_installments_number,
-                    'MinimumDeposit' => $request->minimum_deposit,
-                    'AllowBelowMinimumDeposit' => $request->allow_below_minimum_deposit,
-                ]);
-
-            DB::table('SeasonEventFinancePrice')
-                ->where('SeasonEventID', $id)
-                ->delete();
-
-            foreach ($intervalsResult['intervals'] as $interval) {
-                DB::table('SeasonEventFinancePrice')->insert([
-                    'SeasonEventID' => $id,
-                    'StartDate' => $interval['StartDate'],
-                    'EndDate' => $interval['EndDate'],
-                    'Price' => $interval['Price'],
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('finance.index')->with('success', 'تم تعديل الخطة المالية بنجاح.');
-        } catch (Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء تعديل الخطة المالية.'
-            ])->withInput();
-        }
+        return redirect()->route('finance.index')->with('success', 'تم تعديل الخطة المالية بنجاح.');
+    } catch (Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->withErrors([
+            'general' => 'حدث خطأ أثناء تعديل الخطة المالية.'
+        ])->withInput();
     }
+}
 
     public function delete($id)
     {

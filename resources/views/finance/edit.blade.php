@@ -28,7 +28,7 @@
                 @csrf
                 <div class="space-y-6">
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
                             <label for="max_installments_number" class="block mb-2 text-sm text-gray-700">أقصى عدد
                                 أقساط</label>
@@ -54,6 +54,17 @@
                                     نعم</option>
                                 <option value="0"
                                     {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 0 ? 'selected' : '' }}>
+                                    لا</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="have_shirt" class="block mb-2 text-sm text-gray-700">هل يوجد تيشيرت؟</label>
+                            <select id="have_shirt" name="have_shirt"
+                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                <option value="1" {{ old('have_shirt', $finance->HaveShirt) == 1 ? 'selected' : '' }}>
+                                    نعم</option>
+                                <option value="0" {{ old('have_shirt', $finance->HaveShirt) == 0 ? 'selected' : '' }}>
                                     لا</option>
                             </select>
                         </div>

@@ -50,7 +50,7 @@
                         <div><strong>الحالة:</strong> <span id="selected-person-status"></span></div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block mb-2 text-sm text-gray-700">تاريخ أول دفعة</label>
                             <input type="text" value="{{ now()->format('Y-m-d') }}" readonly
@@ -65,6 +65,22 @@
                                 value="{{ old('first_payment_amount') }}" id="first_payment_amount"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
+                        @if ((int) $plan->HaveShirt === 1)
+                            <div>
+                                <label class="block mb-2 text-sm text-gray-700">مقاس التيشيرت</label>
+                                <select name="shirt_size" id="shirt_size"
+                                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                    <option value="">-- اختر المقاس --</option>
+                                    <option value="XS" {{ old('shirt_size') === 'XS' ? 'selected' : '' }}>XS</option>
+                                    <option value="S" {{ old('shirt_size') === 'S' ? 'selected' : '' }}>S</option>
+                                    <option value="M" {{ old('shirt_size') === 'M' ? 'selected' : '' }}>M</option>
+                                    <option value="L" {{ old('shirt_size') === 'L' ? 'selected' : '' }}>L</option>
+                                    <option value="XL" {{ old('shirt_size') === 'XL' ? 'selected' : '' }}>XL</option>
+                                    <option value="2XL" {{ old('shirt_size') === '2XL' ? 'selected' : '' }}>2XL</option>
+                                    <option value="3XL" {{ old('shirt_size') === '3XL' ? 'selected' : '' }}>3XL</option>
+                                </select>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
@@ -216,7 +232,8 @@
 
                 timeout = setTimeout(() => {
                     fetch(
-                            `{{ route('eventBookingFinance.searchEligiblePersons', $event->SeasonEventID) }}?q=${encodeURIComponent(q)}`)
+                            `{{ route('eventBookingFinance.searchEligiblePersons', $event->SeasonEventID) }}?q=${encodeURIComponent(q)}`
+                        )
                         .then(res => res.json())
                         .then(data => {
                             resultsBox.innerHTML = '';
@@ -268,7 +285,7 @@
                                         selectedName.textContent = person
                                             .PersonFullName;
                                         selectedId.textContent = person
-                                        .PersonID;
+                                            .PersonID;
                                         selectedMobile.textContent = person
                                             .PersonPersonalMobileNumber ?? '-';
                                         selectedQetaa.textContent = person
