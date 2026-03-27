@@ -2,14 +2,11 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
-
-        {{-- Header --}}
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">طباعة عهدة</h1>
-            <p class="text-gray-600">اختر الموسم والفعالية ثم أضف الأصناف والكميات، وبعدها اطبع</p>
+            <h1 class="mb-2 text-3xl font-bold text-gray-800">طباعة عهدة</h1>
+            <p class="text-gray-600">اختر الموسم والفعالية، أضف الأصناف والكميات، ثم اطبع بشكل احترافي</p>
         </div>
 
-        {{-- Step 1: Season & Event --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-300">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800">١) الموسم والفعالية</h2>
@@ -42,7 +39,6 @@
             </div>
         </div>
 
-        {{-- Step 2: Search Inventory --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-green-300">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800">٢) إضافة الأصناف</h2>
@@ -55,16 +51,14 @@
                     class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                     autocomplete="off">
 
-                {{-- Dropdown Results --}}
                 <div id="searchResults"
-                    class="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-56 overflow-y-auto hidden">
+                    class="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto hidden">
                 </div>
 
-                <p class="mt-2 text-xs text-gray-500">نصيحة: اكتب 2-3 حروف لنتائج أسرع</p>
+                <p class="mt-2 text-xs text-gray-500">نصيحة: اكتب حرفين أو أكثر لنتائج أسرع</p>
             </div>
         </div>
 
-        {{-- Step 3: Selected Items --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-yellow-300">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800">٣) الأصناف المختارة</h2>
@@ -92,11 +86,10 @@
             </p>
         </div>
 
-        {{-- Step 4: Signatures --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800">٤) بيانات التوقيع</h2>
-                <span class="text-xs text-gray-500">ستظهر في أسفل الورقة</span>
+                <span class="text-xs text-gray-500">ستظهر في أسفل كل صفحة</span>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6">
@@ -127,11 +120,9 @@
             </div>
         </div>
 
-        {{-- Actions --}}
         <div class="text-center">
             <button type="button" id="generatePdf"
-                class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
-                   bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
+                class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
                 تحميل / طباعة PDF
             </button>
 
@@ -139,9 +130,6 @@
                 تأكد من اختيار فعالية وإضافة أصناف قبل الطباعة.
             </p>
         </div>
-
-        {{-- Hidden HTML for Print --}}
-        <div id="htmlOutput" style="display:none;"></div>
     </div>
 
     <script>
@@ -157,15 +145,64 @@
             const itemsCountEl = document.getElementById('itemsCount');
             const emptyHintEl = document.getElementById('emptyHint');
 
-            const htmlOutput = document.getElementById('htmlOutput');
+            const qetaaSelect = document.getElementById('qetaa');
+            const muslimInput = document.getElementById('muslim');
+            const mustalemInput = document.getElementById('mustalem');
+
+            const generatePdfBtn = document.getElementById('generatePdf');
+            const actionHint = document.getElementById('actionHint');
 
             const inventory = @json($inventory);
+            const logoUrl = @json(asset('img/shamandora.png'));
+            const eventsUrl = @json(route('inventory-issue.getEventsForSeason'));
 
             let selectedItems = [];
+            let searchTimer = null;
+            let requestCounter = 0;
 
-            // ---------- Helpers ----------
-            function setResultsVisible(visible) {
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function(char) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    } [char];
+                });
+            }
+
+            function setActionHint(message, tone = 'gray') {
+                actionHint.textContent = message;
+                actionHint.className = 'mt-3 text-xs';
+
+                if (tone === 'red') {
+                    actionHint.classList.add('text-red-500');
+                } else if (tone === 'green') {
+                    actionHint.classList.add('text-green-600');
+                } else {
+                    actionHint.classList.add('text-gray-500');
+                }
+            }
+
+            function setSearchResultsVisible(visible) {
                 searchResults.classList.toggle('hidden', !visible);
+            }
+
+            function resetEventSelect(message = 'اختر الموسم أولاً لعرض الفعاليات') {
+                eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
+                eventSelect.disabled = true;
+                eventHelp.textContent = message;
+            }
+
+            function getSelectedText(selectElement, fallback = '') {
+                if (!selectElement || selectElement.selectedIndex < 0) return fallback;
+                return selectElement.options[selectElement.selectedIndex]?.text?.trim() || fallback;
+            }
+
+            function normalizeMaxQty(value) {
+                const parsed = parseInt(value, 10);
+                return Number.isFinite(parsed) && parsed > 0 ? parsed : 9999;
             }
 
             function updateCounts() {
@@ -173,166 +210,71 @@
                 emptyHintEl.classList.toggle('hidden', selectedItems.length > 0);
             }
 
-            function escapeHtml(str) {
-                return String(str).replace(/[&<>"']/g, s => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                } [s]));
+            function setPrintLoading(loading) {
+                generatePdfBtn.disabled = loading;
+                generatePdfBtn.classList.toggle('opacity-60', loading);
+                generatePdfBtn.classList.toggle('cursor-not-allowed', loading);
+                generatePdfBtn.textContent = loading ? 'جاري تجهيز الطباعة...' : 'تحميل / طباعة PDF';
             }
 
-            // ---------- Load events when season changes ----------
-            seasonSelect.addEventListener('change', function() {
-                const seasonId = seasonSelect.value;
-
-                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
-                eventSelect.disabled = true;
-
-                if (!seasonId) {
-                    eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
-                    eventHelp.textContent = 'اختر الموسم أولاً لعرض الفعاليات';
-                    return;
-                }
-
-                fetch('{{ route('inventory-issue.getEventsForSeason') }}?seasonID=' + seasonId)
-                    .then(res => res.json())
-                    .then(events => {
-                        eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
-                        events.forEach(ev => {
-                            const opt = document.createElement('option');
-                            opt.value = ev.EventID;
-                            opt.textContent = ev.EventName;
-                            eventSelect.appendChild(opt);
-                        });
-                        eventSelect.disabled = false;
-                        eventHelp.textContent = events.length ? 'تم تحميل الفعاليات' :
-                            'لا توجد فعاليات لهذا الموسم';
-                    })
-                    .catch(() => {
-                        eventSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
-                        eventHelp.textContent = 'حدث خطأ أثناء تحميل الفعاليات';
-                    });
-            });
-
-            // ---------- Search items ----------
-            let searchTimer = null;
-
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimer);
-
-                searchTimer = setTimeout(() => {
-                    const query = searchInput.value.toLowerCase().trim();
-                    searchResults.innerHTML = '';
-
-                    if (!query || query.length < 2) {
-                        setResultsVisible(false);
-                        return;
-                    }
-
-                    const matches = inventory
-                        .filter(item => (item.ItemName || '').toLowerCase().includes(query))
-                        .slice(0, 20); // limit results
-
-                    if (!matches.length) {
-                        searchResults.innerHTML =
-                            `<div class="p-3 text-sm text-gray-500">لا توجد نتائج</div>`;
-                        setResultsVisible(true);
-                        return;
-                    }
-
-                    matches.forEach(item => {
-                        const maxQty = item.ItemQuantity || 10;
-
-                        const row = document.createElement('button');
-                        row.type = 'button';
-                        row.className =
-                            'w-full text-right p-3 hover:bg-slate-50 transition flex items-center justify-between';
-                        row.innerHTML = `
-                    <div class="text-sm text-slate-800">${escapeHtml(item.ItemName)}</div>
-                    <div class="text-xs text-gray-500">الحد الأقصى: ${maxQty}</div>
-                `;
-
-                        row.addEventListener('click', function() {
-                            const exists = selectedItems.find(i => i.id == item
-                                .InventoryID);
-                            if (!exists) {
-                                selectedItems.push({
-                                    id: item.InventoryID,
-                                    name: item.ItemName,
-                                    unit: item.ItemMeasuringUnit,
-                                    qty: 1,
-                                    max: maxQty
-                                });
-                                renderSelectedItems();
-                            }
-
-                            searchInput.value = '';
-                            searchResults.innerHTML = '';
-                            setResultsVisible(false);
-                        });
-
-                        searchResults.appendChild(row);
-                    });
-
-                    setResultsVisible(true);
-                }, 120);
-            });
-
-            // Close results on outside click
-            document.addEventListener('click', function(e) {
-                const inside = searchResults.contains(e.target) || searchInput.contains(e.target);
-                if (!inside) setResultsVisible(false);
-            });
-
-            // ---------- Render selected items ----------
             function renderSelectedItems() {
                 selectedTableBody.innerHTML = '';
 
-                selectedItems.forEach((item, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b';
+                if (!selectedItems.length) {
+                    updateCounts();
+                    return;
+                }
 
-                    tr.innerHTML = `
-                <td class="p-3">${idx + 1}</td>
-                <td class="p-3 text-right">${escapeHtml(item.name)}</td>
-                <td class="p-3">${escapeHtml(item.unit || '')}</td>
-                <td class="p-3">
-                    <input type="number"
-                           class="w-24 h-10 border rounded-lg text-center border-slate-200 focus:border-blue-500 focus:outline-none"
-                           min="1" max="${item.max}" value="${item.qty}" data-idx="${idx}">
-                    <div class="text-[11px] text-gray-500 mt-1">حد أقصى: ${item.max}</div>
-                </td>
-                <td class="p-3">
-                    <button type="button"
-                            class="px-3 py-2 text-xs rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
-                            data-remove="${idx}">
-                        حذف
-                    </button>
-                </td>
-            `;
+                selectedItems.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b';
 
-                    selectedTableBody.appendChild(tr);
+                    row.innerHTML = `
+                        <td class="p-3">${index + 1}</td>
+                        <td class="p-3 text-right">${escapeHtml(item.name)}</td>
+                        <td class="p-3">${escapeHtml(item.unit || '')}</td>
+                        <td class="p-3">
+                            <input
+                                type="number"
+                                min="1"
+                                max="${item.max}"
+                                value="${item.qty}"
+                                data-idx="${index}"
+                                class="w-24 h-10 border rounded-lg text-center border-slate-200 focus:border-blue-500 focus:outline-none"
+                            >
+                            <div class="text-[11px] text-gray-500 mt-1">حد أقصى: ${item.max}</div>
+                        </td>
+                        <td class="p-3">
+                            <button
+                                type="button"
+                                data-remove="${index}"
+                                class="px-3 py-2 text-xs rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
+                            >
+                                حذف
+                            </button>
+                        </td>
+                    `;
+
+                    selectedTableBody.appendChild(row);
                 });
 
-                // Quantity handlers
-                selectedTableBody.querySelectorAll('input[type="number"]').forEach(inp => {
-                    inp.addEventListener('input', function() {
-                        const i = parseInt(this.dataset.idx, 10);
-                        let val = parseInt(this.value, 10);
-                        if (!val || val < 1) val = 1;
-                        if (val > selectedItems[i].max) val = selectedItems[i].max;
-                        this.value = val;
-                        selectedItems[i].qty = val;
+                selectedTableBody.querySelectorAll('input[type="number"]').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const index = parseInt(this.dataset.idx, 10);
+                        let value = parseInt(this.value, 10);
+
+                        if (!Number.isFinite(value) || value < 1) value = 1;
+                        if (value > selectedItems[index].max) value = selectedItems[index].max;
+
+                        this.value = value;
+                        selectedItems[index].qty = value;
                     });
                 });
 
-                // Remove handlers
-                selectedTableBody.querySelectorAll('button[data-remove]').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const i = parseInt(this.dataset.remove, 10);
-                        selectedItems.splice(i, 1);
+                selectedTableBody.querySelectorAll('button[data-remove]').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.remove, 10);
+                        selectedItems.splice(index, 1);
                         renderSelectedItems();
                     });
                 });
@@ -340,304 +282,517 @@
                 updateCounts();
             }
 
-            updateCounts();
-
-            // ---------- Print / Generate ----------
-            document.getElementById('generatePdf').addEventListener('click', function() {
-                // Basic validations
-                if (!eventSelect.value) {
-                    alert('من فضلك اختر الفعالية أولاً.');
-                    return;
-                }
-                if (selectedItems.length === 0) {
-                    alert('من فضلك أضف صنف واحد على الأقل قبل الطباعة.');
+            function addItem(item) {
+                const exists = selectedItems.find(selected => String(selected.id) === String(item.InventoryID));
+                if (exists) {
+                    setActionHint('هذا الصنف مضاف بالفعل.', 'red');
                     return;
                 }
 
-                const selectedEvent = eventSelect.options[eventSelect.selectedIndex];
-                const eventName = selectedEvent ? selectedEvent.text : 'الفعالية';
+                selectedItems.push({
+                    id: item.InventoryID,
+                    name: item.ItemName,
+                    unit: item.ItemMeasuringUnit || '',
+                    qty: 1,
+                    max: normalizeMaxQty(item.ItemQuantity)
+                });
 
-                const qetaaSelect = document.getElementById('qetaa');
-                const qetaaName = qetaaSelect.options[qetaaSelect.selectedIndex]?.text || '...........';
+                renderSelectedItems();
+                setActionHint('تمت إضافة الصنف بنجاح.', 'green');
+            }
 
-                const muslim = document.getElementById('muslim').value || '';
-                const mustalem = document.getElementById('mustalem').value || '';
+            function renderSearchResults(items) {
+                searchResults.innerHTML = '';
 
-                const maxItemsPerPage = 15;
-                const totalItems = selectedItems.length;
-                const totalPages = Math.ceil(totalItems / maxItemsPerPage);
+                if (!items.length) {
+                    searchResults.innerHTML = '<div class="p-3 text-sm text-gray-500">لا توجد نتائج</div>';
+                    setSearchResultsVisible(true);
+                    return;
+                }
 
-                // Build HTML
-                let html = `
+                items.forEach(item => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className =
+                        'w-full text-right p-3 hover:bg-slate-50 transition flex items-center justify-between';
+
+                    button.innerHTML = `
+                        <div class="text-sm text-slate-800">${escapeHtml(item.ItemName)}</div>
+                        <div class="text-xs text-gray-500">الحد الأقصى: ${normalizeMaxQty(item.ItemQuantity)}</div>
+                    `;
+
+                    button.addEventListener('click', function() {
+                        addItem(item);
+                        searchInput.value = '';
+                        searchResults.innerHTML = '';
+                        setSearchResultsVisible(false);
+                    });
+
+                    searchResults.appendChild(button);
+                });
+
+                setSearchResultsVisible(true);
+            }
+
+            async function loadEventsForSeason() {
+                const seasonId = seasonSelect.value;
+                const currentRequest = ++requestCounter;
+
+                if (!seasonId) {
+                    resetEventSelect();
+                    return;
+                }
+
+                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+                eventSelect.disabled = true;
+                eventHelp.textContent = 'جاري تحميل الفعاليات...';
+
+                try {
+                    const response = await fetch(`${eventsUrl}?seasonID=${encodeURIComponent(seasonId)}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to load events');
+                    }
+
+                    const payload = await response.json();
+
+                    if (currentRequest !== requestCounter) return;
+
+                    const events = Array.isArray(payload) ? payload : (Array.isArray(payload.data) ? payload
+                        .data : []);
+
+                    eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
+
+                    if (!events.length) {
+                        eventSelect.disabled = true;
+                        eventHelp.textContent = 'لا توجد فعاليات لهذا الموسم';
+                        return;
+                    }
+
+                    events.forEach(event => {
+                        const option = document.createElement('option');
+                        option.value = event.EventID ?? event.id ?? '';
+                        option.textContent = event.EventName ?? event.name ?? 'فعالية';
+                        eventSelect.appendChild(option);
+                    });
+
+                    eventSelect.disabled = false;
+                    eventHelp.textContent = 'تم تحميل الفعاليات بنجاح';
+                } catch (error) {
+                    if (currentRequest !== requestCounter) return;
+                    resetEventSelect('حدث خطأ أثناء تحميل الفعاليات');
+                }
+            }
+
+            function chunkItems(items, chunkSize) {
+                const pages = [];
+                for (let i = 0; i < items.length; i += chunkSize) {
+                    pages.push(items.slice(i, i + chunkSize));
+                }
+                return pages;
+            }
+
+            function generateTableRows(items, startIndex) {
+                return items.map((item, index) => `
+                    <tr>
+                        <td>${startIndex + index + 1}</td>
+                        <td class="item-name">${escapeHtml(item.name)}</td>
+                        <td>${item.qty}</td>
+                        <td>${escapeHtml(item.unit || '')}</td>
+                    </tr>
+                `).join('');
+            }
+
+            function buildPrintHtml({
+                eventName,
+                qetaaName,
+                muslim,
+                mustalem,
+                pages
+            }) {
+                return `
 <!DOCTYPE html>
-<html dir="rtl">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <title>طباعة عهدة - ${escapeHtml(eventName)}</title>
     <style>
-        @page { 
-            margin: 0; 
+        @page {
             size: A4 portrait;
+            margin: 12mm;
         }
-        
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
-        
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial, Tahoma, sans-serif;
+            color: #111827;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
-        
-        .page {
-            width: 21cm;
-            height: 29.7cm;
-            padding: 1.5cm;
+
+        .print-page {
             position: relative;
-            page-break-after: always;
-            background: white;
-        }
-        
-        .page:last-child {
-            page-break-after: avoid;
-        }
-        
-        .header {
+            min-height: 272mm;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            page-break-after: always;
+            overflow: hidden;
+            background: #fff;
         }
-        
+
+        .print-page:last-child {
+            page-break-after: auto;
+        }
+
+        .page-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-watermark::before {
+            content: "";
+            width: 15.5cm;
+            height: 15.5cm;
+            background: url("${logoUrl}") center center / contain no-repeat;
+            opacity: 0.10;
+            filter: grayscale(100%);
+        }
+
+        .page-inner {
+            position: relative;
+            z-index: 2;
+            min-height: 272mm;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            border-bottom: 2px solid #111827;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
         .header-logo {
-            margin-bottom: 25px;
-            width: 100%;
             display: flex;
             justify-content: center;
+            margin-bottom: 10px;
         }
-        
+
         .header-logo img {
-            height: 140px;
-            max-width: 100%;
+            height: 100px;
+            object-fit: contain;
         }
-        
+
         .header-info {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
             align-items: center;
-            width: 100%;
-            font-size: 22px;
-            font-weight: bold;
-            margin: 20px 0;
+            font-size: 18px;
+            font-weight: 700;
         }
-        
+
         .header-team {
-            flex: 1;
-            text-align: left;
-        }
-        
-        .header-title {
-            flex: 1;
-            text-align: center;
-            margin: 0 90px;
-        }
-        
-        .header-date {
-            flex: 1;
             text-align: right;
         }
-        
-        .bg-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60%;
-            opacity: 0.08;
-            filter: grayscale(100%);
-            z-index: 1;
-            pointer-events: none;
+
+        .header-title {
+            text-align: center;
         }
-        
+
+        .header-date {
+            text-align: left;
+        }
+
         .content {
             position: relative;
-            z-index: 5;
-            min-height: 16cm;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
-        
+
+        .table-wrap {
+            position: relative;
+            z-index: 2;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 20px;
-            background: white;
+            table-layout: fixed;
+            font-size: 17px;
+            background: transparent;
         }
-        
-        table th {
+
+        thead th {
             border: 1px solid #000;
             text-align: center;
-            padding: 8px;
-            background-color: #f5f5f5;
-            font-weight: bold;
+            padding: 8px 6px;
+            background: rgba(245, 245, 245, 0.92);
+            font-weight: 700;
         }
-        
+
         table td {
             border: 1px solid #000;
             text-align: center;
-            padding: 8px;
+            padding: 7px 6px;
+            background-color: rgba(255, 255, 255, 0.22);
         }
-        
-        .footer {
-            position: absolute;
-            bottom: 1.5cm;
-            left: 1.5cm;
-            right: 1.5cm;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-top: 2px solid #000;
-            padding-top: 10px;
-            z-index: 10;
+
+        .item-name {
+            font-weight: 600;
         }
-        
-        .signature-box {
-            text-align: right;
-            line-height: 2;
-        }
-        
-        .signature-name {
-            display: inline-block;
-            border-bottom: 1px solid #000;
-            width: 200px;
-            height: 25px;
-            margin: 5px 0;
-        }
-        
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
+
+                .footer {
+                margin-top: auto;
+                border-top: 2px solid #000;
+                padding-top: 14px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                align-items: end;
+                gap: 70px;
+                position: relative;
+                z-index: 2;
             }
-            
-            .page {
-                margin: 0;
-                border: none;
-                box-shadow: none;
-            }
+
+.signature-box {
+    width: 100%;
+    max-width: 260px;
+    line-height: 2.1;
+    font-size: 16px;
+}
+
+.signature-box.right-box {
+    justify-self: end;
+    text-align: center;
+}
+
+.signature-box.left-box {
+    justify-self: start;
+    text-align: center;
+}
+
+.signature-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.signature-name {
+    display: inline-block;
+    border-bottom: 1px solid #000;
+    width: 220px;
+    min-height: 24px;
+    margin: 4px 0 6px;
+    padding: 0 6px 2px;
+    text-align: center;
+}
+        .page-counter {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
         }
     </style>
 </head>
 <body>
-`;
+    ${pages.map((pageItems, pageIndex) => `
+                                                    <section class="print-page">
+                                                        <div class="page-watermark" aria-hidden="true"></div>
 
-                function generateTable(items, startIndex) {
-                    let table = `
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 10%;">م</th>
-                <th style="width: 50%;">الصنف</th>
-                <th style="width: 20%;">الكمية</th>
-                <th style="width: 20%;">الوحدة</th>
-            </tr>
-        </thead>
-        <tbody>`;
+                                                        <div class="page-inner">
+                                                            <div class="header">
+                                                                <div class="header-logo">
+                                                                    <img src="${logoUrl}" alt="Logo" onerror="this.style.display='none'">
+                                                                </div>
 
-                    items.forEach((item, index) => {
-                        const counter = startIndex + index + 1;
-                        table += `
-            <tr>
-                <td>${counter}</td>
-                <td>${escapeHtml(item.name)}</td>
-                <td>${item.qty}</td>
-                <td>${escapeHtml(item.unit || '')}</td>
-            </tr>`;
-                    });
+                                                                <div class="header-info">
+                                                                    <div class="header-team">الفريق: ${escapeHtml(qetaaName)}</div>
+                                                                    <div class="header-title">عهدة ${escapeHtml(eventName)}</div>
+                                                                    <div class="header-date">التاريخ: &nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;</div>
+                                                                </div>
+                                                            </div>
 
-                    table += `
-        </tbody>
-    </table>`;
-                    return table;
-                }
+                                                            <div class="content">
+                                                                <div class="table-wrap">
+                                                                    <table>
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th style="width: 10%;">م</th>
+                                                                                <th style="width: 50%;">الصنف</th>
+                                                                                <th style="width: 20%;">الكمية</th>
+                                                                                <th style="width: 20%;">الوحدة</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            ${generateTableRows(pageItems, pageIndex * 18)}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
 
-                // Generate pages
-                for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
-                    const startIdx = pageIndex * maxItemsPerPage;
-                    const endIdx = Math.min(startIdx + maxItemsPerPage, totalItems);
-                    const pageItems = selectedItems.slice(startIdx, endIdx);
+                                                         <div class="footer">
+                                        <div class="signature-box right-box">
+                                            <div class="signature-title">المسلم</div>
+                                            <div><span class="signature-name">${escapeHtml(muslim)}</span></div>
+                                            <div>التوقيع: ....................................</div>
+                                        </div>
 
-                    html += `<div class="page">`;
+                                        <div class="signature-box left-box">
+                                            <div class="signature-title">المستلم</div>
+                                            <div><span class="signature-name">${escapeHtml(mustalem)}</span></div>
+                                            <div>التوقيع: ....................................</div>
+                                        </div>
+                                    </div>
 
-                    // Header
-                    html += `
-    <div class="header">
-        <div class="header-logo">
-            <img src="{{ asset('img/shamandora.png') }}" alt="Logo" onerror="this.style.display='none'">
-        </div>
-        <div class="header-info">
-            <div class="header-team">الفريق: ${escapeHtml(qetaaName)}</div>
-            <div class="header-title">عهدة ${escapeHtml(eventName)}</div>
-            <div class="header-date">التاريخ: &nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;</div>
-        </div>
-    </div>`;
-
-                    // Background overlay
-                    html += `<img src="{{ asset('img/shamandora.png') }}" class="bg-overlay" alt="">`;
-
-                    // Content
-                    html += `<div class="content">`;
-                    html += generateTable(pageItems, startIdx);
-                    html += `</div>`;
-
-                    // Footer with signatures
-                    html += `
-    <div class="footer">
-        <div class="signature-box">
-            المسلم<br>
-            <span class="signature-name">${escapeHtml(muslim)}</span><br>
-            التوقيع: ....................................
-        </div>
-        <div class="signature-box">
-            المستلم<br>
-            <span class="signature-name">${escapeHtml(mustalem)}</span><br>
-            التوقيع: ....................................
-        </div>
-    </div>`;
-
-                    html += `</div>`;
-                }
-
-                html += `
+                                                            <div class="page-counter">
+                                                                صفحة ${pageIndex + 1} من ${pages.length}
+                                                            </div>
+                                                        </div>
+                                                    </section>
+                                                `).join('')}
 </body>
-</html>`;
+</html>
+                `;
+            }
 
-                // Create a new window for printing
-                const printWindow = window.open('', '_blank', 'width=800,height=600');
+            async function waitForPrintAssets(frameWindow) {
+                const doc = frameWindow.document;
+                const images = Array.from(doc.images || []);
 
-                if (!printWindow) {
-                    alert('يرجى السماح بالنوافذ المنبثقة لطباعة المستند');
+                const imagePromises = images.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(resolve => {
+                        img.onload = resolve;
+                        img.onerror = resolve;
+                    });
+                });
+
+                const fontsPromise = doc.fonts ? doc.fonts.ready.catch(() => {}) : Promise.resolve();
+                await Promise.all([...imagePromises, fontsPromise]);
+            }
+
+            async function printHtml(html) {
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.left = '-9999px';
+                iframe.style.top = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.opacity = '0';
+                iframe.setAttribute('aria-hidden', 'true');
+
+                document.body.appendChild(iframe);
+
+                const frameWindow = iframe.contentWindow;
+                const frameDoc = frameWindow.document;
+
+                frameDoc.open();
+                frameDoc.write(html);
+                frameDoc.close();
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+                await waitForPrintAssets(frameWindow);
+
+                frameWindow.focus();
+                frameWindow.print();
+
+                setTimeout(() => {
+                    iframe.remove();
+                }, 1200);
+            }
+
+            seasonSelect.addEventListener('change', loadEventsForSeason);
+
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+
+                searchTimer = setTimeout(() => {
+                    const query = searchInput.value.trim().toLowerCase();
+
+                    if (query.length < 2) {
+                        searchResults.innerHTML = '';
+                        setSearchResultsVisible(false);
+                        return;
+                    }
+
+                    const matches = (Array.isArray(inventory) ? inventory : [])
+                        .filter(item => String(item.ItemName || '').toLowerCase().includes(query))
+                        .slice(0, 20);
+
+                    renderSearchResults(matches);
+                }, 120);
+            });
+
+            document.addEventListener('click', function(event) {
+                const insideSearch = searchResults.contains(event.target) || searchInput.contains(event
+                    .target);
+                if (!insideSearch) {
+                    setSearchResultsVisible(false);
+                }
+            });
+
+            generatePdfBtn.addEventListener('click', async function() {
+                if (!eventSelect.value) {
+                    setActionHint('من فضلك اختر الفعالية أولاً.', 'red');
+                    alert('من فضلك اختر الفعالية أولاً.');
                     return;
                 }
 
-                printWindow.document.write(html);
-                printWindow.document.close();
+                if (selectedItems.length === 0) {
+                    setActionHint('من فضلك أضف صنف واحد على الأقل قبل الطباعة.', 'red');
+                    alert('من فضلك أضف صنف واحد على الأقل قبل الطباعة.');
+                    return;
+                }
 
-                // Wait for images to load before printing
-                printWindow.onload = function() {
-                    setTimeout(() => {
-                        printWindow.focus();
-                        printWindow.print();
+                const eventName = getSelectedText(eventSelect, 'الفعالية');
+                const qetaaName = getSelectedText(qetaaSelect, '...........');
+                const muslim = muslimInput.value.trim();
+                const mustalem = mustalemInput.value.trim();
 
-                        // Close the print window after printing (optional)
-                        // Uncomment the next line if you want to auto-close
-                        // printWindow.close();
-                    }, 250);
-                };
+                const pages = chunkItems(selectedItems, 18);
+                const html = buildPrintHtml({
+                    eventName,
+                    qetaaName,
+                    muslim,
+                    mustalem,
+                    pages
+                });
+
+                try {
+                    setPrintLoading(true);
+                    setActionHint('جاري تجهيز الطباعة...', 'green');
+                    await printHtml(html);
+                    setActionHint('تم تجهيز الطباعة بنجاح.', 'green');
+                } catch (error) {
+                    console.error(error);
+                    setActionHint('حدث خطأ أثناء تجهيز الطباعة.', 'red');
+                    alert('حدث خطأ أثناء تجهيز الطباعة.');
+                } finally {
+                    setPrintLoading(false);
+                }
             });
+
+            updateCounts();
+            resetEventSelect();
         });
-        
     </script>
 @endsection
