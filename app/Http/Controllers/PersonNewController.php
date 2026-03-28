@@ -67,13 +67,13 @@ LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
 LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
 JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
 JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-WHERE q.QetaaID = (
+WHERE q.QetaaID IN (
     SELECT gq2.QetaaID
     FROM GroupQetaa gq2
-    WHERE gq2.GroupID = (
+    WHERE gq2.GroupID IN (
         SELECT pg3.GroupID
         FROM PersonGroup pg3
-        WHERE pg3.PersonID = ?
+        WHERE pg3.PersonID = 1
     )
 )
 ORDER BY pi.ShamandoraCode ASC;
