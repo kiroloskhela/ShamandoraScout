@@ -1,0 +1,23 @@
+@host = http://localhost:8000
+@userId = 7
+
+### login
+# @name login
+POST {{host}}/api/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "id": 7,
+  "password": "kiro77",
+  "fcm_token": "eee",
+  "platform": "android"
+}
+
+### extract token from login response
+@token = {{login.response.body.$.access_token}}
+
+### get persons
+GET {{host}}/api/show-persons?id={{userId}} HTTP/1.1
+Accept: application/json
+Authorization: Bearer {{token}}
+
