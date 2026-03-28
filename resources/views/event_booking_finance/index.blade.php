@@ -36,6 +36,27 @@
                             إلى: {{ \Carbon\Carbon::parse($event->EventEndDate)->format('Y-m-d') }}
                         </span>
                     </div>
+
+                    @if (isset($qetaaCounts) && $qetaaCounts->count())
+                        <div class="mt-4">
+                            <div class="text-sm font-bold text-slate-700 mb-2">
+                                عدد الحجوزات حسب القطاع
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($qetaaCounts as $qetaa)
+                                    <span
+                                        class="inline-flex items-center gap-2 rounded-full bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 text-xs font-bold">
+                                        <span>{{ $qetaa->QetaaName }}</span>
+                                        <span
+                                            class="inline-flex items-center justify-center min-w-[24px] h-6 rounded-full bg-amber-200 text-amber-900 px-2">
+                                            {{ $qetaa->booked_count }}
+                                        </span>
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="flex flex-wrap gap-2 shrink-0">
@@ -235,18 +256,21 @@
                 'key' => 'QetaaNames',
                 'label' => 'القطاع',
                 'type' => 'label',
+                'filter' => true,
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'ShirtSize',
                 'label' => 'حجم القميص',
                 'type' => 'text',
+                'filter' => true,
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'BookingStatusText',
                 'label' => 'الحالة',
                 'type' => 'text',
+                'filter' => true,
                 'cssClass' => 'text-sm font-semibold',
             ],
             [

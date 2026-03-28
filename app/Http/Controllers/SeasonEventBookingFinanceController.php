@@ -282,13 +282,27 @@ $totalSummary = [
             return $booking;
         });
 
+        $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
+    ->join('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
+    ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+    ->where('b.SeasonEventID', $seasonEventID)
+    ->select(
+        'q.QetaaID',
+        'q.QetaaName',
+        DB::raw('COUNT(DISTINCT b.PersonID) as booked_count')
+    )
+    ->groupBy('q.QetaaID', 'q.QetaaName')
+    ->orderBy('q.QetaaName')
+    ->get();
+
 return view('event_booking_finance.index', compact(
    'event',
     'bookings',
     'paymentDays',
     'selectedSummaryDate',
     'selectedDaySummary',
-    'totalSummary'
+    'totalSummary',
+        'qetaaCounts'
 ));
 }
 
