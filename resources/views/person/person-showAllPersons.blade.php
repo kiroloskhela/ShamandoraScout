@@ -38,6 +38,7 @@
                 'label' => 'القطاع',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
+                'filter' => true,
             ],
             [
                 'key' => 'HasAnsweredQuestions',
