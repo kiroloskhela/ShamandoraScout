@@ -73,7 +73,7 @@ WHERE q.QetaaID IN (
     WHERE gq2.GroupID IN (
         SELECT pg3.GroupID
         FROM PersonGroup pg3
-        WHERE pg3.PersonID = 1
+        WHERE pg3.PersonID = ?
     )
 )
 ORDER BY pi.ShamandoraCode ASC;
