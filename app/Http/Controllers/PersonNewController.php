@@ -120,8 +120,6 @@ public function ShowPersons(Request $request)
         LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
         LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
         LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-        JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-        JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
  
         ORDER BY pi.ShamandoraCode ASC
     ");
