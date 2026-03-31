@@ -199,12 +199,25 @@
 
                         <td x-show="actions.length > 0"
                             class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
+
                             <template x-for="action in actions" :key="action.name">
-                                <a :href="buildActionRoute(action, item)"
-                                    :class="action.cssClass ||
-                                        'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
-                                    x-text="action.label">
-                                </a>
+                                <template x-if="!isActionDisabled(action, item)">
+                                    <a :href="buildActionRoute(action, item)"
+                                        :class="action.cssClass ||
+                                            'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
+                                        x-text="action.label">
+                                    </a>
+                                </template>
+                            </template>
+
+                            <template x-for="action in actions" :key="action.name + '-disabled'">
+                                <template x-if="isActionDisabled(action, item)">
+                                    <span
+                                        :class="action.disabledClass ||
+                                            'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed ml-2'"
+                                        x-text="action.disabledLabel || action.label">
+                                    </span>
+                                </template>
                             </template>
                         </td>
                     </tr>
@@ -504,6 +517,12 @@
                 }
             },
 
+            isActionDisabled(action, item) {
+                if (!action.disableWhen) return false;
+
+                const fieldValue = this.getNestedValue(item, action.disableWhen.field);
+                return String(fieldValue) === String(action.disableWhen.value);
+            },
             buildActionRoute(action, item) {
                 if (!action.route) return '#';
 
