@@ -21,8 +21,9 @@
     pagination: @js($pagination),
     perPage: @js($perPage),
     title: @js($title),
-    addButton: @js($addButton)
-})">
+    addButton: @js($addButton),
+    tableId: @js($tableId)
+})" x-init="init()">
 
     <!-- Header: Title, Search, Add Button -->
     <div class="p-4 bg-gray-50 border-b">
@@ -35,14 +36,16 @@
                     x-text="addButton ? addButton.label : ''">
                 </a>
             </div>
+
             <!-- Title -->
             <div class="order-2 flex-1 text-center">
                 <h2 x-show="title" x-text="title" class="text-xl font-bold text-gray-900"></h2>
             </div>
+
             <!-- Search -->
             <div x-show="searchable" class="order-3">
                 <div class="relative">
-                    <input type="text" x-model="searchTerm" @input="search()" placeholder="البحث..."
+                    <input type="text" x-model="searchTerm" @input.debounce.300ms="search()" placeholder="البحث..."
                         class="w-full sm:w-64 pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,31 +58,28 @@
         </div>
     </div>
 
-    <!-- ===================== FILTER BAR ===================== -->
+    <!-- FILTER BAR -->
     <div x-show="filterableColumns.length > 0" x-data="{ open: true }" class="border-b border-gray-200">
-
-        <!-- Filter Bar Toggle Header -->
         <button @click="open = !open" type="button"
             class="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 transition-colors duration-200">
             <div class="flex items-center gap-2">
-                <!-- Filter Icon -->
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
                 <span class="text-sm font-semibold text-emerald-700">فلتر</span>
-                <!-- Active filter count badge -->
+
                 <span x-show="hasActiveFilters()" x-text="Object.keys(activeFilters).length"
                     class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emerald-600 rounded-full">
                 </span>
             </div>
+
             <div class="flex items-center gap-3">
-                <!-- Clear all (only when filters active) -->
                 <span x-show="hasActiveFilters()" @click.stop="clearAllFilters()"
                     class="text-xs text-red-500 hover:text-red-700 underline cursor-pointer">
                     مسح الكل
                 </span>
-                <!-- Chevron -->
+
                 <svg class="w-4 h-4 text-emerald-600 transition-transform duration-200" :class="{ 'rotate-180': open }"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -87,19 +87,16 @@
             </div>
         </button>
 
-        <!-- Filter Controls -->
         <div x-show="open" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-1" class="px-4 py-4 bg-white">
 
-            <!-- Responsive grid: 1 col mobile → 2 col sm → 3 col md → 4 col lg -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 <template x-for="col in filterableColumns" :key="col.key">
                     <div class="flex flex-col gap-1">
-                        <!-- Column label -->
                         <label class="text-xs font-medium text-gray-500" x-text="col.label"></label>
-                        <!-- Select wrapper with active highlight -->
+
                         <div class="relative">
                             <select @change="setFilter(col.key, $event.target.value)"
                                 :value="activeFilters[col.key] || '__all__'"
@@ -112,7 +109,7 @@
                                     <option :value="option" x-text="option"></option>
                                 </template>
                             </select>
-                            <!-- Custom chevron icon inside select -->
+
                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -125,7 +122,6 @@
                 </template>
             </div>
 
-            <!-- Active filter pills row -->
             <div x-show="hasActiveFilters()" class="mt-3 flex flex-wrap gap-2">
                 <template x-for="col in filterableColumns" :key="col.key">
                     <template x-if="activeFilters[col.key]">
@@ -142,9 +138,8 @@
             </div>
         </div>
     </div>
-    <!-- ===================== END FILTER BAR ===================== -->
 
-    <!-- Table -->
+    <!-- TABLE -->
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-100">
@@ -153,25 +148,31 @@
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <div class="flex items-center justify-between">
                                 <span x-text="column.label"></span>
+
                                 <button x-show="sortable && column.sortable !== false" @click="sort(column.key)"
                                     class="mr-2 text-gray-400 hover:text-gray-600">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             :class="sortColumn === column.key ? 'text-blue-500' : ''"
-                                            :d="sortColumn === column.key ? (sortDirection === 'desc' ?
-                                                'M19 9l-7 7-7-7' : 'M5 15l7-7 7 7') : 'M8 9l4-4 4 4m0 6l-4 4-4-4'">
+                                            :d="sortColumn === column.key ?
+                                                (sortDirection === 'desc' ?
+                                                    'M19 9l-7 7-7-7' :
+                                                    'M5 15l7-7 7 7') :
+                                                'M8 9l4-4 4 4m0 6l-4 4-4-4'">
                                         </path>
                                     </svg>
                                 </button>
                             </div>
                         </th>
                     </template>
+
                     <th x-show="actions.length > 0"
                         class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                         الإجراءات
                     </th>
                 </tr>
             </thead>
+
             <tbody class="bg-white divide-y divide-gray-200">
                 <template x-for="(item, index) in paginatedData" :key="index">
                     <tr class="hover:bg-gray-50 transition-colors duration-200">
@@ -181,10 +182,12 @@
                                     <span x-text="getNestedValue(item, column.key)"
                                         :class="column.cssClass || 'text-sm text-gray-900'"></span>
                                 </div>
+
                                 <div x-show="column.type === 'label'">
                                     <label :class="column.cssClass || 'text-blue-600 font-bold text-sm'"
                                         x-text="getNestedValue(item, column.key)"></label>
                                 </div>
+
                                 <div x-show="column.type === 'badge'">
                                     <span
                                         :class="column.cssClass ||
@@ -193,6 +196,7 @@
                                 </div>
                             </td>
                         </template>
+
                         <td x-show="actions.length > 0"
                             class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
                             <template x-for="action in actions" :key="action.name">
@@ -209,7 +213,7 @@
         </table>
     </div>
 
-    <!-- Empty State -->
+    <!-- EMPTY -->
     <div x-show="paginatedData.length === 0" class="text-center py-12">
         <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -220,7 +224,7 @@
         <p class="mt-1 text-sm text-gray-500">لم يتم العثور على أي بيانات لعرضها.</p>
     </div>
 
-    <!-- Pagination -->
+    <!-- PAGINATION -->
     <div x-show="pagination && totalPages > 1"
         class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
         <div class="flex-1 flex flex-wrap justify-between items-center gap-3">
@@ -233,6 +237,7 @@
                 <span class="font-medium" x-text="filteredData.length"></span>
                 نتيجة
             </div>
+
             <div class="flex items-center space-x-reverse space-x-2 flex-wrap gap-1">
                 <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
                     :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
@@ -242,14 +247,17 @@
                         </path>
                     </svg>
                 </button>
+
                 <template x-for="page in visiblePages" :key="page">
                     <button @click="goToPage(page)"
-                        :class="page === currentPage ? 'bg-blue-50 border-blue-500 text-blue-600' :
+                        :class="page === currentPage ?
+                            'bg-blue-50 border-blue-500 text-blue-600' :
                             'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
                         class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md"
                         x-text="page">
                     </button>
                 </template>
+
                 <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
                     :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
                     class="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500">
@@ -273,6 +281,7 @@
             actions: options.actions || [],
             title: options.title || '',
             addButton: options.addButton || null,
+            tableId: options.tableId || 'dataTable',
 
             searchable: options.searchable ?? true,
             sortable: options.sortable ?? true,
@@ -290,10 +299,12 @@
             },
 
             get totalPages() {
-                return Math.ceil(this.filteredData.length / this.perPage);
+                const pages = Math.ceil(this.filteredData.length / this.perPage);
+                return pages > 0 ? pages : 1;
             },
 
             get startRecord() {
+                if (this.filteredData.length === 0) return 0;
                 return ((this.currentPage - 1) * this.perPage) + 1;
             },
 
@@ -306,6 +317,7 @@
                 const pages = [];
                 const total = this.totalPages;
                 const current = this.currentPage;
+
                 if (total <= 7) {
                     for (let i = 1; i <= total; i++) pages.push(i);
                 } else {
@@ -321,21 +333,62 @@
                         pages.push(total);
                     }
                 }
+
                 return pages;
             },
 
             init() {
-                this.updatePaginatedData();
+                this.loadState();
+                this.applyAll(false);
+            },
+
+            getStorageKey() {
+                return `dataTableState_${this.tableId}`;
+            },
+
+            saveState() {
+                const state = {
+                    searchTerm: this.searchTerm,
+                    sortColumn: this.sortColumn,
+                    sortDirection: this.sortDirection,
+                    currentPage: this.currentPage,
+                    activeFilters: this.activeFilters
+                };
+
+                localStorage.setItem(this.getStorageKey(), JSON.stringify(state));
+            },
+
+            loadState() {
+                const saved = localStorage.getItem(this.getStorageKey());
+                if (!saved) return;
+
+                try {
+                    const state = JSON.parse(saved);
+
+                    this.searchTerm = state.searchTerm || '';
+                    this.sortColumn = state.sortColumn || '';
+                    this.sortDirection = state.sortDirection || 'asc';
+                    this.currentPage = parseInt(state.currentPage || 1);
+                    this.activeFilters = state.activeFilters || {};
+                } catch (e) {
+                    localStorage.removeItem(this.getStorageKey());
+                }
+            },
+
+            clearSavedState() {
+                localStorage.removeItem(this.getStorageKey());
             },
 
             getDistinctValues(key) {
                 const seen = new Set();
+
                 this.originalData.forEach(item => {
                     const val = this.getNestedValue(item, key);
                     if (val !== null && val !== undefined && val !== '') {
                         seen.add(String(val));
                     }
                 });
+
                 return Array.from(seen).sort();
             },
 
@@ -345,32 +398,36 @@
                 } else {
                     this.activeFilters[key] = value;
                 }
-                this.applyAll();
+
+                this.applyAll(true);
             },
 
             clearFilter(key) {
                 delete this.activeFilters[key];
-                this.applyAll();
+                this.applyAll(true);
             },
 
             clearAllFilters() {
                 this.activeFilters = {};
-                this.applyAll();
+                this.applyAll(true);
             },
 
             hasActiveFilters() {
                 return Object.keys(this.activeFilters).length > 0;
             },
 
-            applyAll() {
+            applyAll(resetPage = true) {
                 let result = [...this.originalData];
 
                 if (this.searchTerm.trim()) {
                     const term = this.searchTerm.toLowerCase();
+
                     result = result.filter(item =>
                         this.columns.some(column => {
                             const value = this.getNestedValue(item, column.key);
-                            return value && value.toString().toLowerCase().includes(term);
+                            return value !== null &&
+                                value !== undefined &&
+                                value.toString().toLowerCase().includes(term);
                         })
                     );
                 }
@@ -382,13 +439,41 @@
                     });
                 });
 
+                if (this.sortColumn) {
+                    result.sort((a, b) => {
+                        const aVal = this.getNestedValue(a, this.sortColumn);
+                        const bVal = this.getNestedValue(b, this.sortColumn);
+
+                        if (aVal == null && bVal == null) return 0;
+                        if (aVal == null) return this.sortDirection === 'asc' ? -1 : 1;
+                        if (bVal == null) return this.sortDirection === 'asc' ? 1 : -1;
+
+                        if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
+                        if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+
                 this.filteredData = result;
-                this.currentPage = 1;
+
+                if (resetPage) {
+                    this.currentPage = 1;
+                }
+
+                if (this.currentPage > this.totalPages) {
+                    this.currentPage = this.totalPages;
+                }
+
+                if (this.currentPage < 1) {
+                    this.currentPage = 1;
+                }
+
                 this.updatePaginatedData();
+                this.saveState();
             },
 
             search() {
-                this.applyAll();
+                this.applyAll(true);
             },
 
             sort(column) {
@@ -398,20 +483,15 @@
                     this.sortColumn = column;
                     this.sortDirection = 'asc';
                 }
-                this.filteredData.sort((a, b) => {
-                    const aVal = this.getNestedValue(a, column);
-                    const bVal = this.getNestedValue(b, column);
-                    if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
-                    if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
-                    return 0;
-                });
-                this.updatePaginatedData();
+
+                this.applyAll(false);
             },
 
             goToPage(page) {
                 if (page >= 1 && page <= this.totalPages) {
                     this.currentPage = page;
                     this.updatePaginatedData();
+                    this.saveState();
                 }
             },
 
@@ -426,14 +506,18 @@
 
             buildActionRoute(action, item) {
                 if (!action.route) return '#';
+
                 let url = action.route;
                 const idField = action.idField || 'id';
+
                 url = url.replace(':id', this.getNestedValue(item, idField));
+
                 if (action.extraFields) {
                     Object.entries(action.extraFields).forEach(([paramName, fieldPath]) => {
                         url = url.replace(`:${paramName}`, this.getNestedValue(item, fieldPath));
                     });
                 }
+
                 return url;
             },
 
