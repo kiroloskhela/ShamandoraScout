@@ -261,18 +261,22 @@ public function ShowPersons(Request $request)
             return redirect()->route('person.new-enrolments-index');
         }
 
-        public function approveNewEnrolments($id)
-        {   
-            return redirect()->route('person.new-enrolments-approve-again', $id);
-        }
+ public function approveNewEnrolments($id)
+{
+    DB::table('NewUsersInformation')
+        ->where('PersonID', $id)
+        ->update(['IsApproved' => 1]);
 
-        public function approveAgainNewEnrolments($id)
-        {
-            $approvedInt = 1;
-            DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt]);
-            $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
-            return redirect()->route('person.new-enrolments-index', $qetaa_id);
-        }
+    return redirect()->back()->with('success', 'تمت الموافقة بنجاح');
+}
+
+        // public function approveAgainNewEnrolments($id)
+        // {
+        //     $approvedInt = 1;
+        //     DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt]);
+        //     $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
+        //     return redirect()->route('person.new-enrolments-index', $qetaa_id);
+        // }
 
 
         public function editNewEnrolments($id)
