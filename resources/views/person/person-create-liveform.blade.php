@@ -868,8 +868,18 @@
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع الكشفي</label>
                                 <select
                                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    name="qetaa_id" id="qetaa_id">
-                                    <option value="{{ $qetaa_id }}" selected>{{ $qetaa_name }}</option>
+                                    name="qetaa_id" id="qetaa_id" required>
+
+                                    <option value="" disabled {{ empty($qetaa_id) ? 'selected' : '' }}>
+                                        اختر القطاع الكشفي
+                                    </option>
+
+                                    @foreach ($available_qetaat as $qetaa)
+                                        <option value="{{ $qetaa['QetaaID'] }}"
+                                            {{ (string) ($qetaa_id ?? '') === (string) $qetaa['QetaaID'] ? 'selected' : '' }}>
+                                            {{ $qetaa['QetaaName'] }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 <label name="qetaa_name" id="qetaa_name" value="{{ $qetaa_name }}" hidden></label>
                             </div>

@@ -431,14 +431,14 @@ public function ShowPersons(Request $request)
             }
         }
 
-public function createLiveForm()
-{
-    $seneen_marahel = DB::table('SanaMarhala')->get();
+        public function createLiveForm()
+        {
+            $seneen_marahel = DB::table('SanaMarhala')->get();
 
-    return view('person.person-create-liveform-1', [
-        'seneen_marahel' => $seneen_marahel,
-    ]);
-}
+            return view('person.person-create-liveform-1', [
+                'seneen_marahel' => $seneen_marahel,
+            ]);
+        }
 
 public function insertLiveForm(Request $request)
 {
@@ -448,49 +448,75 @@ public function insertLiveForm(Request $request)
         'newLeadersSchool' => 'nullable',
     ]);
 
-    [$qetaa_id, $qetaa_name, $gender] = $this->resolveLiveFormQetaa(
+    $sana_marhala_name = DB::table('SanaMarhala')
+        ->where('SanaMarhalaID', $request->sana_marhala_id)
+        ->value('SanaMarhalaName');
+
+    $qetaat = $this->resolveLiveFormQetaa(
         (int) $request->sana_marhala_id,
         $request->gender,
         (bool) $request->newLeadersSchool
     );
 
-    $marhala_limit = DB::table('MarhalaLiveFormLimit')
-        ->where('QetaaID', $qetaa_id)
-        ->where('SanaMarhalaID', $request->sana_marhala_id)
-        ->value('MaxLimit') ?? 0;
-
-    $numberOfStudentsCurrentlySubmittedInSanaMarhala = DB::table('NewUsersInformation')
-        ->where('QetaaID', $qetaa_id)
-        ->where('SanaMarhalaID', $request->sana_marhala_id)
-        ->count();
-
-    if ($marhala_limit == 0 || $numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit) {
-       return view('person.liveform-limit-exceeded', [
-    'qetaa_name' => $qetaa_name,
-    'sana_marhala_name' => $sana_marhala_name ?? null,
-    'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
-    'max_limit' => $marhala_limit,
-]);
+    if (empty($qetaat)) {
+        return back()->withErrors([
+            'qetaa_id' => 'لا يوجد قطاع كشفي متاح لهذه المرحلة'
+        ])->withInput();
     }
 
-    $sana_marhala_name = DB::table('SanaMarhala')
-        ->where('SanaMarhalaID', $request->sana_marhala_id)
-        ->value('SanaMarhalaName');
+    $available_qetaat = [];
+
+    foreach ($qetaat as $qetaa) {
+        $qetaa_id = $qetaa[0];
+        $qetaa_name = $qetaa[1];
+        $gender = $qetaa[2];
+
+        $marhala_limit = DB::table('MarhalaLiveFormLimit')
+            ->where('QetaaID', $qetaa_id)
+            ->where('SanaMarhalaID', $request->sana_marhala_id)
+            ->value('MaxLimit') ?? 0;
+
+        $numberOfStudentsCurrentlySubmittedInSanaMarhala = DB::table('NewUsersInformation')
+            ->where('QetaaID', $qetaa_id)
+            ->where('SanaMarhalaID', $request->sana_marhala_id)
+            ->count();
+
+        // أضف فقط القطاعات التي ما زال فيها أماكن
+      $available_qetaat[] = [
+    'QetaaID' => $qetaa_id,
+    'QetaaName' => $qetaa_name,
+    'gender' => $gender,
+    'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
+    'max_limit' => $marhala_limit,
+    'is_full' => ($marhala_limit == 0 || $numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit),
+];
+    }
+
+    if (empty($available_qetaat)) {
+        return view('person.liveform-limit-exceeded', [
+            'qetaa_name' => null,
+            'sana_marhala_name' => $sana_marhala_name,
+            'current_count' => null,
+            'max_limit' => null,
+        ]);
+    }
 
     session([
         'liveform.step1' => [
             'sana_marhala_id' => (int) $request->sana_marhala_id,
             'sana_marhala_name' => $sana_marhala_name,
-            'gender' => $gender,
-            'qetaa_id' => $qetaa_id,
-            'qetaa_name' => $qetaa_name,
+            'gender' => $request->gender,
             'newLeadersSchool' => (bool) $request->newLeadersSchool,
+            'available_qetaat' => $available_qetaat,
+
+            // لو قطاع واحد فقط، اختاره تلقائيًا
+            'qetaa_id' => count($available_qetaat) === 1 ? $available_qetaat[0]['QetaaID'] : null,
+            'qetaa_name' => count($available_qetaat) === 1 ? $available_qetaat[0]['QetaaName'] : null,
         ],
     ]);
 
     return redirect()->route('person.liveform-step2');
 }
-
 public function showLiveFormStep2()
 {
     $step1 = session('liveform.step1');
@@ -506,6 +532,7 @@ public function showLiveFormStep2()
             'sana_marhala_name' => $step1['sana_marhala_name'],
             'qetaa_id' => $step1['qetaa_id'],
             'qetaa_name' => $step1['qetaa_name'],
+                        'available_qetaat' => $step1['available_qetaat'] ?? [],
             'gender' => $step1['gender'],
         ]
     ));
@@ -550,7 +577,7 @@ public function saveLiveFormStep2(Request $request)
         'person_faculty' => 'nullable',
         'person_university' => 'nullable',
         'university_grad_year' => 'nullable',
-
+        'qetaa_id' => 'required',
         'profile_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
         'scout_uniform_image' => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
 
@@ -591,6 +618,20 @@ public function saveLiveFormStep2(Request $request)
     if ($validator->fails()) {
         return redirect()->back()->withErrors($validator)->withInput();
     }
+
+    $selectedQetaa = collect($step1['available_qetaat'] ?? [])
+    ->firstWhere('QetaaID', (int) $request->qetaa_id);
+
+if (!$selectedQetaa) {
+    return redirect()->back()
+        ->withErrors(['qetaa_id' => 'برجاء اختيار قطاع صحيح'])
+        ->withInput();
+}
+
+$step1['qetaa_id'] = $selectedQetaa['QetaaID'];
+$step1['qetaa_name'] = $selectedQetaa['QetaaName'];
+
+session(['liveform.step1' => $step1]);
 
  $raqam = $request->input('input_raqam_qawmy');
 
@@ -836,38 +877,46 @@ public function submitLiveformQuestions(Request $request)
 private function resolveLiveFormQetaa(int $sanaMarhalaId, string $gender, bool $newLeadersSchool): array
 {
     if ($newLeadersSchool) {
-        return [10, 'اعداد قادة', $gender];
+        return [
+            [10, 'اعداد قادة', $gender]
+        ];
     }
 
     if ($sanaMarhalaId < 5 && $sanaMarhalaId > 2) {
-        return [1, 'براعم', $gender];
+        return [
+            [1, 'براعم', $gender]
+        ];
     }
 
     if ($sanaMarhalaId < 9 && $sanaMarhalaId > 4) {
-        return $gender === 'Male'
-            ? [2, 'أشبال', 'Male']
-            : [9, 'زهرات', 'Female'];
+        return [
+            [$gender === 'Male' ? 2 : 9, $gender === 'Male' ? 'أشبال' : 'زهرات', $gender]
+        ];
     }
 
     if ($sanaMarhalaId < 12 && $sanaMarhalaId > 8) {
-        return $gender === 'Male'
-            ? [8, 'كشافة', 'Male']
-            : [6, 'مرشدات', 'Female'];
+        return [
+            [$gender === 'Male' ? 8 : 6, $gender === 'Male' ? 'كشافة' : 'مرشدات', $gender]
+        ];
     }
 
     if ($sanaMarhalaId <= 14 && $sanaMarhalaId > 11) {
-        return $gender === 'Male'
-            ? [3, 'متقدم', 'Male']
-            : [4, 'رائدات', 'Female'];
+        return [
+            [$gender === 'Male' ? 3 : 4, $gender === 'Male' ? 'متقدم' : 'رائدات', $gender]
+        ];
     }
 
-    if ($sanaMarhalaId < 21 && $sanaMarhalaId > 14) {
-        return [5, 'جوالة', $gender];
+    if ($sanaMarhalaId <= 21 && $sanaMarhalaId > 14) {
+        return [
+            [5, 'جوالة', $gender],
+            [7, 'قادة', $gender],
+        ];
     }
 
-    return [7, 'قادة', $gender];
+    return [
+        [7, 'قادة', $gender]
+    ];
 }
-
 private function getLiveFormStep2Lookups(): array
 {
     return [
