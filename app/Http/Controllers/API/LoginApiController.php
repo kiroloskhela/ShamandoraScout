@@ -127,7 +127,7 @@ $request->validate([
     ]);
 
 
-if ($request->filled('fcm_token')) {
+if ($request->filled('fcmToken')) {
 
     DB::table('devices')->updateOrInsert(
         [
@@ -135,7 +135,7 @@ if ($request->filled('fcm_token')) {
             'platform' => $request->platform,
         ],
         [
-            'fcm_token' => $request->fcmToken,
+            'fcmToken' => $request->fcmToken,
             'updated_at'=> now(),
             'created_at'=> now(),
         ]
