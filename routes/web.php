@@ -78,7 +78,8 @@ use App\Http\Controllers\PersonSpecialCaseController;
 use App\Http\Controllers\SeasonEventBookingFinanceController;
 
 use App\Http\Controllers\NotificationController;
-  use App\Http\Controllers\GamesController;
+use App\Http\Controllers\GamesController;
+use App\Http\Controllers\SeasonEventWaitingListController;  
 
 /*
 |--------------------------------------------------------------------------
@@ -707,6 +708,21 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
     Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])
         ->name('updateShirtSize');
     });
+
+
+
+
+Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function () {
+    Route::get('/selector', [SeasonEventWaitingListController::class, 'selector'])->name('selector');
+    Route::get('/events', [SeasonEventWaitingListController::class, 'getEvents'])->name('events');
+
+    Route::get('/{seasonEventID}', [SeasonEventWaitingListController::class, 'index'])->name('index');
+    Route::get('/{seasonEventID}/search-eligible-persons', [SeasonEventWaitingListController::class, 'searchEligiblePersons'])->name('searchEligiblePersons');
+    Route::post('/{seasonEventID}/store', [SeasonEventWaitingListController::class, 'store'])->name('store');
+
+    Route::get('/delete/{waitingListID}', [SeasonEventWaitingListController::class, 'deletePage'])->name('deletePage');
+    Route::delete('/delete/{waitingListID}', [SeasonEventWaitingListController::class, 'destroy'])->name('destroy');
+});
 
 });
 
