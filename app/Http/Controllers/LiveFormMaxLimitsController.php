@@ -69,7 +69,7 @@ class LiveFormMaxLimitsController extends Controller
             }
             elseif($request->qetaa_id==5)
             {
-                if($request->sana_marhala_id<15||$request->sana_marhala_id>20)
+                  if($request->sana_marhala_id<15||$request->sana_marhala_id>21)
                 return view('person.entry-error-repeat-trial');
             }
             elseif($request->qetaa_id==6)
