@@ -99,12 +99,12 @@ class LoginApiController extends Controller
 
     public function apiLogin(Request $request)
 {
-    $request->validate([
-        'id'       => 'required|integer',
-        'password' => 'required',
-        'fcm_token'  => 'nullable|string',
-        'platform'   => 'nullable|string|in:android,ios,web',
-    ]);
+$request->validate([
+    'id'        => 'required|integer',
+    'password'  => 'required',
+    'fcmToken'  => 'nullable|string',
+    'platform'  => 'nullable|string|in:android,ios,web',
+]);
 
     $user = User::find($request->id);
 
@@ -135,7 +135,7 @@ if ($request->filled('fcm_token')) {
             'platform' => $request->platform,
         ],
         [
-            'fcm_token' => $request->fcm_token,
+            'fcm_token' => $request->fcmToken,
             'updated_at'=> now(),
             'created_at'=> now(),
         ]
