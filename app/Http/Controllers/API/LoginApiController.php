@@ -102,7 +102,7 @@ class LoginApiController extends Controller
 $request->validate([
     'id'        => 'required|integer',
     'password'  => 'required',
-    'fcmToken'  => 'nullable|string',
+    'fcmtoken'  => 'nullable|string',
     'platform'  => 'nullable|string|in:android,ios,web',
 ]);
 
@@ -127,7 +127,7 @@ $request->validate([
     ]);
 
 
-if ($request->filled('fcmToken')) {
+if ($request->filled('fcmtoken')) {
 
     DB::table('devices')->updateOrInsert(
         [
@@ -135,7 +135,7 @@ if ($request->filled('fcmToken')) {
             'platform' => $request->platform,
         ],
         [
-            'fcmToken' => $request->fcmToken,
+            'fcmtoken' => $request->fcmtoken,
             'updated_at'=> now(),
             'created_at'=> now(),
         ]
