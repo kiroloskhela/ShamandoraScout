@@ -233,7 +233,7 @@
                 </div>
             </div>
         </details>
-        <x-data-table :data="$bookings" title="حجوزات الفعالية" :columns="[
+        <x-data-table :data="$bookings" title="حجوزات الفعالية" tableId="BookingFinance" :columns="[
             [
                 'key' => 'PersonFullName',
                 'label' => 'الاسم',
@@ -370,7 +370,7 @@
                 'cssClass' =>
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
             ],
-        ]" :searchable="true"
-            :sortable="true" :pagination="true" :per-page="10" />
+        ]"
+            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
     </div>
 @endsection

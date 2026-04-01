@@ -72,7 +72,7 @@
                 </form>
             </div>
 
-            <x-data-table :data="$waitingList" title="قائمة الانتظار" :columns="[
+            <x-data-table :data="$waitingList" title="قائمة الانتظار" tableId="WaitingList" :columns="[
                 [
                     'key' => 'PersonFullName',
                     'label' => 'الاسم',
@@ -119,8 +119,8 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200',
                 ],
-            ]" :searchable="true"
-                :sortable="true" :pagination="true" :per-page="10" />
+            ]"
+                :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
         </div>
     </div>
 
@@ -150,7 +150,8 @@
 
                 timeout = setTimeout(() => {
                     fetch(
-                            `{{ route('eventWaitingList.searchEligiblePersons', $event->SeasonEventID) }}?q=${encodeURIComponent(q)}`)
+                            `{{ route('eventWaitingList.searchEligiblePersons', $event->SeasonEventID) }}?q=${encodeURIComponent(q)}`
+                            )
                         .then(res => res.json())
                         .then(data => {
                             resultsBox.innerHTML = '';
