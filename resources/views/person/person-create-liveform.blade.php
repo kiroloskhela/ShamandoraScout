@@ -911,24 +911,17 @@
 
 
     <script>
-        // =========================
-        // Global refs
-        // =========================
         const form = document.getElementById('regForm2');
         const submitBtn = document.getElementById('submitBtn');
 
-        // =========================
-        // Constants
-        // =========================
-        const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+        const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
         const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-        // Track touched fields (for validation UX)
         const touchedFields = new Set();
+        const processedFiles = new Map();
+        const processingState = new Map();
+        const previewUrls = new WeakMap();
 
-        // =========================
-        // Helpers: text / email / digits
-        // =========================
         function onlyDigits(value) {
             return (value || '').replace(/\D/g, '');
         }
@@ -943,23 +936,16 @@
             return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
         }
 
-        // =========================
-        // Helpers: Arabic names (NEW)
-        // =========================
         function sanitizeArabic(value) {
-            // Arabic blocks + spaces
             return (value || '').replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]/g, '');
         }
 
         function isArabicOnly(value) {
             const v = (value || '').trim();
-            if (!v) return true; // required handled elsewhere
+            if (!v) return true;
             return /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$/.test(v);
         }
 
-        // =========================
-        // UI helpers: input errors
-        // =========================
         function showError(el, show, customKey = null) {
             const wrapper = el.closest('div');
             if (!wrapper) return;
@@ -1002,9 +988,6 @@
             if (emailMsg) emailMsg.classList.toggle('hidden', !show);
         }
 
-        // =========================
-        // Validation: fields
-        // =========================
         function validateRequired(el) {
             if (el.hasAttribute('required') && !el.value.trim()) {
                 showError(el, true);
@@ -1024,17 +1007,14 @@
 
         function validateNIDWithDOB(nid, dob) {
             if (!nid || nid.length !== 14) return false;
-            if (!dob) return true; // skip if no DOB yet
+            if (!dob) return true;
 
             const birthDate = new Date(dob);
-
             const year = birthDate.getFullYear();
             const month = String(birthDate.getMonth() + 1).padStart(2, '0');
             const day = String(birthDate.getDate()).padStart(2, '0');
-
             const century = year >= 2000 ? '3' : '2';
             const shortYear = String(year).slice(-2);
-
             const expectedPrefix = century + shortYear + month + day;
 
             return nid.startsWith(expectedPrefix);
@@ -1046,16 +1026,12 @@
             if (!el.value.trim()) return validateRequired(el);
 
             const basicValid = el.value.length === 14;
-
             const dobInput = document.getElementById('birthdate_input');
             const dob = dobInput ? dobInput.value : null;
-
             const matchesDOB = validateNIDWithDOB(el.value, dob);
-
             const ok = basicValid && matchesDOB;
 
             showError(el, !ok, 'nid');
-
             return ok;
         }
 
@@ -1065,7 +1041,7 @@
 
             if (!cleaned) {
                 showEmailError(el, false);
-                return true; // optional
+                return true;
             }
 
             const ok = isValidEmail(cleaned);
@@ -1073,12 +1049,10 @@
             return ok;
         }
 
-        // NEW: Arabic-only name validator (cleans live + validates)
         function validateArabicName(el) {
             const cleaned = sanitizeArabic(el.value);
             if (el.value !== cleaned) el.value = cleaned;
 
-            // Required check first
             if (el.hasAttribute('required') && !el.value.trim()) {
                 showError(el, true);
                 return false;
@@ -1097,7 +1071,6 @@
             if (el.id === 'input_raqam_qawmy') return validateNID(el);
             if (el.id === 'email_input') return validateEmailField(el);
 
-            // NEW: Arabic-only name fields
             if (['first_name', 'second_name', 'third_name', 'fourth_name'].includes(el.id)) {
                 return validateArabicName(el);
             }
@@ -1105,20 +1078,20 @@
             return validateRequired(el);
         }
 
-        // =========================
-        // Emergency details logic
-        // =========================
         const emergencyCheckbox = document.getElementById('has_emergency_case');
         const emergencyDetails = document.getElementById('emergency_details');
         const emergencyDetailsError = document.getElementById('emergency_details_error');
 
-        document.getElementById('birthdate_input').addEventListener('change', () => {
-            const nidField = document.getElementById('input_raqam_qawmy');
-            if (touchedFields.has(nidField.id)) {
-                validateNID(nidField);
-                validateAll();
-            }
-        });
+        const birthdateInput = document.getElementById('birthdate_input');
+        if (birthdateInput) {
+            birthdateInput.addEventListener('change', () => {
+                const nidField = document.getElementById('input_raqam_qawmy');
+                if (nidField && touchedFields.has(nidField.id)) {
+                    validateNID(nidField);
+                    validateAll();
+                }
+            });
+        }
 
         function validateEmergencyDetails() {
             if (!emergencyCheckbox || !emergencyDetails) return true;
@@ -1131,12 +1104,12 @@
                 emergencyDetails.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
                 emergencyDetails.classList.remove('border-slate-300');
                 return false;
-            } else {
-                if (emergencyDetailsError) emergencyDetailsError.classList.add('hidden');
-                emergencyDetails.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
-                emergencyDetails.classList.add('border-slate-300');
-                return true;
             }
+
+            if (emergencyDetailsError) emergencyDetailsError.classList.add('hidden');
+            emergencyDetails.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+            emergencyDetails.classList.add('border-slate-300');
+            return true;
         }
 
         if (emergencyCheckbox && emergencyDetails) {
@@ -1153,9 +1126,6 @@
             });
         }
 
-        // =========================
-        // Allergy dropdown sync (if exists)
-        // =========================
         (function initAllergyFoodOther() {
             const select = document.getElementById('allergy_food_select');
             const otherWrap = document.getElementById('allergy_food_other_wrap');
@@ -1189,15 +1159,43 @@
             syncFoodAllergy();
         })();
 
-        // =========================
-        // Photos: UI + compression
-        // =========================
         function formatFileSize(bytes) {
             if (!bytes) return '0 بايت';
             const k = 1024;
             const sizes = ['بايت', 'كيلو بايت', 'ميجا بايت'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
             return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+        }
+
+        function setProcessing(inputName, value) {
+            processingState.set(inputName, value);
+            updateSubmitState();
+        }
+
+        function isAnyFileProcessing() {
+            return Array.from(processingState.values()).some(Boolean);
+        }
+
+        function updateSubmitState() {
+            if (!submitBtn) return;
+            if (isAnyFileProcessing()) {
+                submitBtn.disabled = true;
+                return;
+            }
+            submitBtn.disabled = false;
+        }
+
+        function getActiveFileForInput(input) {
+            if (!input) return null;
+            return processedFiles.get(input.name) || (input.files && input.files[0]) || null;
+        }
+
+        function clearPreviewUrl(img) {
+            const oldUrl = previewUrls.get(img);
+            if (oldUrl) {
+                URL.revokeObjectURL(oldUrl);
+                previewUrls.delete(img);
+            }
         }
 
         function resetPhotoUI(root) {
@@ -1208,14 +1206,23 @@
             const errorKey = input?.getAttribute('data-error-key') || '';
             const err = errorKey ? root.querySelector(`[data-error="${errorKey}"]`) : null;
 
+            if (input?.name) {
+                processedFiles.delete(input.name);
+                processingState.delete(input.name);
+            }
+
             if (err) err.classList.add('hidden');
 
             if (img) {
+                clearPreviewUrl(img);
                 img.src = '';
                 img.classList.add('hidden');
             }
+
             if (placeholder) placeholder.classList.remove('hidden');
             if (filename) filename.textContent = 'لم يتم اختيار ملف';
+
+            updateSubmitState();
         }
 
         function showPhotoError(root, msg) {
@@ -1243,36 +1250,40 @@
             if (filename) filename.textContent = file ? file.name : 'لم يتم اختيار ملف';
 
             if (!file) {
-                resetPhotoUI(root);
+                if (img) {
+                    clearPreviewUrl(img);
+                    img.src = '';
+                    img.classList.add('hidden');
+                }
+                if (placeholder) placeholder.classList.remove('hidden');
                 return;
             }
 
-            const url = URL.createObjectURL(file);
             if (img) {
+                clearPreviewUrl(img);
+                const url = URL.createObjectURL(file);
+                previewUrls.set(img, url);
                 img.src = url;
                 img.classList.remove('hidden');
             }
             if (placeholder) placeholder.classList.add('hidden');
         }
 
-        function replaceInputFile(input, file) {
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            input.files = dt.files;
-        }
-
         function loadImageFromFile(file) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 const url = URL.createObjectURL(file);
+
                 img.onload = () => {
                     URL.revokeObjectURL(url);
                     resolve(img);
                 };
+
                 img.onerror = () => {
                     URL.revokeObjectURL(url);
                     reject(new Error('image-load-failed'));
                 };
+
                 img.src = url;
             });
         }
@@ -1293,20 +1304,17 @@
         }
 
         async function compressToUnder5MB(file, maxBytes) {
-            // If already OK, keep it
-            if (file.size <= maxBytes) return {
-                ok: true,
-                file
-            };
+            if (file.size <= maxBytes) {
+                return {
+                    ok: true,
+                    file
+                };
+            }
 
-            // Choose target mime (WebP usually smaller)
             const targetMime = browserSupportsWebp() ? 'image/webp' : 'image/jpeg';
-
             const img = await loadImageFromFile(file);
-
-            // Step 1: resize (big impact)
-            const maxDimList = [2048, 1600, 1280, 1024]; // try progressively smaller
-            const qualityList = [0.82, 0.75, 0.68, 0.60, 0.52, 0.45]; // try progressively lower
+            const maxDimList = [2048, 1600, 1280, 1024];
+            const qualityList = [0.82, 0.75, 0.68, 0.60, 0.52, 0.45];
 
             for (const maxDim of maxDimList) {
                 const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
@@ -1322,7 +1330,6 @@
                 });
                 ctx.drawImage(img, 0, 0, w, h);
 
-                // Step 2: try qualities
                 for (const q of qualityList) {
                     const blob = await canvasToBlob(canvas, targetMime, q);
                     if (!blob) continue;
@@ -1332,18 +1339,16 @@
                         const safeBase = (file.name || 'image').replace(/\.[^.]+$/, '');
                         const newName = `${safeBase}-compressed.${ext}`;
 
-                        const newFile = new File([blob], newName, {
-                            type: targetMime
-                        });
                         return {
                             ok: true,
-                            file: newFile
+                            file: new File([blob], newName, {
+                                type: targetMime
+                            })
                         };
                     }
                 }
             }
 
-            // Failed to compress under limit
             return {
                 ok: false,
                 file
@@ -1358,56 +1363,56 @@
 
             if (!input.files || !input.files[0]) {
                 resetPhotoUI(root);
+                validateAll();
                 return;
             }
 
-            const file = input.files[0];
+            const originalFile = input.files[0];
+            const key = input.name;
+            processedFiles.delete(key);
 
-            // Type check
-            if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            if (!ALLOWED_IMAGE_TYPES.includes(originalFile.type)) {
                 showPhotoError(root, 'الصورة يجب أن تكون بصيغة JPG أو PNG أو WebP');
                 input.value = '';
                 resetPhotoUI(root);
+                validateAll();
                 return;
             }
 
-            // If too big: compress
-            if (file.size > MAX_IMAGE_BYTES) {
-                showPhotoError(root, `جارٍ ضغط الصورة... (الحجم الحالي ${formatFileSize(file.size)})`);
+            setProcessing(key, true);
 
-                try {
-                    const result = await compressToUnder5MB(file, MAX_IMAGE_BYTES);
+            try {
+                let finalFile = originalFile;
 
+                if (originalFile.size > MAX_IMAGE_BYTES) {
+                    showPhotoError(root, `جارٍ ضغط الصورة... (الحجم الحالي ${formatFileSize(originalFile.size)})`);
+
+                    const result = await compressToUnder5MB(originalFile, MAX_IMAGE_BYTES);
                     if (!result.ok) {
-                        // IMPORTANT: avoid 413 by preventing submit
-                        showPhotoError(
-                            root,
-                            `لم نتمكن من ضغط الصورة لأقل من 5 ميجا. الحجم الحالي: ${formatFileSize(file.size)}. برجاء اختيار صورة أصغر.`
-                        );
+                        showPhotoError(root,
+                            `لم نتمكن من ضغط الصورة لأقل من 5 ميجا. الحجم الحالي: ${formatFileSize(originalFile.size)}. برجاء اختيار صورة أصغر.`
+                            );
                         input.value = '';
                         resetPhotoUI(root);
                         validateAll();
                         return;
                     }
 
-                    // Replace input file with compressed file
-                    replaceInputFile(input, result.file);
-                    showPhotoError(root, `تم ضغط الصورة بنجاح ✅ الحجم: ${formatFileSize(result.file.size)}`);
-                    setPhotoPreview(root, result.file);
-                    validateAll();
-                    return;
-                } catch (e) {
-                    showPhotoError(root, 'حدث خطأ أثناء ضغط الصورة. برجاء اختيار صورة أخرى.');
-                    input.value = '';
-                    resetPhotoUI(root);
-                    validateAll();
-                    return;
+                    finalFile = result.file;
+                    showPhotoError(root, `تم ضغط الصورة بنجاح ✅ الحجم: ${formatFileSize(finalFile.size)}`);
                 }
-            }
 
-            // Normal preview
-            setPhotoPreview(root, file);
-            validateAll();
+                processedFiles.set(key, finalFile);
+                setPhotoPreview(root, finalFile);
+            } catch (error) {
+                console.error(error);
+                showPhotoError(root, 'حدث خطأ أثناء معالجة الصورة. برجاء اختيار صورة أخرى.');
+                input.value = '';
+                resetPhotoUI(root);
+            } finally {
+                setProcessing(key, false);
+                validateAll();
+            }
         }
 
         function validateFilesBeforeSubmit() {
@@ -1415,23 +1420,21 @@
 
             document.querySelectorAll('[data-upload]').forEach(root => {
                 const input = root.querySelector('input[data-file]');
-                if (!input || !input.files || !input.files[0]) return;
+                if (!input) return;
 
-                const file = input.files[0];
+                const file = getActiveFileForInput(input);
+                if (!file) return;
 
-                // type guard
                 if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
                     showPhotoError(root, 'الصورة يجب أن تكون بصيغة JPG أو PNG أو WebP');
                     ok = false;
                     return;
                 }
 
-                // size guard: if still > 5MB => block submit (prevents 413)
                 if (file.size > MAX_IMAGE_BYTES) {
-                    showPhotoError(
-                        root,
+                    showPhotoError(root,
                         `حجم الصورة ما زال أكبر من 5 ميجا (${formatFileSize(file.size)}). برجاء اختيار صورة أصغر.`
-                    );
+                        );
                     ok = false;
                 }
             });
@@ -1439,7 +1442,6 @@
             return ok;
         }
 
-        // Init upload widgets
         document.querySelectorAll('[data-upload]').forEach(root => {
             const pickBtn = root.querySelector('[data-pick]');
             const input = root.querySelector('input[data-file]');
@@ -1448,43 +1450,32 @@
             resetPhotoUI(root);
 
             pickBtn.addEventListener('click', () => input.click());
-            input.addEventListener('change', () => {
-                // async handler (compression)
-                handlePhotoChange(root);
+            input.addEventListener('change', async () => {
+                await handlePhotoChange(root);
             });
         });
 
-        // =========================
-        // validateAll
-        // =========================
         function validateAll() {
             let ok = true;
 
-            // required fields
             const fields = form.querySelectorAll('.field[required]');
             fields.forEach(el => {
                 if (touchedFields.has(el.id) && !validateField(el)) ok = false;
             });
 
-            // email field
             const emailField = document.getElementById('email_input');
             if (emailField && touchedFields.has(emailField.id)) {
                 if (!validateEmailField(emailField)) ok = false;
             }
 
-            // emergency section
             if (!validateEmergencyDetails()) ok = false;
-
-            // photos must be <= 5MB
+            if (isAnyFileProcessing()) ok = false;
             if (!validateFilesBeforeSubmit()) ok = false;
 
             submitBtn.disabled = !ok;
             return ok;
         }
 
-        // =========================
-        // Events for field validation
-        // =========================
         form.addEventListener('blur', (e) => {
             const el = e.target;
             if (!el.classList.contains('field') && !el.classList.contains('field-email')) return;
@@ -1497,7 +1488,6 @@
         form.addEventListener('input', (e) => {
             const el = e.target;
 
-            // NEW: Always sanitize Arabic name fields (even before touched)
             if (['first_name', 'second_name', 'third_name', 'fourth_name'].includes(el.id)) {
                 const cleaned = sanitizeArabic(el.value);
                 if (el.value !== cleaned) el.value = cleaned;
@@ -1518,48 +1508,55 @@
             validateAll();
         });
 
-        // =========================
-        // Submit: block if invalid + avoid 413
-        // =========================
-        form.addEventListener('submit', async (e) => {
-            // mark everything touched
+        form.addEventListener('submit', (e) => {
             const allFields = form.querySelectorAll('.field[required], .field-email');
             allFields.forEach(el => touchedFields.add(el.id));
 
             let ok = true;
 
-            // validate required
             const requiredFields = form.querySelectorAll('.field[required]');
             requiredFields.forEach(el => {
                 if (!validateField(el)) ok = false;
             });
 
-            // validate email
             const emailField = document.getElementById('email_input');
             if (emailField && emailField.value.trim() && !validateEmailField(emailField)) ok = false;
 
-            // emergency details
             if (!validateEmergencyDetails()) ok = false;
 
-            // Last safety: if user selected >5MB and compression still running / failed => block
+            if (isAnyFileProcessing()) {
+                ok = false;
+                alert('برجاء الانتظار حتى ينتهي تجهيز الصور.');
+            }
+
             if (!validateFilesBeforeSubmit()) ok = false;
 
             if (!ok) {
                 e.preventDefault();
                 const firstInvalid = form.querySelector('.ring-rose-200') || form.querySelector(
                     '.error-photo:not(.hidden)');
-                if (firstInvalid) firstInvalid.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
                 return;
             }
+
+            document.querySelectorAll('input[data-file]').forEach(input => {
+                const processed = processedFiles.get(input.name);
+                if (!processed) return;
+
+                const dt = new DataTransfer();
+                dt.items.add(processed);
+                input.files = dt.files;
+            });
         });
 
-        // Initial
         submitBtn.disabled = false;
+        validateAll();
     </script>
-
 
 
 
