@@ -15,14 +15,15 @@ class MigrateNewEnrolments extends Controller
 {
  public function migrate($qetaaID)
 {
-    $personsBeforeMigration = DB::select("
-        SELECT  NewUsersInformation.*,
-                GROUP_CONCAT(CONCAT(NewUsersPersonEntryQuestions.QuestionID, ':', NewUsersPersonEntryQuestions.Answer) SEPARATOR ', ') AS AnsweredQuestions
-        FROM    NewUsersInformation
-        JOIN    NewUsersPersonEntryQuestions ON NewUsersInformation.PersonID = NewUsersPersonEntryQuestions.PersonID
-        WHERE   IsApproved = 1 AND NewUsersInformation.QetaaID = ?
-        GROUP BY NewUsersInformation.PersonID
-    ", [$qetaaID]);
+$personsBeforeMigration = DB::select("
+    SELECT  NewUsersInformation.*,
+            GROUP_CONCAT(CONCAT(NewUsersPersonEntryQuestions.QuestionID, ':', NewUsersPersonEntryQuestions.Answer) SEPARATOR ', ') AS AnsweredQuestions
+    FROM    NewUsersInformation
+    LEFT JOIN NewUsersPersonEntryQuestions 
+           ON NewUsersInformation.PersonID = NewUsersPersonEntryQuestions.PersonID
+    WHERE   IsApproved = 1 AND NewUsersInformation.QetaaID = ?
+    GROUP BY NewUsersInformation.PersonID
+", [$qetaaID]);
 
     // helper: split comma / Arabic comma / semicolon / new lines into clean unique array
     $splitList = function ($value) {
