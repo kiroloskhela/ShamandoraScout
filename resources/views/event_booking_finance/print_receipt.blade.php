@@ -86,7 +86,7 @@
         }
 
         .subtitle {
-            font-size: 9px;
+            font-size: 15px;
             color: #444;
             margin: 0 0 3px 0;
         }
@@ -96,8 +96,8 @@
             border: 1px solid #333;
             border-radius: 999px;
             padding: 1px 8px;
-            font-size: 9px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: bolder;
             background: #f3f3f3;
             line-height: 1.4;
         }
@@ -115,8 +115,8 @@
         }
 
         .section-title {
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: bolder;
             margin-bottom: 3px;
             color: #111;
         }
@@ -132,7 +132,7 @@
         .cell {
             width: 48%;
             min-width: 0;
-            font-size: 10px;
+            font-size: 15px;
             line-height: 1.45;
             word-break: break-word;
         }
@@ -152,8 +152,8 @@
         }
 
         .amount-title {
-            font-size: 9px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: bolder;
             margin-bottom: 1px;
         }
 
@@ -166,7 +166,7 @@
         .footer-note {
             margin-top: 4px;
             text-align: center;
-            font-size: 8.5px;
+            font-size: 15px;
             color: #555;
             line-height: 1.3;
         }

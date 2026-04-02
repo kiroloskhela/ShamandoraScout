@@ -9,8 +9,11 @@ use App\Services\FcmService;
 class NotificationController extends Controller
 {
     public function index()
-    {
-        return view("notifications.index");
+    {    $users = DB::table('PersonInformation')
+        ->select('PersonID', 'FirstName', 'SecondName', 'ThirdName')
+        ->get();
+
+    return view("notifications.create", ['users' => $users]);
     }
 
 public function create()
