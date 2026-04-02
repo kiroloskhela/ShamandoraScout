@@ -45,7 +45,7 @@
 
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($qetaaCounts as $qetaa)
-                                    @php $full = $qetaa->booked_count >= 50; @endphp
+                                    @php $full = $qetaa->booked_count >= 11; @endphp
                                     <span
                                         class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border
                         {{ $full ? 'bg-red-50 text-red-800 border-red-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
