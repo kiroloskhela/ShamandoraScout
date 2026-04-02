@@ -56,7 +56,7 @@ class NormalizeNames extends Command
             });
 
         DB::table('NewUsersInformation')
-            ->orderBy('NewUserID')
+            ->orderBy('PersonID')
             ->chunk(500, function ($rows) {
                 foreach ($rows as $row) {
                     $updates = [];
@@ -73,7 +73,7 @@ class NormalizeNames extends Command
 
                     if (!empty($updates)) {
                         DB::table('NewUsersInformation')
-                            ->where('NewUserID', $row->NewUserID)
+                            ->where('PersonID', $row->PersonID)
                             ->update($updates);
                     }
                 }
