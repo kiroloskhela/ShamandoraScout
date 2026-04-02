@@ -78,6 +78,9 @@
                                     <option value="XL" {{ old('shirt_size') === 'XL' ? 'selected' : '' }}>XL</option>
                                     <option value="2XL" {{ old('shirt_size') === '2XL' ? 'selected' : '' }}>2XL</option>
                                     <option value="3XL" {{ old('shirt_size') === '3XL' ? 'selected' : '' }}>3XL</option>
+                                    <option value="4XL" {{ old('shirt_size') === '4XL' ? 'selected' : '' }}>4XL</option>
+                                    <option value="5XL" {{ old('shirt_size') === '5XL' ? 'selected' : '' }}>5XL</option>
+                                    <option value="6XL" {{ old('shirt_size') === '6XL' ? 'selected' : '' }}>6XL</option>
                                 </select>
                             </div>
                         @endif

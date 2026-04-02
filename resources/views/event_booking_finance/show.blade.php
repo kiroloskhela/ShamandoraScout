@@ -139,6 +139,13 @@
                         </option>
                         <option value="3XL" {{ old('shirt_size', $booking->ShirtSize) == '3XL' ? 'selected' : '' }}>3XL
                         </option>
+                        <option value="4XL" {{ old('shirt_size', $booking->ShirtSize) == '4XL' ? 'selected' : '' }}>3XL
+                        </option>
+                        <option value="5XL" {{ old('shirt_size', $booking->ShirtSize) == '5XL' ? 'selected' : '' }}>3XL
+                        </option>
+                        <option value="6XL" {{ old('shirt_size', $booking->ShirtSize) == '6XL' ? 'selected' : '' }}>3XL
+                        </option>
+
                     </select>
 
                     <button type="submit"
