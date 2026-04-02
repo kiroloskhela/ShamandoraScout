@@ -30,7 +30,7 @@ public function send(Request $request)
     // 🔍 Get FCM tokens for this person
     $tokens = DB::table('devices')
         ->where('PersonID', $personId) // IMPORTANT: must match PersonID
-        ->pluck('fcm_token')
+        ->pluck('fcmtoken')
         ->toArray();
 
     // ❌ If no token found
