@@ -359,7 +359,14 @@
                 return `dataTableState_${this.tableId}`;
             },
 
+            // Add this helper to know if this table should persist state
+            shouldPersistState() {
+                return this.tableId && this.tableId !== 'dataTable';
+            },
+
             saveState() {
+                if (!this.shouldPersistState()) return; // ← skip if no unique ID
+
                 const state = {
                     searchTerm: this.searchTerm,
                     sortColumn: this.sortColumn,
@@ -367,17 +374,17 @@
                     currentPage: this.currentPage,
                     activeFilters: this.activeFilters
                 };
-
                 localStorage.setItem(this.getStorageKey(), JSON.stringify(state));
             },
 
             loadState() {
+                if (!this.shouldPersistState()) return; // ← skip if no unique ID
+
                 const saved = localStorage.getItem(this.getStorageKey());
                 if (!saved) return;
 
                 try {
                     const state = JSON.parse(saved);
-
                     this.searchTerm = state.searchTerm || '';
                     this.sortColumn = state.sortColumn || '';
                     this.sortDirection = state.sortDirection || 'asc';
