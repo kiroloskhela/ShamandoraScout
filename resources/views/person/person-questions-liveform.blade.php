@@ -206,6 +206,7 @@
                                             $question->RequiredAnswerType == 'MultipleChoice'
                                                 ? array_filter(
                                                     array_map('trim', explode('|', (string) $question->MCAnswer)),
+                                                    fn($value) => $value !== '',
                                                 )
                                                 : [];
                                     @endphp
