@@ -48,7 +48,7 @@ class PersonBlackListController extends Controller
                 LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
                 JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
                 JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-                WHERE q.QetaaID = (
+                WHERE q.QetaaID IN (
                     SELECT gq2.QetaaID
                     FROM GroupQetaa gq2
                     WHERE gq2.GroupID = (

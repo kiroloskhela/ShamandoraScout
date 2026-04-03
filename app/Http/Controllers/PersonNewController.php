@@ -554,7 +554,7 @@ private function normalizeArabicName(?string $value): ?string
         'ى', 'ئ', 'ي',
         'ؤ',
         'ة',
-        'ج',
+        'چ',
     ];
 
     $replace = [
@@ -562,21 +562,14 @@ private function normalizeArabicName(?string $value): ?string
         'ي', 'ي', 'ي',
         'و',
         'ه',
-        'چ',
+        'ج',
     ];
 
     $value = str_replace($search, $replace, $value);
 
-    // remove harakat + tatweel
     $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}\x{06D6}-\x{06ED}\x{0640}]/u', '', $value);
-
-    // remove invisible direction/control chars
     $value = preg_replace('/[\x{200E}\x{200F}\x{061C}\x{202A}-\x{202E}]/u', '', $value);
-
-    // keep Arabic letters and spaces only
     $value = preg_replace('/[^\p{Arabic}\s]/u', '', $value);
-
-    // normalize spaces
     $value = preg_replace('/\s+/u', ' ', $value);
 
     return trim($value);
