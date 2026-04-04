@@ -575,6 +575,17 @@ private function normalizeArabicName(?string $value): ?string
     return trim($value);
 }
 
+private function normalizeArabicFields(array $data, array $fields): array
+{
+    foreach ($fields as $field) {
+        if (isset($data[$field])) {
+            $data[$field] = $this->normalizeArabicName($data[$field]);
+        }
+    }
+
+    return $data;
+}
+
 public function saveLiveFormStep2(Request $request)
 {
     $step1 = session('liveform.step1');
@@ -584,10 +595,10 @@ public function saveLiveFormStep2(Request $request)
     }
 
     $rules = [
- 'first_name'  => $this->normalizeArabicName($request->first_name),
-    'second_name' => $this->normalizeArabicName($request->second_name),
-    'third_name'  => $this->normalizeArabicName($request->third_name),
-    'fourth_name' => $this->normalizeArabicName($request->fourth_name),
+  'first_name' => 'required|string|max:255',
+    'second_name' => 'required|string|max:255',
+    'third_name' => 'required|string|max:255',
+    'fourth_name' => 'nullable|string|max:255',
         'birthdate_input' => 'required|date',
         'joining_year_input' => 'required',
         'input_raqam_qawmy' => 'required|digits:14',
@@ -627,6 +638,7 @@ public function saveLiveFormStep2(Request $request)
     ];
 
     $validator = Validator::make($request->all(), $rules);
+  
 
     $hasEmergency = $request->boolean('has_emergency_case');
 
@@ -655,6 +667,16 @@ public function saveLiveFormStep2(Request $request)
     if ($validator->fails()) {
         return redirect()->back()->withErrors($validator)->withInput();
     }
+
+      $data = $validator->validated();
+
+
+    $data = $this->normalizeArabicFields($data, [
+    'first_name',
+    'second_name',
+    'third_name',
+    'fourth_name',
+]);
 
     $selectedQetaa = collect($step1['available_qetaat'] ?? [])
     ->firstWhere('QetaaID', (int) $request->qetaa_id);
@@ -696,10 +718,10 @@ if ($existsInNewUsers || $existsInPersonInformation) {
 
     session([
         'liveform.step2' => [
-            'first_name' => $request->first_name,
-            'second_name' => $request->second_name,
-            'third_name' => $request->third_name,
-            'fourth_name' => $request->fourth_name,
+             'first_name' => $data['first_name'],
+        'second_name' => $data['second_name'],
+        'third_name' => $data['third_name'],
+        'fourth_name' => $data['fourth_name'] ?? null,
             'birthdate_input' => $request->birthdate_input,
             'joining_year_input' => $request->joining_year_input,
             'input_raqam_qawmy' => $request->input_raqam_qawmy,
