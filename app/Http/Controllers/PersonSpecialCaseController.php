@@ -10,55 +10,164 @@ use Illuminate\Support\Facades\Log;
 
 class PersonSpecialCaseController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Full allowed persons query
+     */
+    private function allowedPersonsSql()
     {
-        $userId = $request->query('id') ?? Auth::id();
-        Log::info("Fetching PersonSpecialCase for user ID: " . $userId);
+        return "
+            SELECT DISTINCT
+                pi.PersonID,
+                pi.ShamandoraCode,
+                CONCAT(
+                    COALESCE(pi.FirstName, ''), ' ',
+                    COALESCE(pi.SecondName, ''), ' ',
+                    COALESCE(pi.ThirdName, ''), ' ',
+                    COALESCE(pi.FourthName, '')
+                ) AS PersonName,
+                pi.FirstName,
+                pi.SecondName,
+                pi.ThirdName,
+                pi.FourthName,
+                q.QetaaName,
+                pi.ScoutJoiningYear,
+                sm.SanaMarhalaName,
+                pi.RaqamQawmy,
+                ppn.PersonPersonalMobileNumber,
+                q.QetaaID,
+                PG.PersonID AS GroupPersonID,
+                IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+                psm.SanaMarhalaID
+            FROM PersonInformation pi
+            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID
+            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
+            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+            WHERE q.QetaaID IN (
+                SELECT gq2.QetaaID
+                FROM GroupQetaa gq2
+                WHERE gq2.GroupID IN (
+                    SELECT pg3.GroupID
+                    FROM PersonGroup pg3
+                    WHERE pg3.PersonID = ?
+                )
+            )
+        ";
+    }
 
-        $cases = DB::select("
-            SELECT 
+    /**
+     * Only PersonID version for access checks
+     */
+    private function allowedPersonIdsSql()
+    {
+        return "
+            SELECT DISTINCT
+                pi.PersonID
+            FROM PersonInformation pi
+            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID
+            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
+            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+            WHERE q.QetaaID IN (
+                SELECT gq2.QetaaID
+                FROM GroupQetaa gq2
+                WHERE gq2.GroupID IN (
+                    SELECT pg3.GroupID
+                    FROM PersonGroup pg3
+                    WHERE pg3.PersonID = ?
+                )
+            )
+        ";
+    }
+
+    private function allowedPersonExists($personId, $userId = null)
+    {
+        $userId = $userId ?? Auth::id();
+
+        $person = DB::selectOne("
+            SELECT PersonID
+            FROM (
+                {$this->allowedPersonIdsSql()}
+            ) allowed_people
+            WHERE allowed_people.PersonID = ?
+            LIMIT 1
+        ", [$userId, $personId]);
+
+        return $person !== null;
+    }
+
+    private function getAllowedCase($specialCaseId, $userId = null)
+    {
+        $userId = $userId ?? Auth::id();
+
+        return DB::selectOne("
+            SELECT
                 psc.SpecialCaseID,
                 psc.PersonID,
                 psc.ServentID,
                 psc.CaseDate,
                 psc.Note,
-
                 CONCAT(
                     COALESCE(p.FirstName, ''), ' ',
                     COALESCE(p.SecondName, ''), ' ',
                     COALESCE(p.ThirdName, ''), ' ',
                     COALESCE(p.FourthName, '')
                 ) AS PersonName,
-
                 CONCAT(
                     COALESCE(s.FirstName, ''), ' ',
                     COALESCE(s.SecondName, ''), ' ',
                     COALESCE(s.ThirdName, ''), ' ',
                     COALESCE(s.FourthName, '')
                 ) AS ServentName
+            FROM PersonSpecialCase psc
+            LEFT JOIN PersonInformation p ON p.PersonID = psc.PersonID
+            LEFT JOIN PersonInformation s ON s.PersonID = psc.ServentID
+            WHERE psc.SpecialCaseID = ?
+              AND psc.PersonID IN (
+                  {$this->allowedPersonIdsSql()}
+              )
+            LIMIT 1
+        ", [$specialCaseId, $userId]);
+    }
 
+    public function index(Request $request)
+    {
+        $userId = $request->query('id') ?? Auth::id();
+
+        $cases = DB::select("
+            SELECT
+                psc.SpecialCaseID,
+                psc.PersonID,
+                psc.ServentID,
+                psc.CaseDate,
+                psc.Note,
+                CONCAT(
+                    COALESCE(p.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, '')
+                ) AS PersonName,
+                CONCAT(
+                    COALESCE(s.FirstName, ''), ' ',
+                    COALESCE(s.SecondName, ''), ' ',
+                    COALESCE(s.ThirdName, ''), ' ',
+                    COALESCE(s.FourthName, '')
+                ) AS ServentName
             FROM PersonSpecialCase psc
             LEFT JOIN PersonInformation p ON p.PersonID = psc.PersonID
             LEFT JOIN PersonInformation s ON s.PersonID = psc.ServentID
             WHERE psc.PersonID IN (
-                SELECT DISTINCT
-                    pi.PersonID
-                FROM PersonInformation pi
-                LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-                LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-                JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-                JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-                WHERE q.QetaaID IN (
-                    SELECT gq2.QetaaID
-                    FROM GroupQetaa gq2
-                    WHERE gq2.GroupID = (
-                        SELECT pg3.GroupID
-                        FROM PersonGroup pg3
-                        WHERE pg3.PersonID = ?
-                        LIMIT 1
-                    )
-                    LIMIT 1
-                )
+                {$this->allowedPersonIdsSql()}
             )
             ORDER BY psc.SpecialCaseID DESC
         ", [$userId]);
@@ -71,37 +180,8 @@ class PersonSpecialCaseController extends Controller
         $userId = $request->query('id') ?? Auth::id();
 
         $persons = DB::select("
-            SELECT DISTINCT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                CONCAT(
-                    COALESCE(pi.FirstName, ''), ' ',
-                    COALESCE(pi.SecondName, ''), ' ',
-                    COALESCE(pi.ThirdName, ''), ' ',
-                    COALESCE(pi.FourthName, '')
-                ) AS PersonName
-            FROM PersonInformation pi
-            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-            WHERE q.QetaaID = (
-                SELECT gq2.QetaaID
-                FROM GroupQetaa gq2
-                WHERE gq2.GroupID = (
-                    SELECT pg3.GroupID
-                    FROM PersonGroup pg3
-                    WHERE pg3.PersonID = ?
-                    LIMIT 1
-                )
-                LIMIT 1
-            )
-            ORDER BY pi.ShamandoraCode ASC
+            {$this->allowedPersonsSql()}
+            ORDER BY ShamandoraCode ASC
         ", [$userId]);
 
         return view("personspecialcase.create", ['persons' => $persons]);
@@ -111,34 +191,12 @@ class PersonSpecialCaseController extends Controller
     {
         $request->validate([
             'person_id' => 'required|integer',
-            'note'      => 'nullable|string|max:1000',
+            'note' => 'nullable|string|max:1000',
         ]);
 
         $userId = Auth::id();
 
-        $person = DB::selectOne("
-            SELECT DISTINCT
-                pi.PersonID
-            FROM PersonInformation pi
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-            WHERE pi.PersonID = ?
-              AND q.QetaaID = (
-                    SELECT gq2.QetaaID
-                    FROM GroupQetaa gq2
-                    WHERE gq2.GroupID = (
-                        SELECT pg3.GroupID
-                        FROM PersonGroup pg3
-                        WHERE pg3.PersonID = ?
-                        LIMIT 1
-                    )
-                    LIMIT 1
-              )
-        ", [$request->person_id, $userId]);
-
-        if ($person == null) {
+        if (!$this->allowedPersonExists($request->person_id, $userId)) {
             return redirect()->back()->with('status', 'هذا الشخص غير متاح لك');
         }
 
@@ -147,7 +205,7 @@ class PersonSpecialCaseController extends Controller
             ->whereDate('CaseDate', now()->toDateString())
             ->first();
 
-        if ($exists != null) {
+        if ($exists) {
             return redirect()->back()->with('status', 'تمت إضافة هذا الشخص بالفعل اليوم');
         }
 
@@ -155,7 +213,7 @@ class PersonSpecialCaseController extends Controller
             'PersonID'  => $request->person_id,
             'ServentID' => $userId,
             'CaseDate'  => now(),
-            'Note'      => $request->note
+            'Note'      => $request->note,
         ]);
 
         return redirect()->route('personspecialcase.index')
@@ -164,26 +222,14 @@ class PersonSpecialCaseController extends Controller
 
     public function edit($id)
     {
-        $case = DB::selectOne("
-            SELECT 
-                psc.SpecialCaseID,
-                psc.PersonID,
-                psc.ServentID,
-                psc.CaseDate,
-                psc.Note,
-                CONCAT(
-                    COALESCE(p.FirstName, ''), ' ',
-                    COALESCE(p.SecondName, ''), ' ',
-                    COALESCE(p.ThirdName, ''), ' ',
-                    COALESCE(p.FourthName, '')
-                ) AS PersonName
-            FROM PersonSpecialCase psc
-            LEFT JOIN PersonInformation p ON p.PersonID = psc.PersonID
-            WHERE psc.SpecialCaseID = ?
-        ", [$id]);
+        $case = $this->getAllowedCase($id);
+
+        if (!$case) {
+            abort(403, 'غير مسموح لك بالوصول لهذه الحالة');
+        }
 
         return view("personspecialcase.edit", [
-            'case'  => $case,
+            'case' => $case,
             'title' => 'تعديل حالة خاصة'
         ]);
     }
@@ -193,6 +239,12 @@ class PersonSpecialCaseController extends Controller
         $request->validate([
             'note' => 'nullable|string|max:1000',
         ]);
+
+        $case = $this->getAllowedCase($id);
+
+        if (!$case) {
+            abort(403, 'غير مسموح لك بتعديل هذه الحالة');
+        }
 
         DB::table('PersonSpecialCase')
             ->where('SpecialCaseID', $id)
@@ -206,30 +258,26 @@ class PersonSpecialCaseController extends Controller
 
     public function deletes($id)
     {
-        $case = DB::selectOne("
-            SELECT 
-                psc.SpecialCaseID,
-                psc.PersonID,
-                psc.Note,
-                CONCAT(
-                    COALESCE(p.FirstName, ''), ' ',
-                    COALESCE(p.SecondName, ''), ' ',
-                    COALESCE(p.ThirdName, ''), ' ',
-                    COALESCE(p.FourthName, '')
-                ) AS PersonName
-            FROM PersonSpecialCase psc
-            LEFT JOIN PersonInformation p ON p.PersonID = psc.PersonID
-            WHERE psc.SpecialCaseID = ?
-        ", [$id]);
+        $case = $this->getAllowedCase($id);
+
+        if (!$case) {
+            abort(403, 'غير مسموح لك بحذف هذه الحالة');
+        }
 
         return view("personspecialcase.delete", [
-            'case'  => $case,
+            'case' => $case,
             'title' => 'حذف حالة خاصة'
         ]);
     }
 
     public function destroy($id)
     {
+        $case = $this->getAllowedCase($id);
+
+        if (!$case) {
+            abort(403, 'غير مسموح لك بحذف هذه الحالة');
+        }
+
         DB::table('PersonSpecialCase')
             ->where('SpecialCaseID', $id)
             ->delete();
@@ -243,59 +291,48 @@ class PersonSpecialCaseController extends Controller
         $userId = $request->query('id') ?? Auth::id();
         $search = trim($request->query('search', ''));
 
-        $persons = DB::select("
-            SELECT DISTINCT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                CONCAT(
-                    COALESCE(pi.FirstName, ''), ' ',
-                    COALESCE(pi.SecondName, ''), ' ',
-                    COALESCE(pi.ThirdName, ''), ' ',
-                    COALESCE(pi.FourthName, '')
-                ) AS PersonName
-            FROM PersonInformation pi
-            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-            WHERE q.QetaaID = (
-                SELECT gq2.QetaaID
-                FROM GroupQetaa gq2
-                WHERE gq2.GroupID = (
-                    SELECT pg3.GroupID
-                    FROM PersonGroup pg3
-                    WHERE pg3.PersonID = ?
-                    LIMIT 1
-                )
-                LIMIT 1
-            )
-            AND (
-                pi.FirstName LIKE ?
-                OR pi.SecondName LIKE ?
-                OR pi.ThirdName LIKE ?
-                OR pi.FourthName LIKE ?
-                OR pi.RaqamQawmy LIKE ?
-                OR pi.ShamandoraCode LIKE ?
-                OR CAST(pi.PersonID AS CHAR) LIKE ?
-                OR CONCAT(
-                    COALESCE(pi.FirstName, ''), ' ',
-                    COALESCE(pi.SecondName, ''), ' ',
-                    COALESCE(pi.ThirdName, ''), ' ',
-                    COALESCE(pi.FourthName, '')
-                ) LIKE ?
-            )
-            ORDER BY pi.ShamandoraCode ASC
-        ", [
-            $userId,
-            "%$search%", "%$search%", "%$search%", "%$search%",
-            "%$search%", "%$search%", "%$search%", "%$search%"
-        ]);
+        try {
+            $persons = DB::select("
+                SELECT *
+                FROM (
+                    {$this->allowedPersonsSql()}
+                ) allowed_people
+                WHERE
+                    allowed_people.PersonName LIKE ?
+                    OR CAST(allowed_people.PersonID AS CHAR) LIKE ?
+                    OR allowed_people.PersonPersonalMobileNumber LIKE ?
+                    OR allowed_people.FirstName LIKE ?
+                    OR allowed_people.SecondName LIKE ?
+                    OR allowed_people.ThirdName LIKE ?
+                    OR allowed_people.FourthName LIKE ?
+                    OR allowed_people.ShamandoraCode LIKE ?
+                    OR allowed_people.RaqamQawmy LIKE ?
+                ORDER BY allowed_people.ShamandoraCode ASC
+                LIMIT 20
+            ", [
+                $userId,
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%",
+                "%{$search}%"
+            ]);
 
-        return response()->json($persons);
+            return response()->json($persons);
+        } catch (\Throwable $e) {
+            Log::error('searchPersons failed', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return response()->json([
+                'message' => 'Search failed'
+            ], 500);
+        }
     }
 }

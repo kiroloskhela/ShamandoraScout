@@ -29,9 +29,10 @@
                 <div class="space-y-6">
                     <div class="relative">
                         <label for="person_search" class="block mb-2 text-sm text-gray-700">ابحث عن الشخص</label>
+
                         <input type="text" id="person_search" autocomplete="off"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
-                            placeholder="اكتب الاسم أو الرقم">
+                            placeholder="اكتب الاسم أو الرقم أو الموبايل" value="">
 
                         <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}" required>
 
@@ -64,7 +65,7 @@
             const resultsBox = document.getElementById('search_results');
             const personIdInput = document.getElementById('person_id');
 
-            let debounceTimer;
+            let debounceTimer = null;
 
             function hideResults() {
                 resultsBox.classList.add('hidden');
@@ -74,11 +75,25 @@
                 resultsBox.classList.remove('hidden');
             }
 
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text ?? '';
+                return div.innerHTML;
+            }
+
+            function renderNoResults(message, cssClass = 'text-gray-500') {
+                resultsBox.innerHTML = `
+                    <div class="px-4 py-3 text-sm ${cssClass} text-center">
+                        ${escapeHtml(message)}
+                    </div>
+                `;
+                showResults();
+            }
+
             searchInput.addEventListener('input', function() {
                 const searchValue = this.value.trim();
 
                 personIdInput.value = '';
-
                 clearTimeout(debounceTimer);
 
                 if (searchValue.length < 2) {
@@ -88,33 +103,44 @@
                 }
 
                 debounceTimer = setTimeout(() => {
-                    fetch(
-                            `{{ route('personblacklist.searchPersons') }}?search=${encodeURIComponent(searchValue)}`)
-                        .then(response => response.json())
-                        .then(persons => {
+                    fetch(`{{ route('personblacklist.searchPersons') }}?search=${encodeURIComponent(searchValue)}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(async (response) => {
+                            if (!response.ok) {
+                                const text = await response.text();
+                                throw new Error(text || 'Request failed');
+                            }
+                            return response.json();
+                        })
+                        .then((persons) => {
                             resultsBox.innerHTML = '';
 
-                            if (!persons.length) {
-                                resultsBox.innerHTML = `
-                                    <div class="px-4 py-3 text-sm text-gray-500 text-center">
-                                        لا يوجد نتائج
-                                    </div>
-                                `;
-                                showResults();
+                            if (!Array.isArray(persons) || !persons.length) {
+                                renderNoResults('لا يوجد نتائج');
                                 return;
                             }
 
-                            persons.forEach(person => {
+                            persons.forEach((person) => {
                                 const item = document.createElement('div');
                                 item.className =
                                     'px-4 py-3 cursor-pointer hover:bg-blue-50 text-sm text-right border-b last:border-b-0';
+
+                                const personName = person.PersonName ?? '';
+                                const personId = person.PersonID ?? '';
+                                const phone = person.PersonPersonalMobileNumber ??
+                                    'بدون رقم';
+
                                 item.textContent =
-                                    `${person.PersonName} - (${person.PersonID})`;
+                                    `${personName} - (${personId}) - (${phone})`;
 
                                 item.addEventListener('click', function() {
-                                    personIdInput.value = person.PersonID;
+                                    personIdInput.value = personId;
                                     searchInput.value =
-                                        `${person.PersonName} - (${person.PersonID})`;
+                                        `${personName} - (${personId}) - (${phone})`;
                                     resultsBox.innerHTML = '';
                                     hideResults();
                                 });
@@ -124,14 +150,9 @@
 
                             showResults();
                         })
-                        .catch(error => {
+                        .catch((error) => {
                             console.error('Error fetching persons:', error);
-                            resultsBox.innerHTML = `
-                                <div class="px-4 py-3 text-sm text-red-500 text-center">
-                                    خطأ في تحميل الأشخاص
-                                </div>
-                            `;
-                            showResults();
+                            renderNoResults('خطأ في تحميل الأشخاص', 'text-red-500');
                         });
                 }, 300);
             });
