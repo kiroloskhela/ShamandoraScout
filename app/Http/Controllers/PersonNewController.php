@@ -130,6 +130,8 @@ public function ShowPersons(Request $request)
         return $person;
     });
 
+        dd($persons);     
+
     return view("person.person-showAllPersons", ['persons' => $persons]);
 }
 
