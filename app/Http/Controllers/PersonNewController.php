@@ -935,7 +935,7 @@ public function submitLiveformQuestions(Request $request)
 
 private function resolveLiveFormQetaa(int $sanaMarhalaId, string $gender, bool $newLeadersSchool): array
 {
-    if ($newLeadersSchool) {
+    if ($newLeadersSchool && $sanaMarhalaId > 14) {
         return [
             [10, 'اعداد قادة', $gender]
         ];

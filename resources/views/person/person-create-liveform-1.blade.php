@@ -96,15 +96,18 @@
                             </p>
                         </div>
 
+
+
                         <!-- checkbox -->
-                        <div
-                            class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <div id="leadersCheckbox"
+                            class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 hidden">
                             <label class="text-sm font-semibold text-slate-700">
                                 تقديم لمدرسة إعداد قادة؟
                             </label>
                             <input type="checkbox" name="newLeadersSchool"
                                 class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-200" />
                         </div>
+
 
                         <!-- Submit -->
                         <button id="submitBtn" type="submit"
@@ -193,6 +196,21 @@
         });
 
         submitBtn.disabled = true;
+
+
+
+
+        const sanaMarhalaSelect = document.getElementById('sana_marhala_id');
+        const leadersCheckbox = document.getElementById('leadersCheckbox');
+
+        sanaMarhalaSelect.addEventListener('change', function() {
+            const selectedValue = parseInt(sanaMarhalaSelect.value);
+            if (selectedValue >= 14) {
+                leadersCheckbox.classList.remove('hidden');
+            } else {
+                leadersCheckbox.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 
