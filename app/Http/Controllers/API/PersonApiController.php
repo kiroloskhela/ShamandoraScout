@@ -193,7 +193,7 @@ public function showPersons(Request $request)
             return $person;
         });
 
-    dd($persons);     
+
 
     return response()->json(['persons' => $persons]);
 }
