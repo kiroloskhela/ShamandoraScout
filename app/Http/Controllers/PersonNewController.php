@@ -125,6 +125,7 @@ public function ShowPersons(Request $request)
     ");
 
     $persons = collect($rawPersons)->map(function ($person) {
+        Log::debug($person); 
         $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
         return $person;
     });
