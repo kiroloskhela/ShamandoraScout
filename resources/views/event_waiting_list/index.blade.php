@@ -105,7 +105,7 @@
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
-                    'key' => 'CreatedAtFormatted',
+                    'key' => 'CreatedAt',
                     'label' => 'تاريخ الإضافة',
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
@@ -151,7 +151,7 @@
                 timeout = setTimeout(() => {
                     fetch(
                             `{{ route('eventWaitingList.searchEligiblePersons', $event->SeasonEventID) }}?q=${encodeURIComponent(q)}`
-                            )
+                        )
                         .then(res => res.json())
                         .then(data => {
                             resultsBox.innerHTML = '';
