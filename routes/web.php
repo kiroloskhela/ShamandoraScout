@@ -490,7 +490,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
 Route::get('/new-enrolments/show/qetaa/{id}', [PersonNewController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
 Route::get('/new-enrolments/show/{id}', [PersonNewController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
