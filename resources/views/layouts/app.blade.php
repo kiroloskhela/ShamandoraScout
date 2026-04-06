@@ -85,6 +85,8 @@
                         $isFinance = $auth && $user->role()->where('RoleName', 'Finance')->exists();
                         $isAdminQetaa = $auth && $user->role()->where('RoleName', 'AdminQetaa')->exists();
                         $isAdminSecretary = $auth && $user->role()->where('RoleName', 'AdminSecretary')->exists();
+                        $isAdminInventory = $auth && $user->role()->where('RoleName', 'AdminInventory')->exists();
+                        $isAdminFinance = $auth && $user->role()->where('RoleName', 'AdminFinance')->exists();
 
                     @endphp
 
@@ -148,21 +150,22 @@
                     @endif
 
                     {{-- ===================== Federations (visible to any logged-in user) ===================== --}}
-                    <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الاتحاقات</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
+                    @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary)
+                        <div class="px-3 mb-2">
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">الاتحاقات</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary)
+                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/liveform') }}">فورم التسجيل LIVE</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -173,15 +176,16 @@
                                         href="{{ url('/entry-questions') }}">التحكم في أسئلة القطاعات</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/new-enrolments/analytics') }}">احصائيات طلبات الالتحاق</a>
-                                @endif
-                                @if ($isSuperAdmin)
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
-                                        الرئيسي</a>
-                                @endif
+
+                                    @if ($isSuperAdmin)
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
+                                            الرئيسي</a>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
 
 
 
@@ -227,13 +231,13 @@
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
 
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('games.index') }}">اضافة لعبة</a>
+                                    href="{{ route('games.index') }}">إدارة الألعاب</a>
                             </div>
                         </div>
                     </div>
 
                     {{-- ===================== Finance (only SuperAdmin/Finance) ===================== --}}
-                    @if ($isSuperAdmin || $isFinance)
+                    @if ($isSuperAdmin || $isFinance || $isAdminFinance)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -303,7 +307,7 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                @if ($isSuperAdmin || $isSecretary)
+                                @if ($isSuperAdmin || $isSecretary || $isAdminSecretary)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('secretary.index') }}">إضافة محضر اجتماع</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -322,20 +326,20 @@
                     </div>
 
                     {{-- ===================== Inventory ===================== --}}
-                    @if ($isSuperAdmin || $isInventory)
-                        <div class="px-3 mb-2">
-                            <div x-data="{ open: false }">
-                                <button @click="open = !open"
-                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">العهده</span>
-                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
 
+                    <div class="px-3 mb-2">
+                        <div x-data="{ open: false }">
+                            <button @click="open = !open"
+                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                <span class="font-medium">العهده</span>
+                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            @if ($isSuperAdmin || $isInventory || $isAdminInventory)
                                 <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('inventory.index') }}">العُهده</a>
@@ -343,101 +347,145 @@
                                         href="{{ route('inventory-issue.index') }}">طباعه عهده</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.custody_requests.index') }}">متابعة عهدة</a>
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('custody_requests.my') }}">طلب عهده</a>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- ===================== Persons Data ===================== --}}
-                    <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">بيانات المخدومين</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                @if ($isSuperAdmin)
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('person.ShowPersons') }}">بيانات كل المخدومين</a>
-                                @endif
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('person.index', ['id' => Auth::user()->id]) }}">
-                                    بيانات المخدومين
-                                </a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('attendance.manage') }}">حضور و انصراف المخدومين</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('personspecialcase.index') }}">الحالات الخاصة للمخدومين</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('personblacklist.index') }}">القائمة السوداء</a>
-                            </div>
+                            @endif
+                            <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                href="{{ route('custody_requests.my') }}">طلب عهده</a>
                         </div>
                     </div>
+        </div>
 
-                    {{-- ===================== Password Management (SuperAdmin) ===================== --}}
+
+        {{-- ===================== Persons Data ===================== --}}
+        <div class="px-3 mb-2">
+            <div x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                    <span class="font-medium">بيانات المخدومين</span>
+                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
                     @if ($isSuperAdmin)
-                        <div class="px-3 mb-2">
-                            <div x-data="{ open: false }">
-                                <button @click="open = !open"
-                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">إدارة كلمات المرور</span>
-                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
-                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
-                                </div>
-                            </div>
-                        </div>
+                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                            href="{{ route('person.ShowPersons') }}">بيانات كل المخدومين</a>
                     @endif
+                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        href="{{ route('person.index', ['id' => Auth::user()->id]) }}">
+                        بيانات المخدومين
+                    </a>
+                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        href="{{ route('attendance.manage') }}">حضور و انصراف المخدومين</a>
+                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        href="{{ route('personspecialcase.index') }}">الحالات الخاصة للمخدومين</a>
+                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        href="{{ route('personblacklist.index') }}">القائمة السوداء</a>
+                </div>
+            </div>
+        </div>
 
-                    {{-- ===================== Profile ===================== --}}
-                    <div class="px-3 mb-2">
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الملف الشخصي</span>
-                                <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
+        {{-- ===================== Password Management (SuperAdmin) ===================== --}}
+        @if ($isSuperAdmin)
+            <div class="px-3 mb-2">
+                <div x-data="{ open: false }">
+                    <button @click="open = !open"
+                        class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                        <span class="font-medium">إدارة كلمات المرور</span>
+                        <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('profile.show') }}">عرض الملف الشخصي</a>
-                            </div>
-                        </div>
+                    <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                            href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
                     </div>
+                </div>
+            </div>
+        @endif
 
-                </nav>
+        {{-- ===================== Profile ===================== --}}
+        <div class="px-3 mb-2">
+            <div x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                    <span class="font-medium">الملف الشخصي</span>
+                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                        href="{{ route('profile.show') }}">عرض الملف الشخصي</a>
+                </div>
+            </div>
+        </div>
+
+        </nav>
 
 
 
 
-                <!-- Mobile Logout Footer -->
-                <div class="p-4 border-t border-gray-200 lg:hidden">
-                    <form method="POST" action="{{ route('logout') }}">
+        <!-- Mobile Logout Footer -->
+        <div class="p-4 border-t border-gray-200 lg:hidden">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit"
+                    class="w-full flex items-center justify-center gap-3 p-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    <span class="font-medium">تسجيل الخروج</span>
+                </button>
+            </form>
+        </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 w-full">
+            <!-- Header Bar -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-10"
+                style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
+
+                <!-- Right: Mobile menu button / Page title -->
+                <div class="flex items-center gap-3 justify-start">
+                    <button id="sidebarToggle" type="button"
+                        class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    @if (isset($pageTitle))
+                        <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl truncate">
+                            {{ $pageTitle }}</h1>
+                    @endif
+                </div>
+
+                <!-- Center: Logo always locked in center -->
+                <div class="flex items-center justify-center">
+                    <a href="{{ url('/') }}">
+                        <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
+                            class="h-14 w-auto sm:h-14 lg:h-20">
+                    </a>
+                </div>
+
+                <!-- Left: Logout button -->
+                <div class="flex items-center justify-end">
+                    <form method="POST" action="{{ route('logout') }}" class="hidden lg:block">
                         @csrf
                         <button type="submit"
-                            class="w-full flex items-center justify-center gap-3 p-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                            class="flex items-center gap-2 px-4 py-2 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -446,68 +494,23 @@
                         </button>
                     </form>
                 </div>
-            </aside>
 
-            <!-- Main Content Area -->
-            <main class="flex-1 flex flex-col min-w-0 w-full">
-                <!-- Header Bar -->
-                <header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-10"
-                    style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
+            </header>
 
-                    <!-- Right: Mobile menu button / Page title -->
-                    <div class="flex items-center gap-3 justify-start">
-                        <button id="sidebarToggle" type="button"
-                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                        @if (isset($pageTitle))
-                            <h1 class="hidden lg:block text-lg font-bold text-gray-800 lg:text-xl truncate">
-                                {{ $pageTitle }}</h1>
-                        @endif
-                    </div>
-
-                    <!-- Center: Logo always locked in center -->
-                    <div class="flex items-center justify-center">
-                        <a href="{{ url('/') }}">
-                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
-                                class="h-14 w-auto sm:h-14 lg:h-20">
-                        </a>
-                    </div>
-
-                    <!-- Left: Logout button -->
-                    <div class="flex items-center justify-end">
-                        <form method="POST" action="{{ route('logout') }}" class="hidden lg:block">
-                            @csrf
-                            <button type="submit"
-                                class="flex items-center gap-2 px-4 py-2 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                                </svg>
-                                <span class="font-medium">تسجيل الخروج</span>
-                            </button>
-                        </form>
-                    </div>
-
-                </header>
-
-                <!-- Content Area -->
-                <div class="flex-1 overflow-y-auto">
-                    <div class="p-4 lg:p-6">
-                        @yield('content')
-                    </div>
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto">
+                <div class="p-4 lg:p-6">
+                    @yield('content')
                 </div>
-            </main>
+            </div>
+        </main>
 
-        </div>
+    </div>
 
-        <!-- Footer -->
-        <footer class="bg-white shadow-sm border-t border-gray-200 px-4 py-3 text-center">
-            <p class="text-sm text-gray-600"> جميع الحقوق محفوظة . شماندورة الكشافة ٢٠٢٥</p>
-        </footer>
+    <!-- Footer -->
+    <footer class="bg-white shadow-sm border-t border-gray-200 px-4 py-3 text-center">
+        <p class="text-sm text-gray-600"> جميع الحقوق محفوظة . شماندورة الكشافة ٢٠٢٥</p>
+    </footer>
 
     </div>
 
