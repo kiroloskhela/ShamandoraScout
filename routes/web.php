@@ -730,10 +730,6 @@ Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function (
 });
 
 
-
-
-
-
 /*
 |--------------------------------------------------------------------------
 | Secretary (SuperAdmin|Secretary)
@@ -795,8 +791,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->gr
 
 
 });
-
-
 
 
 /*
