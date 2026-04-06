@@ -159,22 +159,28 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/liveform') }}">فورم التسجيل LIVE</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/new-enrolments') }}">مراجعة طلبات الالتحاق</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/max-limits') }}">الحد الأقصى للطلبات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/entry-questions') }}">التحكم في أسئلة القطاعات</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/new-enrolments/analytics') }}">احصائيات طلبات الالتحاق</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
-                                    الرئيسي</a>
+                                @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary)
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/liveform') }}">فورم التسجيل LIVE</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/new-enrolments') }}">مراجعة طلبات الالتحاق</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/max-limits') }}">الحد الأقصى للطلبات</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/entry-questions') }}">التحكم في أسئلة القطاعات</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/new-enrolments/analytics') }}">احصائيات طلبات الالتحاق</a>
+                                @endif
+                                @if ($isSuperAdmin)
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
+                                        الرئيسي</a>
+                                @endif
                             </div>
                         </div>
                     </div>
+
+
 
                     {{-- ===================== Media ===================== --}}
                     <div class="px-3 mb-2">
