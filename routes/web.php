@@ -135,11 +135,12 @@ Route::post('/liveform/resume/{id}', [PersonNewController::class, 'submitLegacyL
     ->name('person.liveform-resume-questions-submit');
 
 
-Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
+
 Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
 Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
 Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletes'));
 Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
+
 
 
 
@@ -148,14 +149,6 @@ Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'Ap
 | New Enrolments (Public)
 |--------------------------------------------------------------------------
 */
-Route::get('/new-enrolments/show/qetaa/{id}', [PersonNewController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
-Route::get('/new-enrolments/show/{id}', [PersonNewController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
-Route::get('/new-enrolments/person/approve/{id}', [PersonNewController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
-Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
-Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
-Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
-
-
 
 
 
@@ -498,15 +491,9 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
 
-    // Games
-    Route::get('/games', [GamesController::class, 'index'])->name('games.index');
-    Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
-    Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
-    Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
-    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
-    Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
-    Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
-    Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
+    // Migrate New Enrolments
+
+    Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
 });
 
 
@@ -514,7 +501,17 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
 
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary'])->group(function () {
 
+Route::get('/new-enrolments/show/qetaa/{id}', [PersonNewController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
+Route::get('/new-enrolments/show/{id}', [PersonNewController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
+Route::get('/new-enrolments/person/approve/{id}', [PersonNewController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
+Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
+Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
+Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
+
+
+});
 
 
 /*
@@ -736,7 +733,7 @@ Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function (
 | Secretary (SuperAdmin|Secretary)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Secretary'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->group(function () {
     Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
     Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
     Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
@@ -764,7 +761,7 @@ Route::get('/person', [PersonNewController::class, 'index'])->name('person.index
 
 
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Inventory'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->group(function () {
 
 
     // Admin Custody
@@ -858,7 +855,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('ajax.places_by_location');
 
 
-
+    Route::get('/games', [GamesController::class, 'index'])->name('games.index');
+    Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
+    Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
+    Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
+    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+    Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
+    Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
+    Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
    
     Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
 
