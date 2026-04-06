@@ -236,15 +236,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
 
 
-    // New Enrolments (admin lists)
-    Route::get('/new-enrolments', [PersonNewController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
-    Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
-    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
-    Route::get('/new-enrolments/count/marahel', [PersonNewController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
-    Route::get('/new-enrolments/count/qetaat', [PersonNewController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
 
-    Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
-    Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
     // Delete Persons
     Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
     Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
@@ -490,6 +482,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Migrate New Enrolments
     Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
+        Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 });
 
 
@@ -506,6 +499,18 @@ Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::cl
 Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
 Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
 
+
+
+
+    // New Enrolments (admin lists)
+    Route::get('/new-enrolments', [PersonNewController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
+
+    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
+    Route::get('/new-enrolments/count/marahel', [PersonNewController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
+    Route::get('/new-enrolments/count/qetaat', [PersonNewController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
+
+    Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
+    Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
 
 });
 
