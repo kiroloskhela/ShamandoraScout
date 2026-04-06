@@ -472,9 +472,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/personblacklist/destroy/{id}', [PersonBlackListController::class, 'destroy'])->name('personblacklist.destroy');
     Route::get('/personblacklist/search-persons', [PersonBlackListController::class, 'searchPersons'])->name('personblacklist.searchPersons');
 
-    
-
-
     // Person Special Cases
     Route::get('/personspecialcase', [PersonSpecialCaseController::class, 'index'])->name('personspecialcase.index');
     Route::get('/personspecialcase/create', [PersonSpecialCaseController::class, 'create'])->name('personspecialcase.create');
@@ -492,7 +489,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
     // Migrate New Enrolments
-
     Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
 });
 
@@ -519,7 +515,7 @@ Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class
 | Secretary (SuperAdmin|Finance)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance'])->group(function () {
 
 
 // Route::group(['prefix' => 'finance'], function () {
