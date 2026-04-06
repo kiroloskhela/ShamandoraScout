@@ -298,14 +298,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/rotab/delete/{id}', [RotbaKashfeyaController::class, 'deletes'])->name('rotab.delete');
     Route::delete('/rotab/destroy/{id}', [RotbaKashfeyaController::class, 'destroy'])->name('rotab.destroy');
 
-    // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
-    Route::get('/max-limits', [LiveFormMaxLimitsController::class, 'index'])->name('max-limits.index');
-    Route::get('/max-limits/add', [LiveFormMaxLimitsController::class, 'create'])->name('max-limits.create');
-    Route::post('/max-limits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('max-limits.insert');
-    Route::get('/max-limits/edit/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'edit'])->name('max-limits.edit');
-    Route::patch('/max-limits/update/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'updates'])->name('max-limits.update');
-    Route::get('/max-limits/delete/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('max-limits.delete');
-    Route::delete('/max-limits/destroy/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('max-limits.destroy');
+  
 
     // Betaka
     Route::get('/betaka', [BetakaTakaddomController::class, 'index'])->name('betaka.index');
@@ -418,15 +411,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/sana-marhala/delete/{id}', [SanaMarhalaDeraseyyaController::class, 'deletes'])->name('sana-marhala.delete');
     Route::delete('/sana-marhala/destroy/{id}', [SanaMarhalaDeraseyyaController::class, 'destroy'])->name('sana-marhala.destroy');
 
-    // Entry Questions
-    Route::get('/entry-questions', [MarhalaEntryQuestionsController::class, 'index'])->name('entry-questions.index');
-    Route::get('/entry-questions/add', [MarhalaEntryQuestionsController::class, 'create'])->name('entry-questions.create');
-    Route::post('/entry-questions/insert', [MarhalaEntryQuestionsController::class, 'insert'])->name('entry-questions.insert');
-    Route::get('/entry-questions/edit/{id}', [MarhalaEntryQuestionsController::class, 'edit'])->name('entry-questions.edit');
-    Route::patch('/entry-questions/update/{id}', [MarhalaEntryQuestionsController::class, 'updates'])->name('entry-questions.update');
-    Route::get('/entry-questions/delete/{id}', [MarhalaEntryQuestionsController::class, 'deletes'])->name('entry-questions.delete');
-    Route::delete('/entry-questions/destroy/{id}', [MarhalaEntryQuestionsController::class, 'destroy'])->name('entry-questions.destroy');
-
+ 
     // Liveform MaxLimits (duplicate in your original file, keep one set)
     Route::get('/liveform-maxlimits', [LiveFormMaxLimitsController::class, 'index'])->name('liveform-maxlimits.index');
     Route::get('/liveform-maxlimits/add', [LiveFormMaxLimitsController::class, 'create'])->name('liveform-maxlimits.create');
@@ -511,6 +496,26 @@ Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class
 
     Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
     Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
+
+
+      // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
+    Route::get('/max-limits', [LiveFormMaxLimitsController::class, 'index'])->name('max-limits.index');
+    Route::get('/max-limits/add', [LiveFormMaxLimitsController::class, 'create'])->name('max-limits.create');
+    Route::post('/max-limits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('max-limits.insert');
+    Route::get('/max-limits/edit/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'edit'])->name('max-limits.edit');
+    Route::patch('/max-limits/update/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'updates'])->name('max-limits.update');
+    Route::get('/max-limits/delete/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('max-limits.delete');
+    Route::delete('/max-limits/destroy/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('max-limits.destroy');
+
+
+       // Entry Questions
+    Route::get('/entry-questions', [MarhalaEntryQuestionsController::class, 'index'])->name('entry-questions.index');
+    Route::get('/entry-questions/add', [MarhalaEntryQuestionsController::class, 'create'])->name('entry-questions.create');
+    Route::post('/entry-questions/insert', [MarhalaEntryQuestionsController::class, 'insert'])->name('entry-questions.insert');
+    Route::get('/entry-questions/edit/{id}', [MarhalaEntryQuestionsController::class, 'edit'])->name('entry-questions.edit');
+    Route::patch('/entry-questions/update/{id}', [MarhalaEntryQuestionsController::class, 'updates'])->name('entry-questions.update');
+    Route::get('/entry-questions/delete/{id}', [MarhalaEntryQuestionsController::class, 'deletes'])->name('entry-questions.delete');
+    Route::delete('/entry-questions/destroy/{id}', [MarhalaEntryQuestionsController::class, 'destroy'])->name('entry-questions.destroy');
 
 });
 
