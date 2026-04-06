@@ -130,7 +130,7 @@ public function ShowPersons(Request $request)
         return $person;
     });
 
-     dd(json_encode($persons, JSON_PRETTY_PRINT));
+
     return view("person.person-showAllPersons", ['persons' => $persons]);
 }
 
