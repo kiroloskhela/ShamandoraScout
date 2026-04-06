@@ -83,6 +83,9 @@
                         $isMedia = $auth && $user->role()->where('RoleName', 'Media')->exists();
                         $isInventory = $auth && $user->role()->where('RoleName', 'Inventory')->exists();
                         $isFinance = $auth && $user->role()->where('RoleName', 'Finance')->exists();
+                        $isAdminQetaa = $auth && $user->role()->where('RoleName', 'AdminQetaa')->exists();
+                        $isAdminSecretary = $auth && $user->role()->where('RoleName', 'AdminSecretary')->exists();
+
                     @endphp
 
                     {{-- ===================== SuperAdmin: System Constants ===================== --}}
