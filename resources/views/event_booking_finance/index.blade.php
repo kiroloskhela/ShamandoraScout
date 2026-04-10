@@ -14,77 +14,127 @@
             </div>
         @endif
 
-        <div class="mb-4 bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <div class="min-w-0">
-                    <h2 class="text-lg font-bold text-slate-800">حجوزات الفعالية</h2>
-
-                    <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-600">
-                        <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1">
-                            الموسم: {{ $event->SeasonName }} ({{ $event->SeasonYear }})
-                        </span>
-
-                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-3 py-1">
-                            {{ $event->EventTypeName }} - {{ $event->EventName }}
-                        </span>
-
-                        <span class="inline-flex items-center rounded-full bg-green-50 text-green-700 px-3 py-1">
-                            من: {{ \Carbon\Carbon::parse($event->EventStartDate)->format('Y-m-d') }}
-                        </span>
-
-                        <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 px-3 py-1">
-                            إلى: {{ \Carbon\Carbon::parse($event->EventEndDate)->format('Y-m-d') }}
-                        </span>
-                    </div>
-
-                    @if (isset($qetaaCounts) && $qetaaCounts->count())
-                        <div class="mt-4">
-                            <div class="text-sm font-bold text-slate-700 mb-2">
-                                عدد الحجوزات حسب القطاع
+        <div class="mb-5 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div class="bg-gradient-to-l from-slate-50 via-white to-blue-50/40 px-5 py-5">
+                <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl shadow-sm">
+                                🎟️
                             </div>
 
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($qetaaCounts as $qetaa)
-                                    @php $full = $qetaa->booked_count >= 50; @endphp
-                                    <span
-                                        class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border
-                                        {{ $full ? 'bg-red-50 text-red-800 border-red-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
-                                        <span>{{ $qetaa->QetaaName ?? '-' }}</span>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h2 class="text-xl font-extrabold text-slate-800">حجوزات الفعالية</h2>
 
-                                        @if ($full)
-                                            <span
-                                                class="inline-flex items-center justify-center gap-1 rounded-full bg-red-200 text-red-900 px-2 h-6 min-w-[24px]">
-                                                {{ $qetaa->booked_count }}
-                                                <span>&#x2022; العدد مكتمل</span>
-                                            </span>
-                                        @else
-                                            <span
-                                                class="inline-flex items-center justify-center min-w-[24px] h-6 rounded-full bg-amber-200 text-amber-900 px-2">
-                                                {{ $qetaa->booked_count }}
-                                            </span>
-                                        @endif
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-blue-100 text-blue-800 px-3 py-1 text-[11px] font-bold">
+                                        {{ $event->EventTypeName }}
                                     </span>
-                                @endforeach
+                                </div>
+
+                                <p class="mt-1 text-sm text-slate-500">
+                                    متابعة حجوزات الفعالية وإدارة الأشخاص والضيوف والأهالي
+                                </p>
                             </div>
                         </div>
-                    @endif
-                </div>
 
-                <div class="flex flex-wrap gap-2 shrink-0">
-                    <a href="{{ route('eventBookingFinance.create', $event->SeasonEventID) }}"
-                        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                        إضافة حجز شخص
-                    </a>
+                        <div class="mt-4 flex flex-wrap gap-2.5 text-xs font-medium">
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
+                                <span class="text-slate-400">الموسم</span>
+                                <span class="font-extrabold text-slate-800">{{ $event->SeasonName }}
+                                    ({{ $event->SeasonYear }})</span>
+                            </span>
 
-                    <a href="{{ route('eventBookingFinance.createGuestFamily', $event->SeasonEventID) }}"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                        إضافة حجز ضيف / أهالي
-                    </a>
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-blue-700">
+                                <span class="text-blue-500">الفعالية</span>
+                                <span class="font-extrabold">{{ $event->EventName }}</span>
+                            </span>
 
-                    <a href="{{ route('eventBookingFinance.selector') }}"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                        رجوع
-                    </a>
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700">
+                                <span class="text-emerald-500">البداية</span>
+                                <span
+                                    class="font-extrabold">{{ \Carbon\Carbon::parse($event->EventStartDate)->format('Y-m-d') }}</span>
+                            </span>
+
+                            <span
+                                class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">
+                                <span class="text-rose-500">النهاية</span>
+                                <span
+                                    class="font-extrabold">{{ \Carbon\Carbon::parse($event->EventEndDate)->format('Y-m-d') }}</span>
+                            </span>
+                        </div>
+
+                        @if (isset($qetaaCounts) && $qetaaCounts->count())
+                            <div class="mt-5 rounded-2xl border border-slate-200 bg-white/80 p-4">
+                                <div class="flex items-center justify-between gap-3 mb-3">
+                                    <div>
+                                        <div class="text-sm font-extrabold text-slate-800">عدد الحجوزات حسب القطاع</div>
+                                        <div class="text-xs text-slate-500 mt-1">عرض سريع لحالة كل قطاع</div>
+                                    </div>
+
+                                    <div class="text-xs text-slate-400">
+                                        {{ $qetaaCounts->count() }} قطاع
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-2.5">
+                                    @foreach ($qetaaCounts as $qetaa)
+                                        @php
+                                            $full = $qetaa->booked_count >= 50;
+                                        @endphp
+
+                                        <div
+                                            class="inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-sm
+                                    {{ $full ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800' }}">
+                                            <span class="truncate max-w-[180px]">{{ $qetaa->QetaaName ?? '-' }}</span>
+
+                                            <span
+                                                class="inline-flex items-center justify-center min-w-[32px] h-7 rounded-full px-2
+                                        {{ $full ? 'bg-red-200 text-red-900' : 'bg-amber-200 text-amber-900' }}">
+                                                {{ $qetaa->booked_count }}
+                                            </span>
+
+                                            @if ($full)
+                                                <span class="hidden sm:inline text-[11px] text-red-700">
+                                                    مكتمل
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="shrink-0 xl:w-[280px] xl:pt-6">
+                        <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                            <div class="text-sm font-extrabold text-slate-800 mb-3">
+                                إجراءات سريعة
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-2">
+                                <a href="{{ route('eventBookingFinance.create', $event->SeasonEventID) }}"
+                                    class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    إضافة حجز شخص
+                                </a>
+
+                                <a href="{{ route('eventBookingFinance.createGuestFamily', $event->SeasonEventID) }}"
+                                    class="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    إضافة حجز ضيف / أهالي
+                                </a>
+
+                                <a href="{{ route('eventBookingFinance.selector') }}"
+                                    class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold inline-flex items-center justify-center transition-colors duration-200">
+                                    رجوع
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
