@@ -706,7 +706,6 @@ Route::prefix('finance')->name('finance.')->group(function () {
 });
 
 
-
 Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(function () {
     Route::get('/selector', [SeasonEventBookingFinanceController::class, 'selector'])->name('selector');
     Route::get('/get-events-with-plan', [SeasonEventBookingFinanceController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
@@ -715,6 +714,12 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
 
     Route::get('/event/{seasonEventID}/create', [SeasonEventBookingFinanceController::class, 'create'])->name('create');
     Route::get('/event/{seasonEventID}/search-eligible-persons', [SeasonEventBookingFinanceController::class, 'searchEligiblePersons'])->name('searchEligiblePersons');
+
+    Route::get('/event/{seasonEventID}/search-persons', [SeasonEventBookingFinanceController::class, 'searchEligiblePersons'])->name('searchPersons');
+    Route::get('/event/{seasonEventID}/search-guests', [SeasonEventBookingFinanceController::class, 'searchEligibleGuests'])->name('searchGuests');
+    Route::get('/event/{seasonEventID}/search-families', [SeasonEventBookingFinanceController::class, 'searchEligibleFamilies'])->name('searchFamilies');
+    Route::get('/event/{seasonEventID}/create-guest-family', [SeasonEventBookingFinanceController::class, 'createGuestFamily'])->name('createGuestFamily');
+
     Route::post('/event/{seasonEventID}/store', [SeasonEventBookingFinanceController::class, 'store'])->name('store');
 
     Route::get('/booking/{bookingID}/installment/create', [SeasonEventBookingFinanceController::class, 'createInstallment'])->name('createInstallment');
@@ -726,38 +731,18 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
     Route::get('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundPage'])->name('refundPage');
     Route::post('/booking/{bookingID}/refund', [SeasonEventBookingFinanceController::class, 'refundStore'])->name('refundStore');
 
-    Route::get('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundPage'])
-            ->name('partialRefundPage');
+    Route::get('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundPage'])->name('partialRefundPage');
+    Route::post('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundStore'])->name('partialRefundStore');
 
-    Route::post('/booking/{bookingID}/partial-refund', [SeasonEventBookingFinanceController::class, 'partialRefundStore'])
-        ->name('partialRefundStore');
     Route::get('/receipt/{paymentID}/print', [SeasonEventBookingFinanceController::class, 'printReceipt'])->name('printReceipt');
 
-    Route::get('/event/{seasonEventID}/export/today', [SeasonEventBookingFinanceController::class, 'exportToday'])
-        ->name('exportToday');
+    Route::get('/event/{seasonEventID}/export/today', [SeasonEventBookingFinanceController::class, 'exportToday'])->name('exportToday');
+    Route::get('/event/{seasonEventID}/export/all', [SeasonEventBookingFinanceController::class, 'exportAll'])->name('exportAll');
 
-    Route::get('/event/{seasonEventID}/export/all', [SeasonEventBookingFinanceController::class, 'exportAll'])
-        ->name('exportAll');
+    Route::get('/booking/{bookingID}/show', [SeasonEventBookingFinanceController::class, 'show'])->name('show');
+    Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])->name('updateShirtSize');
+});
 
-
-    Route::get('/booking/{bookingID}/show', [SeasonEventBookingFinanceController::class, 'show'])
-    ->name('show');
-
-    Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])
-        ->name('updateShirtSize');
-    });
-
-Route::get('/event-booking-finance/{seasonEventID}/search-persons', [SeasonEventBookingFinanceController::class, 'searchEligiblePersons'])
-    ->name('eventBookingFinance.searchEligiblePersons');
-
-Route::get('/event-booking-finance/{seasonEventID}/search-guests', [SeasonEventBookingFinanceController::class, 'searchEligibleGuests'])
-    ->name('eventBookingFinance.searchEligibleGuests');
-
-Route::get('/event-booking-finance/{seasonEventID}/search-families', [SeasonEventBookingFinanceController::class, 'searchEligibleFamilies'])
-    ->name('eventBookingFinance.searchEligibleFamilies');
-
-    Route::get('/event-booking-finance/{seasonEventID}/create-guest-family', [SeasonEventBookingFinanceController::class, 'createGuestFamily'])
-    ->name('eventBookingFinance.createGuestFamily');
 
 
 Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function () {

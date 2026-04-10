@@ -406,7 +406,7 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
             ]);
         }
 
-        return view('event_booking_finance.create', compact('event', 'plan'));
+        return view('event_booking_finance.create', compact('event', 'plan', 'seasonEventID'));
     }
 
     public function searchEligiblePersons(Request $request, $seasonEventID)
@@ -717,7 +717,7 @@ public function createGuestFamily($seasonEventID)
         ]);
     }
 
-    return view('event_booking_finance.create_guest_family', compact('event', 'plan'));
+    return view('event_booking_finance.create_guest_family', compact('event', 'plan', 'seasonEventID'));
 }
 
 public function createInstallment($bookingID)

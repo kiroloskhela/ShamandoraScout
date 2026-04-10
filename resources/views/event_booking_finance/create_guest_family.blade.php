@@ -208,10 +208,10 @@
                 const type = getBookingType();
 
                 if (type === 'FAMILY') {
-                    return "{{ route('eventBookingFinance.searchEligibleFamilies', $event->SeasonEventID) }}";
+                    return "{{ route('eventBookingFinance.searchFamilies', ['seasonEventID' => $seasonEventID]) }}";
                 }
 
-                return "{{ route('eventBookingFinance.searchEligibleGuests', $event->SeasonEventID) }}";
+                return "{{ route('eventBookingFinance.searchGuests', ['seasonEventID' => $seasonEventID]) }}";
             }
 
             function resetSelectedIds() {
