@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        <details class="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden group" open>
+        <details class="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden group">
             <summary
                 class="cursor-pointer list-none px-4 py-3 bg-gradient-to-l from-slate-50 to-white border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -159,21 +159,24 @@
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
                                 <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
-                                <div class="text-lg font-extrabold text-slate-800">
+                                <div
+                                    class="text-lg font-extrabold text-slate-800 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['people_count']) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
-                                <div class="text-lg font-extrabold text-emerald-700">
+                                <div
+                                    class="text-lg font-extrabold text-emerald-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['payments_amount'], 2) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
-                                <div class="text-lg font-extrabold text-red-700">
+                                <div
+                                    class="text-lg font-extrabold text-red-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['refund_amount'], 2) }}
                                 </div>
                             </div>
@@ -191,21 +194,24 @@
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
                                 <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
-                                <div class="text-lg font-extrabold text-slate-800">
+                                <div
+                                    class="text-lg font-extrabold text-slate-800 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['people_count']) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
-                                <div class="text-lg font-extrabold text-emerald-700">
+                                <div
+                                    class="text-lg font-extrabold text-emerald-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['payments_amount'], 2) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
-                                <div class="text-lg font-extrabold text-red-700">
+                                <div
+                                    class="text-lg font-extrabold text-red-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['refund_amount'], 2) }}
                                 </div>
                             </div>
