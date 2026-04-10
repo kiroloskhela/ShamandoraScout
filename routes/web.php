@@ -81,6 +81,13 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GamesController;
 use App\Http\Controllers\SeasonEventWaitingListController;  
 
+
+use App\Http\Controllers\GuestsController;
+use App\Http\Controllers\FamilyMembersController;
+
+use App\Http\Controllers\PersonTreeController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Public / UI Pages
@@ -468,7 +475,35 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     // Migrate New Enrolments
     Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
         Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
-});
+
+
+
+
+
+    // Guests
+    Route::get('/guests', [GuestsController::class, 'index'])->name('guests.index');
+    Route::get('/guests/create', [GuestsController::class, 'create'])->name('guests.create');
+    Route::post('/guests/store', [GuestsController::class, 'store'])->name('guests.store');
+    Route::get('/guests/show/{id}', [GuestsController::class, 'show'])->name('guests.show');
+    Route::get('/guests/edit/{id}', [GuestsController::class, 'edit'])->name('guests.edit');
+    Route::post('/guests/update/{id}', [GuestsController::class, 'update'])->name('guests.update');
+    Route::get('/guests/delete/{id}', [GuestsController::class, 'delete'])->name('guests.delete');
+    Route::post('/guests/destroy/{id}', [GuestsController::class, 'destroy'])->name('guests.destroy');
+
+
+    // Family Members
+    Route::get('/family-members', [FamilyMembersController::class, 'index'])->name('family-members.index');
+    Route::get('/family-members/create', [FamilyMembersController::class, 'create'])->name('family-members.create');
+    Route::post('/family-members/store', [FamilyMembersController::class, 'store'])->name('family-members.store');
+    Route::get('/family-members/show/{id}', [FamilyMembersController::class, 'show'])->name('family-members.show');
+    Route::get('/family-members/edit/{id}', [FamilyMembersController::class, 'edit'])->name('family-members.edit');
+    Route::post('/family-members/update/{id}', [FamilyMembersController::class, 'update'])->name('family-members.update');
+    Route::get('/family-members/delete/{id}', [FamilyMembersController::class, 'delete'])->name('family-members.delete');
+    Route::post('/family-members/destroy/{id}', [FamilyMembersController::class, 'destroy'])->name('family-members.destroy');
+
+    // Person Tree
+    Route::get('/person-tree', [PersonTreeController::class, 'index'])->name('person-tree.index');
+    });
 
 
 
@@ -712,7 +747,17 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
         ->name('updateShirtSize');
     });
 
+Route::get('/event-booking-finance/{seasonEventID}/search-persons', [SeasonEventBookingFinanceController::class, 'searchEligiblePersons'])
+    ->name('eventBookingFinance.searchEligiblePersons');
 
+Route::get('/event-booking-finance/{seasonEventID}/search-guests', [SeasonEventBookingFinanceController::class, 'searchEligibleGuests'])
+    ->name('eventBookingFinance.searchEligibleGuests');
+
+Route::get('/event-booking-finance/{seasonEventID}/search-families', [SeasonEventBookingFinanceController::class, 'searchEligibleFamilies'])
+    ->name('eventBookingFinance.searchEligibleFamilies');
+
+    Route::get('/event-booking-finance/{seasonEventID}/create-guest-family', [SeasonEventBookingFinanceController::class, 'createGuestFamily'])
+    ->name('eventBookingFinance.createGuestFamily');
 
 
 Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function () {
@@ -726,6 +771,8 @@ Route::prefix('event-waiting-list')->name('eventWaitingList.')->group(function (
     Route::get('/delete/{waitingListID}', [SeasonEventWaitingListController::class, 'deletePage'])->name('deletePage');
     Route::delete('/delete/{waitingListID}', [SeasonEventWaitingListController::class, 'destroy'])->name('destroy');
 });
+
+
 
 });
 

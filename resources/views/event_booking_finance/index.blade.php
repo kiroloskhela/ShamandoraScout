@@ -48,8 +48,9 @@
                                     @php $full = $qetaa->booked_count >= 50; @endphp
                                     <span
                                         class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border
-                        {{ $full ? 'bg-red-50 text-red-800 border-red-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
-                                        <span>{{ $qetaa->QetaaName }}</span>
+                                        {{ $full ? 'bg-red-50 text-red-800 border-red-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
+                                        <span>{{ $qetaa->QetaaName ?? '-' }}</span>
+
                                         @if ($full)
                                             <span
                                                 class="inline-flex items-center justify-center gap-1 rounded-full bg-red-200 text-red-900 px-2 h-6 min-w-[24px]">
@@ -72,7 +73,12 @@
                 <div class="flex flex-wrap gap-2 shrink-0">
                     <a href="{{ route('eventBookingFinance.create', $event->SeasonEventID) }}"
                         class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                        إضافة حجز جديد
+                        إضافة حجز شخص
+                    </a>
+
+                    <a href="{{ route('eventBookingFinance.createGuestFamily', $event->SeasonEventID) }}"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                        إضافة حجز ضيف / أهالي
                     </a>
 
                     <a href="{{ route('eventBookingFinance.selector') }}"
@@ -93,7 +99,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-extrabold text-slate-800">الملخص السريع</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">إحصائيات اليوم المحدد + الإجمالي + التصدير</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">إحصائيات اليوم المحدد + الإجمالي</p>
                     </div>
                 </div>
 
@@ -111,6 +117,7 @@
                             <label for="summary_date" class="block text-xs font-bold text-slate-700 mb-2">
                                 اختر يوم الدفع
                             </label>
+
                             <select name="summary_date" id="summary_date"
                                 class="w-full h-11 px-4 border rounded-xl text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                                 @forelse($paymentDays as $day)
@@ -140,8 +147,7 @@
                     </div>
                 </form>
 
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    {{-- اليوم المحدد --}}
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
                         <div class="text-center mb-4">
                             <div
@@ -152,35 +158,28 @@
 
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                                <div class="text-[11px] text-slate-500 mb-1">عدد الأشخاص</div>
+                                <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
                                 <div class="text-lg font-extrabold text-slate-800">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($selectedDaySummary['people_count']) }}
-                                    </span>
+                                    {{ number_format($selectedDaySummary['people_count']) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
                                 <div class="text-lg font-extrabold text-emerald-700">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($selectedDaySummary['payments_amount'], 2) }}
-                                    </span>
+                                    {{ number_format($selectedDaySummary['payments_amount'], 2) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
                                 <div class="text-lg font-extrabold text-red-700">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($selectedDaySummary['refund_amount'], 2) }}
-                                    </span>
+                                    {{ number_format($selectedDaySummary['refund_amount'], 2) }}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {{-- الإجمالي --}}
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
                         <div class="text-center mb-4">
                             <div
@@ -191,196 +190,162 @@
 
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                                <div class="text-[11px] text-slate-500 mb-1">عدد الأشخاص</div>
+                                <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
                                 <div class="text-lg font-extrabold text-slate-800">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($totalSummary['people_count']) }}
-                                    </span>
+                                    {{ number_format($totalSummary['people_count']) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
                                 <div class="text-lg font-extrabold text-emerald-700">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($totalSummary['payments_amount'], 2) }}
-                                    </span>
+                                    {{ number_format($totalSummary['payments_amount'], 2) }}
                                 </div>
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
                                 <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
                                 <div class="text-lg font-extrabold text-red-700">
-                                    <span class="blur-sm hover:blur-0 transition duration-200 inline-block">
-                                        {{ number_format($totalSummary['refund_amount'], 2) }}
-                                    </span>
+                                    {{ number_format($totalSummary['refund_amount'], 2) }}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {{-- التصدير --}}
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-                        <div class="text-center mb-4">
-                            <div
-                                class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-sm">
-                                تصدير Excel
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-2">
-                            <a href="{{ route('eventBookingFinance.exportToday', ['seasonEventID' => $event->SeasonEventID, 'summary_date' => $selectedSummaryDate]) }}"
-                                class="flex items-center justify-center w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 text-sm font-bold transition-colors duration-200">
-                                طباعة بيانات اليوم المحدد
-                            </a>
-
-                            <a href="{{ route('eventBookingFinance.exportAll', $event->SeasonEventID) }}"
-                                class="flex items-center justify-center w-full rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-3 text-sm font-bold transition-colors duration-200">
-                                طباعة كل البيانات
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </details>
-        <x-data-table :data="$bookings" title="حجوزات الفعالية" tableId="BookingFinance" :columns="[
-            [
-                'key' => 'PersonFullName',
-                'label' => 'الاسم',
-                'type' => 'label',
-                'cssClass' => 'text-blue-600 font-bold text-sm',
-            ],
-            [
-                'key' => 'PersonID',
-                'label' => 'رقم الهوية',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium',
-            ],
-            [
-                'key' => 'PersonPersonalMobileNumber',
-                'label' => 'الموبايل',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-            [
-                'key' => 'QetaaNames',
-                'label' => 'القطاع',
-                'type' => 'label',
-                'filter' => true,
-                'cssClass' => 'text-sm text-gray-800 font-medium',
-            ],
-            [
-                'key' => 'ShirtSize',
-                'label' => 'حجم القميص',
-                'type' => 'text',
-                'filter' => true,
-                'cssClass' => 'text-sm text-gray-900 font-medium',
-            ],
-            [
-                'key' => 'BookingStatusText',
-                'label' => 'الحالة',
-                'type' => 'text',
-                'filter' => true,
-                'cssClass' => 'text-sm font-semibold',
-            ],
-            [
-                'key' => 'OriginalPriceFormatted',
-                'label' => 'السعر الأصلي',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-            [
-                'key' => 'DiscountAmountFormatted',
-                'label' => 'الخصم',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-            [
-                'key' => 'FinalRequiredAmountFormatted',
-                'label' => 'المطلوب النهائي',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-semibold',
-            ],
-            [
-                'key' => 'AmountPaidFormatted',
-                'label' => 'المدفوع',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-green-700 font-semibold',
-            ],
-            [
-                'key' => 'RemainingAmountFormatted',
-                'label' => 'المتبقي',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-red-700 font-semibold',
-            ],
-            [
-                'key' => 'PaymentsProgress',
-                'label' => 'عدد الأقساط',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-            [
-                'key' => 'FirstPaymentDateFormatted',
-                'label' => 'أول دفعة',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-            [
-                'key' => 'LastPaymentDateFormatted',
-                'label' => 'آخر دفعة',
-                'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900',
-            ],
-        ]" :actions="[
-            [
-                'name' => 'add_installment',
-                'label' => 'إضافة دفعة',
-                'route' => route('eventBookingFinance.createInstallment', ':id'),
-                'idField' => 'SeasonEventParticipantFinanceID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 ml-2',
-            ],
-            [
-                'name' => 'edit_last_payment',
-                'label' => 'تعديل آخر دفعة',
-                'route' => route('eventBookingFinance.editLastPayment', ':id'),
-                'idField' => 'LastPaymentID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 ml-2',
-            ],
-            [
-                'name' => 'print_receipt',
-                'label' => 'طباعة آخر إيصال',
-                'route' => route('eventBookingFinance.printReceipt', ':id'),
-                'idField' => 'LastPaymentID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-200 ml-2',
-            ],
-            [
-                'name' => 'refund_full',
-                'label' => 'استرداد كامل',
-                'route' => route('eventBookingFinance.refundPage', ':id'),
-                'idField' => 'SeasonEventParticipantFinanceID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 ml-2',
-            ],
-            [
-                'name' => 'refund_partial',
-                'label' => 'استرداد مع خصم جزء',
-                'route' => route('eventBookingFinance.partialRefundPage', ':id'),
-                'idField' => 'SeasonEventParticipantFinanceID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors duration-200',
-            ],
-            [
-                'name' => 'show',
-                'label' => 'عرض',
-                'route' => route('eventBookingFinance.show', ':id'),
-                'idField' => 'SeasonEventParticipantFinanceID',
-                'cssClass' =>
-                    'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
-            ],
-        ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+            <x-data-table title="قائمة الحجوزات" :data="$bookings" :columns="[
+                [
+                    'key' => 'BookingCode',
+                    'label' => 'الكود',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm font-bold text-slate-900',
+                ],
+                // [
+                //     'key' => 'BookingEntityType',
+                //     'label' => 'النوع',
+                //     'type' => 'text',
+                //     'cssClass' => 'text-sm text-slate-700',
+                // ],
+                [
+                    'key' => 'PersonFullName',
+                    'label' => 'الاسم',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-slate-900 font-semibold',
+                ],
+                [
+                    'key' => 'PersonPersonalMobileNumber',
+                    'label' => 'الموبايل',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-slate-700',
+                ],
+                [
+                    'key' => 'QetaaNames',
+                    'label' => 'القطاع',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-slate-700',
+                ],
+                [
+                    'key' => 'ShirtSize',
+                    'label' => 'المقاس',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-slate-700',
+                ],
+                [
+                    'key' => 'BookingStatusText',
+                    'label' => 'الحالة',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-amber-700 font-semibold',
+                ],
+                [
+                    'key' => 'FinalRequiredAmountFormatted',
+                    'label' => 'المطلوب',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-slate-700 font-semibold',
+                ],
+                [
+                    'key' => 'AmountPaidFormatted',
+                    'label' => 'المدفوع',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-green-700 font-semibold',
+                ],
+                [
+                    'key' => 'RemainingAmountFormatted',
+                    'label' => 'المتبقي',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-red-700 font-semibold',
+                ],
+                [
+                    'key' => 'PaymentsProgress',
+                    'label' => 'عدد الأقساط',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-gray-900',
+                ],
+                [
+                    'key' => 'FirstPaymentDateFormatted',
+                    'label' => 'أول دفعة',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-gray-900',
+                ],
+                [
+                    'key' => 'LastPaymentDateFormatted',
+                    'label' => 'آخر دفعة',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-gray-900',
+                ],
+            ]" :actions="[
+                [
+                    'name' => 'add_installment',
+                    'label' => 'إضافة دفعة',
+                    'route' => route('eventBookingFinance.createInstallment', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'edit_last_payment',
+                    'label' => 'تعديل آخر دفعة',
+                    'route' => route('eventBookingFinance.editLastPayment', ':id'),
+                    'idField' => 'LastPaymentID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'print_receipt',
+                    'label' => 'طباعة آخر إيصال',
+                    'route' => route('eventBookingFinance.printReceipt', ':id'),
+                    'idField' => 'LastPaymentID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'refund_full',
+                    'label' => 'استرداد كامل',
+                    'route' => route('eventBookingFinance.refundPage', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'refund_partial',
+                    'label' => 'استرداد مع خصم جزء',
+                    'route' => route('eventBookingFinance.partialRefundPage', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'show',
+                    'label' => 'عرض',
+                    'route' => route('eventBookingFinance.show', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
+                ],
+            ]" :searchable="true"
+                :sortable="true" :pagination="true" :per-page="10" />
+        </div>
     </div>
 @endsection

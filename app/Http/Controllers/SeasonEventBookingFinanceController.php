@@ -17,9 +17,10 @@ class SeasonEventBookingFinanceController extends Controller
         return view('event_booking_finance.selector', compact('seasons'));
     }
     
-    private function shouldBypassLastInstallmentCompletion($personID, $specialCaseType = null): bool
+private function shouldBypassLastInstallmentCompletion($personID = null, $specialCaseType = null): bool
 {
-    return $this->isSpecialCase($personID) || $specialCaseType === 'AKHOH_RAB';
+    return ($personID ? $this->isSpecialCase($personID) : false)
+        || $specialCaseType === 'AKHOH_RAB';
 }
 
     public function getEventsWithPlan(Request $request)
@@ -55,107 +56,63 @@ public function index(Request $request, $seasonEventID)
         abort(404);
     }
 
-
-
-$paymentDays = DB::table('SeasonEventParticipantFinancePayment as p')
-    ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-    ->where('b.SeasonEventID', $seasonEventID)
-    ->selectRaw('DATE(p.PaymentDate) as payment_day')
-    ->distinct()
-    ->orderByDesc('payment_day')
-    ->pluck('payment_day');
-
-$selectedSummaryDate = $request->summary_date;
-
-if (!$selectedSummaryDate || !$paymentDays->contains($selectedSummaryDate)) {
-    $selectedSummaryDate = $paymentDays->first() ?: Carbon::today()->toDateString();
-}
-
-$selectedDaySummary = [
-    'people_count' => DB::table('SeasonEventParticipantFinance')
-        ->where('SeasonEventID', $seasonEventID)
-        ->whereDate('FirstPaymentDate', $selectedSummaryDate)
-        ->count(),
-
-    'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
+    $paymentDays = DB::table('SeasonEventParticipantFinancePayment as p')
         ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
         ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'PAYMENT')
-        ->whereDate('p.PaymentDate', $selectedSummaryDate)
-        ->sum('p.Amount'),
+        ->selectRaw('DATE(p.PaymentDate) as payment_day')
+        ->distinct()
+        ->orderByDesc('payment_day')
+        ->pluck('payment_day');
 
-    'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'REFUND')
-        ->whereDate('p.PaymentDate', $selectedSummaryDate)
-        ->sum('p.Amount'),
-];
+    $selectedSummaryDate = $request->summary_date;
+    if (!$selectedSummaryDate || !$paymentDays->contains($selectedSummaryDate)) {
+        $selectedSummaryDate = $paymentDays->first() ?: Carbon::today()->toDateString();
+    }
 
-$totalSummary = [
-    'people_count' => DB::table('SeasonEventParticipantFinance')
-        ->where('SeasonEventID', $seasonEventID)
-        ->count(),
+    $selectedDaySummary = [
+        'people_count' => DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventID', $seasonEventID)
+            ->whereDate('FirstPaymentDate', $selectedSummaryDate)
+            ->count(),
 
-    'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'PAYMENT')
-        ->sum('p.Amount'),
+        'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('b.SeasonEventID', $seasonEventID)
+            ->where('p.PaymentType', 'PAYMENT')
+            ->whereDate('p.PaymentDate', $selectedSummaryDate)
+            ->sum('p.Amount'),
 
-    'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'REFUND')
-        ->sum('p.Amount'),
-];
-    
- $todayDate = Carbon::today();
+        'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('b.SeasonEventID', $seasonEventID)
+            ->where('p.PaymentType', 'REFUND')
+            ->whereDate('p.PaymentDate', $selectedSummaryDate)
+            ->sum('p.Amount'),
+    ];
 
+    $totalSummary = [
+        'people_count' => DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventID', $seasonEventID)
+            ->count(),
 
+        'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('b.SeasonEventID', $seasonEventID)
+            ->where('p.PaymentType', 'PAYMENT')
+            ->sum('p.Amount'),
 
-$todaySummary = [
-    'people_count' => DB::table('SeasonEventParticipantFinance')
-        ->where('SeasonEventID', $seasonEventID)
-        ->whereDate('FirstPaymentDate', $todayDate)
-        ->count(),
-
-    'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'PAYMENT')
-        ->whereDate('p.PaymentDate', $todayDate)
-        ->sum('p.Amount'),
-
-    'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'REFUND')
-        ->whereDate('p.PaymentDate', $todayDate)
-        ->sum('p.Amount'),
-];
-
-$totalSummary = [
-    'people_count' => DB::table('SeasonEventParticipantFinance')
-        ->where('SeasonEventID', $seasonEventID)
-        ->count(),
-
-    'payments_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'PAYMENT')
-        ->sum('p.Amount'),
-
-    'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
-        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->where('p.PaymentType', 'REFUND')
-        ->sum('p.Amount'),
-];
+        'refund_amount' => (float) DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('b.SeasonEventID', $seasonEventID)
+            ->where('p.PaymentType', 'REFUND')
+            ->sum('p.Amount'),
+    ];
 
     $bookings = DB::table('SeasonEventParticipantFinance as b')
-        ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+        ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
         ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+        ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
         ->leftJoin('PersonInformation as s', 'b.ServentID', '=', 's.PersonID')
         ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
         ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
@@ -163,6 +120,8 @@ $totalSummary = [
         ->select(
             'b.SeasonEventParticipantFinanceID',
             'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID',
             'b.FirstPaymentDate',
             'b.OriginalPrice',
             'b.DiscountAmount',
@@ -174,41 +133,75 @@ $totalSummary = [
             'b.SpecialCaseNote',
             'b.IsRefunded',
             'b.ShirtSize',
-            'ppn.PersonPersonalMobileNumber',
-            DB::raw("TRIM(CONCAT(
-                COALESCE(p.FirstName,''), ' ',
-                COALESCE(p.SecondName,''), ' ',
-                COALESCE(p.ThirdName,''), ' ',
-                COALESCE(p.FourthName,'')
-            )) as PersonFullName"),
-            DB::raw("TRIM(CONCAT(
-                COALESCE(s.FirstName,''), ' ',
-                COALESCE(s.SecondName,''), ' ',
-                COALESCE(s.ThirdName,''), ' ',
-                COALESCE(s.FourthName,'')
-            )) as ServentFullName"),
-            DB::raw("GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ') as QetaaNames"),
-            DB::raw("(SELECT COUNT(*)
-                      FROM SeasonEventParticipantFinancePayment p2
+            'b.HasPersonSpecialCase',
+
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN 'PERSON'
+                    WHEN b.FamilyID IS NOT NULL THEN 'FAMILY'
+                    WHEN b.GuestID IS NOT NULL THEN 'GUEST'
+                    ELSE 'UNKNOWN'
+                END as BookingEntityType
+            "),
+
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                )) as PersonFullName
+            "),
+
+            DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(s.FirstName,''), ' ',
+                    COALESCE(s.SecondName,''), ' ',
+                    COALESCE(s.ThirdName,''), ' ',
+                    COALESCE(s.FourthName,'')
+                )) as ServentFullName
+            "),
+
+            DB::raw("
+                CASE
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , '), '-')
+                END as QetaaNames
+            "),
+
+            DB::raw("(SELECT COUNT(*) FROM SeasonEventParticipantFinancePayment p2
                       WHERE p2.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
-                        AND p2.PaymentType = 'PAYMENT') as PaymentsCount"),
-            DB::raw("(SELECT MIN(p0.PaymentDate)
-                      FROM SeasonEventParticipantFinancePayment p0
+                      AND p2.PaymentType = 'PAYMENT') as PaymentsCount"),
+
+            DB::raw("(SELECT MIN(p0.PaymentDate) FROM SeasonEventParticipantFinancePayment p0
                       WHERE p0.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
-                        AND p0.PaymentType = 'PAYMENT') as FirstPaymentAt"),
-            DB::raw("(SELECT MAX(p3.PaymentDate)
-                      FROM SeasonEventParticipantFinancePayment p3
+                      AND p0.PaymentType = 'PAYMENT') as FirstPaymentAt"),
+
+            DB::raw("(SELECT MAX(p3.PaymentDate) FROM SeasonEventParticipantFinancePayment p3
                       WHERE p3.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID) as LastPaymentAt"),
-            DB::raw("(SELECT p4.PaymentID
-                      FROM SeasonEventParticipantFinancePayment p4
+
+            DB::raw("(SELECT p4.PaymentID FROM SeasonEventParticipantFinancePayment p4
                       WHERE p4.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
                       ORDER BY p4.PaymentDate DESC, p4.PaymentID DESC
-                      LIMIT 1) as LastPaymentID"),
-            'b.HasPersonSpecialCase',
+                      LIMIT 1) as LastPaymentID")
         )
         ->groupBy(
             'b.SeasonEventParticipantFinanceID',
             'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID',
             'b.FirstPaymentDate',
             'b.OriginalPrice',
             'b.DiscountAmount',
@@ -220,16 +213,14 @@ $totalSummary = [
             'b.SpecialCaseNote',
             'b.IsRefunded',
             'b.ShirtSize',
+            'b.HasPersonSpecialCase',
             'ppn.PersonPersonalMobileNumber',
-            'p.FirstName',
-            'p.SecondName',
-            'p.ThirdName',
-            'p.FourthName',
-            's.FirstName',
-            's.SecondName',
-            's.ThirdName',
-            's.FourthName',
-            'b.HasPersonSpecialCase'
+            'g.MobileNumber',
+            'f.MobileNumber',
+            'p.FirstName', 'p.SecondName', 'p.ThirdName', 'p.FourthName',
+            'g.FirstName', 'g.SecondName', 'g.ThirdName', 'g.FourthName',
+            'f.FirstName', 'f.SecondName', 'f.ThirdName', 'f.FourthName',
+            's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName'
         )
         ->orderBy('PersonFullName')
         ->get()
@@ -274,36 +265,131 @@ $totalSummary = [
 
             $booking->CanEditLastPayment = !empty($booking->LastPaymentID) ? 1 : 0;
             $booking->CanPrintReceipt = !empty($booking->LastPaymentID) ? 1 : 0;
-            $booking->CanRefund =
-                ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
-            $booking->CanPartialRefund =
-                ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
+            $booking->CanRefund = ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
+            $booking->CanPartialRefund = ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
 
             return $booking;
         });
 
-        $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
-    ->join('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
-    ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-    ->where('b.SeasonEventID', $seasonEventID)
-    ->select(
-        'q.QetaaID',
-        'q.QetaaName',
-        DB::raw('COUNT(DISTINCT b.PersonID) as booked_count')
-    )
-    ->groupBy('q.QetaaID', 'q.QetaaName')
-    ->orderBy('q.QetaaName')
-    ->get();
+    $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
+        ->leftJoin('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
+        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+        ->where('b.SeasonEventID', $seasonEventID)
+        ->select(
+            DB::raw("
+                CASE
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE q.QetaaName
+                END as QetaaName
+            "),
+            DB::raw('COUNT(*) as booked_count')
+        )
+        ->groupBy(DB::raw("
+            CASE
+                WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                ELSE q.QetaaName
+            END
+        "))
+        ->orderBy('QetaaName')
+        ->get();
 
-return view('event_booking_finance.index', compact(
-   'event',
-    'bookings',
-    'paymentDays',
-    'selectedSummaryDate',
-    'selectedDaySummary',
-    'totalSummary',
+    return view('event_booking_finance.index', compact(
+        'event',
+        'bookings',
+        'paymentDays',
+        'selectedSummaryDate',
+        'selectedDaySummary',
+        'totalSummary',
         'qetaaCounts'
-));
+    ));
+}
+
+public function searchEligibleGuests(Request $request, $seasonEventID)
+{
+    $query = trim((string) $request->query('q', ''));
+
+    $guests = DB::table('Guests as g')
+        ->where(function ($sub) use ($query) {
+            if ($query !== '') {
+                $sub->where(DB::raw("CONCAT_WS(' ', g.FirstName, g.SecondName, g.ThirdName, g.FourthName)"), 'like', '%' . $query . '%')
+                    ->orWhere('g.GuestID', 'like', '%' . $query . '%')
+                    ->orWhere('g.MobileNumber', 'like', '%' . $query . '%')
+                    ->orWhere('g.RaqamQawmy', 'like', '%' . $query . '%');
+            }
+        })
+        ->select(
+            'g.GuestID',
+            'g.MobileNumber as PersonPersonalMobileNumber',
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(g.FirstName,''), ' ',
+                    COALESCE(g.SecondName,''), ' ',
+                    COALESCE(g.ThirdName,''), ' ',
+                    COALESCE(g.FourthName,'')
+                )) as PersonFullName
+            "),
+            DB::raw("'ضيوف' as QetaaNames"),
+            DB::raw('0 as IsBlacklisted'),
+            DB::raw('0 as IsSpecialCase'),
+            DB::raw("
+                CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM SeasonEventParticipantFinance b
+                    WHERE b.SeasonEventID = " . (int) $seasonEventID . "
+                    AND b.GuestID = g.GuestID
+                ) THEN 1 ELSE 0 END as AlreadyBooked
+            ")
+        )
+        ->orderBy('PersonFullName')
+        ->limit(20)
+        ->get();
+
+    return response()->json($guests);
+}
+
+public function searchEligibleFamilies(Request $request, $seasonEventID)
+{
+    $query = trim((string) $request->query('q', ''));
+
+    $families = DB::table('FamilyMembers as f')
+        ->where(function ($sub) use ($query) {
+            if ($query !== '') {
+                $sub->where(DB::raw("CONCAT_WS(' ', f.FirstName, f.SecondName, f.ThirdName, f.FourthName)"), 'like', '%' . $query . '%')
+                    ->orWhere('f.FamilyID', 'like', '%' . $query . '%')
+                    ->orWhere('f.MobileNumber', 'like', '%' . $query . '%')
+                    ->orWhere('f.RaqamQawmy', 'like', '%' . $query . '%');
+            }
+        })
+        ->select(
+            'f.FamilyID',
+            'f.MobileNumber as PersonPersonalMobileNumber',
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(f.FirstName,''), ' ',
+                    COALESCE(f.SecondName,''), ' ',
+                    COALESCE(f.ThirdName,''), ' ',
+                    COALESCE(f.FourthName,'')
+                )) as PersonFullName
+            "),
+            DB::raw("'اهالي' as QetaaNames"),
+            DB::raw('0 as IsBlacklisted'),
+            DB::raw('0 as IsSpecialCase'),
+            DB::raw("
+                CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM SeasonEventParticipantFinance b
+                    WHERE b.SeasonEventID = " . (int) $seasonEventID . "
+                    AND b.FamilyID = f.FamilyID
+                ) THEN 1 ELSE 0 END as AlreadyBooked
+            ")
+        )
+        ->orderBy('PersonFullName')
+        ->limit(20)
+        ->get();
+
+    return response()->json($families);
 }
 
     public function create($seasonEventID)
@@ -398,65 +484,109 @@ public function store(Request $request, $seasonEventID)
     }
 
     $validator = Validator::make($request->all(), [
-        'person_id' => 'required|integer|exists:PersonInformation,PersonID',
+        'booking_type' => 'required|in:PERSON,GUEST,FAMILY',
+        'person_id' => 'nullable|integer|exists:PersonInformation,PersonID',
+        'guest_id' => 'nullable|integer|exists:Guests,GuestID',
+        'family_id' => 'nullable|integer|exists:FamilyMembers,FamilyID',
         'first_payment_date' => 'required|date',
         'first_payment_amount' => 'required|numeric|min:0.01',
         'is_not_able_to_pay_all' => 'nullable|in:0,1',
         'special_case_type' => 'nullable|in:NONE,AKHOH_RAB,HAS_BROTHERS,OTHER',
         'discount_amount' => 'nullable|numeric|min:0',
         'special_case_note' => 'nullable|string|max:500',
-        
     ], [
-        'person_id.required' => 'يجب اختيار الشخص.',
-        'person_id.exists' => 'الشخص المختار غير موجود.',
+        'booking_type.required' => 'يجب اختيار نوع الحجز.',
+        'booking_type.in' => 'نوع الحجز غير صحيح.',
         'first_payment_date.required' => 'تاريخ أول دفعة مطلوب.',
         'first_payment_date.date' => 'تاريخ أول دفعة غير صحيح.',
         'first_payment_amount.required' => 'يجب إدخال مبلغ أول دفعة.',
         'first_payment_amount.min' => 'يجب أن يكون مبلغ أول دفعة أكبر من صفر.',
         'discount_amount.min' => 'الخصم لا يمكن أن يكون أقل من صفر.',
         'special_case_note.max' => 'الملاحظات يجب ألا تتجاوز 500 حرف.',
-        
     ]);
 
     if ($validator->fails()) {
         return redirect()->back()->withErrors($validator)->withInput();
     }
 
-    $personID = (int) $request->person_id;
-    $serventID = (int) Auth::user()->PersonID;
 
-    if ($this->isBlacklisted($personID)) {
-        return redirect()->back()->withErrors([
-            'person_id' => 'هذا الشخص موجود في القائمة السوداء ولا يمكنه الحجز.'
-        ])->withInput();
+    $filledCount = 0;
+$filledCount += $request->filled('person_id') ? 1 : 0;
+$filledCount += $request->filled('guest_id') ? 1 : 0;
+$filledCount += $request->filled('family_id') ? 1 : 0;
+
+if ($filledCount !== 1) {
+    return redirect()->back()->withErrors([
+        'general' => 'يجب اختيار شخص واحد فقط من نوع واحد فقط.'
+    ])->withInput();
+}
+
+    $bookingType = (string) $request->booking_type;
+    $personID = null;
+    $guestID = null;
+    $familyID = null;
+    $entityField = null;
+    $entityValue = null;
+
+    if ($bookingType === 'PERSON') {
+        if (!$request->filled('person_id')) {
+            return redirect()->back()->withErrors(['person_id' => 'يجب اختيار الشخص.'])->withInput();
+        }
+        $personID = (int) $request->person_id;
+        $entityField = 'PersonID';
+        $entityValue = $personID;
+    } elseif ($bookingType === 'GUEST') {
+        if (!$request->filled('guest_id')) {
+            return redirect()->back()->withErrors(['guest_id' => 'يجب اختيار الضيف.'])->withInput();
+        }
+        $guestID = (int) $request->guest_id;
+        $entityField = 'GuestID';
+        $entityValue = $guestID;
+    } else {
+        if (!$request->filled('family_id')) {
+            return redirect()->back()->withErrors(['family_id' => 'يجب اختيار فرد العائلة.'])->withInput();
+        }
+        $familyID = (int) $request->family_id;
+        $entityField = 'FamilyID';
+        $entityValue = $familyID;
     }
 
-    if (!$this->isEligibleByQetaa($seasonEventID, $personID)) {
-        return redirect()->back()->withErrors([
-            'person_id' => 'هذا الشخص غير مؤهل لهذه الفعالية.'
-        ])->withInput();
+    $serventID = (int) Auth::user()->PersonID;
+
+    if ($bookingType === 'PERSON') {
+        if ($this->isBlacklisted($personID)) {
+            return redirect()->back()->withErrors([
+                'person_id' => 'هذا الشخص موجود في القائمة السوداء ولا يمكنه الحجز.'
+            ])->withInput();
+        }
+
+        if (!$this->isEligibleByQetaa($seasonEventID, $personID)) {
+            return redirect()->back()->withErrors([
+                'person_id' => 'هذا الشخص غير مؤهل لهذه الفعالية.'
+            ])->withInput();
+        }
     }
 
     $alreadyBooked = DB::table('SeasonEventParticipantFinance')
         ->where('SeasonEventID', $seasonEventID)
-        ->where('PersonID', $personID)
+        ->where($entityField, $entityValue)
         ->exists();
 
     if ($alreadyBooked) {
         return redirect()->back()->withErrors([
-            'person_id' => 'هذا الشخص محجوز بالفعل في هذه الفعالية.'
+            'general' => 'هذا الحجز موجود بالفعل في هذه الفعالية.'
         ])->withInput();
     }
 
-  $priceDate = Carbon::parse($request->first_payment_date)->format('Y-m-d');
-$paymentDateTime = now();
+    $priceDate = Carbon::parse($request->first_payment_date)->format('Y-m-d');
+    $paymentDateTime = now();
 
-$priceRow = DB::table('SeasonEventFinancePrice')
-    ->where('SeasonEventID', $seasonEventID)
-    ->where('StartDate', '<=', $priceDate)
-    ->where('EndDate', '>=', $priceDate)
-    ->orderBy('StartDate')
-    ->first();
+    $priceRow = DB::table('SeasonEventFinancePrice')
+        ->where('SeasonEventID', $seasonEventID)
+        ->where('StartDate', '<=', $priceDate)
+        ->where('EndDate', '>=', $priceDate)
+        ->orderBy('StartDate')
+        ->first();
 
     if (!$priceRow) {
         return redirect()->back()->withErrors([
@@ -464,22 +594,18 @@ $priceRow = DB::table('SeasonEventFinancePrice')
         ])->withInput();
     }
 
-   $isPermanentSpecial = $this->isSpecialCase($personID);
+    $isPermanentSpecial = $bookingType === 'PERSON' ? $this->isSpecialCase($personID) : false;
+    $specialCaseType = $request->filled('is_not_able_to_pay_all')
+        ? ($request->special_case_type ?? 'NONE')
+        : 'NONE';
 
-$specialCaseType = $request->filled('is_not_able_to_pay_all')
-    ? ($request->special_case_type ?? 'NONE')
-    : 'NONE';
-
-$hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB') ? 1 : 0;
+    $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB') ? 1 : 0;
 
     $discountAmount = (float) ($request->discount_amount ?? 0);
     $specialCaseNote = $request->special_case_note;
-
     $originalPrice = (float) $priceRow->Price;
     $finalRequiredAmount = max(0, $originalPrice - $discountAmount);
     $firstPaymentAmount = (float) $request->first_payment_amount;
-
-    // عدد الأقساط الكلي للحجز = الحد الأقصى المسموح به في الخطة
     $installmentsNumber = (int) $plan->MaxInstallmentsNumber;
 
     if ($finalRequiredAmount <= 0) {
@@ -496,12 +622,10 @@ $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB'
 
     $isSpecialBehavior = $isPermanentSpecial || $specialCaseType === 'AKHOH_RAB';
 
-    if (!$isSpecialBehavior) {
-        if ((int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
-            return redirect()->back()->withErrors([
-                'first_payment_amount' => 'لا يمكن أن تكون أول دفعة أقل من الحد الأدنى للمقدم.'
-            ])->withInput();
-        }
+    if (!$isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
+        return redirect()->back()->withErrors([
+            'first_payment_amount' => 'لا يمكن أن تكون أول دفعة أقل من الحد الأدنى للمقدم.'
+        ])->withInput();
     }
 
     if (($specialCaseType === 'HAS_BROTHERS' || $specialCaseType === 'OTHER') && $discountAmount <= 0) {
@@ -522,41 +646,35 @@ $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB'
         $bookingID = DB::table('SeasonEventParticipantFinance')->insertGetId([
             'SeasonEventID' => $seasonEventID,
             'PersonID' => $personID,
+            'GuestID' => $guestID,
+            'FamilyID' => $familyID,
             'ServentID' => $serventID,
             'FirstPaymentDate' => $paymentDateTime->format('Y-m-d H:i:s'),
             'OriginalPrice' => $originalPrice,
             'DiscountAmount' => $discountAmount,
             'FinalRequiredAmount' => $finalRequiredAmount,
-            'LockedPrice' => $finalRequiredAmount,
+            'SpecialCaseType' => $specialCaseType,
+            'SpecialCaseNote' => $specialCaseNote,
+            'HasPersonSpecialCase' => $hasPersonSpecialCase,
+           'LockedPrice' => $finalRequiredAmount,
+           'IsRefunded' => 0,
+'RefundDate' => null,
             'InstallmentsNumber' => $installmentsNumber,
             'AmountPaid' => $firstPaymentAmount,
             'RemainingAmount' => max(0, $finalRequiredAmount - $firstPaymentAmount),
-            'HasPersonSpecialCase' => $hasPersonSpecialCase,
-            'SpecialCaseType' => $specialCaseType,
-            'SpecialCaseNote' => $specialCaseNote,
-            'IsRefunded' => 0,
-            'RefundDate' => null,
             'ShirtSize' => $request->shirt_size,
+            'Notes' => $request->notes,
         ]);
 
         $paymentID = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
             'SeasonEventParticipantFinanceID' => $bookingID,
             'ServentID' => $serventID,
-            'PaymentDate' => $paymentDateTime->format('Y-m-d H:i:s'),
+            'PaymentDate' => $paymentDateTime,
             'Amount' => $firstPaymentAmount,
             'InstallmentNumber' => 1,
             'PaymentType' => 'PAYMENT',
             'Notes' => 'أول دفعة',
         ]);
-
-        if ($specialCaseType === 'AKHOH_RAB' && !$isPermanentSpecial) {
-            DB::table('PersonSpecialCase')->insert([
-                'PersonID' => $personID,
-                'ServentID' => $serventID,
-                'CaseDate' => now(),
-                'Note' => $specialCaseNote ?: 'تمت إضافته كأخوه رب أثناء الحجز',
-            ]);
-        }
 
         $receiptID = DB::table('SeasonEventParticipantFinanceReceipt')->insertGetId([
             'PaymentID' => $paymentID,
@@ -565,18 +683,16 @@ $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB'
             'IssuedByServentID' => $serventID,
         ]);
 
-        $receiptNumber = 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID;
-
         DB::table('SeasonEventParticipantFinanceReceipt')
             ->where('ReceiptID', $receiptID)
             ->update([
-                'ReceiptNumber' => $receiptNumber
+                'ReceiptNumber' => 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID,
             ]);
 
         DB::commit();
 
         return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-            ->with('success', 'تم إنشاء الحجز وإصدار الإيصال بنجاح.');
+            ->with('success', 'تم إنشاء الحجز بنجاح.');
     } catch (Exception $e) {
         DB::rollBack();
 
@@ -584,6 +700,24 @@ $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB'
             'general' => 'حدث خطأ أثناء إنشاء الحجز.'
         ])->withInput();
     }
+}
+
+
+public function createGuestFamily($seasonEventID)
+{
+    $event = $this->getSeasonEventFullInfo($seasonEventID);
+    if (!$event) {
+        abort(404);
+    }
+
+    $plan = DB::table('SeasonEventFinance')->where('SeasonEventID', $seasonEventID)->first();
+    if (!$plan) {
+        return redirect()->route('eventBookingFinance.selector')->withErrors([
+            'general' => 'لا توجد خطة مالية لهذه الفعالية.'
+        ]);
+    }
+
+    return view('event_booking_finance.create_guest_family', compact('event', 'plan'));
 }
 
 public function createInstallment($bookingID)
@@ -918,7 +1052,7 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         }
     }
 
-  public function printReceipt($paymentID)
+public function printReceipt($paymentID)
 {
     $receipt = DB::table('SeasonEventParticipantFinanceReceipt as r')
         ->join('SeasonEventParticipantFinancePayment as p', 'r.PaymentID', '=', 'p.PaymentID')
@@ -927,8 +1061,10 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
         ->join('Event as e', 'se.EventID', '=', 'e.EventID')
         ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
-        ->join('PersonInformation as person', 'b.PersonID', '=', 'person.PersonID')
+        ->leftJoin('PersonInformation as person', 'b.PersonID', '=', 'person.PersonID')
         ->leftJoin('PersonPhoneNumbers as ppn', 'person.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('Guests as guest', 'b.GuestID', '=', 'guest.GuestID')
+        ->leftJoin('FamilyMembers as family', 'b.FamilyID', '=', 'family.FamilyID')
         ->join('PersonInformation as servant', 'p.ServentID', '=', 'servant.PersonID')
         ->where('p.PaymentID', $paymentID)
         ->select(
@@ -942,6 +1078,8 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
             'p.InstallmentNumber',
             'b.SeasonEventParticipantFinanceID',
             'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID',
             'b.OriginalPrice',
             'b.DiscountAmount',
             'b.FinalRequiredAmount',
@@ -952,19 +1090,31 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
             's.SeasonYear',
             'e.EventName',
             'et.EventTypeName',
-            'ppn.PersonPersonalMobileNumber',
-            DB::raw("TRIM(CONCAT(
-                COALESCE(person.FirstName,''), ' ',
-                COALESCE(person.SecondName,''), ' ',
-                COALESCE(person.ThirdName,''), ' ',
-                COALESCE(person.FourthName,'')
-            )) as PersonFullName"),
-            DB::raw("TRIM(CONCAT(
-                COALESCE(servant.FirstName,''), ' ',
-                COALESCE(servant.SecondName,''), ' ',
-                COALESCE(servant.ThirdName,''), ' ',
-                COALESCE(servant.FourthName,'')
-            )) as ServentFullName")
+            DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, guest.MobileNumber, family.MobileNumber, '-') as PersonPersonalMobileNumber"),
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(person.FirstName, guest.FirstName, family.FirstName, ''), ' ',
+                    COALESCE(person.SecondName, guest.SecondName, family.SecondName, ''), ' ',
+                    COALESCE(person.ThirdName, guest.ThirdName, family.ThirdName, ''), ' ',
+                    COALESCE(person.FourthName, guest.FourthName, family.FourthName, '')
+                )) as PersonFullName
+            "),
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(servant.FirstName,''), ' ',
+                    COALESCE(servant.SecondName,''), ' ',
+                    COALESCE(servant.ThirdName,''), ' ',
+                    COALESCE(servant.FourthName,'')
+                )) as ServentFullName
+            ")
         )
         ->first();
 
@@ -972,13 +1122,13 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         abort(404);
     }
 
-    $safePersonName = preg_replace('/[^A-Za-z0-9]+/', '-', $receipt->PersonFullName);
+    $safePersonName = preg_replace('/[^A-Za-z0-9\-]+/', '-', $receipt->PersonFullName);
     $safePersonName = trim($safePersonName, '-');
-
     $fileName = 'Receipt-' . $receipt->ReceiptNumber . '-' . $safePersonName . '-' . date('Y') . '.pdf';
 
     return view('event_booking_finance.print_receipt', compact('receipt', 'fileName'));
 }
+
 
     private function getSeasonEventFullInfo($seasonEventID)
     {
@@ -1024,32 +1174,53 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         return DB::table('PersonSpecialCase')->where('PersonID', $personID)->exists();
     }
 
-    private function getBookingDetails($bookingID)
-    {
-        return DB::table('SeasonEventParticipantFinance as b')
-            ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
-            ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
-            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
-            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
-            ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
-            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
-            ->where('b.SeasonEventParticipantFinanceID', $bookingID)
-            ->select(
-                'b.*',
-                DB::raw("TRIM(CONCAT(
-                    COALESCE(p.FirstName,''), ' ',
-                    COALESCE(p.SecondName,''), ' ',
-                    COALESCE(p.ThirdName,''), ' ',
-                    COALESCE(p.FourthName,'')
-                )) as PersonFullName"),
-                'ppn.PersonPersonalMobileNumber',
-                's.SeasonName',
-                's.SeasonYear',
-                'e.EventName',
-                'et.EventTypeName'
-            )
-            ->first();
-    }
+private function getBookingDetails($bookingID)
+{
+    return DB::table('SeasonEventParticipantFinance as b')
+        ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
+        ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
+        ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+        ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+        ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+        ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+        ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
+        ->where('b.SeasonEventParticipantFinanceID', $bookingID)
+        ->select(
+            'b.*',
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                )) as PersonFullName
+            "),
+            DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN 'شخص'
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE '-'
+                END as BookingEntityLabel
+            "),
+            's.SeasonName',
+            's.SeasonYear',
+            'e.EventName',
+            'et.EventTypeName'
+        )
+        ->first();
+}
+
 
     private function getPaymentsCount($bookingID)
     {
@@ -1059,20 +1230,23 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
             ->count();
     }
 
-    private function getPaymentWithBooking($paymentID)
-    {
-        return DB::table('SeasonEventParticipantFinancePayment as p')
-            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
-            ->where('p.PaymentID', $paymentID)
-            ->select(
-                'p.*',
-                'b.SeasonEventID',
-                'b.FinalRequiredAmount',
-                'b.InstallmentsNumber',
-                'b.PersonID'
-            )
-            ->first();
-    }
+private function getPaymentWithBooking($paymentID)
+{
+    return DB::table('SeasonEventParticipantFinancePayment as p')
+        ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+        ->where('p.PaymentID', $paymentID)
+        ->select(
+            'p.*',
+            'b.SeasonEventID',
+            'b.FinalRequiredAmount',
+            'b.InstallmentsNumber',
+            'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID'
+        )
+        ->first();
+}
+
 
     private function isLastPayment($bookingID, $paymentID)
     {
@@ -1215,130 +1389,154 @@ public function partialRefundStore(Request $request, $bookingID)
     }
 
     private function downloadBookingsCsv($seasonEventID, $filteredDayOnly = false, $summaryDate = null)
-    {
-        $event = $this->getSeasonEventFullInfo($seasonEventID);
-        if (!$event) {
-            abort(404);
-        }
+{
+    $event = $this->getSeasonEventFullInfo($seasonEventID);
+    if (!$event) {
+        abort(404);
+    }
 
-        $query = DB::table('SeasonEventParticipantFinance as b')
-            ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
-            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
-            ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
-            ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-            ->where('b.SeasonEventID', $seasonEventID)
-            ->select(
-                'b.PersonID',
-                'b.FirstPaymentDate',
-                'b.OriginalPrice',
-                'b.DiscountAmount',
-                'b.FinalRequiredAmount',
-                'b.AmountPaid',
-                'b.RemainingAmount',
-                'b.InstallmentsNumber',
-                'b.SpecialCaseType',
-                'b.IsRefunded',
-                'b.ShirtSize',
-                'ppn.PersonPersonalMobileNumber',
-                'b.HasPersonSpecialCase',
-                DB::raw("CASE WHEN b.HasPersonSpecialCase = 1 THEN 'نعم' ELSE 'لا' END as HasPersonSpecialCaseText"),
-                DB::raw("TRIM(CONCAT(
-                    COALESCE(p.FirstName,''), ' ',
-                    COALESCE(p.SecondName,''), ' ',
-                    COALESCE(p.ThirdName,''), ' ',
-                    COALESCE(p.FourthName,'')
-                )) as PersonFullName"),
-                DB::raw("GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ') as QetaaNames")
-            )
-            ->groupBy(
-                'b.PersonID',
-                'b.FirstPaymentDate',
-                'b.OriginalPrice',
-                'b.DiscountAmount',
-                'b.FinalRequiredAmount',
-                'b.AmountPaid',
-                'b.RemainingAmount',
-                'b.InstallmentsNumber',
-                'b.SpecialCaseType',
-                'b.IsRefunded',
-                'b.ShirtSize',
-                'ppn.PersonPersonalMobileNumber',
-                'p.FirstName',
-                'p.SecondName',
-                'p.ThirdName',
-                'p.FourthName',
-                'b.HasPersonSpecialCase',
-            );
+    $query = DB::table('SeasonEventParticipantFinance as b')
+        ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+        ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
+        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+        ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+        ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
+        ->where('b.SeasonEventID', $seasonEventID)
+        ->select(
+            'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID',
+            'b.FirstPaymentDate',
+            'b.OriginalPrice',
+            'b.DiscountAmount',
+            'b.FinalRequiredAmount',
+            'b.AmountPaid',
+            'b.RemainingAmount',
+            'b.InstallmentsNumber',
+            'b.SpecialCaseType',
+            'b.IsRefunded',
+            'b.ShirtSize',
+            'b.HasPersonSpecialCase',
+            DB::raw("CASE WHEN b.HasPersonSpecialCase = 1 THEN 'نعم' ELSE 'لا' END as HasPersonSpecialCaseText"),
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                )) as PersonFullName
+            "),
+            DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+            DB::raw("
+                CASE
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , '), '-')
+                END as QetaaNames
+            ")
+        )
+        ->groupBy(
+            'b.PersonID',
+            'b.GuestID',
+            'b.FamilyID',
+            'b.FirstPaymentDate',
+            'b.OriginalPrice',
+            'b.DiscountAmount',
+            'b.FinalRequiredAmount',
+            'b.AmountPaid',
+            'b.RemainingAmount',
+            'b.InstallmentsNumber',
+            'b.SpecialCaseType',
+            'b.IsRefunded',
+            'b.ShirtSize',
+            'b.HasPersonSpecialCase',
+            'ppn.PersonPersonalMobileNumber',
+            'g.MobileNumber',
+            'f.MobileNumber',
+            'p.FirstName', 'p.SecondName', 'p.ThirdName', 'p.FourthName',
+            'g.FirstName', 'g.SecondName', 'g.ThirdName', 'g.FourthName',
+            'f.FirstName', 'f.SecondName', 'f.ThirdName', 'f.FourthName'
+        );
 
     if ($filteredDayOnly) {
         $dateToUse = $summaryDate ?: Carbon::today()->toDateString();
         $query->whereDate('b.FirstPaymentDate', $dateToUse);
     }
 
-        $rows = $query->orderBy('PersonFullName')->get();
+    $rows = $query->orderBy('PersonFullName')->get();
 
-        $fileName = $filteredDayOnly
-            ? 'event-bookings-today-' . $seasonEventID . '.csv'
-            : 'event-bookings-all-' . $seasonEventID . '.csv';
+    $fileName = $filteredDayOnly
+        ? 'event-bookings-today-' . $seasonEventID . '.csv'
+        : 'event-bookings-all-' . $seasonEventID . '.csv';
 
-        return response()->streamDownload(function () use ($rows) {
-            $handle = fopen('php://output', 'w');
-
-            // UTF-8 BOM for Excel Arabic support
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+    return response()->streamDownload(function () use ($rows) {
+        $handle = fopen('php://output', 'w');
+        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         fputcsv($handle, [
-        'PersonID',
-        'الاسم',
-        'الموبايل',
-        'القطاع',
-        'حجم القميص',
-        'أخوه رب / PersonSpecialCase',
-        'الحالة',
-        'تاريخ أول دفعة',
-        'السعر الأصلي',
-        'الخصم',
-        'المطلوب النهائي',
-        'المدفوع',
-        'المتبقي',
-        'عدد الأقساط',
-        'مسترد؟',
-    ]);
-
-            foreach ($rows as $row) {
-            fputcsv($handle, [
-        $row->PersonID,
-        $row->PersonFullName,
-        $row->PersonPersonalMobileNumber,
-        $row->QetaaNames,
-        $row->ShirtSize,
-        $row->HasPersonSpecialCaseText,
-        $row->SpecialCaseType,
-        $row->FirstPaymentDate,
-        $row->OriginalPrice,
-        $row->DiscountAmount,
-        $row->FinalRequiredAmount,
-        $row->AmountPaid,
-        $row->RemainingAmount,
-        $row->InstallmentsNumber,
-        $row->IsRefunded ? 'نعم' : 'لا',
-    ]);
-            }
-
-            fclose($handle);
-        }, $fileName, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'الكود',
+            'الاسم',
+            'الموبايل',
+            'القطاع',
+            'حجم القميص',
+            'أخوه رب / PersonSpecialCase',
+            'الحالة',
+            'تاريخ أول دفعة',
+            'السعر الأصلي',
+            'الخصم',
+            'المطلوب النهائي',
+            'المدفوع',
+            'المتبقي',
+            'عدد الأقساط',
+            'مسترد؟',
         ]);
-    }
 
-    public function show($bookingID)
+        foreach ($rows as $row) {
+            fputcsv($handle, [
+                $row->BookingCode,
+                $row->PersonFullName,
+                $row->PersonPersonalMobileNumber,
+                $row->QetaaNames,
+                $row->ShirtSize,
+                $row->HasPersonSpecialCaseText,
+                $row->SpecialCaseType,
+                $row->FirstPaymentDate,
+                $row->OriginalPrice,
+                $row->DiscountAmount,
+                $row->FinalRequiredAmount,
+                $row->AmountPaid,
+                $row->RemainingAmount,
+                $row->InstallmentsNumber,
+                $row->IsRefunded ? 'نعم' : 'لا',
+            ]);
+        }
+
+        fclose($handle);
+    }, $fileName, [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+    ]);
+}
+
+
+  public function show($bookingID)
 {
     $booking = DB::table('SeasonEventParticipantFinance as b')
         ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
         ->join('Season as sn', 'se.SeasonID', '=', 'sn.SeasonID')
         ->join('Event as e', 'se.EventID', '=', 'e.EventID')
-        ->join('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+        ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
         ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+        ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+        ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
         ->leftJoin('PersonInformation as s', 'b.ServentID', '=', 's.PersonID')
         ->where('b.SeasonEventParticipantFinanceID', $bookingID)
         ->select(
@@ -1349,19 +1547,38 @@ public function partialRefundStore(Request $request, $bookingID)
             'e.EventName',
             'e.EventStartDate',
             'e.EventEndDate',
-            'ppn.PersonPersonalMobileNumber',
-            DB::raw("TRIM(CONCAT(
-                COALESCE(p.FirstName,''), ' ',
-                COALESCE(p.SecondName,''), ' ',
-                COALESCE(p.ThirdName,''), ' ',
-                COALESCE(p.FourthName,'')
-            )) as PersonFullName"),
-            DB::raw("TRIM(CONCAT(
-                COALESCE(s.FirstName,''), ' ',
-                COALESCE(s.SecondName,''), ' ',
-                COALESCE(s.ThirdName,''), ' ',
-                COALESCE(s.FourthName,'')
-            )) as ServentFullName")
+            DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+            DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+            DB::raw("
+                CASE
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE 'شخص'
+                END as BookingEntityLabel
+            "),
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                )) as PersonFullName
+            "),
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(s.FirstName,''), ' ',
+                    COALESCE(s.SecondName,''), ' ',
+                    COALESCE(s.ThirdName,''), ' ',
+                    COALESCE(s.FourthName,'')
+                )) as ServentFullName
+            ")
         )
         ->first();
 
@@ -1374,12 +1591,14 @@ public function partialRefundStore(Request $request, $bookingID)
         ->where('p.SeasonEventParticipantFinanceID', $bookingID)
         ->select(
             'p.*',
-            DB::raw("TRIM(CONCAT(
-                COALESCE(s.FirstName,''), ' ',
-                COALESCE(s.SecondName,''), ' ',
-                COALESCE(s.ThirdName,''), ' ',
-                COALESCE(s.FourthName,'')
-            )) as ServentFullName")
+            DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(s.FirstName,''), ' ',
+                    COALESCE(s.SecondName,''), ' ',
+                    COALESCE(s.ThirdName,''), ' ',
+                    COALESCE(s.FourthName,'')
+                )) as ServentFullName
+            ")
         )
         ->orderBy('p.PaymentDate')
         ->orderBy('p.PaymentID')
@@ -1390,7 +1609,6 @@ public function partialRefundStore(Request $request, $bookingID)
                 : '-';
 
             $payment->AmountFormatted = number_format((float) $payment->Amount, 2);
-
             return $payment;
         });
 
@@ -1408,7 +1626,7 @@ public function partialRefundStore(Request $request, $bookingID)
         'canAddInstallment',
         'canRefund'
     ));
-    }
+}
 
     public function updateShirtSize(Request $request, $bookingID)
     {
