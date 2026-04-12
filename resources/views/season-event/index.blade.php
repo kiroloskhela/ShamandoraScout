@@ -19,18 +19,21 @@
                 'label' => 'اسم الموسم',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
+                'filter' => true,
             ],
             [
                 'key' => 'SeasonYear',
                 'label' => 'السنة',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
+                'filter' => true,
             ],
             [
                 'key' => 'EventTypeName',
                 'label' => 'نوع الحدث',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
+                'filter' => true,
             ],
             [
                 'key' => 'EventName',

@@ -20,6 +20,7 @@
                 'label' => 'نوع المناسبة',
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
+                'filter' => true,
             ],
             [
                 'key' => 'EventName',
@@ -44,6 +45,7 @@
                 'label' => 'القطاعات',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
+                'filter' => true,
             ],
         ]" :actions="[
             [
