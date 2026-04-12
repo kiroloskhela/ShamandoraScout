@@ -26,6 +26,26 @@
                     @csrf
                     <div class="space-y-6">
 
+                        <!-- Season -->
+                        <div>
+                            <label for="season_id" class="block mb-2 text-sm font-medium text-slate-700"
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">
+                                الموسم (اختياري)
+                            </label>
+                            <select name="season_id" id="season_id"
+                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                                style="font-family: 'Cairo', sans-serif; font-size: medium">
+                                <option value="">بدون ربط بموسم</option>
+                                @isset($seasons)
+                                    @foreach ($seasons as $season)
+                                        <option value="{{ $season->SeasonID }}">
+                                            {{ $season->SeasonName }} - {{ $season->SeasonYear }}
+                                        </option>
+                                    @endforeach
+                                @endisset
+                            </select>
+                        </div>
+
                         <!-- Event Type -->
                         <div>
                             <label for="event_type_id" class="block mb-2 text-sm font-medium text-slate-700"
@@ -43,11 +63,19 @@
 
                         <!-- Event Name -->
                         <div class="relative">
-                            <input id="event_name" type="text" name="event_name" required
-                                placeholder="ادخل اسم الحدث أو المناسبة"
+                            <input id="event_name" type="text" name="event_name"
+                                placeholder="ادخل اسم الحدث أو المناسبة (اختياري - سيتم تكوينه تلقائياً إذا تركته فارغاً)"
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium" />
                             <label for="event_name" class="sr-only">اسم الحدث</label>
+                            <p class="mt-2 text-xs text-slate-500" style="font-family: 'Cairo', sans-serif;">
+                                في حالة ترك الاسم فارغًا سيتم تكوينه تلقائيًا من:
+                                نوع الحدث + القطاع + تاريخ البداية + تاريخ النهاية
+                            </p>
+                            <div id="autoNamePreview"
+                                class="hidden mt-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800"
+                                style="font-family: 'Cairo', sans-serif;">
+                            </div>
                         </div>
 
                         <!-- Qetaa Multi-Selection -->
@@ -57,9 +85,11 @@
                                 الحدث</label>
                             <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
                                 @foreach ($qetaat as $qetaa)
-                                    <label class="flex items-center mb-2 cursor-pointer hover:bg-slate-50 p-2 rounded"
+                                    <label
+                                        class="flex items-center mb-2 cursor-pointer hover:bg-slate-50 p-2 rounded qetaa-option"
                                         style="font-family: 'Cairo', sans-serif; direction: rtl;">
                                         <input type="checkbox" name="qetaa_id[]" value="{{ $qetaa->QetaaID }}"
+                                            data-qetaa-name="{{ $qetaa->QetaaName }}"
                                             class="ml-2 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
                                         <span class="text-sm text-slate-700">{{ $qetaa->QetaaName }}</span>
                                     </label>
@@ -106,9 +136,7 @@
                                 </button>
                             </div>
 
-                            <div id="datesList" class="mt-3 space-y-3">
-                                <!-- rows injected by JS: each row is input[type=date] name="event_multi_dates[]" + remove -->
-                            </div>
+                            <div id="datesList" class="mt-3 space-y-3"></div>
 
                             <div id="multiDatesError" class="hidden text-red-600 text-xs mt-2">
                                 يرجى إضافة يوم واحد على الأقل عند اختيار "متكرر"
@@ -132,7 +160,6 @@
     @push('scripts')
         <script>
             (function() {
-                // --- Elements
                 const isRecursive = document.getElementById('is_recursive');
                 const singleWrap = document.getElementById('singleRangeWrap');
                 const multiWrap = document.getElementById('multiDatesWrap');
@@ -142,13 +169,64 @@
                 const qetaaErr = document.getElementById('qetaa-validation-error');
                 const form = document.getElementById('regForm');
 
-                // === NEW: helpers to enforce unique dates ===
-                function getAllDateInputs() {
-                    return Array.from(datesList.querySelectorAll('input[name="event_multi_dates[]"]'));
+                const eventTypeSelect = document.getElementById('event_type_id');
+                const eventNameInput = document.getElementById('event_name');
+                const startDateInput = document.getElementById('event_start_date');
+                const endDateInput = document.getElementById('event_end_date');
+                const autoNamePreview = document.getElementById('autoNamePreview');
+
+                function formatDateForName(dateStr) {
+                    if (!dateStr) return '';
+                    return dateStr;
                 }
 
-                function getValuesSet() {
-                    return new Set(getAllDateInputs().map(i => i.value).filter(Boolean));
+                function getSelectedEventTypeName() {
+                    const option = eventTypeSelect.options[eventTypeSelect.selectedIndex];
+                    if (!option || !option.value) return '';
+                    return option.text.trim();
+                }
+
+                function getSelectedQetaaNames() {
+                    return Array.from(document.querySelectorAll('input[name="qetaa_id[]"]:checked'))
+                        .map(cb => cb.getAttribute('data-qetaa-name'))
+                        .filter(Boolean);
+                }
+
+                function buildAutoName() {
+                    const eventTypeName = getSelectedEventTypeName();
+                    const qetaaNames = getSelectedQetaaNames();
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value || startDate;
+
+                    const parts = [];
+
+                    if (eventTypeName) parts.push(eventTypeName);
+                    if (qetaaNames.length) parts.push(qetaaNames.join(' - '));
+
+                    if (startDate && endDate) {
+                        parts.push(formatDateForName(startDate) + ' إلى ' + formatDateForName(endDate));
+                    } else if (startDate) {
+                        parts.push(formatDateForName(startDate));
+                    }
+
+                    return parts.join(' - ').trim();
+                }
+
+                function refreshAutoNamePreview() {
+                    const manualName = (eventNameInput.value || '').trim();
+                    const generated = buildAutoName();
+
+                    if (!manualName && generated) {
+                        autoNamePreview.classList.remove('hidden');
+                        autoNamePreview.innerHTML = 'الاسم التلقائي المقترح: <strong>' + generated + '</strong>';
+                    } else {
+                        autoNamePreview.classList.add('hidden');
+                        autoNamePreview.innerHTML = '';
+                    }
+                }
+
+                function getAllDateInputs() {
+                    return Array.from(datesList.querySelectorAll('input[name="event_multi_dates[]"]'));
                 }
 
                 function findDuplicate(value, current) {
@@ -168,12 +246,10 @@
                 function validateUniqueDatesOnChange(input) {
                     if (findDuplicate(input.value, input)) {
                         showDuplicateError('هذا اليوم مكرر بالفعل. اختر يومًا مختلفًا.');
-                        // reset the conflicting input
                         input.value = '';
                         input.focus();
                         return false;
                     }
-                    // if no duplicates remain, hide error
                     const hasDup = hasAnyDuplicates();
                     if (!hasDup) hideDuplicateError();
                     return true;
@@ -185,36 +261,33 @@
                     return uniq.size !== vals.length;
                 }
 
-                // Toggle sections
                 function refreshMode() {
                     const on = isRecursive.checked;
                     singleWrap.classList.toggle('hidden', on);
                     multiWrap.classList.toggle('hidden', !on);
 
-                    // toggle required on fields
-                    document.getElementById('event_start_date').required = !on;
-                    document.getElementById('event_end_date').required = !on;
+                    startDateInput.required = !on;
+                    endDateInput.required = false;
 
-                    // If switched to recursive and there are no date rows, add one
                     if (on && datesList.children.length === 0) addRow();
+                    refreshAutoNamePreview();
                 }
 
                 function addRow(val = '') {
                     const row = document.createElement('div');
                     row.className = 'flex items-center gap-3';
                     row.innerHTML = `
-            <input type="date" name="event_multi_dates[]" value="${val}"
-                   class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
-                   required>
-            <button type="button"
-                    class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
-                إزالة
-            </button>
-        `;
+                        <input type="date" name="event_multi_dates[]" value="${val}"
+                            class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                            required>
+                        <button type="button"
+                                class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
+                            إزالة
+                        </button>
+                    `;
                     datesList.appendChild(row);
 
                     const input = row.querySelector('input[type="date"]');
-                    // NEW: validate uniqueness when a date changes
                     input.addEventListener('change', () => validateUniqueDatesOnChange(input));
 
                     hookRemove(row.querySelector('.remove-date'));
@@ -224,22 +297,72 @@
                     btn.addEventListener('click', function() {
                         const rows = datesList.querySelectorAll('div.flex.items-center.gap-3');
                         if (rows.length <= 1) {
-                            // always keep at least one input visible in recursive mode
                             const input = rows[0].querySelector('input[type="date"]');
                             input.value = '';
                         } else {
                             btn.closest('div.flex.items-center.gap-3').remove();
                         }
-                        // Re-check duplicates after removal
+
                         if (!hasAnyDuplicates()) hideDuplicateError();
                     });
                 }
 
-                // Initial hooks
+                async function handleMissingEndDate() {
+                    if (isRecursive.checked) return true;
+
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+
+                    if (!startDate) {
+                        alert('يرجى إدخال تاريخ البداية');
+                        startDateInput.focus();
+                        return false;
+                    }
+
+                    if (!endDate) {
+                        const confirmSameDay = confirm('لم يتم اختيار تاريخ النهاية. هل تريد جعله نفس تاريخ البداية؟');
+                        if (!confirmSameDay) {
+                            endDateInput.focus();
+                            return false;
+                        }
+                        endDateInput.value = startDate;
+                    }
+
+                    if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
+                        alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                function fillAutomaticNameIfNeeded() {
+                    const manualName = (eventNameInput.value || '').trim();
+                    if (manualName) return true;
+
+                    const generated = buildAutoName();
+
+                    if (!generated) {
+                        alert('لا يمكن تكوين اسم الحدث تلقائياً قبل اختيار نوع الحدث والقطاع والتاريخ');
+                        return false;
+                    }
+
+                    eventNameInput.value = generated;
+                    return true;
+                }
+
                 isRecursive.addEventListener('change', refreshMode);
                 if (addDateBtn) addDateBtn.addEventListener('click', () => addRow(''));
 
-                // Select2 only for event type (if jQuery/Select2 are present in layout)
+                eventTypeSelect.addEventListener('change', refreshAutoNamePreview);
+                eventNameInput.addEventListener('input', refreshAutoNamePreview);
+                startDateInput.addEventListener('change', refreshAutoNamePreview);
+                endDateInput.addEventListener('change', refreshAutoNamePreview);
+
+                document.querySelectorAll('input[name="qetaa_id[]"]').forEach(cb => {
+                    cb.addEventListener('change', refreshAutoNamePreview);
+                });
+
                 $(document).ready(function() {
                     if (typeof $.fn.select2 === 'function') {
                         $('#event_type_id').select2({
@@ -249,7 +372,6 @@
                         });
                     }
 
-                    // Visual feedback for qetaa checkboxes
                     $('input[name="qetaa_id[]"]').on('change', function() {
                         const label = $(this).parent();
                         if ($(this).is(':checked')) {
@@ -262,13 +384,11 @@
                         }
                     });
 
-                    // Form validation
-                    $('#regForm').on('submit', function(e) {
+                    $('#regForm').on('submit', async function(e) {
                         const eventType = $('#event_type_id').val();
-                        const eventName = $('#event_name').val();
                         const qetaaChecked = $('input[name="qetaa_id[]"]:checked').length;
 
-                        if (!eventType || !eventName || qetaaChecked === 0) {
+                        if (!eventType || qetaaChecked === 0) {
                             e.preventDefault();
                             if (qetaaChecked === 0) qetaaErr.classList.remove('hidden');
                             alert('يرجى ملء جميع الحقول المطلوبة');
@@ -276,20 +396,12 @@
                         }
 
                         if (!isRecursive.checked) {
-                            const startDate = $('#event_start_date').val();
-                            const endDate = $('#event_end_date').val();
-                            if (!startDate || !endDate) {
+                            const validDates = await handleMissingEndDate();
+                            if (!validDates) {
                                 e.preventDefault();
-                                alert('يرجى إدخال تاريخ البداية والنهاية');
-                                return false;
-                            }
-                            if (new Date(startDate) > new Date(endDate)) {
-                                e.preventDefault();
-                                alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
                                 return false;
                             }
                         } else {
-                            // recursive mode: ensure we have at least one date and all filled and unique
                             const inputs = getAllDateInputs();
                             if (inputs.length === 0) {
                                 e.preventDefault();
@@ -297,6 +409,7 @@
                                 alert('يرجى إضافة يوم واحد على الأقل');
                                 return false;
                             }
+
                             for (const r of inputs) {
                                 if (!r.value) {
                                     e.preventDefault();
@@ -305,20 +418,51 @@
                                     return false;
                                 }
                             }
-                            // NEW: block duplicates on submit
+
                             if (hasAnyDuplicates()) {
                                 e.preventDefault();
                                 showDuplicateError();
                                 alert('لا يمكن تكرار نفس اليوم أكثر من مرة.');
                                 return false;
                             }
+
                             hideDuplicateError();
+
+                            // For recursive mode, if name empty, generate from first and last chosen day
+                            if (!eventNameInput.value.trim()) {
+                                const values = inputs.map(i => i.value).filter(Boolean).sort();
+                                const firstDate = values[0] || '';
+                                const lastDate = values[values.length - 1] || firstDate;
+
+                                const eventTypeName = getSelectedEventTypeName();
+                                const qetaaNames = getSelectedQetaaNames();
+
+                                const generated = [
+                                    eventTypeName,
+                                    qetaaNames.join(' - '),
+                                    firstDate && lastDate ? (firstDate + ' إلى ' + lastDate) :
+                                    firstDate
+                                ].filter(Boolean).join(' - ');
+
+                                if (!generated) {
+                                    e.preventDefault();
+                                    alert('لا يمكن تكوين اسم الحدث تلقائياً');
+                                    return false;
+                                }
+
+                                eventNameInput.value = generated;
+                            }
+                        }
+
+                        if (!fillAutomaticNameIfNeeded()) {
+                            e.preventDefault();
+                            return false;
                         }
                     });
                 });
 
-                // Set initial state
                 refreshMode();
+                refreshAutoNamePreview();
             })();
         </script>
     @endpush

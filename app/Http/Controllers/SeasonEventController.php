@@ -9,18 +9,26 @@ use Exception;
 
 class SeasonEventController extends Controller
 {
-    public function index()
-    {
-        $seasonEvents = DB::select("
-            SELECT se.SeasonEventID, s.SeasonName AS SeasonName, s.SeasonYear, e.EventName, e.EventStartDate, e.EventEndDate
-            FROM SeasonEvent se
-            INNER JOIN Season s ON se.SeasonID = s.SeasonID
-            INNER JOIN Event e ON se.EventID = e.EventID
-            ORDER BY s.SeasonYear DESC, s.SeasonName;
-        ");
+public function index()
+{
+    $seasonEvents = DB::select("
+        SELECT 
+            se.SeasonEventID,
+            s.SeasonName AS SeasonName,
+            s.SeasonYear,
+            e.EventName,
+            e.EventStartDate,
+            e.EventEndDate,
+            et.EventTypeName
+        FROM SeasonEvent se
+        INNER JOIN Season s ON se.SeasonID = s.SeasonID
+        INNER JOIN Event e ON se.EventID = e.EventID
+        INNER JOIN EventType et ON e.EventTypeID = et.EventTypeID
+        ORDER BY s.SeasonYear DESC, s.SeasonName
+    ");
 
-        return view("season-event.index", ['seasonEvents' => $seasonEvents]);
-    }
+    return view('season-event.index', ['seasonEvents' => $seasonEvents]);
+}
 
     public function create()
     {

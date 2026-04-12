@@ -27,8 +27,26 @@
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
+                'key' => 'EventTypeName',
+                'label' => 'نوع الحدث',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-900 font-medium',
+            ],
+            [
                 'key' => 'EventName',
                 'label' => 'اسم الحدث',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-900 font-medium',
+            ],
+            [
+                'key' => 'EventStartDate',
+                'label' => 'تاريخ بدء الحدث',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-900 font-medium',
+            ],
+            [
+                'key' => 'EventEndDate',
+                'label' => 'تاريخ انتهاء الحدث',
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
