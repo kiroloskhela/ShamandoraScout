@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\GenericUser;
-use Illuminate\Contracts\Auth\Authenticatable; // <-- use the interface
+use Illuminate\Contracts\Auth\Authenticatable;
 
 class LoginController extends Controller
 {
-    /**
-     * API Login: Accepts person_id and person_password, returns JSON success/failure
-     */
- 
     public function show()
     {
         return view('login');
@@ -22,49 +19,51 @@ class LoginController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $personId = (string) $request->input('person_id');
-        $plain    = (string) $request->input('person_password');
+        $personId = (string) $request->validated()['person_id'];
+        $plainPassword = (string) $request->validated()['person_password'];
 
-        // 1) Fetch user row
         $user = DB::table('PersonInformation')
             ->where('PersonID', $personId)
             ->first();
 
         if (!$user) {
-            return response('No User Found!', 404);
+            return $this->invalidLogin($request);
         }
 
-        // 2) Fetch password row
         $pwdRow = DB::table('PersonSystemPassword')
             ->where('PersonID', $personId)
             ->first();
 
-        if (!$pwdRow) {
-            return response('Wrong Password', 422);
+        if (!$pwdRow || empty($pwdRow->Password)) {
+            return $this->invalidLogin($request);
         }
 
-        // 3) Secure hash comparison
-        if (!\Illuminate\Support\Facades\Hash::check($plain, $pwdRow->Password)) {
-            return response('Wrong Password', 422);
+        if (!Hash::check($plainPassword, $pwdRow->Password)) {
+            return $this->invalidLogin($request);
         }
 
-        // 4) Build a GenericUser with an `id` key (required by Auth)
         $userData = (array) $user;
         $userData['id'] = $user->PersonID;
 
-        // 5) Log in and regenerate session
         $genericUser = new GenericUser($userData);
+
         Auth::login($genericUser);
         $request->session()->regenerate();
 
-        return method_exists($this, 'authenticated')
-            ? $this->authenticated($request, $genericUser)
-            : redirect()->intended('/');
+        return redirect()->intended('/');
     }
 
-    // IMPORTANT: type-hint the interface, not App\Models\User
+    protected function invalidLogin(Request $request)
+    {
+        return back()
+            ->withErrors([
+                'person_id' => 'بيانات الدخول غير صحيحة.',
+            ])
+            ->withInput($request->only('person_id'));
+    }
+
     protected function authenticated(Request $request, Authenticatable $user)
     {
-        return redirect()->intended();
+        return redirect()->intended('/');
     }
 }
