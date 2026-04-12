@@ -1049,6 +1049,7 @@ private function finalizeTempLiveformFile(?string $path): ?string
 public function show($id)
 {
     $person = DB::table('PersonInformation')
+        ->leftJoin('PersonImages', 'PersonImages.PersonID', '=', 'PersonInformation.PersonID')
         ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
         ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID', '=', 'PersonInformation.PersonID')
         ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
@@ -1064,13 +1065,14 @@ public function show($id)
         ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
         ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
         ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
-        ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
         ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
         ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
         ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
         ->where('PersonInformation.PersonID', $id)
         ->select(
             'PersonInformation.*',
+            'PersonImages.PersonSystemImagePath',
+            'PersonImages.ScoutOfficialUniformImagePath',
             'BloodType.BloodTypeName',
             'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
             'PersonJob.JobName',
@@ -1159,6 +1161,7 @@ public function show($id)
         ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
         ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
         ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+        ->leftJoin('PersonImages', 'PersonImages.PersonID', '=', 'PersonInformation.PersonID')
         ->where('PersonInformation.PersonID', $id)
         ->select(
             'PersonInformation.*',
@@ -1196,7 +1199,9 @@ public function show($id)
             'PersonalPhysicalAddress.ManteqaID',
             'PersonalPhysicalAddress.DistrictID',
             'Manteqa.ManteqaName',
-            'Districts.DistrictName'
+            'Districts.DistrictName',
+            'PersonImages.PersonSystemImagePath',
+            'PersonImages.ScoutOfficialUniformImagePath',
         )
         ->first();
 
@@ -1226,41 +1231,74 @@ public function show($id)
     ]);
 }
     
-   public function updates(Request $request, $id)
+public function updates(Request $request, $id)
 {
-    $raqamQawmyObject = DB::selectOne(
-        'SELECT COUNT(*) AS `counts` FROM PersonInformation WHERE RaqamQawmy=? AND PersonID!=?;',
-        [$request->input_raqam_qawmy, $id]
-    );
+    $personInfo = DB::table('PersonInformation')->where('PersonID', $id)->first();
 
-    $raqamQawmyCounts = $raqamQawmyObject->counts;
-
-    if ($raqamQawmyCounts > 0) {
-        return view('person.person-already-exists');
+    if (!$personInfo) {
+        return view('person.entry-error');
     }
 
-    $request->validate([
-        'personal_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
-        'scout_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
-    ]);
+    // Only check duplicate national ID if user actually sent one
+    if ($request->filled('input_raqam_qawmy')) {
+        $raqamQawmyObject = DB::selectOne(
+            'SELECT COUNT(*) AS counts FROM PersonInformation WHERE RaqamQawmy = ? AND PersonID != ?',
+            [$request->input_raqam_qawmy, $id]
+        );
+
+        if (($raqamQawmyObject->counts ?? 0) > 0) {
+            return view('person.person-already-exists');
+        }
+    }
 
     $validator = Validator::make($request->all(), [
-        'first_name' => 'required',
-        'second_name' => 'required',
-        'third_name' => 'required',
-        'gender' => 'required',
-        'birthdate_input' => 'required',
-        'joining_year_input' => 'required',
-        'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-        'blood_type_input' => 'required',
-        'personal_phone_number' => 'required|min_digits:11|max_digits:11',
-        'building_number' => 'required',
-        'floor_number' => 'required',
-        'appartment_number' => 'required',
-        'sub_street_name' => 'required',
-        'manteqa_id' => 'required',
-        'district_id' => 'required',
-        'sana_marhala_id' => 'required'
+        'first_name' => 'sometimes|nullable|string|max:255',
+        'second_name' => 'sometimes|nullable|string|max:255',
+        'third_name' => 'sometimes|nullable|string|max:255',
+        'fourth_name' => 'sometimes|nullable|string|max:255',
+        'gender' => 'sometimes|nullable|in:Male,Female',
+        'birthdate_input' => 'sometimes|nullable|date',
+        'joining_year_input' => 'sometimes|nullable|integer',
+        'input_raqam_qawmy' => 'sometimes|nullable|digits:14',
+        'blood_type_input' => 'sometimes|nullable|integer',
+        'email_input' => 'sometimes|nullable|email|max:255',
+        'inputFacebookLink' => 'sometimes|nullable|url|max:1000',
+        'inputInstagramLink' => 'sometimes|nullable|url|max:1000',
+
+        'personal_phone_number' => 'sometimes|nullable|digits_between:11,11',
+        'father_phone_number' => 'sometimes|nullable|digits_between:11,11',
+        'mother_phone_number' => 'sometimes|nullable|digits_between:11,11',
+        'home_phone_number' => 'sometimes|nullable|string|max:50',
+        'has_whatsapp' => 'sometimes|nullable|in:0,1',
+
+        'building_number' => 'sometimes|nullable|string|max:255',
+        'floor_number' => 'sometimes|nullable|string|max:255',
+        'appartment_number' => 'sometimes|nullable|string|max:255',
+        'main_street_name' => 'sometimes|nullable|string|max:255',
+        'sub_street_name' => 'sometimes|nullable|string|max:255',
+        'nearest_landmark' => 'sometimes|nullable|string|max:1000',
+        'manteqa_id' => 'sometimes|nullable|integer',
+        'district_id' => 'sometimes|nullable|integer',
+
+        'sana_marhala_id' => 'sometimes|nullable|integer',
+        'person_job' => 'sometimes|nullable|string|max:255',
+        'person_job_place' => 'sometimes|nullable|string|max:255',
+        'school_name' => 'sometimes|nullable|string|max:255',
+        'school_grad_year' => 'sometimes|nullable|string|max:50',
+        'person_faculty' => 'sometimes|nullable|integer',
+        'person_university' => 'sometimes|nullable|integer',
+        'university_grad_year' => 'sometimes|nullable|string|max:50',
+        'spiritual_father' => 'sometimes|nullable|string|max:255',
+        'spiritual_father_church' => 'sometimes|nullable|string|max:255',
+
+        'rotba_kashfeyya_id' => 'sometimes|nullable|integer',
+        'betaka_id' => 'sometimes|nullable|integer',
+
+        'personal_image' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+        'scout_image' => 'sometimes|nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+
+        'questions' => 'sometimes|array',
+        'questions.*' => 'nullable|string',
     ]);
 
     if ($validator->fails()) {
@@ -1270,12 +1308,10 @@ public function show($id)
     try {
         DB::beginTransaction();
 
-        $oldPerson = DB::table('PersonInformation')
-            ->where('PersonID', $id)
-            ->first();
+        $oldImages = DB::table('PersonImages')->where('PersonID', $id)->first();
 
-        $personalImagePath = $oldPerson->PersonalImagePath ?? null;
-        $scoutImagePath = $oldPerson->ScoutImagePath ?? null;
+        $personalImagePath = $oldImages->PersonalImagePath ?? null;
+        $scoutImagePath = $oldImages->ScoutImagePath ?? null;
 
         if ($request->hasFile('personal_image')) {
             if ($personalImagePath && Storage::disk('public')->exists($personalImagePath)) {
@@ -1293,87 +1329,203 @@ public function show($id)
             $scoutImagePath = $request->file('scout_image')->store('persons/scout', 'public');
         }
 
-        DB::table('PersonInformation')->where('PersonID', $id)->update([
-            'FirstName' => $request->first_name,
-            'SecondName' => $request->second_name,
-            'ThirdName' => $request->third_name,
-            'FourthName' => $request->fourth_name,
-            'Gender' => $request->gender,
-            'DateOfBirth' => $request->birthdate_input,
-            'RaqamQawmy' => $request->input_raqam_qawmy,
-            'ScoutJoiningYear' => $request->joining_year_input,
-            'BloodTypeID' => $request->blood_type_input,
-            'FacebookProfileURL' => $request->inputFacebookLink,
-            'InstagramProfileURL' => $request->inputInstagramLink,
-            'PersonalEmail' => $request->email_input,
-            'RequestPersonID' => $request->RequestPersonID,
-            'PersonalImagePath' => $personalImagePath,
-            'ScoutImagePath' => $scoutImagePath,
-        ]);
+        // PersonInformation
+        $personInformationData = [];
 
-        DB::table('PersonPhoneNumbers')->where('PersonID', $id)->update([
-            'PersonPersonalMobileNumber' => $request->personal_phone_number,
-            'FatherMobileNumber' => $request->father_phone_number,
-            'MotherMobileNumber' => $request->mother_phone_number,
-            'HomePhoneNumber' => $request->home_phone_number,
-            'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-        ]);
+        if ($request->exists('first_name')) $personInformationData['FirstName'] = $request->first_name;
+        if ($request->exists('second_name')) $personInformationData['SecondName'] = $request->second_name;
+        if ($request->exists('third_name')) $personInformationData['ThirdName'] = $request->third_name;
+        if ($request->exists('fourth_name')) $personInformationData['FourthName'] = $request->fourth_name;
+        if ($request->exists('gender')) $personInformationData['Gender'] = $request->gender;
+        if ($request->exists('birthdate_input')) $personInformationData['DateOfBirth'] = $request->birthdate_input;
+        if ($request->exists('input_raqam_qawmy')) $personInformationData['RaqamQawmy'] = $request->input_raqam_qawmy;
+        if ($request->exists('joining_year_input')) $personInformationData['ScoutJoiningYear'] = $request->joining_year_input;
+        if ($request->exists('blood_type_input')) $personInformationData['BloodTypeID'] = $request->blood_type_input;
+        if ($request->exists('inputFacebookLink')) $personInformationData['FacebookProfileURL'] = $request->inputFacebookLink;
+        if ($request->exists('inputInstagramLink')) $personInformationData['InstagramProfileURL'] = $request->inputInstagramLink;
+        if ($request->exists('email_input')) $personInformationData['PersonalEmail'] = $request->email_input;
+        if ($request->exists('RequestPersonID')) $personInformationData['RequestPersonID'] = $request->RequestPersonID;
 
-        DB::table('PersonJob')->where('PersonID', $id)->update([
-            'JobName' => $request->person_job,
-            'WorkPlace' => $request->person_job_place
-        ]);
+        if (!empty($personInformationData)) {
+            DB::table('PersonInformation')->where('PersonID', $id)->update($personInformationData);
+        }
 
-        DB::table('PersonLearningInformation')->where('PersonID', $id)->update([
-            'SchoolName' => $request->school_name,
-            'SchoolGraduationYear' => $request->school_grad_year,
-            'FacultyID' => $request->person_faculty,
-            'UniversityID' => $request->person_university,
-            'ActualFacultyGraduationYear' => $request->university_grad_year
-        ]);
+        // PersonPhoneNumbers
+        $phoneData = [];
+        if ($request->exists('personal_phone_number')) $phoneData['PersonPersonalMobileNumber'] = $request->personal_phone_number;
+        if ($request->exists('father_phone_number')) $phoneData['FatherMobileNumber'] = $request->father_phone_number;
+        if ($request->exists('mother_phone_number')) $phoneData['MotherMobileNumber'] = $request->mother_phone_number;
+        if ($request->exists('home_phone_number')) $phoneData['HomePhoneNumber'] = $request->home_phone_number;
+        if ($request->exists('has_whatsapp')) $phoneData['IsOPersonalPhoneNumberHavingWhatsapp'] = $request->has_whatsapp;
 
-        DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->update([
-            'RotbaID' => $request->rotba_kashfeyya_id
-        ]);
+        if (!empty($phoneData)) {
+            $exists = DB::table('PersonPhoneNumbers')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonPhoneNumbers')->where('PersonID', $id)->update($phoneData);
+            } else {
+                $phoneData['PersonID'] = $id;
+                DB::table('PersonPhoneNumbers')->insert($phoneData);
+            }
+        }
 
-        DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->update([
-            'EgazetBetakatTaqaddomID' => $request->betaka_id
-        ]);
+        // PersonJob
+        $jobData = [];
+        if ($request->exists('person_job')) $jobData['JobName'] = $request->person_job;
+        if ($request->exists('person_job_place')) $jobData['WorkPlace'] = $request->person_job_place;
 
-        DB::table('PersonSanaMarhala')->where('PersonID', $id)->update([
-            'SanaMarhalaID' => $request->sana_marhala_id
-        ]);
+        if (!empty($jobData)) {
+            $exists = DB::table('PersonJob')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonJob')->where('PersonID', $id)->update($jobData);
+            } else {
+                $jobData['PersonID'] = $id;
+                DB::table('PersonJob')->insert($jobData);
+            }
+        }
 
-        DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->update([
-            'SpiritualFatherName' => $request->spiritual_father,
-            'SpiritualFatherChurchName' => $request->spiritual_father_church
-        ]);
+        // PersonLearningInformation
+        $learningData = [];
+        if ($request->exists('school_name')) $learningData['SchoolName'] = $request->school_name;
+        if ($request->exists('school_grad_year')) $learningData['SchoolGraduationYear'] = $request->school_grad_year;
+        if ($request->exists('person_faculty')) $learningData['FacultyID'] = $request->person_faculty;
+        if ($request->exists('person_university')) $learningData['UniversityID'] = $request->person_university;
+        if ($request->exists('university_grad_year')) $learningData['ActualFacultyGraduationYear'] = $request->university_grad_year;
 
-        DB::table('PersonalPhysicalAddress')->where('PersonID', $id)->update([
-            'BuildingNumber' => $request->building_number,
-            'FloorNumber' => $request->floor_number,
-            'AppartmentNumber' => $request->appartment_number,
-            'MainStreetName' => $request->main_street_name,
-            'SubStreetName' => $request->sub_street_name,
-            'ManteqaID' => $request->manteqa_id,
-            'DistrictID' => is_null($request->district_id) ? 1 : $request->district_id,
-            'NearestLandmark' => $request->nearest_landmark
-        ]);
+        if (!empty($learningData)) {
+            $exists = DB::table('PersonLearningInformation')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonLearningInformation')->where('PersonID', $id)->update($learningData);
+            } else {
+                $learningData['PersonID'] = $id;
+                DB::table('PersonLearningInformation')->insert($learningData);
+            }
+        }
 
+        // PersonRotbaKashfeyya
+        if ($request->exists('rotba_kashfeyya_id')) {
+            $exists = DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->update([
+                    'RotbaID' => $request->rotba_kashfeyya_id
+                ]);
+            } else {
+                DB::table('PersonRotbaKashfeyya')->insert([
+                    'PersonID' => $id,
+                    'RotbaID' => $request->rotba_kashfeyya_id
+                ]);
+            }
+        }
+
+        // PersonEgazetBetakatTaqaddom
+        if ($request->exists('betaka_id')) {
+            $exists = DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->update([
+                    'EgazetBetakatTaqaddomID' => $request->betaka_id
+                ]);
+            } else {
+                DB::table('PersonEgazetBetakatTaqaddom')->insert([
+                    'PersonID' => $id,
+                    'EgazetBetakatTaqaddomID' => $request->betaka_id
+                ]);
+            }
+        }
+
+        // PersonSanaMarhala
+        if ($request->exists('sana_marhala_id')) {
+            $exists = DB::table('PersonSanaMarhala')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonSanaMarhala')->where('PersonID', $id)->update([
+                    'SanaMarhalaID' => $request->sana_marhala_id
+                ]);
+            } else {
+                DB::table('PersonSanaMarhala')->insert([
+                    'PersonID' => $id,
+                    'SanaMarhalaID' => $request->sana_marhala_id
+                ]);
+            }
+        }
+
+        // PersonSpiritualFatherInformation
+        $spiritualData = [];
+        if ($request->exists('spiritual_father')) $spiritualData['SpiritualFatherName'] = $request->spiritual_father;
+        if ($request->exists('spiritual_father_church')) $spiritualData['SpiritualFatherChurchName'] = $request->spiritual_father_church;
+
+        if (!empty($spiritualData)) {
+            $exists = DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->update($spiritualData);
+            } else {
+                $spiritualData['PersonID'] = $id;
+                DB::table('PersonSpiritualFatherInformation')->insert($spiritualData);
+            }
+        }
+
+        // PersonalPhysicalAddress
+        $addressData = [];
+        if ($request->exists('building_number')) $addressData['BuildingNumber'] = $request->building_number;
+        if ($request->exists('floor_number')) $addressData['FloorNumber'] = $request->floor_number;
+        if ($request->exists('appartment_number')) $addressData['AppartmentNumber'] = $request->appartment_number;
+        if ($request->exists('main_street_name')) $addressData['MainStreetName'] = $request->main_street_name;
+        if ($request->exists('sub_street_name')) $addressData['SubStreetName'] = $request->sub_street_name;
+        if ($request->exists('manteqa_id')) $addressData['ManteqaID'] = $request->manteqa_id;
+        if ($request->exists('district_id')) $addressData['DistrictID'] = $request->district_id;
+        if ($request->exists('nearest_landmark')) $addressData['NearestLandmark'] = $request->nearest_landmark;
+
+        if (!empty($addressData)) {
+            $exists = DB::table('PersonalPhysicalAddress')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonalPhysicalAddress')->where('PersonID', $id)->update($addressData);
+            } else {
+                $addressData['PersonID'] = $id;
+                DB::table('PersonalPhysicalAddress')->insert($addressData);
+            }
+        }
+
+        // PersonImages
+        if ($request->hasFile('personal_image') || $request->hasFile('scout_image')) {
+            $imageData = [
+                'PersonalImagePath' => $personalImagePath,
+                'ScoutImagePath' => $scoutImagePath,
+            ];
+
+            $exists = DB::table('PersonImages')->where('PersonID', $id)->exists();
+            if ($exists) {
+                DB::table('PersonImages')->where('PersonID', $id)->update($imageData);
+            } else {
+                $imageData['PersonID'] = $id;
+                DB::table('PersonImages')->insert($imageData);
+            }
+        }
+
+        // Questions
         if ($request->has('questions')) {
             foreach ($request->questions as $questionId => $answer) {
-                DB::table('PersonEntryQuestions')
+                $exists = DB::table('PersonEntryQuestions')
                     ->where('PersonID', $id)
                     ->where('QuestionID', $questionId)
-                    ->update([
+                    ->exists();
+
+                if ($exists) {
+                    DB::table('PersonEntryQuestions')
+                        ->where('PersonID', $id)
+                        ->where('QuestionID', $questionId)
+                        ->update([
+                            'Answer' => $answer
+                        ]);
+                } else {
+                    DB::table('PersonEntryQuestions')->insert([
+                        'PersonID' => $id,
+                        'QuestionID' => $questionId,
                         'Answer' => $answer
                     ]);
+                }
             }
         }
 
         DB::commit();
-
         return redirect()->route('person.index');
+
     } catch (Exception $e) {
         DB::rollBack();
         dd($e->getMessage());
