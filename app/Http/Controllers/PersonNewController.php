@@ -1071,8 +1071,8 @@ public function show($id)
         ->where('PersonInformation.PersonID', $id)
         ->select(
             'PersonInformation.*',
-            'PersonImages.PersonSystemImagePath',
-            'PersonImages.ScoutOfficialUniformImagePath',
+            'PersonImages.PersonSystemImagePath as PersonalImagePath',
+            'PersonImages.ScoutOfficialUniformImagePath as ScoutImagePath',
             'BloodType.BloodTypeName',
             'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
             'PersonJob.JobName',
@@ -1200,8 +1200,8 @@ public function show($id)
             'PersonalPhysicalAddress.DistrictID',
             'Manteqa.ManteqaName',
             'Districts.DistrictName',
-            'PersonImages.PersonSystemImagePath',
-            'PersonImages.ScoutOfficialUniformImagePath',
+            'PersonImages.PersonSystemImagePath as PersonalImagePath',
+            'PersonImages.ScoutOfficialUniformImagePath as ScoutImagePath',
         )
         ->first();
 
@@ -1310,23 +1310,23 @@ public function updates(Request $request, $id)
 
         $oldImages = DB::table('PersonImages')->where('PersonID', $id)->first();
 
-        $personalImagePath = $oldImages->PersonalImagePath ?? null;
-        $scoutImagePath = $oldImages->ScoutImagePath ?? null;
+        $personSystemImagePath = $oldImages->PersonSystemImagePath ?? null;
+        $scoutOfficialUniformImagePath = $oldImages->ScoutOfficialUniformImagePath ?? null;
 
         if ($request->hasFile('personal_image')) {
-            if ($personalImagePath && Storage::disk('public')->exists($personalImagePath)) {
-                Storage::disk('public')->delete($personalImagePath);
+            if ($personSystemImagePath && Storage::disk('public')->exists($personSystemImagePath)) {
+                Storage::disk('public')->delete($personSystemImagePath);
             }
 
-            $personalImagePath = $request->file('personal_image')->store('persons/personal', 'public');
+            $personSystemImagePath = $request->file('personal_image')->store('persons/personal', 'public');
         }
 
         if ($request->hasFile('scout_image')) {
-            if ($scoutImagePath && Storage::disk('public')->exists($scoutImagePath)) {
-                Storage::disk('public')->delete($scoutImagePath);
+            if ($scoutOfficialUniformImagePath && Storage::disk('public')->exists($scoutOfficialUniformImagePath)) {
+                Storage::disk('public')->delete($scoutOfficialUniformImagePath);
             }
 
-            $scoutImagePath = $request->file('scout_image')->store('persons/scout', 'public');
+            $scoutOfficialUniformImagePath = $request->file('scout_image')->store('persons/scout', 'public');
         }
 
         // PersonInformation
@@ -1485,8 +1485,8 @@ public function updates(Request $request, $id)
         // PersonImages
         if ($request->hasFile('personal_image') || $request->hasFile('scout_image')) {
             $imageData = [
-                'PersonalImagePath' => $personalImagePath,
-                'ScoutImagePath' => $scoutImagePath,
+                'PersonSystemImagePath' => $personSystemImagePath,
+                'ScoutOfficialUniformImagePath' => $scoutOfficialUniformImagePath,
             ];
 
             $exists = DB::table('PersonImages')->where('PersonID', $id)->exists();
