@@ -1046,38 +1046,76 @@ private function finalizeTempLiveformFile(?string $path): ?string
             * @param  int  $id
             * @return Response
             */
-        public function show($id)
-        {
-            $person = DB::table('PersonInformation')
-            ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
-            ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID' , '=', 'PersonInformation.PersonID')
-            ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
-            ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
-            ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
-            ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
-            ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
-            ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
-            ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
-            ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
-            ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
-            ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
-            ->where('PersonInformation.PersonID', $id)->get()->first();
-            
-            $questions = DB::table('PersonEntryQuestions')
-                    ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
-                    ->select('MarhalaEntryQuestions.QuestionText','PersonEntryQuestions.Answer')
-                    ->where('PersonEntryQuestions.PersonID', $id)->get();
-            
-            //return $person;
-            return view('person.person-show', array('person'=>$person, 'questions'=>$questions));
-        }
+public function show($id)
+{
+    $person = DB::table('PersonInformation')
+        ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
+        ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
+        ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
+        ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
+        ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
+        ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
+        ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
+        ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
+        ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
+        ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
+        ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+        ->where('PersonInformation.PersonID', $id)
+        ->select(
+            'PersonInformation.*',
+            'BloodType.BloodTypeName',
+            'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
+            'PersonJob.JobName',
+            'PersonJob.WorkPlace',
+            'PersonLearningInformation.SchoolName',
+            'PersonLearningInformation.SchoolGraduationYear',
+            'PersonLearningInformation.ActualFacultyGraduationYear',
+            'Faculty.FacultyName',
+            'University.UniversityName',
+            'PersonPhoneNumbers.PersonPersonalMobileNumber',
+            'PersonPhoneNumbers.FatherMobileNumber',
+            'PersonPhoneNumbers.MotherMobileNumber',
+            'PersonPhoneNumbers.HomePhoneNumber',
+            'PersonPhoneNumbers.IsOPersonalPhoneNumberHavingWhatsapp',
+            'Qetaa.QetaaName',
+            'RotbaInformation.RotbaName',
+            'SanaMarhala.SanaMarhalaName',
+            'PersonSpiritualFatherInformation.SpiritualFatherName',
+            'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
+            'PersonalPhysicalAddress.BuildingNumber',
+            'PersonalPhysicalAddress.FloorNumber',
+            'PersonalPhysicalAddress.AppartmentNumber',
+            'PersonalPhysicalAddress.MainStreetName',
+            'PersonalPhysicalAddress.SubStreetName',
+            'PersonalPhysicalAddress.NearestLandmark',
+            'Manteqa.ManteqaName',
+            'Districts.DistrictName'
+        )
+        ->first();
+
+    $questions = DB::table('PersonEntryQuestions')
+        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
+        ->select(
+            'PersonEntryQuestions.QuestionID',
+            'MarhalaEntryQuestions.QuestionText',
+            'PersonEntryQuestions.Answer'
+        )
+        ->where('PersonEntryQuestions.PersonID', $id)
+        ->get();
+
+    return view('person.person-show', [
+        'person' => $person,
+        'questions' => $questions,
+    ]);
+}
     
         /**
             * Show the form for editing the specified resource.
@@ -1085,211 +1123,263 @@ private function finalizeTempLiveformFile(?string $path): ?string
             * @param  int  $id
             * @return Response
             */
+
+
         public function edit($id)
-        {
-            $marahel = DB::table('Marhala')->get();
-            $rotab = DB::table('RotbaInformation')->get();
-            $seneen_marahel = DB::table('SanaMarhala')->get();
-            $questionTypes = DB::table('QuestionsTypes')->get();
-            $blood = DB::table('BloodType')->get();
-            $betakat = DB::table('EgazetBetakatTaqaddom')->get();
-            $manateq = DB::table('Manteqa')->get();
-            $districts = DB::table('Districts')->get();
-            $qetaat = DB::table('Qetaa')->get();
-            $faculties = DB::table('Faculty')->get();
-            $universities = DB::table('University')->get();
-            $entryQuestions = DB::table('MarhalaEntryQuestions')->where('QuestionID', $id)->first();
-            $person = DB::table('PersonInformation')
-            ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
-            ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID' , '=', 'PersonInformation.PersonID')
-            ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
-            ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
-            ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
-            ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
-            ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
-            ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
-            ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
-            ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
-            ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
-            ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
-            ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
-            ->where('PersonInformation.PersonID', $id)->get()->first();
-            
-            $questions = DB::table('PersonEntryQuestions')
-                    ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
-                    ->select('MarhalaEntryQuestions.QuestionText','PersonEntryQuestions.Answer')
-                    ->where('PersonEntryQuestions.PersonID', $id)->get();
-            
-            return view('person.person-edit', 
-                        array(
-                            'marahel'=>$marahel, 
-                            'rotab'=>$rotab,
-                            'seneen_marahel'=>$seneen_marahel,
-                            'questionTypes'=>$questionTypes,
-                            'blood'=>$blood,
-                            'betakat'=>$betakat,
-                            'manateq'=>$manateq,
-                            'districts'=>$districts,
-                            'faculties'=>$faculties,
-                            'universities'=>$universities,
-                            'questionTypes'=>$questionTypes,
-                            'entryQuestions'=>$entryQuestions,
-                            'person'=>$person,
-                            'questions'=>$questions,
-                        ));
-            
+{
+    $marahel = DB::table('Marhala')->get();
+    $rotab = DB::table('RotbaInformation')->get();
+    $seneen_marahel = DB::table('SanaMarhala')->get();
+    $questionTypes = DB::table('QuestionsTypes')->get();
+    $blood = DB::table('BloodType')->get();
+    $betakat = DB::table('EgazetBetakatTaqaddom')->get();
+    $manateq = DB::table('Manteqa')->get();
+    $districts = DB::table('Districts')->get();
+    $qetaat = DB::table('Qetaa')->get();
+    $faculties = DB::table('Faculty')->get();
+    $universities = DB::table('University')->get();
+
+    $person = DB::table('PersonInformation')
+        ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
+        ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
+        ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
+        ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
+        ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
+        ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
+        ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
+        ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
+        ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
+        ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
+        ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
+        ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+        ->where('PersonInformation.PersonID', $id)
+        ->select(
+            'PersonInformation.*',
+            'BloodType.BloodTypeName',
+            'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID',
+            'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
+            'PersonJob.JobName',
+            'PersonJob.WorkPlace',
+            'PersonLearningInformation.SchoolName',
+            'PersonLearningInformation.SchoolGraduationYear',
+            'PersonLearningInformation.FacultyID',
+            'PersonLearningInformation.UniversityID',
+            'PersonLearningInformation.ActualFacultyGraduationYear',
+            'Faculty.FacultyName',
+            'University.UniversityName',
+            'PersonPhoneNumbers.PersonPersonalMobileNumber',
+            'PersonPhoneNumbers.FatherMobileNumber',
+            'PersonPhoneNumbers.MotherMobileNumber',
+            'PersonPhoneNumbers.HomePhoneNumber',
+            'PersonPhoneNumbers.IsOPersonalPhoneNumberHavingWhatsapp',
+            'Qetaa.QetaaID',
+            'Qetaa.QetaaName',
+            'RotbaInformation.RotbaID',
+            'RotbaInformation.RotbaName',
+            'SanaMarhala.SanaMarhalaID',
+            'SanaMarhala.SanaMarhalaName',
+            'PersonSpiritualFatherInformation.SpiritualFatherName',
+            'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
+            'PersonalPhysicalAddress.BuildingNumber',
+            'PersonalPhysicalAddress.FloorNumber',
+            'PersonalPhysicalAddress.AppartmentNumber',
+            'PersonalPhysicalAddress.MainStreetName',
+            'PersonalPhysicalAddress.SubStreetName',
+            'PersonalPhysicalAddress.NearestLandmark',
+            'PersonalPhysicalAddress.ManteqaID',
+            'PersonalPhysicalAddress.DistrictID',
+            'Manteqa.ManteqaName',
+            'Districts.DistrictName'
+        )
+        ->first();
+
+    $questions = DB::table('PersonEntryQuestions')
+        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
+        ->select(
+            'PersonEntryQuestions.QuestionID',
+            'MarhalaEntryQuestions.QuestionText',
+            'PersonEntryQuestions.Answer'
+        )
+        ->where('PersonEntryQuestions.PersonID', $id)
+        ->get();
+
+    return view('person.person-edit', [
+        'marahel' => $marahel,
+        'rotab' => $rotab,
+        'seneen_marahel' => $seneen_marahel,
+        'questionTypes' => $questionTypes,
+        'blood' => $blood,
+        'betakat' => $betakat,
+        'manateq' => $manateq,
+        'districts' => $districts,
+        'faculties' => $faculties,
+        'universities' => $universities,
+        'person' => $person,
+        'questions' => $questions,
+    ]);
+}
+    
+   public function updates(Request $request, $id)
+{
+    $raqamQawmyObject = DB::selectOne(
+        'SELECT COUNT(*) AS `counts` FROM PersonInformation WHERE RaqamQawmy=? AND PersonID!=?;',
+        [$request->input_raqam_qawmy, $id]
+    );
+
+    $raqamQawmyCounts = $raqamQawmyObject->counts;
+
+    if ($raqamQawmyCounts > 0) {
+        return view('person.person-already-exists');
+    }
+
+    $request->validate([
+        'personal_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+        'scout_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+    ]);
+
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'second_name' => 'required',
+        'third_name' => 'required',
+        'gender' => 'required',
+        'birthdate_input' => 'required',
+        'joining_year_input' => 'required',
+        'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
+        'blood_type_input' => 'required',
+        'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+        'building_number' => 'required',
+        'floor_number' => 'required',
+        'appartment_number' => 'required',
+        'sub_street_name' => 'required',
+        'manteqa_id' => 'required',
+        'district_id' => 'required',
+        'sana_marhala_id' => 'required'
+    ]);
+
+    if ($validator->fails()) {
+        return view('person.entry-error-repeat-trial');
+    }
+
+    try {
+        DB::beginTransaction();
+
+        $oldPerson = DB::table('PersonInformation')
+            ->where('PersonID', $id)
+            ->first();
+
+        $personalImagePath = $oldPerson->PersonalImagePath ?? null;
+        $scoutImagePath = $oldPerson->ScoutImagePath ?? null;
+
+        if ($request->hasFile('personal_image')) {
+            if ($personalImagePath && Storage::disk('public')->exists($personalImagePath)) {
+                Storage::disk('public')->delete($personalImagePath);
+            }
+
+            $personalImagePath = $request->file('personal_image')->store('persons/personal', 'public');
         }
-    
-        public function updates(Request $request, $id)
-        {
-            
 
-            $raqamQawmyObject = DB::selectOne('SELECT COUNT(*) AS `counts` FROM PersonInformation WHERE RaqamQawmy=? AND PersonID!=?;', [$request->input_raqam_qawmy,$id]);
-            $raqamQawmyCounts = $raqamQawmyObject->counts;
-              
-            
-              if($raqamQawmyCounts>0)
-              {
-                  return view('person.person-already-exists');
-              }
-            
-
-            
-
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'required',
-                'second_name' => 'required',
-                'third_name' => 'required',
-                'gender'=>'required',
-                'birthdate_input' => 'required',
-                'joining_year_input' => 'required',
-                'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-                'blood_type_input'=>'required',
-                'personal_phone_number'=>'required|min_digits:11|max_digits:11',
-                'building_number'=>'required',
-                'floor_number'=>'required',
-                'appartment_number' =>'required',
-                'sub_street_name' => 'required',
-                'manteqa_id'=>'required',
-                'district_id'=>'required',
-                'sana_marhala_id'=>'required'
-            ]);
-     
-            if ($validator->fails()) {
-                return view('person.entry-error-repeat-trial');
+        if ($request->hasFile('scout_image')) {
+            if ($scoutImagePath && Storage::disk('public')->exists($scoutImagePath)) {
+                Storage::disk('public')->delete($scoutImagePath);
             }
 
-            //return $request;
-
-            try{
-            DB::beginTransaction();
-            
-                DB::table('PersonInformation')->where('PersonID',$id)->update(
-                    array(
-                        'FirstName' => $request->first_name,
-                        'SecondName' => $request->second_name,
-                        'ThirdName'   => $request->third_name,
-                        'FourthName' => $request->fourth_name,
-                        'Gender' => $request->gender,
-                        'DateOfBirth' => $request->birthdate_input,
-                        'RaqamQawmy' => $request->input_raqam_qawmy,
-                        'ScoutJoiningYear'  => $request->joining_year_input,
-                        'BloodTypeID' => $request->blood_type_input,
-                        'FacebookProfileURL' =>$request->inputFacebookLink,
-                        'InstagramProfileURL' =>$request->inputInstagramLink,
-                        'PersonalEmail' => $request->email_input,
-                        'RequestPersonID' => $request->RequestPersonID,
-                    )
-                );
-    
-    
-                DB::table('PersonPhoneNumbers')->where('PersonID',$id)->update(
-                    array(
-                        'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                        'FatherMobileNumber' => $request->father_phone_number,
-                        'MotherMobileNumber'   => $request->mother_phone_number,
-                        'HomePhoneNumber' => $request->home_phone_number,
-                        'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-                    )
-                );
-    
-                DB::table('PersonJob')->where('PersonID',$id)->update(
-                    array(
-                        'JobName'=>$request->person_job,
-                        'WorkPlace'=>$request->person_job_place
-                    )
-                );
-    
-                DB::table('PersonLearningInformation')->where('PersonID',$id)->update(
-                    array(
-                        'SchoolName'=>$request->school_name,
-                        'SchoolGraduationYear'=>$request->school_grad_year,
-                        'FacultyID'=>$request->person_faculty,
-                        'UniversityID'=>$request->person_university,
-                        'ActualFacultyGraduationYear'=>$request->university_grad_year
-                    )
-                );
-
-    
-                DB::table('PersonRotbaKashfeyya')->where('PersonID',$id)->update(
-                    array(
-                        'RotbaID'=>$request->rotba_kashfeyya_id
-                    )
-                );
-    
-    
-    
-                DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID',$id)->update(
-                    array(
-                        'EgazetBetakatTaqaddomID'=>$request->betaka_id
-                    )
-                );
-    
-                DB::table('PersonSanaMarhala')->where('PersonID',$id)->update(
-                    array(
-
-                        'SanaMarhalaID'=>$request->sana_marhala_id
-                    )
-                );
-    
-                DB::table('PersonSpiritualFatherInformation')->where('PersonID',$id)->update(
-                    array(
-                        'SpiritualFatherName'=>$request->spiritual_father,
-                        'SpiritualFatherChurchName'=>$request->spiritual_father_church
-                    )
-                );
-    
-    
-                DB::table('PersonalPhysicalAddress')->where('PersonID',$id)->update(
-                    array(
-                        'BuildingNumber'=>$request->building_number,
-                        'FloorNumber'=>$request->floor_number,
-                        'AppartmentNumber'=>$request->appartment_number,
-                        'MainStreetName'=>$request->main_street_name,
-                        'SubStreetName'=>$request->sub_street_name,
-                        'ManteqaID'=>$request->manteqa_id,
-                        'DistrictID'=>is_null($request->district_id)?1:$request->district_id,
-                        'NearestLandmark'=>$request->nearest_landmark
-                    )
-                );
-            }
-            catch(Exception $e)
-            {
-                dd($e->getMessage());
-                DB::rollBack();
-                return view('person.entry-error');
-            }
-
-            DB::commit();
-            
-            return redirect()->route('person.index');
+            $scoutImagePath = $request->file('scout_image')->store('persons/scout', 'public');
         }
+
+        DB::table('PersonInformation')->where('PersonID', $id)->update([
+            'FirstName' => $request->first_name,
+            'SecondName' => $request->second_name,
+            'ThirdName' => $request->third_name,
+            'FourthName' => $request->fourth_name,
+            'Gender' => $request->gender,
+            'DateOfBirth' => $request->birthdate_input,
+            'RaqamQawmy' => $request->input_raqam_qawmy,
+            'ScoutJoiningYear' => $request->joining_year_input,
+            'BloodTypeID' => $request->blood_type_input,
+            'FacebookProfileURL' => $request->inputFacebookLink,
+            'InstagramProfileURL' => $request->inputInstagramLink,
+            'PersonalEmail' => $request->email_input,
+            'RequestPersonID' => $request->RequestPersonID,
+            'PersonalImagePath' => $personalImagePath,
+            'ScoutImagePath' => $scoutImagePath,
+        ]);
+
+        DB::table('PersonPhoneNumbers')->where('PersonID', $id)->update([
+            'PersonPersonalMobileNumber' => $request->personal_phone_number,
+            'FatherMobileNumber' => $request->father_phone_number,
+            'MotherMobileNumber' => $request->mother_phone_number,
+            'HomePhoneNumber' => $request->home_phone_number,
+            'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
+        ]);
+
+        DB::table('PersonJob')->where('PersonID', $id)->update([
+            'JobName' => $request->person_job,
+            'WorkPlace' => $request->person_job_place
+        ]);
+
+        DB::table('PersonLearningInformation')->where('PersonID', $id)->update([
+            'SchoolName' => $request->school_name,
+            'SchoolGraduationYear' => $request->school_grad_year,
+            'FacultyID' => $request->person_faculty,
+            'UniversityID' => $request->person_university,
+            'ActualFacultyGraduationYear' => $request->university_grad_year
+        ]);
+
+        DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->update([
+            'RotbaID' => $request->rotba_kashfeyya_id
+        ]);
+
+        DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->update([
+            'EgazetBetakatTaqaddomID' => $request->betaka_id
+        ]);
+
+        DB::table('PersonSanaMarhala')->where('PersonID', $id)->update([
+            'SanaMarhalaID' => $request->sana_marhala_id
+        ]);
+
+        DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->update([
+            'SpiritualFatherName' => $request->spiritual_father,
+            'SpiritualFatherChurchName' => $request->spiritual_father_church
+        ]);
+
+        DB::table('PersonalPhysicalAddress')->where('PersonID', $id)->update([
+            'BuildingNumber' => $request->building_number,
+            'FloorNumber' => $request->floor_number,
+            'AppartmentNumber' => $request->appartment_number,
+            'MainStreetName' => $request->main_street_name,
+            'SubStreetName' => $request->sub_street_name,
+            'ManteqaID' => $request->manteqa_id,
+            'DistrictID' => is_null($request->district_id) ? 1 : $request->district_id,
+            'NearestLandmark' => $request->nearest_landmark
+        ]);
+
+        if ($request->has('questions')) {
+            foreach ($request->questions as $questionId => $answer) {
+                DB::table('PersonEntryQuestions')
+                    ->where('PersonID', $id)
+                    ->where('QuestionID', $questionId)
+                    ->update([
+                        'Answer' => $answer
+                    ]);
+            }
+        }
+
+        DB::commit();
+
+        return redirect()->route('person.index');
+    } catch (Exception $e) {
+        DB::rollBack();
+        dd($e->getMessage());
+        return view('person.entry-error');
+    }
+}
     
         public function deletes($id)
         {
