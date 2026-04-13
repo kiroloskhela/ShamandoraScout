@@ -60,6 +60,14 @@
                     </div>
 
                     <div class="relative">
+                        <label for="require_custody" class="block mb-2 text-sm text-gray-700">العهده المطلوبة</label>
+                        <textarea id="require_custody" name="require_custody"
+                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
+                                   focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل العهده المطلوبة">{{ $game->RequireCustody }}</textarea>
+                    </div>
+
+                    <div class="relative">
                         <label for="reference_link" class="block mb-2 text-sm text-gray-700">الرابط المرجعي</label>
                         <input type="text" id="reference_link" name="reference_link" value="{{ $game->ReferenceLink }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600

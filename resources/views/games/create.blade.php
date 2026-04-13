@@ -60,23 +60,32 @@
                     </div>
 
                     <div class="relative">
-                        <label for="reference_link" class="block mb-2 text-sm text-gray-700">الرابط المرجعي</label>
-                        <input type="text" id="reference_link" name="reference_link"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                        <label for="require_custody" class="block mb-2 text-sm text-gray-700">العهده المطلوبة</label>
+                        <textarea id="require_custody" name="require_custody"
+                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
                                    focus:border-blue-500 focus:outline-none"
-                            placeholder="ادخل الرابط المرجعي">
-                    </div>
+                            placeholder="ادخل العهده المطلوبة">
+                        </div>
 
-                    <div class="flex justify-center">
-                        <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide 
+                        <div class="relative">
+                            <label for="reference_link" class="block mb-2 text-sm text-gray-700">الرابط المرجعي</label>
+                            <input type="text" id="reference_link" name="reference_link"
+                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                                   focus:border-blue-500 focus:outline-none"
+                                placeholder="ادخل الرابط المرجعي">
+                        </div>
+
+
+                        <div class="flex justify-center">
+                            <button type="submit"
+                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide 
                                    rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">
-                            إضافة اللعبة
-                        </button>
-                    </div>
+                                إضافة اللعبة
+                            </button>
+                        </div>
 
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
 @endsection
