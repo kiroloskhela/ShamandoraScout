@@ -46,7 +46,9 @@ class GamesController extends Controller
                 'PointSystem' => $request->point_system,
                 'AgeGroup' => $request->age_group,
                 'Target' => $request->target,
+                'RequireCustody' => $request->require_custody,
                 'ReferenceLink' => $request->reference_link
+             
             )
         );
 
@@ -89,7 +91,9 @@ class GamesController extends Controller
             'PointSystem' => $request->point_system,
             'AgeGroup' => $request->age_group,
             'Target' => $request->target,
-            'ReferenceLink' => $request->reference_link
+            'RequireCustody' => $request->require_custody,
+            'ReferenceLink' => $request->reference_link,
+           
         ]);
 
         return redirect()->route('games.index')->with('status', 'تم تعديل اللعبة بنجاح: ' . $request->title);
