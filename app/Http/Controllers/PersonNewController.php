@@ -1213,13 +1213,16 @@ $questions = DB::table('MarhalaEntryQuestions')
     })
     ->select(
         'MarhalaEntryQuestions.QuestionID',
+        'MarhalaEntryQuestions.QetaaID',
         'MarhalaEntryQuestions.QuestionText',
         'MarhalaEntryQuestions.RequiredAnswerType',
         'MarhalaEntryQuestions.MCAnswer',
+        'MarhalaEntryQuestions.NotToBeShown',
+        'MarhalaEntryQuestions.IsRequired',
         'PersonEntryQuestions.Answer'
     )
-    ->where('MarhalaEntryQuestions.NotToBeShown', 0)
     ->where('MarhalaEntryQuestions.QetaaID', $person->QetaaID)
+    ->where('MarhalaEntryQuestions.NotToBeShown', 0)
     ->orderBy('MarhalaEntryQuestions.QuestionID', 'asc')
     ->get();
 
