@@ -1226,6 +1226,13 @@ $questions = DB::table('MarhalaEntryQuestions')
     ->orderBy('MarhalaEntryQuestions.QuestionID', 'asc')
     ->get();
 
+
+    dd([
+    'person_qetaa_id' => $person->QetaaID ?? null,
+    'questions_count' => $questions->count(),
+    'question_ids' => $questions->pluck('QuestionID')->toArray(),
+    'questions' => $questions->toArray(),
+]);
     return view('person.person-edit', [
         'marahel' => $marahel,
         'rotab' => $rotab,
