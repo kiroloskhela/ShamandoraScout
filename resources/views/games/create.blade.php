@@ -1,91 +1,83 @@
 @extends('layouts.app', ['pageTitle' => 'إضافة لعبة جديدة'])
 
 @section('content')
-    <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-blue-300" dir="rtl">
+    <div class="flex justify-center px-4 py-8">
+        <div class="w-full max-w-2xl rounded-2xl border border-blue-200 bg-white p-8 shadow-lg" dir="rtl">
             <div class="mb-6 text-center">
-                <h2 class="text-xl font-bold text-gray-800">إضافة لعبة جديدة</h2>
+                <h2 class="text-2xl font-bold text-gray-800">إضافة لعبة جديدة</h2>
+                <p class="mt-2 text-sm text-gray-500">قم بإدخال بيانات اللعبة بشكل واضح ومنظم</p>
             </div>
 
             <form method="POST" action="{{ route('games.insert') }}">
                 @csrf
+
                 <div class="space-y-6">
-
-                    <div class="relative">
-                        <label for="title" class="block mb-2 text-sm text-gray-700">عنوان اللعبة</label>
+                    <div>
+                        <label for="title" class="mb-2 block text-sm font-medium text-gray-700">عنوان اللعبة</label>
                         <input type="text" id="title" name="title" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            placeholder="ادخل عنوان اللعبة">
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل عنوان اللعبة" value="{{ old('title') }}">
                     </div>
 
-                    <div class="relative">
-                        <label for="description" class="block mb-2 text-sm text-gray-700">الوصف</label>
-                        <textarea id="description" name="description" required
-                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            rows="4" placeholder="ادخل وصف اللعبة"></textarea>
+                    <div>
+                        <label for="description" class="mb-2 block text-sm font-medium text-gray-700">الوصف</label>
+                        <textarea id="description" name="description" required rows="4"
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل وصف اللعبة">{{ old('description') }}</textarea>
                     </div>
 
-                    <div class="relative">
-                        <label for="rules" class="block mb-2 text-sm text-gray-700">القوانين</label>
-                        <textarea id="rules" name="rules"
-                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            rows="3" placeholder="ادخل قوانين اللعبة"></textarea>
+                    <div>
+                        <label for="rules" class="mb-2 block text-sm font-medium text-gray-700">القوانين</label>
+                        <textarea id="rules" name="rules" rows="3"
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل قوانين اللعبة">{{ old('rules') }}</textarea>
                     </div>
 
-                    <div class="relative">
-                        <label for="point_system" class="block mb-2 text-sm text-gray-700">نظام النقاط</label>
-                        <textarea id="point_system" name="point_system"
-                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            rows="3" placeholder="ادخل نظام النقاط"></textarea>
+                    <div>
+                        <label for="point_system" class="mb-2 block text-sm font-medium text-gray-700">نظام النقاط</label>
+                        <textarea id="point_system" name="point_system" rows="3"
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل نظام النقاط">{{ old('point_system') }}</textarea>
                     </div>
 
-                    <div class="relative">
-                        <label for="age_group" class="block mb-2 text-sm text-gray-700">الفئة العمرية</label>
+                    <div>
+                        <label for="age_group" class="mb-2 block text-sm font-medium text-gray-700">الفئة العمرية</label>
                         <input type="text" id="age_group" name="age_group"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            placeholder="ادخل الفئة العمرية">
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل الفئة العمرية" value="{{ old('age_group') }}">
                     </div>
 
-                    <div class="relative">
-                        <label for="target" class="block mb-2 text-sm text-gray-700">الهدف</label>
+                    <div>
+                        <label for="target" class="mb-2 block text-sm font-medium text-gray-700">الهدف</label>
                         <input type="text" id="target" name="target"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            placeholder="ادخل الهدف من اللعبة">
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل الهدف من اللعبة" value="{{ old('target') }}">
                     </div>
 
-                    <div class="relative">
-                        <label for="require_custody" class="block mb-2 text-sm text-gray-700">العهده المطلوبة</label>
-                        <textarea id="require_custody" name="require_custody"
-                            class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                            placeholder="ادخل العهده المطلوبة">
-                        </div>
-
-                        <div class="relative">
-                            <label for="reference_link" class="block mb-2 text-sm text-gray-700">الرابط المرجعي</label>
-                            <input type="text" id="reference_link" name="reference_link"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
-                                   focus:border-blue-500 focus:outline-none"
-                                placeholder="ادخل الرابط المرجعي">
-                        </div>
-
-
-                        <div class="flex justify-center">
-                            <button type="submit"
-                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide 
-                                   rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">
-                                إضافة اللعبة
-                            </button>
-                        </div>
-
+                    <div>
+                        <label for="require_custody" class="mb-2 block text-sm font-medium text-gray-700">العهدة
+                            المطلوبة</label>
+                        <textarea id="require_custody" name="require_custody" rows="3"
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل العهدة المطلوبة">{{ old('require_custody') }}</textarea>
                     </div>
-                </form>
-            </div>
+
+                    <div>
+                        <label for="reference_link" class="mb-2 block text-sm font-medium text-gray-700">الرابط
+                            المرجعي</label>
+                        <input type="text" id="reference_link" name="reference_link"
+                            class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ادخل الرابط المرجعي" value="{{ old('reference_link') }}">
+                    </div>
+
+                    <div class="flex justify-center pt-2">
+                        <button type="submit"
+                            class="inline-flex h-12 items-center justify-center rounded-full bg-blue-600 px-8 text-sm font-medium text-white transition hover:bg-blue-700">
+                            إضافة اللعبة
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
+    </div>
 @endsection
