@@ -292,10 +292,26 @@ public function ShowPersons(Request $request)
         ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
         ->first();
 
-    $questions = DB::table('NewUsersPersonEntryQuestions')
-        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'NewUsersPersonEntryQuestions.QuestionID')
-        ->select('MarhalaEntryQuestions.QuestionText','NewUsersPersonEntryQuestions.Answer', 'MarhalaEntryQuestions.QuestionID')
-        ->where('NewUsersPersonEntryQuestions.PersonID', $id)->get();
+$questions = DB::table('MarhalaEntryQuestions')
+    ->leftJoin('PersonEntryQuestions', function ($join) use ($id) {
+        $join->on('PersonEntryQuestions.QuestionID', '=', 'MarhalaEntryQuestions.QuestionID')
+             ->where('PersonEntryQuestions.PersonID', '=', $id);
+    })
+    ->select(
+        'MarhalaEntryQuestions.QuestionID',
+        'MarhalaEntryQuestions.QetaaID',
+        'MarhalaEntryQuestions.QuestionText',
+        'MarhalaEntryQuestions.RequiredAnswerType',
+        'MarhalaEntryQuestions.MCAnswer',
+        'MarhalaEntryQuestions.NotToBeShown',
+        'MarhalaEntryQuestions.IsRequired',
+        'PersonEntryQuestions.Answer'
+    )
+    ->where('MarhalaEntryQuestions.QetaaID', $person->QetaaID)
+    ->where('MarhalaEntryQuestions.NotToBeShown', 0)
+    ->orderBy('MarhalaEntryQuestions.QuestionID', 'asc')
+    ->get();
+
 
     $blood = DB::table('BloodType')->get();
     $manateq = DB::table('Manteqa')->get();
@@ -1227,12 +1243,12 @@ $questions = DB::table('MarhalaEntryQuestions')
     ->get();
 
 
-    dd([
-    'person_qetaa_id' => $person->QetaaID ?? null,
-    'questions_count' => $questions->count(),
-    'question_ids' => $questions->pluck('QuestionID')->toArray(),
-    'questions' => $questions->toArray(),
-]);
+//     dd([
+//     'person_qetaa_id' => $person->QetaaID ?? null,
+//     'questions_count' => $questions->count(),
+//     'question_ids' => $questions->pluck('QuestionID')->toArray(),
+//     'questions' => $questions->toArray(),
+// ]);
     return view('person.person-edit', [
         'marahel' => $marahel,
         'rotab' => $rotab,
