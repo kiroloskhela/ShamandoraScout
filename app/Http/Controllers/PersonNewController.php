@@ -1206,15 +1206,22 @@ public function show($id)
         )
         ->first();
 
-    $questions = DB::table('PersonEntryQuestions')
-        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
-        ->select(
-            'PersonEntryQuestions.QuestionID',
-            'MarhalaEntryQuestions.QuestionText',
-            'PersonEntryQuestions.Answer'
-        )
-        ->where('PersonEntryQuestions.PersonID', $id)
-        ->get();
+$questions = DB::table('MarhalaEntryQuestions')
+    ->leftJoin('PersonEntryQuestions', function ($join) use ($id) {
+        $join->on('PersonEntryQuestions.QuestionID', '=', 'MarhalaEntryQuestions.QuestionID')
+             ->where('PersonEntryQuestions.PersonID', '=', $id);
+    })
+    ->select(
+        'MarhalaEntryQuestions.QuestionID',
+        'MarhalaEntryQuestions.QuestionText',
+        'MarhalaEntryQuestions.RequiredAnswerType',
+        'MarhalaEntryQuestions.MCAnswer',
+        'PersonEntryQuestions.Answer'
+    )
+    ->where('MarhalaEntryQuestions.NotToBeShown', 0)
+    ->where('MarhalaEntryQuestions.QetaaID', $person->QetaaID)
+    ->orderBy('MarhalaEntryQuestions.QuestionID', 'asc')
+    ->get();
 
     return view('person.person-edit', [
         'marahel' => $marahel,
