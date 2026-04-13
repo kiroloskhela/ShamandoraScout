@@ -779,6 +779,7 @@ public function getLiveformQuestions()
     $questions = DB::table('MarhalaEntryQuestions')
         ->where('QetaaID', $step1['qetaa_id'])
         ->where('NotToBeShown', 0)
+        ->orderBy('QuestionID')
         ->get();
 
     $person = (object) [
