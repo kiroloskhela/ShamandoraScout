@@ -291,11 +291,10 @@ public function ShowPersons(Request $request)
         ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformation.ManteqaID')
         ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
         ->first();
-
 $questions = DB::table('MarhalaEntryQuestions')
-    ->leftJoin('PersonEntryQuestions', function ($join) use ($id) {
-        $join->on('PersonEntryQuestions.QuestionID', '=', 'MarhalaEntryQuestions.QuestionID')
-             ->where('PersonEntryQuestions.PersonID', '=', $id);
+    ->leftJoin('NewUsersPersonEntryQuestions', function ($join) use ($id) {
+        $join->on('NewUsersPersonEntryQuestions.QuestionID', '=', 'MarhalaEntryQuestions.QuestionID')
+             ->where('NewUsersPersonEntryQuestions.PersonID', '=', $id);
     })
     ->select(
         'MarhalaEntryQuestions.QuestionID',
@@ -305,7 +304,7 @@ $questions = DB::table('MarhalaEntryQuestions')
         'MarhalaEntryQuestions.MCAnswer',
         'MarhalaEntryQuestions.NotToBeShown',
         'MarhalaEntryQuestions.IsRequired',
-        'PersonEntryQuestions.Answer'
+        'NewUsersPersonEntryQuestions.Answer'
     )
     ->where('MarhalaEntryQuestions.QetaaID', $person->QetaaID)
     ->where('MarhalaEntryQuestions.NotToBeShown', 0)
