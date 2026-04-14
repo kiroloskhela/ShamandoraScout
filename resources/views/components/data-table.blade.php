@@ -59,7 +59,7 @@
     </div>
 
     <!-- FILTER BAR -->
-    <div x-show="filterableColumns.length > 0" x-data="{ open: true }" class="border-b border-gray-200">
+    <div x-show="filterableColumns.length > 0" x-data="{ open: false }" class="border-b border-gray-200">
         <button @click="open = !open" type="button"
             class="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 transition-colors duration-200">
             <div class="flex items-center gap-2">
