@@ -327,126 +327,134 @@ $questions = DB::table('MarhalaEntryQuestions')
     ]);
         }
 
-        public function updateNewEnrolments(Request $request, $id)
-        {
-            // ✅ Check duplicate national ID
-            $exists = DB::selectOne(
-                'SELECT COUNT(*) as count FROM NewUsersInformation WHERE RaqamQawmy = ? AND PersonID != ?',
-                [$request->input_raqam_qawmy, $id]
-            );
+   public function updateNewEnrolments(Request $request, $id)
+{
+    $exists = DB::selectOne(
+        'SELECT COUNT(*) as count FROM NewUsersInformation WHERE RaqamQawmy = ? AND PersonID != ?',
+        [$request->input_raqam_qawmy, $id]
+    );
 
-            if ($exists->count > 0) {
-                return view('person.person-already-exists');
-            }
+    if ($exists->count > 0) {
+        return view('person.person-already-exists');
+    }
 
-            // ✅ Validation
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'required',
-                'second_name' => 'required',
-                'third_name' => 'required',
-                'gender' => 'required',
-                'birthdate_input' => 'required',
-                'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
-                'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required',
+        'second_name' => 'required',
+        'third_name' => 'required',
+        'gender' => 'required',
+        'birthdate_input' => 'required',
+        'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
+        'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+    ]);
+
+    if ($validator->fails()) {
+        return redirect()->back()->withErrors($validator)->withInput();
+    }
+
+    $birthDate = $request->birthdate_input;
+    $nid = $request->input_raqam_qawmy;
+
+    if (strlen($nid) == 14) {
+        $year = substr($birthDate, 2, 2);
+        $month = substr($birthDate, 5, 2);
+        $day = substr($birthDate, 8, 2);
+        $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2);
+        $actual = $year . $month . $day;
+
+        if ($expected !== $actual) {
+            return redirect()->back()
+                ->withErrors(['input_raqam_qawmy' => 'الرقم القومي لا يتطابق مع تاريخ الميلاد'])
+                ->withInput();
+        }
+    }
+
+    DB::beginTransaction();
+
+    try {
+        DB::table('NewUsersInformation')
+            ->where('PersonID', $id)
+            ->update([
+                'FirstName' => $request->first_name,
+                'SecondName' => $request->second_name,
+                'ThirdName' => $request->third_name,
+                'FourthName' => $request->fourth_name,
+                'Gender' => $request->gender,
+                'DateOfBirth' => $request->birthdate_input,
+                'RaqamQawmy' => $request->input_raqam_qawmy,
+                'ScoutJoiningYear' => $request->joining_year_input,
+                'BloodTypeID' => $request->blood_type_input,
+                'PersonPersonalMobileNumber' => $request->personal_phone_number,
+                'PersonalEmail' => $request->personal_email,
+                'FacebookProfileURL' => $request->facebook_profile_url,
+                'InstagramProfileURL' => $request->instagram_profile_url,
+                'FatherMobileNumber' => $request->father_mobile_number,
+                'MotherMobileNumber' => $request->mother_mobile_number,
+                'HomePhoneNumber' => $request->home_phone_number,
+                'IsOPersonalPhoneNumberHavingWhatsapp' => $request->is_personal_phone_has_whatsapp ? 1 : 0,
+                'BuildingNumber' => $request->building_number,
+                'FloorNumber' => $request->floor_number,
+                'AppartmentNumber' => $request->appartment_number,
+                'SubStreetName' => $request->sub_street_name,
+                'MainStreetName' => $request->main_street_name,
+                'NearestLandmark' => $request->nearest_landmark,
+                'ManteqaID' => $request->manteqa_id,
+                'DistrictID' => $request->district_id,
+                'SanaMarhalaID' => $request->sana_marhala_id,
+                'SchoolName' => $request->school_name,
+                'SchoolGraduationYear' => $request->school_graduation_year,
+                'SpiritualFatherName' => $request->spiritual_father_name,
+                'SpiritualFatherChurchName' => $request->spiritual_father_church_name,
+                'AllergyFood' => $request->allergy_food,
+                'AllergyMedicine' => $request->allergy_medicine,
+                'MedicalDiseases' => $request->medical_diseases,
+                'MedicalMedications' => $request->medical_medications,
+                'HasEmergencyCase' => $request->has_emergency_case ? 1 : 0,
+                'EmergencyDetails' => $request->emergency_details,
             ]);
 
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
-            }
+        // get qetaa after update
+        $person = DB::table('NewUsersInformation')
+            ->where('PersonID', $id)
+            ->first();
 
-            // ✅ National ID validation with birth date
-            $birthDate = $request->birthdate_input;
-            $nid = $request->input_raqam_qawmy;
-            if (strlen($nid) == 14) {
-                $year = substr($birthDate, 2, 2); // 13 from 2013
-                $month = substr($birthDate, 5, 2); // 11
-                $day = substr($birthDate, 8, 2); // 15
-                $expected = substr($nid, 1, 2) . substr($nid, 3, 2) . substr($nid, 5, 2); // positions 2-3,4-5,6-7
-                $actual = $year . $month . $day;
-                if ($expected !== $actual) {
-                    return redirect()->back()->withErrors(['input_raqam_qawmy' => 'الرقم القومي لا يتطابق مع تاريخ الميلاد'])->withInput();
-                }
-            }
+        $questions = DB::table('MarhalaEntryQuestions')
+            ->where('QetaaID', $person->QetaaID)
+            ->where('NotToBeShown', 0)
+            ->orderBy('QuestionID', 'asc')
+            ->get();
 
-            DB::beginTransaction();
+        foreach ($questions as $question) {
+            $fieldName = 'question_' . $question->QuestionID;
+            $answer = $request->input($fieldName);
 
-            try {
-
-                DB::table('NewUsersInformation')
-                    ->where('PersonID', $id)
-                    ->update([
-                        'FirstName' => $request->first_name,
-                        'SecondName' => $request->second_name,
-                        'ThirdName' => $request->third_name,
-                        'FourthName' => $request->fourth_name,
-                        'Gender' => $request->gender,
-                        'DateOfBirth' => $request->birthdate_input,
-                        'RaqamQawmy' => $request->input_raqam_qawmy,
-                        'ScoutJoiningYear' => $request->joining_year_input,
-                        'BloodTypeID' => $request->blood_type_input,
-                        'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                        'PersonalEmail' => $request->personal_email,
-                        'FacebookProfileURL' => $request->facebook_profile_url,
-                        'InstagramProfileURL' => $request->instagram_profile_url,
-                        'FatherMobileNumber' => $request->father_mobile_number,
-                        'MotherMobileNumber' => $request->mother_mobile_number,
-                        'HomePhoneNumber' => $request->home_phone_number,
-                        'IsOPersonalPhoneNumberHavingWhatsapp' => $request->is_personal_phone_has_whatsapp,
-                        'BuildingNumber' => $request->building_number,
-                        'FloorNumber' => $request->floor_number,
-                        'AppartmentNumber' => $request->appartment_number,
-                        'SubStreetName' => $request->sub_street_name,
-                        'MainStreetName' => $request->main_street_name,
-                        'NearestLandmark' => $request->nearest_landmark,
-                        'ManteqaID' => $request->manteqa_id,
-                        'DistrictID' => $request->district_id,
-                        'SanaMarhalaID' => $request->sana_marhala_id,
-                        'SchoolName' => $request->school_name,
-                        'SchoolGraduationYear' => $request->school_graduation_year,
-                        'SpiritualFatherName' => $request->spiritual_father_name,
-                        'SpiritualFatherChurchName' => $request->spiritual_father_church_name,
-
-                        // 🔥 NEW FIELDS (important)
-                        'AllergyFood' => $request->allergy_food,
-                        'AllergyMedicine' => $request->allergy_medicine,
-                        'MedicalDiseases' => $request->medical_diseases,
-                        'MedicalMedications' => $request->medical_medications,
-                        'HasEmergencyCase' => $request->has_emergency_case ? 1 : 0,
-                        'EmergencyDetails' => $request->emergency_details,
-                    ]);
-
-                // Update questions
-                $questions = DB::table('MarhalaEntryQuestions')
-                    ->join('NewUsersPersonEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'NewUsersPersonEntryQuestions.QuestionID')
-                    ->where('NewUsersPersonEntryQuestions.PersonID', $id)
-                    ->select('MarhalaEntryQuestions.QuestionID')
-                    ->get();
-
-                foreach ($questions as $question) {
-                    $answer = $request->input('question_' . $question->QuestionID);
-                    if ($answer !== null) {
-                        DB::table('NewUsersPersonEntryQuestions')
-                            ->where('PersonID', $id)
-                            ->where('QuestionID', $question->QuestionID)
-                            ->update(['Answer' => $answer]);
-                    }
-                }
-
-                DB::commit();
-
-                return redirect()->route('person.new-enrolments-index');
-
-            } catch (\Exception $e) {
-
-                DB::rollBack();
-
-                Log::error("Update New Enrolment Error", [
-                    'message' => $e->getMessage()
-                ]);
-
-                return back()->with('error', 'Something went wrong');
-            }
+            DB::table('NewUsersPersonEntryQuestions')->updateOrInsert(
+                [
+                    'PersonID' => $id,
+                    'QuestionID' => $question->QuestionID,
+                ],
+                [
+                    'Answer' => $answer,
+                ]
+            );
         }
+
+        DB::commit();
+
+        return redirect()->route('person.new-enrolments-index')
+            ->with('success', 'Updated successfully');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        Log::error("Update New Enrolment Error", [
+            'message' => $e->getMessage(),
+            'person_id' => $id,
+        ]);
+
+        return back()->with('error', $e->getMessage());
+    }
+}
 
         public function createLiveForm()
         {
