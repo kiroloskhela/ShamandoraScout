@@ -235,7 +235,7 @@
 
 
                     {{-- ===================== Federations (visible to any logged-in user) ===================== --}}
-                    @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary)
+                    @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary || $isAdminFinance || $isFinance)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -254,8 +254,10 @@
                                         href="{{ route('guests.index') }}">إدارة الضيوف</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('family-members.index') }}">إدارة الأسرة</a>
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('person-tree.index') }}">شجرة الأشخاص</a>
+                                    @if ($isSuperAdmin)
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ route('person-tree.index') }}">شجرة الأشخاص</a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
