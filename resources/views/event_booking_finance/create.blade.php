@@ -109,7 +109,7 @@
                                 <span class="text-sm text-gray-800">غير قادر على دفع كل المبلغ</span>
                             </label>
                         </div>
-
+                        <input type="hidden" name="booking_type" value="PERSON">
                         <div id="special-options-box" class="{{ old('is_not_able_to_pay_all') ? '' : 'hidden' }}">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
