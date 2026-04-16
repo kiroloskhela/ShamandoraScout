@@ -80,7 +80,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="mb-8">
                     <div class="flex items-center justify-between mb-4 border-b pb-2">
                         <div>
@@ -102,30 +101,38 @@
                         @endphp
 
                         @for ($i = 0; $i < $rowsCount; $i++)
+                            @php
+                                $selectedPerson = collect($persons)->firstWhere('PersonID', $oldPersonIds[$i] ?? '');
+                                $selectedPersonName = $selectedPerson ? $selectedPerson->FullName : '';
+                            @endphp
+
                             <div class="assignment-row p-4 border border-slate-200 rounded-lg bg-gray-50">
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                                    <div class="md:col-span-5">
-                                        <label class="block mb-2 text-sm text-gray-700">بحث عن الشخص</label>
-                                        <input type="text"
-                                            class="person-search w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                                            placeholder="اكتب اسم الشخص للبحث...">
-                                    </div>
-
-                                    <div class="md:col-span-4">
+                                    <div class="md:col-span-8 relative">
                                         <label class="block mb-2 text-sm text-gray-700">الشخص</label>
-                                        <select name="person_ids[]"
-                                            class="person-select w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                                            <option value="">-- اختر الشخص --</option>
+
+                                        <input type="text"
+                                            class="person-search-input w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
+                                            placeholder="ابحث واختر الشخص..." autocomplete="off"
+                                            value="{{ $selectedPersonName }}">
+
+                                        <input type="hidden" name="person_ids[]" class="person-id-hidden"
+                                            value="{{ $oldPersonIds[$i] ?? '' }}">
+
+                                        <div
+                                            class="person-results hidden absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                             @foreach ($persons as $person)
-                                                <option value="{{ $person->PersonID }}"
-                                                    {{ ($oldPersonIds[$i] ?? '') == $person->PersonID ? 'selected' : '' }}>
-                                                    {{ $person->FullName }}
-                                                </option>
+                                                <div class="person-option px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0"
+                                                    data-id="{{ $person->PersonID }}" data-name="{{ $person->FullName }}">
+                                                    <div class="text-sm font-medium text-slate-800">{{ $person->FullName }}
+                                                    </div>
+                                                    <div class="text-xs text-slate-500">ID: {{ $person->PersonID }}</div>
+                                                </div>
                                             @endforeach
-                                        </select>
+                                        </div>
                                     </div>
 
-                                    <div class="md:col-span-2">
+                                    <div class="md:col-span-3">
                                         <label class="block mb-2 text-sm text-gray-700">صلة القرابة</label>
                                         <select name="relation_type_ids[]"
                                             class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
@@ -150,7 +157,6 @@
                         @endfor
                     </div>
                 </div>
-
                 <div class="flex justify-between gap-4 mt-8">
                     <a href="{{ route('family-members.index') }}"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition">
@@ -171,59 +177,84 @@
             const assignmentRows = document.getElementById('assignment-rows');
             const addRowBtn = document.getElementById('add-assignment-row');
 
-            const personsOptions = `
-        <option value="">-- اختر الشخص --</option>
-        @foreach ($persons as $person)
-            <option value="{{ $person->PersonID }}">{{ $person->FullName }}</option>
-        @endforeach
-    `;
+            const personsHtml = `
+            @foreach ($persons as $person)
+                <div class="person-option px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0"
+                    data-id="{{ $person->PersonID }}"
+                    data-name="{{ $person->FullName }}">
+                    <div class="text-sm font-medium text-slate-800">{{ $person->FullName }}</div>
+                    <div class="text-xs text-slate-500">ID: {{ $person->PersonID }}</div>
+                </div>
+            @endforeach
+        `;
 
             const relationsOptions = `
-        <option value="">-- اختر --</option>
-        @foreach ($relations as $relation)
-            <option value="{{ $relation->RelationTypeID }}">{{ $relation->RelationName }}</option>
-        @endforeach
-    `;
+            <option value="">-- اختر --</option>
+            @foreach ($relations as $relation)
+                <option value="{{ $relation->RelationTypeID }}">{{ $relation->RelationName }}</option>
+            @endforeach
+        `;
 
-            function bindSearchForRow(row) {
-                const searchInput = row.querySelector('.person-search');
-                const select = row.querySelector('.person-select');
+            function bindPersonPicker(row) {
+                const searchInput = row.querySelector('.person-search-input');
+                const hiddenInput = row.querySelector('.person-id-hidden');
+                const resultsBox = row.querySelector('.person-results');
+                const options = Array.from(row.querySelectorAll('.person-option'));
 
-                if (!searchInput || !select) return;
+                if (!searchInput || !hiddenInput || !resultsBox) return;
 
-                const originalOptions = Array.from(select.options).map(option => ({
-                    value: option.value,
-                    text: option.text,
-                    selected: option.selected
-                }));
-
-                const selectedOption = select.options[select.selectedIndex];
-                if (selectedOption && selectedOption.value !== '') {
-                    searchInput.value = selectedOption.text;
+                function showResults() {
+                    resultsBox.classList.remove('hidden');
                 }
 
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.trim().toLowerCase();
-                    const currentValue = select.value;
+                function hideResults() {
+                    resultsBox.classList.add('hidden');
+                }
 
-                    select.innerHTML = '';
+                function filterResults() {
+                    const keyword = searchInput.value.trim().toLowerCase();
+                    let visibleCount = 0;
 
-                    originalOptions.forEach(option => {
-                        const matches = option.text.toLowerCase().includes(searchTerm) || option
-                            .value === '';
+                    options.forEach(option => {
+                        const name = (option.dataset.name || '').toLowerCase();
+                        const id = (option.dataset.id || '').toLowerCase();
 
-                        if (matches) {
-                            const newOption = document.createElement('option');
-                            newOption.value = option.value;
-                            newOption.textContent = option.text;
-
-                            if (option.value == currentValue) {
-                                newOption.selected = true;
-                            }
-
-                            select.appendChild(newOption);
+                        if (keyword === '' || name.includes(keyword) || id.includes(keyword)) {
+                            option.style.display = '';
+                            visibleCount++;
+                        } else {
+                            option.style.display = 'none';
                         }
                     });
+
+                    if (visibleCount > 0) {
+                        showResults();
+                    } else {
+                        hideResults();
+                    }
+                }
+
+                options.forEach(option => {
+                    option.addEventListener('click', function() {
+                        searchInput.value = this.dataset.name || '';
+                        hiddenInput.value = this.dataset.id || '';
+                        hideResults();
+                    });
+                });
+
+                searchInput.addEventListener('focus', function() {
+                    filterResults();
+                });
+
+                searchInput.addEventListener('input', function() {
+                    hiddenInput.value = '';
+                    filterResults();
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!row.contains(e.target)) {
+                        hideResults();
+                    }
                 });
             }
 
@@ -231,13 +262,15 @@
                 document.querySelectorAll('.remove-assignment-row').forEach(button => {
                     button.onclick = function() {
                         const rows = document.querySelectorAll('.assignment-row');
+
                         if (rows.length > 1) {
                             this.closest('.assignment-row').remove();
                         } else {
                             const row = this.closest('.assignment-row');
-                            row.querySelector('.person-search').value = '';
-                            row.querySelector('.person-select').selectedIndex = 0;
+                            row.querySelector('.person-search-input').value = '';
+                            row.querySelector('.person-id-hidden').value = '';
                             row.querySelector('select[name="relation_type_ids[]"]').selectedIndex = 0;
+                            row.querySelector('.person-results').classList.add('hidden');
                         }
                     };
                 });
@@ -246,42 +279,47 @@
             function addNewRow() {
                 const row = document.createElement('div');
                 row.className = 'assignment-row p-4 border border-slate-200 rounded-lg bg-gray-50';
+
                 row.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-                <div class="md:col-span-5">
-                    <label class="block mb-2 text-sm text-gray-700">بحث عن الشخص</label>
-                    <input type="text" class="person-search w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none" placeholder="اكتب اسم الشخص للبحث...">
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div class="md:col-span-8 relative">
+                        <label class="block mb-2 text-sm text-gray-700">الشخص</label>
 
-                <div class="md:col-span-4">
-                    <label class="block mb-2 text-sm text-gray-700">الشخص</label>
-                    <select name="person_ids[]" class="person-select w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        ${personsOptions}
-                    </select>
-                </div>
+                        <input type="text"
+                            class="person-search-input w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
+                            placeholder="ابحث واختر الشخص..."
+                            autocomplete="off">
 
-                <div class="md:col-span-2">
-                    <label class="block mb-2 text-sm text-gray-700">صلة القرابة</label>
-                    <select name="relation_type_ids[]" class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        ${relationsOptions}
-                    </select>
-                </div>
+                        <input type="hidden" name="person_ids[]" class="person-id-hidden" value="">
 
-                <div class="md:col-span-1">
-                    <button type="button"
-                        class="remove-assignment-row w-full h-12 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition">
-                        حذف
-                    </button>
+                        <div class="person-results hidden absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            ${personsHtml}
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label class="block mb-2 text-sm text-gray-700">صلة القرابة</label>
+                        <select name="relation_type_ids[]"
+                            class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
+                            ${relationsOptions}
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-1">
+                        <button type="button"
+                            class="remove-assignment-row w-full h-12 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition">
+                            حذف
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
                 assignmentRows.appendChild(row);
-                bindSearchForRow(row);
+                bindPersonPicker(row);
                 bindRemoveButtons();
             }
 
-            document.querySelectorAll('.assignment-row').forEach(row => bindSearchForRow(row));
+            document.querySelectorAll('.assignment-row').forEach(row => bindPersonPicker(row));
             bindRemoveButtons();
 
             addRowBtn.addEventListener('click', addNewRow);

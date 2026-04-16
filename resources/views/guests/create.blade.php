@@ -79,18 +79,33 @@
                                 class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                         </div>
 
-                        <div class="md:col-span-2">
-                            <label for="person_id" class="block mb-2 text-sm text-gray-700">الشخص المرتبط</label>
-                            <select id="person_id" name="person_id" required
+                        <div class="md:col-span-2 relative">
+                            <label for="person_search" class="block mb-2 text-sm text-gray-700">الشخص المرتبط</label>
+
+                            <input type="text" id="person_search" autocomplete="off" placeholder="ابحث واختر الشخص..."
+                                value="{{ old('person_name') }}"
                                 class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                                <option value="">-- اختر الشخص --</option>
+
+                            <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}">
+
+                            <div id="person_results"
+                                class="hidden absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                                 @foreach ($persons as $person)
-                                    <option value="{{ $person->PersonID }}"
-                                        {{ old('person_id') == $person->PersonID ? 'selected' : '' }}>
-                                        {{ $person->FullName }}
-                                    </option>
+                                    <div class="person-option px-4 py-3 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0"
+                                        data-id="{{ $person->PersonID }}" data-name="{{ $person->FullName }}">
+                                        <div class="text-sm font-medium text-slate-800">
+                                            {{ $person->FullName }}
+                                        </div>
+                                        <div class="text-xs text-slate-500">
+                                            ID: {{ $person->PersonID }}
+                                        </div>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
+
+                            @error('person_id')
+                                <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -110,3 +125,68 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('person_search');
+            const hiddenInput = document.getElementById('person_id');
+            const resultsBox = document.getElementById('person_results');
+            const options = Array.from(document.querySelectorAll('.person-option'));
+
+            function showResults() {
+                resultsBox.classList.remove('hidden');
+            }
+
+            function hideResults() {
+                resultsBox.classList.add('hidden');
+            }
+
+            function filterResults() {
+                const keyword = searchInput.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                options.forEach(option => {
+                    const name = (option.dataset.name || '').toLowerCase();
+                    const id = (option.dataset.id || '').toLowerCase();
+
+                    if (keyword === '' || name.includes(keyword) || id.includes(keyword)) {
+                        option.style.display = '';
+                        visibleCount++;
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+
+                if (visibleCount > 0) {
+                    showResults();
+                } else {
+                    hideResults();
+                }
+            }
+
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    searchInput.value = this.dataset.name;
+                    hiddenInput.value = this.dataset.id;
+                    hideResults();
+                });
+            });
+
+            searchInput.addEventListener('focus', function() {
+                filterResults();
+            });
+
+            searchInput.addEventListener('input', function() {
+                hiddenInput.value = '';
+                filterResults();
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+                    hideResults();
+                }
+            });
+        });
+    </script>
+@endpush
