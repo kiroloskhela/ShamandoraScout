@@ -1,68 +1,98 @@
-@extends('layouts.app')
+@extends('layouts.app', ['pageTitle' => 'اختيار الفعالية لمتابعة حجوزات المخدومين'])
 
 @section('content')
-    <div class="container">
-        <h3 class="mb-4">متابعة حجز المخدومين</h3>
+    <div class="flex place-content-center">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300" dir="rtl">
+            <div class="mb-6 text-center">
+                <h2 class="text-xl font-bold text-gray-800">اختيار الفعالية</h2>
+                <p class="text-sm text-gray-500 mt-2">لمتابعة المحجوزين وقائمة الانتظار للمخدومين</p>
+            </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="season_id" class="form-label">الموسم</label>
-                    <select id="season_id" class="form-select">
-                        <option value="">اختر الموسم</option>
+            @if ($errors->has('general'))
+                <div class="mb-4 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-3">
+                    {{ $errors->first('general') }}
+                </div>
+            @endif
+
+            <div class="space-y-6">
+                <div>
+                    <label for="season_id" class="block mb-2 text-sm text-gray-700">اختر الموسم</label>
+                    <select id="season_id"
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                        <option value="">-- اختر الموسم --</option>
                         @foreach ($seasons as $season)
                             <option value="{{ $season->SeasonID }}">
-                                {{ $season->SeasonName }} - {{ $season->SeasonYear }}
+                                {{ $season->SeasonName }} ({{ $season->SeasonYear }})
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="mb-3">
-                    <label for="season_event_id" class="form-label">الفعالية</label>
-                    <select id="season_event_id" class="form-select">
-                        <option value="">اختر الفعالية</option>
+                <div>
+                    <label for="season_event_id" class="block mb-2 text-sm text-gray-700">اختر الفعالية</label>
+                    <select id="season_event_id"
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                        <option value="">-- اختر الفعالية --</option>
                     </select>
                 </div>
 
-                <button type="button" class="btn btn-primary" onclick="goToPage()">عرض</button>
+                <div class="flex justify-center">
+                    <button type="button" id="go-btn"
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">
+                        دخول
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-@endsection
 
-@push('scripts')
     <script>
-        document.getElementById('season_id').addEventListener('change', function() {
-            const seasonID = this.value;
+        document.addEventListener('DOMContentLoaded', function() {
+            const seasonSelect = document.getElementById('season_id');
             const eventSelect = document.getElementById('season_event_id');
+            const goBtn = document.getElementById('go-btn');
 
-            eventSelect.innerHTML = '<option value="">اختر الفعالية</option>';
+            seasonSelect.addEventListener('change', function() {
+                const seasonId = this.value;
+                eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
 
-            if (!seasonID) return;
+                if (!seasonId) return;
 
-            fetch(`{{ route('eventServantFollowup.getEventsWithPlan') }}?seasonID=${seasonID}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(event => {
-                        const option = document.createElement('option');
-                        option.value = event.SeasonEventID;
-                        option.textContent =
-                            `${event.EventTypeName} - ${event.EventName} (${event.EventStartDate})`;
-                        eventSelect.appendChild(option);
+                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+
+                fetch(`{{ route('eventServantFollowup.getEventsWithPlan') }}?seasonID=${seasonId}`)
+                    .then(res => res.json())
+                    .then(events => {
+                        eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
+
+                        if (!events.length) {
+                            eventSelect.innerHTML = '<option value="">لا توجد فعاليات متاحة</option>';
+                            return;
+                        }
+
+                        events.forEach(event => {
+                            const option = document.createElement('option');
+                            option.value = event.SeasonEventID;
+                            option.textContent =
+                                `${event.EventTypeName} - ${event.EventName} (${event.EventStartDate} → ${event.EventEndDate})`;
+                            eventSelect.appendChild(option);
+                        });
+                    })
+                    .catch(() => {
+                        eventSelect.innerHTML = '<option value="">خطأ في تحميل الفعاليات</option>';
                     });
-                });
+            });
+
+            goBtn.addEventListener('click', function() {
+                const seasonEventID = eventSelect.value;
+
+                if (!seasonEventID) {
+                    alert('اختر الفعالية أولاً');
+                    return;
+                }
+
+                window.location.href = `{{ url('event-servant-followup/event') }}/${seasonEventID}`;
+            });
         });
-
-        function goToPage() {
-            const seasonEventID = document.getElementById('season_event_id').value;
-
-            if (!seasonEventID) {
-                alert('من فضلك اختر الفعالية');
-                return;
-            }
-
-            window.location.href = `{{ url('event-servant-followup/event') }}/${seasonEventID}`;
-        }
     </script>
-@endpush
+@endsection
