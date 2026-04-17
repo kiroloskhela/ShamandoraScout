@@ -271,29 +271,30 @@ public function index(Request $request, $seasonEventID)
             return $booking;
         });
 
-    $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
-        ->leftJoin('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
-        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-        ->where('b.SeasonEventID', $seasonEventID)
-        ->select(
-            DB::raw("
-                CASE
-                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
-                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
-                    ELSE q.QetaaName
-                END as QetaaName
-            "),
-            DB::raw('COUNT(*) as booked_count')
-        )
-        ->groupBy(DB::raw("
+$qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
+    ->leftJoin('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
+    ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+    ->where('b.SeasonEventID', $seasonEventID)
+    ->where('b.IsRefunded', 0)
+    ->select(
+        DB::raw("
             CASE
                 WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
                 WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
                 ELSE q.QetaaName
-            END
-        "))
-        ->orderBy('QetaaName')
-        ->get();
+            END as QetaaName
+        "),
+        DB::raw('COUNT(*) as booked_count')
+    )
+    ->groupBy(DB::raw("
+        CASE
+            WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+            WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+            ELSE q.QetaaName
+        END
+    "))
+    ->orderBy('QetaaName')
+    ->get();
 
     return view('event_booking_finance.index', compact(
         'event',
