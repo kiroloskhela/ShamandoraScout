@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\DB;
 
+
+
 class LoginApiController extends Controller
 {
     // POST /api/login
@@ -97,27 +99,36 @@ class LoginApiController extends Controller
 
 
 
-    public function apiLogin(Request $request)
+
+
+public function apiLogin(Request $request)
 {
-$request->validate([
-    'id'        => 'required|integer',
-    'password'  => 'required',
-    'fcmtoken'  => 'nullable|string',
-    'platform'  => 'nullable|string|in:android,ios,web',
-]);
+    $request->validate([
+        'id'        => 'required|integer',
+        'password'  => 'required',
+        'fcmtoken'  => 'nullable|string',
+        'platform'  => 'nullable|string|in:android,ios,web',
+    ]);
 
     $user = User::find($request->id);
 
     $hashedPassword = optional($user->password)->Password;
-    if (! $user || ! Hash::check($request->password, $hashedPassword)) {
-        return response()->json(['error' => 'Invalid credentials'], 401);
+
+    if (!$user || !$hashedPassword || !Hash::check($request->password, $hashedPassword)) {
+        return response()->json([
+            'ok' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
     }
 
-    // 1) short-lived access token (1 hour)
+    $roleNames = $user->role()
+        ->pluck('RoleName')
+        ->toArray();
+
     $accessToken = $user->createToken('api-token', ['*'], now()->addHours(1))->plainTextToken;
 
-    // 2) long-lived refresh token (30 days)
-    $plainRefresh = str::random(64);
+    $plainRefresh = Str::random(64);
+
     RefreshToken::create([
         'user_id'    => $user->PersonID,
         'token_hash' => hash('sha256', $plainRefresh),
@@ -126,32 +137,29 @@ $request->validate([
         'user_agent' => substr((string) $request->userAgent(), 0, 1000),
     ]);
 
-
-if ($request->filled('fcmtoken')) {
-
-    DB::table('devices')->updateOrInsert(
-        [
-            'PersonID' => $user->PersonID,
-            'platform' => $request->platform,
-        ],
-        [
-            'fcmtoken' => $request->fcmtoken,
-            'updated_at'=> now(),
-            'created_at'=> now(),
-        ]
-    );
-
-}
+    if ($request->filled('fcmtoken')) {
+        DB::table('devices')->updateOrInsert(
+            [
+                'PersonID' => $user->PersonID,
+                'platform' => $request->platform,
+            ],
+            [
+                'fcmtoken'   => $request->fcmtoken,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+    }
 
     return response()->json([
+        'ok' => true,
+        'message' => 'Login successful',
         'access_token'   => $accessToken,
         'token_type'     => 'Bearer',
         'expires_in_sec' => 3600,
         'refresh_token'  => $plainRefresh,
+        'role_names'     => $roleNames,
     ]);
-
-
-    
 }
 
 public function apiLogout(Request $request)
