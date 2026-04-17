@@ -82,10 +82,9 @@
 
             <!-- Sidebar Navigation -->
             <aside id="sidebar"
-                class="fixed top-0 bottom-0 right-0 z-50 w-80 bg-white border-l border-gray-200 shadow-xl transform translate-x-full transition-transform duration-300 lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen">
-
+                class="fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] bg-white border-l border-gray-200 shadow-xl transform translate-x-full transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:h-screen">
                 <!-- Mobile Header -->
-                <div class="flex items-center justify-between p-4 border-b border-gray-200 lg:hidden">
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 lg:hidden shrink-0">
                     <h2 class="text-lg font-semibold text-gray-800">القائمة</h2>
                     <button id="closeSidebar"
                         class="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100">
@@ -97,7 +96,7 @@
                 </div>
 
                 <!-- User Profile Section -->
-                <div class="flex flex-col items-center p-6 border-b border-gray-200">
+                <div class="flex flex-col items-center p-6 border-b border-gray-200 shrink-0">
                     <div class=" relative mb-3">
                         <img src="{{ Auth::user()->avatar_url }}" alt="User Avatar"
                             class="w-16 h-16 rounded-full border-2 border-white shadow-sm">
@@ -113,9 +112,9 @@
                     </div>
                 </div>
 
+
                 <!-- Navigation Menu -->
-                <!-- Navigation Menu -->
-                <nav class="flex-1 overflow-y-auto py-4" style="max-height: calc(100vh - 200px);">
+                <nav class="flex-1 min-h-0 overflow-y-auto overscroll-contain py-4">
 
                     @php
                         $auth = Auth::check();
@@ -520,7 +519,7 @@
 
 
                 <!-- Mobile Logout Footer -->
-                <div class="p-4 border-t border-gray-200 lg:hidden">
+                <div class="p-4 border-t border-gray-200 lg:hidden shrink-0">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"

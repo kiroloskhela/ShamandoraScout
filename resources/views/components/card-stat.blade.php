@@ -16,7 +16,7 @@
             class="shrink-0 w-12 h-12 rounded-lg bg-{{ $color }}-50 text-{{ $color }}-600
                     flex items-center justify-center
                     transition-transform duration-300 transform group-hover:scale-110 group-active:scale-95">
-            {{-- Named slot: <x-slot:icon>...</x-slot> --}}
+
             @isset($icon)
                 {{ $icon }}
             @endisset

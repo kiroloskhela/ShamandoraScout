@@ -27,7 +27,9 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="#" title="الفعاليات" :count="is_countable($events ?? []) ? count($events) : 0" color="emerald">
+                <x-card-stat href="#" title="الفعاليات" :count="collect($events ?? [])
+                    ->unique('EventID')
+                    ->count()" color="emerald">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
