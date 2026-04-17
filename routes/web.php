@@ -88,6 +88,9 @@ use App\Http\Controllers\FamilyMembersController;
 use App\Http\Controllers\PersonTreeController;
 
 
+ use App\Http\Controllers\SeasonEventServantFollowupController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Public / UI Pages
@@ -459,12 +462,11 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
 
-
   
     });
 
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function () {
 
     // Person Blacklist
     Route::get('/personblacklist', [PersonBlackListController::class, 'index'])->name('personblacklist.index');
@@ -485,6 +487,16 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secre
     Route::get('/personspecialcase/delete/{id}', [PersonSpecialCaseController::class, 'deletes'])->name('personspecialcase.delete');
     Route::post('/personspecialcase/destroy/{id}', [PersonSpecialCaseController::class, 'destroy'])->name('personspecialcase.destroy');
     Route::get('/personspecialcase/search-persons', [PersonSpecialCaseController::class, 'searchPersons'])->name('personspecialcase.searchPersons');
+
+   
+        // Season Event Servant Followup
+Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
+    Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
+    Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
+    Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
+});
+
+
 
 
     });
