@@ -16,6 +16,7 @@ use App\Http\Controllers\API\CurriculaApiController;
 use App\Http\Controllers\API\MediaApiController;
 use App\Http\Controllers\API\CustodyApiController;
 use App\Http\Controllers\API\PlaceBookingApiController;
+  use App\Http\Controllers\API\PersonSpecialCaseApiController;
 
 
 
@@ -72,5 +73,18 @@ use App\Http\Controllers\API\PlaceBookingApiController;
     Route::get('/place_bookings/{id}', [PlaceBookingApiController::class, 'show']);
     Route::put('/place_bookings/{id}', [PlaceBookingApiController::class, 'update']);
     Route::delete('/place_bookings/{id}', [PlaceBookingApiController::class, 'destroy']);
+
+
+  
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/person-special-cases', [PersonSpecialCaseApiController::class, 'index']);
+    Route::get('/person-special-cases/persons', [PersonSpecialCaseApiController::class, 'persons']);
+    Route::get('/person-special-cases/search/persons', [PersonSpecialCaseApiController::class, 'searchPersons']);
+    Route::get('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'show']);
+    Route::post('/person-special-cases', [PersonSpecialCaseApiController::class, 'store']);
+    Route::put('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'update']);
+    Route::delete('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'destroy']);
+});
 
 });
