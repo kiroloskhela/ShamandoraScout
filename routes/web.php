@@ -227,29 +227,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/person/ShowPersons', [PersonNewController::class, 'ShowPersons'])->name('person.ShowPersons');
 
 
-    // Group Person (normal)
-    Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
-    Route::get('/group-person/add-makhdoom', [GroupPersonController::class, 'createMakhdoom'])->name('group-person.create-makhdoom');
-    Route::post('/group-person/insert', [GroupPersonController::class, 'insert'])->name('group-person.insert');
-    Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
-    Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
-
-    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
-    Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
-    Route::post('/person/insert', [PersonNewController::class, 'insert'])->name('person.insert');
-
-    Route::get('/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestions'])->name('person.entry-questions');
-    Route::post('/person/entry-questions/submit', [PersonNewController::class, 'submitQuestions'])->name('person.entry-questions-submit');
-
-    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
-    Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
-    Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
-
-
-
-    // Delete Persons
-    Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
-    Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
 
     // Events
     Route::get('/event', [EventController::class, 'index'])->name('event.index');
@@ -490,11 +467,37 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
 
    
         // Season Event Servant Followup
-Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
-    Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
-    Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
-    Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
-});
+    Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
+        Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
+        Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
+        Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
+    });
+
+
+
+    // Group Person (normal)
+    Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
+    Route::get('/group-person/add-makhdoom', [GroupPersonController::class, 'createMakhdoom'])->name('group-person.create-makhdoom');
+    Route::post('/group-person/insert', [GroupPersonController::class, 'insert'])->name('group-person.insert');
+    Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
+    Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
+
+    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
+    Route::post('/person/insert', [PersonNewController::class, 'insert'])->name('person.insert');
+
+    Route::get('/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestions'])->name('person.entry-questions');
+    Route::post('/person/entry-questions/submit', [PersonNewController::class, 'submitQuestions'])->name('person.entry-questions-submit');
+
+    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
+    Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
+    Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
+
+
+
+    // Delete Persons
+    Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
+    Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
 
 
 
