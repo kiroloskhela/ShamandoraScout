@@ -499,22 +499,27 @@ public function insertLiveForm(Request $request)
         $marhala_limit = DB::table('MarhalaLiveFormLimit')
             ->where('QetaaID', $qetaa_id)
             ->where('SanaMarhalaID', $request->sana_marhala_id)
-            ->value('MaxLimit') ?? 0;
+            ->value('MaxLimit');
+
+        $marhala_limit = $marhala_limit !== null ? (int) $marhala_limit : 0;
 
         $numberOfStudentsCurrentlySubmittedInSanaMarhala = DB::table('NewUsersInformation')
             ->where('QetaaID', $qetaa_id)
             ->where('SanaMarhalaID', $request->sana_marhala_id)
             ->count();
 
-        // أضف فقط القطاعات التي ما زال فيها أماكن
-      $available_qetaat[] = [
-    'QetaaID' => $qetaa_id,
-    'QetaaName' => $qetaa_name,
-    'gender' => $gender,
-    'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
-    'max_limit' => $marhala_limit,
-    'is_full' => ($marhala_limit == 0 || $numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit),
-];
+        $is_full = ($marhala_limit <= 0) || ($numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit);
+
+        if (!$is_full) {
+            $available_qetaat[] = [
+                'QetaaID' => $qetaa_id,
+                'QetaaName' => $qetaa_name,
+                'gender' => $gender,
+                'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
+                'max_limit' => $marhala_limit,
+                'is_full' => false,
+            ];
+        }
     }
 
     if (empty($available_qetaat)) {
@@ -533,8 +538,6 @@ public function insertLiveForm(Request $request)
             'gender' => $request->gender,
             'newLeadersSchool' => (bool) $request->newLeadersSchool,
             'available_qetaat' => $available_qetaat,
-
-            // لو قطاع واحد فقط، اختاره تلقائيًا
             'qetaa_id' => count($available_qetaat) === 1 ? $available_qetaat[0]['QetaaID'] : null,
             'qetaa_name' => count($available_qetaat) === 1 ? $available_qetaat[0]['QetaaName'] : null,
         ],
@@ -774,7 +777,6 @@ if ($existsInNewUsers || $existsInPersonInformation) {
             'person_faculty' => $request->person_faculty,
             'person_university' => $request->person_university,
             'university_grad_year' => $request->university_grad_year,
-
             'allergy_food' => $request->allergy_food,
             'allergy_medicine' => $request->allergy_medicine,
             'medical_diseases' => $request->medical_diseases,
