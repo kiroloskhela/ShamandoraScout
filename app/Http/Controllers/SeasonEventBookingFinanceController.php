@@ -490,7 +490,8 @@ public function store(Request $request, $seasonEventID)
         'guest_id' => 'nullable|integer|exists:Guests,GuestID',
         'family_id' => 'nullable|integer|exists:FamilyMembers,FamilyID',
         'first_payment_date' => 'required|date',
-        'first_payment_amount' => 'required|numeric|min:0.01',
+                'first_payment_amount' => 'required|numeric|min:0
+                ',
         'is_not_able_to_pay_all' => 'nullable|in:0,1',
         'special_case_type' => 'nullable|in:NONE,AKHOH_RAB,HAS_BROTHERS,OTHER',
         'discount_amount' => 'nullable|numeric|min:0',
@@ -796,7 +797,7 @@ public function storeInstallment(Request $request, $bookingID)
     $isLastInstallment = ($nextInstallmentNumber >= (int)$booking->InstallmentsNumber);
 
     $validator = Validator::make($request->all(), [
-        'amount' => 'required|numeric|min:0.01',
+        'amount' => 'required|numeric|min:0',
         'notes' => 'nullable|string|max:500'
     ], [
         'amount.required' => 'يجب إدخال مبلغ الدفعة.',
@@ -903,7 +904,7 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         }
 
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric|min:0.01'
+            'amount' => 'required|numeric|min:0'
         ]);
 
         if ($validator->fails()) {
