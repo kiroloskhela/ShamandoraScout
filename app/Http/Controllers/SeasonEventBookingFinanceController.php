@@ -490,11 +490,11 @@ public function store(Request $request, $seasonEventID)
         'guest_id' => 'nullable|integer|exists:Guests,GuestID',
         'family_id' => 'nullable|integer|exists:FamilyMembers,FamilyID',
         'first_payment_date' => 'required|date',
-                'first_payment_amount' => 'required|numeric|min:0
+                    'first_payment_amount' => 'required|numeric
                 ',
         'is_not_able_to_pay_all' => 'nullable|in:0,1',
         'special_case_type' => 'nullable|in:NONE,AKHOH_RAB,HAS_BROTHERS,OTHER',
-        'discount_amount' => 'nullable|numeric|min:0',
+        'discount_amount' => 'nullable|numeric',
         'special_case_note' => 'nullable|string|max:500',
     ], [
         'booking_type.required' => 'يجب اختيار نوع الحجز.',
@@ -797,7 +797,7 @@ public function storeInstallment(Request $request, $bookingID)
     $isLastInstallment = ($nextInstallmentNumber >= (int)$booking->InstallmentsNumber);
 
     $validator = Validator::make($request->all(), [
-        'amount' => 'required|numeric|min:0',
+        'amount' => 'required|numeric',
         'notes' => 'nullable|string|max:500'
     ], [
         'amount.required' => 'يجب إدخال مبلغ الدفعة.',
@@ -904,7 +904,7 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         }
 
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric|min:0'
+            'amount' => 'required|numeric'
         ]);
 
         if ($validator->fails()) {
@@ -1299,7 +1299,7 @@ public function partialRefundStore(Request $request, $bookingID)
     }
 
     $validator = Validator::make($request->all(), [
-        'deduction_amount' => 'required|numeric|min:0',
+        'deduction_amount' => 'required|numeric',
         'notes' => 'nullable|string|max:500',
     ], [
         'deduction_amount.required' => 'يجب إدخال مبلغ الجزء المخصوم.',
