@@ -1391,7 +1391,7 @@
                     if (!result.ok) {
                         showPhotoError(root,
                             `لم نتمكن من ضغط الصورة لأقل من 5 ميجا. الحجم الحالي: ${formatFileSize(originalFile.size)}. برجاء اختيار صورة أصغر.`
-                            );
+                        );
                         input.value = '';
                         resetPhotoUI(root);
                         validateAll();
@@ -1399,7 +1399,7 @@
                     }
 
                     finalFile = result.file;
-                    showPhotoError(root, `تم ضغط الصورة بنجاح ✅ الحجم: ${formatFileSize(finalFile.size)}`);
+                    hidePhotoError(root);
                 }
 
                 processedFiles.set(key, finalFile);
@@ -1434,7 +1434,7 @@
                 if (file.size > MAX_IMAGE_BYTES) {
                     showPhotoError(root,
                         `حجم الصورة ما زال أكبر من 5 ميجا (${formatFileSize(file.size)}). برجاء اختيار صورة أصغر.`
-                        );
+                    );
                     ok = false;
                 }
             });
