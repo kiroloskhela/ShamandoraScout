@@ -1633,7 +1633,7 @@ public function partialRefundStore(Request $request, $bookingID)
     public function updateShirtSize(Request $request, $bookingID)
     {
         $validator = Validator::make($request->all(), [
-            'shirt_size' => 'required|in:XS,S,M,L,XL,2XL,3XL',
+            'shirt_size' => 'required|in:XS,S,M,L,XL,2XL,3XL,4XL,5XL,6XL',
         ], [
             'shirt_size.required' => 'يجب اختيار مقاس القميص.',
             'shirt_size.in' => 'مقاس القميص غير صحيح.',
