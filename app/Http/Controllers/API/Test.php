@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class Test extends Controller
 {
@@ -13,18 +14,53 @@ class Test extends Controller
     public function store(Request $request)
     {
         return response()->json([
+            'header' => [
+                'serverDate' => now()->format('Y-m-d\TH:i:s.uP'),
+                'responseLanguage' => 'Ar',
+                'deviceType' => null,
+                'serialNumber' => '61adfd77-815b-4c9e-839b-4719a10a4143',
+                'appVersion' => '4.0.1',
+                'identifiers' => null,
+                'preferedLanguage' => 'Ar',
+                'clientDate' => $request->input('clientDate', '2024-12-03T15:25:08'),
+                'requestUid' => (string) Str::uuid(),
+                'messageCode' => 'createConsumerLoan',
+            ],
+
             'body' => [
-                'Data' => [
+                'data' => [
                     [
                         'label' => 'Kiro',
-                        'code' => 'Kiro'
+                        'code' => 'Kiro',
                     ],
                     [
-                        'label' => 'Abbas',
-                        'code' => 'Abbas'
-                    ]
-                ]
-            ]
+                        'label' => 'Arsany',
+                        'code' => 'Arsany',
+                    ],
+                    [
+                        'label' => 'Done',
+                        'code' => 'Done',
+                    ],
+                    [
+                        'label' => 'Initiated',
+                        'code' => 'Initiated',
+                    ],
+                    [
+                        'label' => 'Pipeline',
+                        'code' => 'Pipeline',
+                    ],
+                    [
+                        'label' => 'Rejected',
+                        'code' => 'Rejected',
+                    ],
+                ],
+                'code' => 200,
+                'message' => 'تمت العمليه بنجاح',
+            ],
+
+            'footer' => [
+                'securityInfo' => null,
+            ],
         ]);
     }
 
@@ -34,9 +70,28 @@ class Test extends Controller
     public function storeWithInput(Request $request)
     {
         return response()->json([
+            'header' => [
+                'serverDate' => now()->format('Y-m-d\TH:i:s.uP'),
+                'responseLanguage' => 'Ar',
+                'deviceType' => null,
+                'serialNumber' => '61adfd77-815b-4c9e-839b-4719a10a4143',
+                'appVersion' => '4.0.1',
+                'identifiers' => null,
+                'preferedLanguage' => 'Ar',
+                'clientDate' => $request->input('clientDate', now()->format('Y-m-d\TH:i:s')),
+                'requestUid' => (string) Str::uuid(),
+                'messageCode' => 'createConsumerLoan',
+            ],
+
             'body' => [
-                'Data' => $request->all()
-            ]
+                'data' => $request->all(),
+                'code' => 200,
+                'message' => 'تمت العمليه بنجاح',
+            ],
+
+            'footer' => [
+                'securityInfo' => null,
+            ],
         ]);
     }
 }
