@@ -124,28 +124,12 @@ class Test extends Controller
             'body' => [
                 'data' => [
                     [
-                        'label' => 'Approved',
-                        'code' => 'Approved',
+                        'label' => 'Kiroloskhela',
+                        'code' => 'Kiroloskhela',
                     ],
                     [
-                        'label' => 'Cancelled',
-                        'code' => 'Cancelled',
-                    ],
-                    [
-                        'label' => 'Done',
-                        'code' => 'Done',
-                    ],
-                    [
-                        'label' => 'Initiated',
-                        'code' => 'Initiated',
-                    ],
-                    [
-                        'label' => 'Pipeline',
-                        'code' => 'Pipeline',
-                    ],
-                    [
-                        'label' => 'Rejected',
-                        'code' => 'Rejected',
+                        'label' => 'Arsany',
+                        'code' => 'Arsany',
                     ],
                 ],
                 'code' => 200,
