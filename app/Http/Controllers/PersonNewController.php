@@ -508,10 +508,22 @@ public function insertLiveForm(Request $request)
             ->where('SanaMarhalaID', $request->sana_marhala_id)
             ->count();
 
-        $is_full = ($marhala_limit <= 0) || ($numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit);
+      //  $is_full = ($marhala_limit <= 0) || ($numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit);
+   //!! Note: We are allowing proceeding with empty available_qetaat to show a message in step 2 about no available sectors, instead of blocking here, because some stages might not have limits and we want to allow them to proceed to step 2 to show the available sectors without limits.
+  
+        // if (!$is_full) {
+        //     $available_qetaat[] = [
+        //         'QetaaID' => $qetaa_id,
+        //         'QetaaName' => $qetaa_name,
+        //         'gender' => $gender,
+        //         'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
+        //         'max_limit' => $marhala_limit,
+        //         'is_full' => false,
+        //     ];
+        // }
 
-        if (!$is_full) {
-            $available_qetaat[] = [
+
+           $available_qetaat[] = [
                 'QetaaID' => $qetaa_id,
                 'QetaaName' => $qetaa_name,
                 'gender' => $gender,
@@ -519,17 +531,16 @@ public function insertLiveForm(Request $request)
                 'max_limit' => $marhala_limit,
                 'is_full' => false,
             ];
-        }
     }
-
-    if (empty($available_qetaat)) {
-        return view('person.liveform-limit-exceeded', [
-            'qetaa_name' => null,
-            'sana_marhala_name' => $sana_marhala_name,
-            'current_count' => null,
-            'max_limit' => null,
-        ]);
-    }
+    //!! Note: We are allowing proceeding with empty available_qetaat to show a message in step 2 about no available sectors, instead of blocking here, because some stages might not have limits and we want to allow them to proceed to step 2 to show the available sectors without limits.
+    // if (empty($available_qetaat)) {
+    //     return view('person.liveform-limit-exceeded', [
+    //         'qetaa_name' => null,
+    //         'sana_marhala_name' => $sana_marhala_name,
+    //         'current_count' => null,
+    //         'max_limit' => null,
+    //     ]);
+    // }
 
     session([
         'liveform.step1' => [
@@ -844,6 +855,7 @@ public function submitLiveformQuestions(Request $request)
         ->get();
 
     foreach ($questions as $question) {
+
         $q = $request->input($question->QuestionID);
 
         if ($question->IsRequired && ($q === null || $q === '')) {
@@ -854,6 +866,13 @@ public function submitLiveformQuestions(Request $request)
     DB::beginTransaction();
 
     try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK DUPLICATE
+        |--------------------------------------------------------------------------
+        */
+
         $exists = DB::table('NewUsersInformation')
             ->where('RaqamQawmy', $step2['input_raqam_qawmy'])
             ->lockForUpdate()
@@ -864,27 +883,86 @@ public function submitLiveformQuestions(Request $request)
             return view('person.person-already-exists');
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $maxLimit = DB::table('MarhalaLiveFormLimit')
+            ->where('QetaaID', $step1['qetaa_id'])
+            ->where('SanaMarhalaID', $step1['sana_marhala_id'])
+            ->value('MaxLimit');
+
+        $maxLimit = $maxLimit ? (int) $maxLimit : 0;
+
+        $currentCount = DB::table('NewUsersInformation')
+            ->where('QetaaID', $step1['qetaa_id'])
+            ->where('SanaMarhalaID', $step1['sana_marhala_id'])
+            ->count();
+
+        $isWaitingList = false;
+
+        if (($maxLimit > 0 && $currentCount >= $maxLimit) || ($maxLimit == 0)) {
+            $isWaitingList = true;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE IDS
+        |--------------------------------------------------------------------------
+        */
+
         $last = DB::table('NewUsersInformation')
             ->orderBy('PersonID', 'desc')
             ->lockForUpdate()
             ->first();
 
-        $thisPersonID = is_null($last) ? 1 : ((int) $last->PersonID + 1);
+        $thisPersonID = is_null($last)
+            ? 1
+            : ((int) $last->PersonID + 1);
 
         $shamandoraCode = 'SH-' . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
 
+        /*
+        |--------------------------------------------------------------------------
+        | PASSWORD
+        |--------------------------------------------------------------------------
+        */
+
         $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+
         $pass = [];
+
         $alphaLength = strlen($alphabet) - 1;
+
         for ($i = 0; $i < 8; $i++) {
             $pass[] = $alphabet[rand(0, $alphaLength)];
         }
+
         $passString = implode($pass);
 
-        $personalImagePath = $this->finalizeTempLiveformFile($step2['profile_image'] ?? null);
-        $scoutImagePath = $this->finalizeTempLiveformFile($step2['scout_uniform_image'] ?? null);
+        /*
+        |--------------------------------------------------------------------------
+        | IMAGES
+        |--------------------------------------------------------------------------
+        */
 
-        DB::table('NewUsersInformation')->insert([
+        $personalImagePath = $this->finalizeTempLiveformFile(
+            $step2['profile_image'] ?? null
+        );
+
+        $scoutImagePath = $this->finalizeTempLiveformFile(
+            $step2['scout_uniform_image'] ?? null
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA ARRAY
+        |--------------------------------------------------------------------------
+        */
+
+        $personData = [
             'PersonID' => $thisPersonID,
             'ShamandoraCode' => $shamandoraCode,
             'FirstName' => $step2['first_name'],
@@ -905,7 +983,9 @@ public function submitLiveformQuestions(Request $request)
             'MainStreetName' => $step2['main_street_name'],
             'SubStreetName' => $step2['sub_street_name'],
             'ManteqaID' => $step2['manteqa_id'],
-            'DistrictID' => is_null($step2['district_id']) ? 1 : $step2['district_id'],
+            'DistrictID' => is_null($step2['district_id'])
+                ? 1
+                : $step2['district_id'],
             'NearestLandmark' => $step2['nearest_landmark'],
             'SanaMarhalaID' => $step1['sana_marhala_id'],
             'SpiritualFatherName' => $step2['spiritual_father'],
@@ -933,22 +1013,59 @@ public function submitLiveformQuestions(Request $request)
             'EmergencyDetails' => !empty($step2['has_emergency_case'])
                 ? trim((string) ($step2['emergency_details'] ?? ''))
                 : null,
-        ]);
+        ];
 
-        foreach ($questions as $question) {
-            DB::table('NewUsersPersonEntryQuestions')->insert([
-                'PersonID' => $thisPersonID,
-                'QuestionID' => $question->QuestionID,
-                'Answer' => $request->input($question->QuestionID),
-            ]);
+        /*
+        |--------------------------------------------------------------------------
+        | NORMAL OR WAITING LIST
+        |--------------------------------------------------------------------------
+        */
+
+        if ($isWaitingList) {
+
+            DB::table('NewUsersInformationWaitinglist')->insert($personData);
+
+            foreach ($questions as $question) {
+
+                DB::table('NewUsersPersonEntryQuestionsWaitinglist')->insert([
+                    'PersonID' => $thisPersonID,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $request->input($question->QuestionID),
+                ]);
+            }
+
+        } else {
+
+            DB::table('NewUsersInformation')->insert($personData);
+
+            foreach ($questions as $question) {
+
+                DB::table('NewUsersPersonEntryQuestions')->insert([
+                    'PersonID' => $thisPersonID,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $request->input($question->QuestionID),
+                ]);
+            }
         }
 
         DB::commit();
 
         session()->forget('liveform');
 
+        /*
+        |--------------------------------------------------------------------------
+        | FINAL RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($isWaitingList) {
+            return view('person.liveform-waiting-list');
+        }
+
         return view('person.liveform-finalize');
+
     } catch (\Throwable $e) {
+
         DB::rollBack();
 
         Log::error('submitLiveformQuestions failed', [
@@ -960,6 +1077,7 @@ public function submitLiveformQuestions(Request $request)
         return view('person.entry-error');
     }
 }
+
 
 private function resolveLiveFormQetaa(int $sanaMarhalaId, string $gender, bool $newLeadersSchool): array
 {
@@ -1646,7 +1764,132 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
     DB::beginTransaction();
 
     try {
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK LIMIT AGAIN BEFORE FINALIZE
+        |--------------------------------------------------------------------------
+        */
+
+        $maxLimit = DB::table('MarhalaLiveFormLimit')
+            ->where('QetaaID', $person->QetaaID)
+            ->where('SanaMarhalaID', $person->SanaMarhalaID)
+            ->value('MaxLimit');
+
+        $maxLimit = $maxLimit ? (int) $maxLimit : 0;
+
+        $currentCount = DB::table('NewUsersInformation')
+            ->where('QetaaID', $person->QetaaID)
+            ->where('SanaMarhalaID', $person->SanaMarhalaID)
+            ->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | IF LIMIT EXCEEDED -> MOVE TO WAITING LIST
+        |--------------------------------------------------------------------------
+        */
+
+        if ($maxLimit > 0 && $currentCount > $maxLimit) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT PERSON INTO WAITING LIST TABLE
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('NewUsersInformationWaitinglist')->insert([
+                'PersonID' => $person->PersonID,
+                'ShamandoraCode' => $person->ShamandoraCode,
+                'FirstName' => $person->FirstName,
+                'SecondName' => $person->SecondName,
+                'ThirdName' => $person->ThirdName,
+                'FourthName' => $person->FourthName,
+                'Gender' => $person->Gender,
+                'DateOfBirth' => $person->DateOfBirth,
+                'RaqamQawmy' => $person->RaqamQawmy,
+                'ScoutJoiningYear' => $person->ScoutJoiningYear,
+                'BloodTypeID' => $person->BloodTypeID,
+                'FacebookProfileURL' => $person->FacebookProfileURL,
+                'InstagramProfileURL' => $person->InstagramProfileURL,
+                'PersonalEmail' => $person->PersonalEmail,
+                'BuildingNumber' => $person->BuildingNumber,
+                'FloorNumber' => $person->FloorNumber,
+                'AppartmentNumber' => $person->AppartmentNumber,
+                'MainStreetName' => $person->MainStreetName,
+                'SubStreetName' => $person->SubStreetName,
+                'ManteqaID' => $person->ManteqaID,
+                'DistrictID' => $person->DistrictID,
+                'NearestLandmark' => $person->NearestLandmark,
+                'SanaMarhalaID' => $person->SanaMarhalaID,
+                'SpiritualFatherName' => $person->SpiritualFatherName,
+                'SpiritualFatherChurchName' => $person->SpiritualFatherChurchName,
+                'Password' => $person->Password,
+                'PersonPersonalMobileNumber' => $person->PersonPersonalMobileNumber,
+                'FatherMobileNumber' => $person->FatherMobileNumber,
+                'MotherMobileNumber' => $person->MotherMobileNumber,
+                'HomePhoneNumber' => $person->HomePhoneNumber,
+                'IsOPersonalPhoneNumberHavingWhatsapp' => $person->IsOPersonalPhoneNumberHavingWhatsapp,
+                'SchoolName' => $person->SchoolName,
+                'SchoolGraduationYear' => $person->SchoolGraduationYear,
+                'QetaaID' => $person->QetaaID,
+                'QetaaName' => $person->QetaaName,
+                'FacultyID' => $person->FacultyID,
+                'UniversityID' => $person->UniversityID,
+                'UniversityGraduationYear' => $person->UniversityGraduationYear,
+                'PersonalImagePath' => $person->PersonalImagePath,
+                'ScoutImagePath' => $person->ScoutImagePath,
+                'AllergyFood' => $person->AllergyFood,
+                'AllergyMedicine' => $person->AllergyMedicine,
+                'MedicalDiseases' => $person->MedicalDiseases,
+                'MedicalMedications' => $person->MedicalMedications,
+                'HasEmergencyCase' => $person->HasEmergencyCase,
+                'EmergencyDetails' => $person->EmergencyDetails,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE QUESTIONS TO WAITING LIST QUESTIONS TABLE
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($questions as $question) {
+
+                $answer = $request->input($question->QuestionID);
+
+                DB::table('NewUsersPersonEntryQuestionsWaitinglist')->insert([
+                    'PersonID' => $person->PersonID,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $answer,
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | REMOVE FROM MAIN TABLES
+            |--------------------------------------------------------------------------
+            */
+
+            DB::table('NewUsersPersonEntryQuestions')
+                ->where('PersonID', $id)
+                ->delete();
+
+            DB::table('NewUsersInformation')
+                ->where('PersonID', $id)
+                ->delete();
+
+            DB::commit();
+
+            return view('person.liveform-waiting-list');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | NORMAL SAVE
+        |--------------------------------------------------------------------------
+        */
+
         foreach ($questions as $question) {
+
             $answer = $request->input($question->QuestionID);
 
             $exists = DB::table('NewUsersPersonEntryQuestions')
@@ -1655,13 +1898,16 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
                 ->exists();
 
             if ($exists) {
+
                 DB::table('NewUsersPersonEntryQuestions')
                     ->where('PersonID', $id)
                     ->where('QuestionID', $question->QuestionID)
                     ->update([
                         'Answer' => $answer,
                     ]);
+
             } else {
+
                 DB::table('NewUsersPersonEntryQuestions')->insert([
                     'PersonID' => $id,
                     'QuestionID' => $question->QuestionID,
@@ -1673,7 +1919,9 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
         DB::commit();
 
         return view('person.liveform-finalize');
+
     } catch (\Throwable $e) {
+
         DB::rollBack();
 
         Log::error('submitLegacyLiveformQuestions failed', [

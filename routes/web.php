@@ -148,6 +148,7 @@ Route::post('/liveform/resume/{id}', [PersonNewController::class, 'submitLegacyL
 
 Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
 Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
+Route::get('/liveform/waiting', fn() => view('person.liveform-waiting-list'));
 Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletes'));
 Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
 
