@@ -24,7 +24,7 @@ use App\Http\Controllers\API\Test;
 // Public routes
 Route::post('/login', [LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
 Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
-Route::post('/test', [Test::class, 'store']);
+
 
 
 // Protected routes
