@@ -5,44 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Services\FcmService;
+use App\Http\Controllers\NotificationController;
 
 class AdminCustodyRequestController extends Controller
 {
 
 
-protected $fcm;
 
-    public function __construct(FcmService $fcm)
-    {
-        $this->middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory']);
-        $this->fcm = $fcm;
-    }
 
-    private function sendNotificationToUser($personId, $title, $body)
-    {
-        try {
-                $tokens = DB::table('devices')
-                ->where('PersonID', $personId)
-                ->pluck('fcm_token')
-                ->toArray();
 
-            Log::info('FCM Tokens Debug', [
-                'personId' => $personId,
-                'tokens' => $tokens
-            ]);
-
-            if (!empty($tokens)) {
-                $this->fcm->sendToMultiple($tokens, $title, $body);
-            }
-
-            } catch (\Throwable $e) {
-                Log::error('FCM إرسال فشل', [
-                'personId' => $personId,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
 
     private function currentAdminPersonId()
     {
@@ -216,11 +187,12 @@ protected $fcm;
 
             DB::commit();
 
-      $this->sendNotificationToUser(
+            NotificationController::sendToUserId(
                 $requestRow->PersonID,
-                'تم اعتماد طلب العهدة الخاص بك',
-                "تم اعتماد طلب العهدة الخاص بك من تاريخ {$requestRow->DateFrom} إلى {$requestRow->DateTo}.\n\nملاحظة الأدمن:\n{$adminNote}"
+                '✅ تم قبول طلب الحجز الغرفه',
+                "تم قبول طلبك بتاريخ {$validated['approved_booking_date']} من {$validated['approved_time_from']} إلى {$validated['approved_time_to']}"
             );
+       
 
 
             return redirect()->route('admin.custody_requests.show', $id)
@@ -272,10 +244,10 @@ protected $fcm;
             }
 
                  // 🔔 Send Notification
-            $this->sendNotificationToUser(
+            NotificationController::sendToUserId(
                 $requestRow->PersonID,
-                '❌ الغرف تم رفض طلب الحجز',
-                $adminNote
+                '❌ تم رفض طلب الحجز الغرفه',
+                "تم رفض طلبك بتاريخ {$requestRow->date_from} إلى {$requestRow->date_to}. السبب: {$adminNote}"
             );
 
             return redirect()->route('admin.custody_requests.show', $id)->with('success', '✅ تم رفض الطلب.');

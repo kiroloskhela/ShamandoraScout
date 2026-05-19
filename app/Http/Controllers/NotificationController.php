@@ -117,5 +117,79 @@ class NotificationController extends Controller
 
         return false;
     }
+    }
+
+    public static function sendToUserId(int $personId, string $title, string $body): bool
+    {
+        try {
+
+            // ✅ Get FCM tokens for this user
+            $tokens = DB::table('devices')
+                ->where('PersonID', $personId)
+                ->whereNotNull('fcmtoken')
+                ->pluck('fcmtoken')
+                ->unique()
+                ->values()
+                ->toArray();
+
+            // ❌ No devices found
+            if (empty($tokens)) {
+                return false;
+            }
+
+            // ✅ Send notification
+            $fcm = new FcmService();
+
+            $fcm->sendToMultiple(
+                $tokens,
+                $title,
+                $body
+            );
+
+            return true;
+
+        } catch (Exception $e) {
+
+            Log::error('Notification Error (sendToUserId)', [
+                'person_id' => $personId,
+                'message' => $e->getMessage()
+            ]);
+
+            return false;
+        }
+    }
+
+    public static function sendToIds(array|int $ids, string $title, string $body): bool
+{
+    try {
+
+        $ids = (array) $ids;
+
+        $tokens = DB::table('devices')
+            ->whereIn('PersonID', $ids)
+            ->whereNotNull('fcmtoken')
+            ->pluck('fcmtoken')
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (empty($tokens)) {
+            return false;
+        }
+
+        (new FcmService())->sendToMultiple($tokens, $title, $body);
+
+        return true;
+
+    } catch (Exception $e) {
+        Log::error('Notification Error (sendToIds)', [
+            'ids' => $ids,
+            'message' => $e->getMessage()
+        ]);
+
+        return false;
+    }
 }
+
+
 }

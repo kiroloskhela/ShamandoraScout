@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+use App\Http\Controllers\NotificationController;
 class CustodyApiController extends Controller
 {
     // ---------------- helpers ----------------
@@ -388,6 +389,11 @@ class CustodyApiController extends Controller
 
             DB::commit();
 
+            NotificationController::sendToRoles(
+            ['SuperAdmin'],
+            'Custody Request',
+            $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a custody on ' . $request->date_from . ' to ' . $request->date_to . '. Please review the request.'
+              );
             return response()->json([
                 'ok'        => true,
                 'message'   => 'Custody request created',

@@ -126,6 +126,11 @@ class CustodyRequestController extends Controller
 
             DB::commit();
 
+            NotificationController::sendToRoles(
+            ['SuperAdmin'],
+            'Custody Request',
+            $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a custody on ' . $request->date_from . ' to ' . $request->date_to . '. Please review the request.'
+              );
             // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
          // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
 // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
@@ -269,12 +274,6 @@ try {
 
         return view('custody_requests.show', compact('requestRow', 'items'));
     }
-
-    // تعديل طلب (pending only)
-
-
-
-
 
 
     public function edit($id)
@@ -459,11 +458,7 @@ try {
         }
     
     }
-
-
-
     
-    // حذف الطلب (pending only)
    public function destroy($id)
 {
     $personId = auth()->user()->PersonID ?? null;

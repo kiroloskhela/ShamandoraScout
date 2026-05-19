@@ -7,42 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\FcmService;
 
+
 class AdminPlaceBookingController extends Controller
 {
-    protected $fcm;
-
-    public function __construct(FcmService $fcm)
-    {
-        $this->middleware(['auth', 'checkAuth:SuperAdmin|Secretary']);
-        $this->fcm = $fcm;
-    }
-
-    private function sendNotificationToUser($personId, $title, $body)
-    {
-        try {
-            $tokens = DB::table('devices')
-                ->where('PersonID', $personId)
-                ->pluck('fcm_token')
-                ->toArray();
-
-            Log::info('FCM Tokens Debug', [
-                'personId' => $personId,
-                'tokens' => $tokens
-            ]);
-
-            if (!empty($tokens)) {
-                $this->fcm->sendToMultiple($tokens, $title, $body);
-            }
-
-        } catch (\Throwable $e) {
-            Log::error('FCM إرسال فشل', [
-                'personId' => $personId,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-
+  
     
     private function currentAdminPersonId()
     {
@@ -139,146 +107,147 @@ class AdminPlaceBookingController extends Controller
     }
 
 
-public function approve(Request $request, $id)
-{
-    $adminPersonId = $this->currentAdminPersonId();
-    if (!$adminPersonId) {
-        return back()->with('error', '❌ لا يمكن تحديد الأدمن الحالي (PersonID).');
-    }
-
-    // Load booking (current values)
-    $booking = DB::table('PlaceBookings as B')
-        ->leftJoin('Place as P', 'B.PlaceID', '=', 'P.PlaceID')
-        ->leftJoin('Locations as L', 'P.LocationID', '=', 'L.LocationID')
-        ->where('B.BookingID', $id)
-        ->select([
-            'B.*',
-            'P.PlaceName as CurrentPlaceName',
-            'L.LocationName as CurrentLocationName',
-        ])
-        ->first();
-
-    if (!$booking) {
-        return redirect()->route('admin.place_bookings.index')->with('error', '❌ الطلب غير موجود.');
-    }
-
-    if ($booking->Status !== 'pending') {
-        return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.');
-    }
-
-    $validated = $request->validate([
-        'approved_place_id'      => 'required|integer',
-        'approved_booking_date'  => 'required|date',
-        'approved_time_from'     => 'required',
-        'approved_time_to'       => 'required',
-        'admin_note'             => 'nullable|string|max:2000',
-    ]);
-
-    // Validate time order
-    if ($validated['approved_time_from'] >= $validated['approved_time_to']) {
-        return back()->with('error', '❌ وقت (إلى) يجب أن يكون بعد وقت (من).')->withInput();
-    }
-
-    // Load approved place name (for change log)
-    $approvedPlace = DB::table('Place as P')
-        ->leftJoin('Locations as L', 'P.LocationID', '=', 'L.LocationID')
-        ->where('P.PlaceID', $validated['approved_place_id'])
-        ->select([
-            'P.PlaceID',
-            'P.PlaceName',
-            'L.LocationName',
-        ])
-        ->first();
-
-    if (!$approvedPlace) {
-        return back()->with('error', '❌ المكان المختار غير صحيح.')->withInput();
-    }
-
-    // ===== Build automatic change log =====
-    $changes = [];
-
-    // Place change
-    if ((string)$booking->PlaceID !== (string)$approvedPlace->PlaceID) {
-        $from = trim(($booking->CurrentPlaceName ?? '—') . ' (' . ($booking->CurrentLocationName ?? '—') . ')');
-        $to   = trim(($approvedPlace->PlaceName ?? '—') . ' (' . ($approvedPlace->LocationName ?? '—') . ')');
-        $changes[] = "تم تغيير المكان: {$from} → {$to}";
-    }
-
-    // Date change
-    if ((string)$booking->BookingDate !== (string)$validated['approved_booking_date']) {
-        $changes[] = "تم تغيير التاريخ: {$booking->BookingDate} → {$validated['approved_booking_date']}";
-    }
-
-    // Time change
-    if ((string)$booking->TimeFrom !== (string)$validated['approved_time_from'] ||
-        (string)$booking->TimeTo !== (string)$validated['approved_time_to']) {
-        $changes[] = "تم تغيير الوقت: {$booking->TimeFrom}-{$booking->TimeTo} → {$validated['approved_time_from']}-{$validated['approved_time_to']}";
-    }
-
-    // If nothing changed, still add a friendly line (optional)
-    if (empty($changes)) {
-        $changes[] = "تم اعتماد الطلب كما هو بدون تعديل.";
-    }
-
-    $autoNote = "تعديلات الإدارة:\n- " . implode("\n- ", $changes);
-
-    // Merge with admin note
-    $adminNote = trim((string)($validated['admin_note'] ?? ''));
-    if ($adminNote !== '') {
-        $finalAdminNote = $adminNote . "\n\n" . $autoNote;
-    } else {
-        $finalAdminNote = $autoNote;
-    }
-
-    // ===== Save =====
-    DB::beginTransaction();
-    try {
-        $affected = DB::table('PlaceBookings')
-            ->where('BookingID', $id)
-            ->where('Status', 'pending') // atomic guard
-            ->update([
-                'Status'        => 'approved',
-
-                // approved values (keep your column names!)
-                'ApprovedPlaceID'   => $approvedPlace->PlaceID,
-                'ApprovedBookingDate' => $validated['approved_booking_date'],
-                'ApprovedTimeFrom'  => $validated['approved_time_from'],
-                'ApprovedTimeTo'    => $validated['approved_time_to'],
-
-                'AdminNote'     => $finalAdminNote,
-                'ReviewedBy'    => $adminPersonId,
-                'ReviewedAt'    => now(),
-                'updated_at'    => now(),
-            ]);
-
-        if ($affected === 0) {
-            DB::rollBack();
-            return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.')->withInput();
+    public function approve(Request $request, $id)
+    {
+        $adminPersonId = $this->currentAdminPersonId();
+        if (!$adminPersonId) {
+            return back()->with('error', '❌ لا يمكن تحديد الأدمن الحالي (PersonID).');
         }
 
-        DB::commit();
-        // 🔔 Send Notification
-        $this->sendNotificationToUser(
+        // Load booking (current values)
+        $booking = DB::table('PlaceBookings as B')
+            ->leftJoin('Place as P', 'B.PlaceID', '=', 'P.PlaceID')
+            ->leftJoin('Locations as L', 'P.LocationID', '=', 'L.LocationID')
+            ->where('B.BookingID', $id)
+            ->select([
+                'B.*',
+                'P.PlaceName as CurrentPlaceName',
+                'L.LocationName as CurrentLocationName',
+            ])
+            ->first();
+
+        if (!$booking) {
+            return redirect()->route('admin.place_bookings.index')->with('error', '❌ الطلب غير موجود.');
+        }
+
+        if ($booking->Status !== 'pending') {
+            return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.');
+        }
+
+        $validated = $request->validate([
+            'approved_place_id'      => 'required|integer',
+            'approved_booking_date'  => 'required|date',
+            'approved_time_from'     => 'required',
+            'approved_time_to'       => 'required',
+            'admin_note'             => 'nullable|string|max:2000',
+        ]);
+
+        // Validate time order
+        if ($validated['approved_time_from'] >= $validated['approved_time_to']) {
+            return back()->with('error', '❌ وقت (إلى) يجب أن يكون بعد وقت (من).')->withInput();
+        }
+
+        // Load approved place name (for change log)
+        $approvedPlace = DB::table('Place as P')
+            ->leftJoin('Locations as L', 'P.LocationID', '=', 'L.LocationID')
+            ->where('P.PlaceID', $validated['approved_place_id'])
+            ->select([
+                'P.PlaceID',
+                'P.PlaceName',
+                'L.LocationName',
+            ])
+            ->first();
+
+        if (!$approvedPlace) {
+            return back()->with('error', '❌ المكان المختار غير صحيح.')->withInput();
+        }
+
+        // ===== Build automatic change log =====
+        $changes = [];
+
+        // Place change
+        if ((string)$booking->PlaceID !== (string)$approvedPlace->PlaceID) {
+            $from = trim(($booking->CurrentPlaceName ?? '—') . ' (' . ($booking->CurrentLocationName ?? '—') . ')');
+            $to   = trim(($approvedPlace->PlaceName ?? '—') . ' (' . ($approvedPlace->LocationName ?? '—') . ')');
+            $changes[] = "تم تغيير المكان: {$from} → {$to}";
+        }
+
+        // Date change
+        if ((string)$booking->BookingDate !== (string)$validated['approved_booking_date']) {
+            $changes[] = "تم تغيير التاريخ: {$booking->BookingDate} → {$validated['approved_booking_date']}";
+        }
+
+        // Time change
+        if ((string)$booking->TimeFrom !== (string)$validated['approved_time_from'] ||
+            (string)$booking->TimeTo !== (string)$validated['approved_time_to']) {
+            $changes[] = "تم تغيير الوقت: {$booking->TimeFrom}-{$booking->TimeTo} → {$validated['approved_time_from']}-{$validated['approved_time_to']}";
+        }
+
+        // If nothing changed, still add a friendly line (optional)
+        if (empty($changes)) {
+            $changes[] = "تم اعتماد الطلب كما هو بدون تعديل.";
+        }
+
+        $autoNote = "تعديلات الإدارة:\n- " . implode("\n- ", $changes);
+
+        // Merge with admin note
+        $adminNote = trim((string)($validated['admin_note'] ?? ''));
+        if ($adminNote !== '') {
+            $finalAdminNote = $adminNote . "\n\n" . $autoNote;
+        } else {
+            $finalAdminNote = $autoNote;
+        }
+
+        // ===== Save =====
+        DB::beginTransaction();
+        try {
+            $affected = DB::table('PlaceBookings')
+                ->where('BookingID', $id)
+                ->where('Status', 'pending') // atomic guard
+                ->update([
+                    'Status'        => 'approved',
+
+                    // approved values (keep your column names!)
+                    'ApprovedPlaceID'   => $approvedPlace->PlaceID,
+                    'ApprovedBookingDate' => $validated['approved_booking_date'],
+                    'ApprovedTimeFrom'  => $validated['approved_time_from'],
+                    'ApprovedTimeTo'    => $validated['approved_time_to'],
+
+                    'AdminNote'     => $finalAdminNote,
+                    'ReviewedBy'    => $adminPersonId,
+                    'ReviewedAt'    => now(),
+                    'updated_at'    => now(),
+                ]);
+
+            if ($affected === 0) {
+                DB::rollBack();
+                return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.')->withInput();
+            }
+
+            DB::commit();
+            // 🔔 Send Notification
+       
+            NotificationController::sendToUserId(
                 $booking->PersonID,
                 '✅ تم قبول طلب الحجز الغرفه',
                 "تم قبول طلبك بتاريخ {$validated['approved_booking_date']} من {$validated['approved_time_from']} إلى {$validated['approved_time_to']}"
             );
 
-return redirect()->route('admin.place_bookings.show', $id)
-    ->with('success', '✅ تم اعتماد الطلب بنجاح.');
-      
-    } catch (\Throwable $e) {
-    DB::rollBack();
+    return redirect()->route('admin.place_bookings.show', $id)
+        ->with('success', '✅ تم اعتماد الطلب بنجاح.');
+        
+        } catch (\Throwable $e) {
+        DB::rollBack();
 
-    Log::error('Approve place booking failed', [
-        'bookingId' => $id,
-        'error' => $e->getMessage(),
-    ]);
+        Log::error('Approve place booking failed', [
+            'bookingId' => $id,
+            'error' => $e->getMessage(),
+        ]);
 
-    return back()->with('error', '❌ ' . $e->getMessage())->withInput();
-}
+        return back()->with('error', '❌ ' . $e->getMessage())->withInput();
+    }
 
-}
+    }
 
     public function reject(Request $request, $id)
     {
@@ -320,10 +289,10 @@ return redirect()->route('admin.place_bookings.show', $id)
             }
 
             // 🔔 Send Notification
-            $this->sendNotificationToUser(
+          NotificationController::sendToUserId(
                 $booking->PersonID,
-                '❌ الغرف تم رفض طلب الحجز',
-                $adminNote
+                '❌ تم رفض الحجز',
+                "تم رفض طلبك بتاريخ {$booking->BookingDate} من {$booking->TimeFrom} إلى {$booking->TimeTo}. السبب: {$adminNote}"
             );
 
             return redirect()->route('admin.place_bookings.show', $id)->with('success', '✅ تم رفض الحجز.');
@@ -384,7 +353,7 @@ return redirect()->route('admin.place_bookings.show', $id)
             if ($affected === 0) {
                 return back()->with('error', '❌ لا يمكن اعتماد طلب تم مراجعته بالفعل.');
             }
-            $this->sendNotificationToUser(
+            NotificationController::sendToUserId(
                 $booking->PersonID,
                 '✅ تم قبول الحجز مع تعديل',
                 "تم تعديل الحجز الخاص بك من {$validated['approved_time_from']} إلى {$validated['approved_time_to']}"
