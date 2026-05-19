@@ -71,21 +71,30 @@ class NotificationController extends Controller
         }
     }
 
-   public static function sendToRoles(array $roles, string $title, string $body): bool
+public static function sendToRoles(array $roleNames, string $title, string $body): bool
 {
     try {
+        // ✅ Resolve role names to IDs
+        $roleIds = DB::table('Roles')
+            ->whereIn('RoleName', $roleNames)
+            ->pluck('RoleID')
+            ->toArray();
 
-        // ✅ Get all users with these roles
-    $personIds = DB::table('PersonRole')
-    ->whereIn('RoleID', $roles)
-    ->pluck('PersonID')
-    ->toArray();
+        if (empty($roleIds)) {
+            return false;
+        }
+
+        // ✅ Get all PersonIDs with these roles
+        $personIds = DB::table('PersonRole')
+            ->whereIn('RoleID', $roleIds)
+            ->pluck('PersonID')
+            ->toArray();
 
         if (empty($personIds)) {
             return false;
         }
 
-        // ✅ Get all FCM tokens
+        // ✅ Get FCM tokens
         $tokens = DB::table('devices')
             ->whereIn('PersonID', $personIds)
             ->whereNotNull('fcmtoken')
@@ -98,26 +107,19 @@ class NotificationController extends Controller
             return false;
         }
 
-        // ✅ Send notification
+        // ✅ Send in chunks of 500 (FCM limit)
         $fcm = new FcmService();
-
-        $fcm->sendToMultiple(
-            $tokens,
-            $title,
-            $body
-        );
+        foreach (array_chunk($tokens, 500) as $chunk) {
+            $fcm->sendToMultiple($chunk, $title, $body);
+        }
 
         return true;
 
     } catch (Exception $e) {
-
-        Log::error('Notification Error', [
-            'message' => $e->getMessage()
-        ]);
-
+        Log::error('Notification Error', ['message' => $e->getMessage()]);
         return false;
     }
-    }
+}
 
     public static function sendToUserId(int $personId, string $title, string $body): bool
     {
