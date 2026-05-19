@@ -95,13 +95,15 @@ public static function sendToRoles(array $roleNames, string $title, string $body
         }
 
         // ✅ Get FCM tokens
-        $tokens = DB::table('devices')
-            ->whereIn('PersonID', $personIds)
-            ->whereNotNull('fcmtoken')
-            ->pluck('fcmtoken')
-            ->unique()
-            ->values()
-            ->toArray();
+      $tokens = DB::table('devices')
+    ->whereIn('PersonID', $personIds)
+    ->whereNotNull('fcmtoken')
+    ->orderBy('created_at', 'desc')
+    ->get()
+    ->unique('PersonID')  // keep only latest token per person
+    ->pluck('fcmtoken')
+    ->values()
+    ->toArray();
 
         if (empty($tokens)) {
             return false;
