@@ -76,10 +76,10 @@ class NotificationController extends Controller
     try {
 
         // ✅ Get all users with these roles
-        $personIds = DB::table('users')
-            ->whereIn('Role', $roles)
-            ->pluck('PersonID')
-            ->toArray();
+    $personIds = DB::table('PersonRole')
+    ->whereIn('RoleID', $roles)
+    ->pluck('PersonID')
+    ->toArray();
 
         if (empty($personIds)) {
             return false;

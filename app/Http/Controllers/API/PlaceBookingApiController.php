@@ -288,7 +288,9 @@ class PlaceBookingApiController extends Controller
                 'updated_at'  => now(),
             ]);
        DB::commit();
-            NotificationController::sendToRoles(
+      
+      
+       NotificationController::sendToRoles(
                 ['SuperAdmin'],
                 'Room Booking',
                 $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a room booking on ' . $request->booking_date . ' from ' . $request->time_from . ' to ' . $request->time_to . '. Please review the request.'
