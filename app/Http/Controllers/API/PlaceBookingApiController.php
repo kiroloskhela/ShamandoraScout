@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\NotificationController;
 
 class PlaceBookingApiController extends Controller
 {
@@ -287,6 +288,11 @@ class PlaceBookingApiController extends Controller
                 'updated_at'  => now(),
             ]);
 
+            NotificationController::sendToRoles(
+                ['SuperAdmin'],
+                'Room Booking',
+                $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a room booking on ' . $request->booking_date . ' from ' . $request->time_from . ' to ' . $request->time_to . '. Please review the request.'
+            );
             DB::commit();
 
             return response()->json([
@@ -294,6 +300,7 @@ class PlaceBookingApiController extends Controller
                 'message'   => 'Place booking created',
                 'BookingID' => (int)$bookingId,
             ], 201);
+            
 
         } catch (\Throwable $e) {
             DB::rollBack();
