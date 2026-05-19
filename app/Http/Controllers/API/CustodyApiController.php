@@ -390,7 +390,7 @@ class CustodyApiController extends Controller
             DB::commit();
 
             NotificationController::sendToRoles(
-            ['SuperAdmin'],
+            ['SuperAdmin','AdminInventory','Inventory'],
             'Custody Request',
             $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a custody on ' . $request->date_from . ' to ' . $request->date_to . '. Please review the request.'
               );

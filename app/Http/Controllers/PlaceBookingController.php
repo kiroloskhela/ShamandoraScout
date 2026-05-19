@@ -90,7 +90,7 @@ class PlaceBookingController extends Controller
         ]);
 
         NotificationController::sendToRoles(
-                ['SuperAdmin'],
+                 ['SuperAdmin', 'Secretary', 'AdminSecretary'],
                 'Room Booking',
                 $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a room booking on ' . $request->booking_date . ' from ' . $request->time_from . ' to ' . $request->time_to . '. Please review the request.'
             );
