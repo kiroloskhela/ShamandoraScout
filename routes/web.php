@@ -713,7 +713,12 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
 
 });
 
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory'])->group(function () {
 
+    Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
+    Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
+
+});
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->group(function () {
 
@@ -721,9 +726,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->gr
     // Admin Custody
     Route::get('/admin/custody-requests', [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
     Route::get('/admin/custody-requests/{id}', [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
-    Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
-    Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
-    
+
 
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
