@@ -1,116 +1,208 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <title>كشافة الشمندورة | غير مسموح بالدخول</title>
 
-    <title>كشافة الشمندورة - غير مسموح الدخول</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Custom fonts for this template-->
-    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
     </style>
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
-
-
 </head>
 
+<body class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-800">
 
+    <main class="min-h-screen flex items-center justify-center px-4 py-10">
 
+        <div class="w-full max-w-3xl">
 
+            <div class="overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
 
-<body class="bg-gradient-primary">
+                <!-- Header -->
+                <div class="relative border-b border-slate-200 bg-slate-50 px-6 py-10 sm:px-10">
 
-    <div class="container">
+                    <div class="flex flex-col items-center text-center">
 
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-sm-5">
-                        <img src={{ asset('img/shamandora.png') }} style="width: 100%; height: 100%">
+                        <!-- Logo -->
+                        <div
+                            class="mb-5 h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-white p-3 shadow-md ring-4 ring-white">
+                            <img src="{{ asset('img/shamandora.png') }}" class="h-full w-full object-contain"
+                                alt="Shamandora Logo">
+                        </div>
+
+                        <!-- Badge -->
+                        <div
+                            class="mb-5 inline-flex items-center gap-2 rounded-full bg-rose-100 px-4 py-2 text-sm font-bold text-rose-800 ring-1 ring-rose-200">
+                            <span class="h-2.5 w-2.5 rounded-full bg-rose-500"></span>
+                            خطأ 403 - وصول مرفوض
+                        </div>
+
+                        <!-- Title -->
+                        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900">
+                            غير مسموح لك بالدخول
+                        </h1>
+
+                        <!-- Description -->
+                        <p class="mt-4 max-w-2xl text-sm sm:text-base leading-7 text-slate-600">
+                            عذرًا، لا تملك الصلاحيات الكافية للوصول إلى هذه الصفحة.
+                            إذا كنت تعتقد أن هذا خطأ، يمكنك التواصل مع المسؤولين أو تسجيل الدخول بحساب يمتلك الصلاحيات
+                            المناسبة.
+                        </p>
+
                     </div>
-                    <div class="col-sm-5">
-                        <div style="margin-top: 10em">
-                            <div class="text-center">
-                                <h1 class="h1 text-primary" style="color: brown">403</h1>
-                                <h1 class="h4 text-gray-900 mb-4">عذراً</h1>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 sm:p-10">
+
+                    <!-- Info Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+
+                        <!-- Reason -->
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+
+                            <div
+                                class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+                                </svg>
                             </div>
 
-                            <div class="text-center">
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> غير مسموح
-                                    لك بالدخول إلى تلك الصفحة
-                                </h2>
+                            <h3 class="font-bold text-slate-900">
+                                سبب المشكلة
+                            </h3>
 
-                                <a href="{{ route('home') }}">العودة للقائمة الرئيسية</a>
-                                @if (auth()->check())
-                                    <form class="dropdown-item" method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <input type="submit" class="btn-google btn-user btn-block"
-                                            style="background-color: brown; color: azure; font-weight: bolder;"
-                                            id="submit-button" value="تسجيل الخروج"></input>
-                                    </form>
-                                @endif
-                            </div>
-                            <hr>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">
+                                حسابك الحالي لا يمتلك صلاحية الوصول إلى هذه الصفحة أو هذا القسم من النظام.
+                            </p>
+                        </div>
 
-                            <div class="container my-auto">
-                                <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout </span>
-                                    <br />
-                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
-                                        الكشفية</span>
-                                </div>
+                        <!-- Solution -->
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+
+                            <div
+                                class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
                             </div>
+
+                            <h3 class="font-bold text-slate-900">
+                                ماذا يمكنك أن تفعل؟
+                            </h3>
+
+                            <p class="mt-2 text-sm leading-6 text-slate-600">
+                                يمكنك العودة إلى الصفحة الرئيسية أو تسجيل الدخول بحساب آخر يمتلك الصلاحيات المطلوبة.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- Important Note -->
+                    <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+
+                        <div class="flex items-start gap-3">
+
+                            <div class="mt-0.5 text-amber-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12A9 9 0 1112 3a9 9 0 019 9z" />
+                                </svg>
+                            </div>
+
+                            <div>
+                                <h4 class="font-bold text-amber-900">
+                                    ملاحظة مهمة
+                                </h4>
+
+                                <p class="mt-1 text-sm leading-6 text-amber-800">
+                                    ظهور هذه الصفحة يعني أن النظام تحقق من صلاحيات الحساب الحالي ورفض عملية الوصول
+                                    لحماية البيانات والمحتوى الداخلي.
+                                </p>
+                            </div>
+
                         </div>
                     </div>
+
+                    <!-- Buttons -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+
+                        <!-- Home Button -->
+                        <a href="{{ route('home') }}"
+                            class="inline-flex w-full sm:w-auto items-center justify-center rounded-2xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-indigo-700">
+
+                            العودة للقائمة الرئيسية
+                        </a>
+
+                        <!-- Logout Button -->
+                        @if (auth()->check())
+                            <form method="POST" action="{{ route('logout') }}" class="w-full sm:w-auto">
+                                @csrf
+
+                                <button type="submit"
+                                    class="inline-flex w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-6 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100">
+
+                                    تسجيل الخروج
+                                </button>
+                            </form>
+                        @endif
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="mt-10 border-t border-slate-200 pt-6 text-center">
+
+                        <p class="text-xs text-slate-500">
+                            © Shamandora Scout
+                        </p>
+
+                        <p class="mt-1 text-sm font-bold text-indigo-700">
+                            مجموعة الشمندورة الكشفية
+                        </p>
+
+                    </div>
+
                 </div>
             </div>
         </div>
-
-    </div>
-
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
-
-    <script>
-        function validate(ElementId) {
-            const element = document.getElementById(ElementId);
-            if (element.value == '') {
-                //element.style.backgroundColor = '#C53939';
-                //element.style.color = '#FFFFFF';
-                document.getElementById('submit-button').disabled = true;
-            } else {
-                //element.style.backgroundColor = 'White';
-                //element.style.color = '#1D43EC';
-                document.getElementById('submit-button').disabled = false;
-            }
-        }
-    </script>
+    </main>
 
 </body>
 
