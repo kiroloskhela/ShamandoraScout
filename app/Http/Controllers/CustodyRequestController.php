@@ -133,78 +133,78 @@ class CustodyRequestController extends Controller
               );
             // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
          // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
-// Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
-try {
-    Log::info('CustodyRequest: finding AdminInventory role');
+        // Attempt to notify a person with RoleName 'AdminInventory' via WhatsApp (non-blocking)
+// try {
+//     Log::info('CustodyRequest: finding AdminInventory role');
 
-    $admin = DB::table('PersonRole as pr')
-        ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
-        ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
-        ->where('r.RoleName', 'AdminInventory')
-        ->whereNotNull('pp.PersonPersonalMobileNumber')
-        ->select('pr.PersonID', 'pp.PersonPersonalMobileNumber')
-        ->orderBy('pr.PersonRoleID', 'asc')
-        ->first();
+//     $admin = DB::table('PersonRole as pr')
+//         ->join('Roles as r', 'pr.RoleID', '=', 'r.RoleID')
+//         ->join('PersonPhoneNumbers as pp', 'pp.PersonID', '=', 'pr.PersonID')
+//         ->where('r.RoleName', 'AdminInventory')
+//         ->whereNotNull('pp.PersonPersonalMobileNumber')
+//         ->select('pr.PersonID', 'pp.PersonPersonalMobileNumber')
+//         ->orderBy('pr.PersonRoleID', 'asc')
+//         ->first();
 
-    if (!$admin) {
-        Log::warning("CustodyRequest: no admin found to notify");
-    } else {
-        Log::info("CustodyRequest: admin found", ['admin' => $admin]);
+//     if (!$admin) {
+//         Log::warning("CustodyRequest: no admin found to notify");
+//     } else {
+//         Log::info("CustodyRequest: admin found", ['admin' => $admin]);
 
-        $user = auth()->user();
-        $fullName = trim(implode(' ', array_filter([
-            $user->FirstName ?? null,
-            $user->SecondName ?? null,
-            $user->ThirdName ?? null,
-        ])));
-        $code = $user->ShamandoraCode ?? '';
+//         $user = auth()->user();
+//         $fullName = trim(implode(' ', array_filter([
+//             $user->FirstName ?? null,
+//             $user->SecondName ?? null,
+//             $user->ThirdName ?? null,
+//         ])));
+//         $code = $user->ShamandoraCode ?? '';
 
-        Log::info('CustodyRequest: building items text');
+//         Log::info('CustodyRequest: building items text');
 
-        $itemsText = "";
-        foreach ($normalizedItems as $ni) {
-            $unit = $ni['ItemUnitSnapshot'] !== '' ? " ({$ni['ItemUnitSnapshot']})" : '';
-            $itemsText .= "- {$ni['ItemNameSnapshot']}{$unit} x {$ni['QtyRequested']}\n";
-        }
+//         $itemsText = "";
+//         foreach ($normalizedItems as $ni) {
+//             $unit = $ni['ItemUnitSnapshot'] !== '' ? " ({$ni['ItemUnitSnapshot']})" : '';
+//             $itemsText .= "- {$ni['ItemNameSnapshot']}{$unit} x {$ni['QtyRequested']}\n";
+//         }
 
-        $link = route('admin.custody_requests.show', $requestId);
+//         $link = route('admin.custody_requests.show', $requestId);
 
-        $message = "هناك طلب عهدة جديد (#{$requestId})\n"
-                 . "المستخدم: {$fullName} {$code}\n"
-                 . "التواريخ: من {$request->date_from} إلى {$request->date_to}\n"
-                 . "الأصناف:\n{$itemsText}\n"
-                 . "مراجعة: {$link}";
+//         $message = "هناك طلب عهدة جديد (#{$requestId})\n"
+//                  . "المستخدم: {$fullName} {$code}\n"
+//                  . "التواريخ: من {$request->date_from} إلى {$request->date_to}\n"
+//                  . "الأصناف:\n{$itemsText}\n"
+//                  . "مراجعة: {$link}";
 
-        Log::info('CustodyRequest: message built', ['message' => $message]);
+//         Log::info('CustodyRequest: message built', ['message' => $message]);
 
-        // --- Normalize number here if you want to force +20 ---
-        $rawNumber = $admin->PersonPersonalMobileNumber;
-        $normalizedNumber = '+2' . ltrim(preg_replace('/\D+/', '', $rawNumber), '0'); // logs can check format
+//         // --- Normalize number here if you want to force +20 ---
+//         $rawNumber = $admin->PersonPersonalMobileNumber;
+//         $normalizedNumber = '+2' . ltrim(preg_replace('/\D+/', '', $rawNumber), '0'); // logs can check format
 
-        Log::info('CustodyRequest: normalized phone number', [
-            'raw' => $rawNumber,
-            'normalized' => $normalizedNumber,
-        ]);
-        $payload = [
-            'full_number' => $normalizedNumber,
-            'message'     => $message,
-        ];
+//         Log::info('CustodyRequest: normalized phone number', [
+//             'raw' => $rawNumber,
+//             'normalized' => $normalizedNumber,
+//         ]);
+//         $payload = [
+//             'full_number' => $normalizedNumber,
+//             'message'     => $message,
+//         ];
 
-        Log::info('CustodyRequest: sending WhatsApp', ['payload' => $payload]);
+//         Log::info('CustodyRequest: sending WhatsApp', ['payload' => $payload]);
 
-        $fake = \Illuminate\Http\Request::create('/whatsapp/send-with-header', 'POST', $payload);
+//         $fake = \Illuminate\Http\Request::create('/whatsapp/send-with-header', 'POST', $payload);
 
-        $waController = app(\App\Http\Controllers\WhatsAppBridgeController::class);
-        $response = $waController->sendWithHeader($fake);
+//         $waController = app(\App\Http\Controllers\WhatsAppBridgeController::class);
+//         $response = $waController->sendWithHeader($fake);
 
-        Log::info('CustodyRequest: WhatsApp response', ['response' => $response]);
-    }
-} catch (\Throwable $e) {
-    \Illuminate\Support\Facades\Log::error('Failed sending WhatsApp notification for custody request', [
-        'requestId' => $requestId,
-        'error'     => $e->getMessage(),
-    ]);
-}
+//         Log::info('CustodyRequest: WhatsApp response', ['response' => $response]);
+//     }
+// } catch (\Throwable $e) {
+//     \Illuminate\Support\Facades\Log::error('Failed sending WhatsApp notification for custody request', [
+//         'requestId' => $requestId,
+//         'error'     => $e->getMessage(),
+//     ]);
+//}
 
 
 

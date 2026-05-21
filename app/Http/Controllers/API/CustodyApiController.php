@@ -394,6 +394,9 @@ class CustodyApiController extends Controller
             'Custody Request',
             $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a custody on ' . $request->date_from . ' to ' . $request->date_to . '. Please review the request.'
               );
+
+
+              
             return response()->json([
                 'ok'        => true,
                 'message'   => 'Custody request created',
