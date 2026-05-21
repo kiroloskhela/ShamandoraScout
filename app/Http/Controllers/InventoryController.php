@@ -31,9 +31,16 @@ class InventoryController extends Controller
      */
     public function create()
     {
-        // fetch enum values from DB dynamically
+        // fetch enum values dynamically
         $units = $this->getEnumValues('Inventory', 'ItemMeasuringUnit');
-        return view("inventory.create", compact('units'));
+        $categories = $this->getEnumValues('Inventory', 'Category');
+        $locations = $this->getEnumValues('Inventory', 'Location');
+
+        return view("inventory.create", compact(
+            'units',
+            'categories',
+            'locations'
+        ));
     }
 
     /**
@@ -44,7 +51,10 @@ class InventoryController extends Controller
      */
     public function insert(Request $request)
     {
-        $lastItem = DB::table('Inventory')->orderBy('InventoryID','desc')->first();
+        $lastItem = DB::table('Inventory')
+            ->orderBy('InventoryID', 'desc')
+            ->first();
+
         if ($lastItem == null)
             $thisInventoryID = 1;
         else
@@ -54,7 +64,9 @@ class InventoryController extends Controller
             'InventoryID'       => $thisInventoryID,
             'ItemName'          => $request->item_name,
             'ItemQuantity'      => $request->item_quantity,
-            'ItemMeasuringUnit' => $request->item_measuring_unit
+            'ItemMeasuringUnit' => $request->item_measuring_unit,
+            'Category'          => $request->category,
+            'Location'          => $request->location
         ));
 
         return redirect()->route('inventory.index');
@@ -66,33 +78,32 @@ class InventoryController extends Controller
      * @param  int $id
      * @return Response
      */
- public function edit($id)
-{
-    // fetch the record
-    $inventory = DB::table('Inventory')->where('InventoryID', $id)->first();
+    public function edit($id)
+    {
+        // fetch the record
+        $inventory = DB::table('Inventory')
+            ->where('InventoryID', $id)
+            ->first();
 
-    // if not found, abort or redirect
-    if (!$inventory) {
-        return redirect()->route('inventory.index')->with('error', 'Item not found.');
-    }
-
-    // fetch enum values for ItemMeasuringUnit safely
-    $units = [];
-    $col = DB::select("SHOW COLUMNS FROM Inventory WHERE Field = 'ItemMeasuringUnit'");
-    if (!empty($col)) {
-        $type = $col[0]->Type; // e.g. enum('لتر','كيلو',...)
-        if (preg_match("/^enum\((.*)\)$/", $type, $matches)) {
-            $raw = $matches[1];
-            // split and trim quotes
-            $parts = explode(",", $raw);
-            $units = array_map(function($v){ return trim($v, "'"); }, $parts);
+        // if not found
+        if (!$inventory) {
+            return redirect()
+                ->route('inventory.index')
+                ->with('error', 'Item not found.');
         }
+
+        // fetch enum values dynamically
+        $units = $this->getEnumValues('Inventory', 'ItemMeasuringUnit');
+        $categories = $this->getEnumValues('Inventory', 'Category');
+        $locations = $this->getEnumValues('Inventory', 'Location');
+
+        return view('inventory.edit', compact(
+            'inventory',
+            'units',
+            'categories',
+            'locations'
+        ));
     }
-
-    // pass EXACTLY the variable names your blade expects
-    return view('inventory.edit', compact('inventory', 'units'));
-}
-
 
     /**
      * Update the specified resource in DB.
@@ -103,11 +114,15 @@ class InventoryController extends Controller
      */
     public function updates(Request $request, $id)
     {
-        $affected = DB::table('Inventory')->where('InventoryID', $id)->update([
-            'ItemName'          => $request->item_name,
-            'ItemQuantity'      => $request->item_quantity,
-            'ItemMeasuringUnit' => $request->item_measuring_unit
-        ]);
+        DB::table('Inventory')
+            ->where('InventoryID', $id)
+            ->update([
+                'ItemName'          => $request->item_name,
+                'ItemQuantity'      => $request->item_quantity,
+                'ItemMeasuringUnit' => $request->item_measuring_unit,
+                'Category'          => $request->category,
+                'Location'          => $request->location
+            ]);
 
         return redirect()->route('inventory.index');
     }
@@ -120,8 +135,14 @@ class InventoryController extends Controller
      */
     public function deletes($id)
     {
-        $item = DB::table('Inventory')->where('InventoryID', $id)->first();
-        return view("inventory.delete", array('item' => $item, 'title'=> "حذف عنصر من المخزون"));
+        $item = DB::table('Inventory')
+            ->where('InventoryID', $id)
+            ->first();
+
+        return view("inventory.delete", array(
+            'item' => $item,
+            'title' => "حذف عنصر من المخزون"
+        ));
     }
 
     /**
@@ -132,7 +153,10 @@ class InventoryController extends Controller
      */
     public function destroy($id)
     {
-        $deleted = DB::table('Inventory')->where('InventoryID', $id)->delete();
+        DB::table('Inventory')
+            ->where('InventoryID', $id)
+            ->delete();
+
         return redirect()->route('inventory.index');
     }
 
@@ -141,13 +165,19 @@ class InventoryController extends Controller
      */
     private function getEnumValues($table, $column)
     {
-        $type = DB::select("SHOW COLUMNS FROM {$table} WHERE Field = '{$column}'")[0]->Type;
+        $type = DB::select(
+            "SHOW COLUMNS FROM {$table} WHERE Field = '{$column}'"
+        )[0]->Type;
+
         preg_match('/^enum\((.*)\)$/', $type, $matches);
+
         $enum = [];
+
         foreach (explode(',', $matches[1]) as $value) {
             $v = trim($value, "'");
             $enum[] = $v;
         }
+
         return $enum;
     }
 }

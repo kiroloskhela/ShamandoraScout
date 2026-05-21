@@ -41,6 +41,30 @@
                             @endforeach
                         </select>
                     </div>
+                    <!-- Category -->
+                    <div class="relative">
+                        <label for="category" class="block mb-2 text-sm text-gray-700">الفئة</label>
+                        <select id="category" name="category"
+                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                               focus:border-blue-500 focus:outline-none">
+                            <option value="">-- اختر الفئة --</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category }}">{{ $category }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <!-- Location -->
+                    <div class="relative">
+                        <label for="location" class="block mb-2 text-sm text-gray-700">الموقع</label>
+                        <select id="location" name="location"
+                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                               focus:border-blue-500 focus:outline-none">
+                            <option value="">-- اختر الموقع --</option>
+                            @foreach ($locations as $location)
+                                <option value="{{ $location }}">{{ $location }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
                     <!-- Submit -->
                     <div class="flex justify-center">

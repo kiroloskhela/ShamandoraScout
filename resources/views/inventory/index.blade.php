@@ -32,6 +32,18 @@
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
+            [
+                'key' => 'Category',
+                'label' => 'الفئة',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-800',
+            ],
+            [
+                'key' => 'Location',
+                'label' => 'الموقع',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-800',
+            ],
         ]" :actions="[
             [
                 'name' => 'edit',
