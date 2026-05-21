@@ -75,15 +75,51 @@
                                 كلمة المرور
                             </label>
 
-                            <input type="password" id="person_password" name="person_password"
-                                autocomplete="current-password"
-                                class="input-field w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none @error('person_password') border-red-400 @else border-gray-300 @enderror"
-                                placeholder="أدخل كلمة المرور" required>
+                            <div class="relative">
+
+                                <input type="password" id="person_password" name="person_password"
+                                    autocomplete="current-password"
+                                    class="input-field w-full px-4 py-3 pl-12 bg-gray-50 border rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none @error('person_password') border-red-400 @else border-gray-300 @enderror"
+                                    placeholder="أدخل كلمة المرور" required>
+
+                                <!-- Eye Button -->
+                                <button type="button" onclick="togglePassword()"
+                                    class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
+
+                                    <!-- Eye Open -->
+                                    <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5
+                    c4.478 0 8.268 2.943 9.542 7
+                    -1.274 4.057-5.064 7-9.542 7
+                    -4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+
+                                    <!-- Eye Closed -->
+                                    <svg id="eye-closed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19
+                    c-4.478 0-8.268-2.943-9.542-7
+                    a9.956 9.956 0 012.223-3.592M6.228 6.228
+                    A9.956 9.956 0 0112 5c4.478 0 8.268 2.943
+                    9.542 7a9.97 9.97 0 01-4.132 5.411M15 12
+                    a3 3 0 11-6 0 3 3 0 016 0zm6 6L3 3" />
+                                    </svg>
+
+                                </button>
+                            </div>
 
                             @error('person_password')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+
+
 
                         <!-- Forgot Password -->
                         <div class="text-right">
@@ -172,6 +208,29 @@
                 input.style.transform = 'translateY(0)';
             });
         });
+
+        function togglePassword() {
+
+            const passwordInput = document.getElementById('person_password');
+
+            const eyeOpen = document.getElementById('eye-open');
+            const eyeClosed = document.getElementById('eye-closed');
+
+            if (passwordInput.type === 'password') {
+
+                passwordInput.type = 'text';
+
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+
+            } else {
+
+                passwordInput.type = 'password';
+
+                eyeOpen.classList.remove('hidden');
+                eyeClosed.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 
