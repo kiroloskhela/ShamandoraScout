@@ -391,6 +391,8 @@
                                         href="{{ route('place.index') }}">إضافة نوع مكان</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.place_bookings.index') }}">إدارة طلبات حجز الأماكن</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('event.index') }}">الأحداث والمناسبات الكشفية</a>
                                 @endif
 
                                 {{-- Always visible to any logged-in user --}}

@@ -698,7 +698,15 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
     Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
     Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
 
-Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    
+    Route::get('/event', [EventController::class, 'index'])->name('event.index');
+    Route::get('/event/add-recursive', [EventController::class, 'createRecursive'])->name('event.create-recursive');
+    Route::post('/event/insert-recursive', [EventController::class, 'insertRecursive'])->name('event.insert-recursive');
+    Route::get('/event/add', [EventController::class, 'create'])->name('event.create');
+    Route::post('/event/insert', [EventController::class, 'insert'])->name('event.insert');
+    Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
+    Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
     
 });
 
