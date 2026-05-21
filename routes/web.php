@@ -409,24 +409,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/liveform-maxlimits/delete/{id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('liveform-maxlimits.delete');
     Route::delete('/liveform-maxlimits/destroy/{id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('liveform-maxlimits.destroy');
 
-    // Locations
-    Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
-    Route::get('/locations/create', [LocationController::class, 'create'])->name('locations.create');
-    Route::post('/locations/insert', [LocationController::class, 'insert'])->name('locations.insert');
-    Route::get('/locations/edit/{id}', [LocationController::class, 'edit'])->name('locations.edit');
-    Route::patch('/locations/updates/{id}', [LocationController::class, 'updates'])->name('locations.updates');
-    Route::get('/locations/deletes/{id}', [LocationController::class, 'deletes'])->name('locations.deletes');
-    Route::delete('/locations/destroy/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');
-
-    // PlaceTypes
-    Route::get('/place',                  [PlaceController::class, 'index'])->name('place.index');
-    Route::get('/place/add',              [PlaceController::class, 'create'])->name('place.create');
-    Route::post('/place/insert',          [PlaceController::class, 'insert'])->name('place.insert');
-    Route::get('/place/edit/{id}',        [PlaceController::class, 'edit'])->name('place.edit');
-    Route::patch('/place/update/{id}',    [PlaceController::class, 'updates'])->name('place.update');
-    Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
-    Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
-
+  
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/create', [NotificationController::class, 'create']);
@@ -708,6 +691,26 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
     Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
     Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
     
+
+  // Locations
+    Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
+    Route::get('/locations/create', [LocationController::class, 'create'])->name('locations.create');
+    Route::post('/locations/insert', [LocationController::class, 'insert'])->name('locations.insert');
+    Route::get('/locations/edit/{id}', [LocationController::class, 'edit'])->name('locations.edit');
+    Route::patch('/locations/updates/{id}', [LocationController::class, 'updates'])->name('locations.updates');
+    Route::get('/locations/deletes/{id}', [LocationController::class, 'deletes'])->name('locations.deletes');
+    Route::delete('/locations/destroy/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');
+
+    // PlaceTypes
+    Route::get('/place',                  [PlaceController::class, 'index'])->name('place.index');
+    Route::get('/place/add',              [PlaceController::class, 'create'])->name('place.create');
+    Route::post('/place/insert',          [PlaceController::class, 'insert'])->name('place.insert');
+    Route::get('/place/edit/{id}',        [PlaceController::class, 'edit'])->name('place.edit');
+    Route::patch('/place/update/{id}',    [PlaceController::class, 'updates'])->name('place.update');
+    Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
+    Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
+
+
 });
 
 
