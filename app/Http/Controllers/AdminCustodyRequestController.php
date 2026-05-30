@@ -15,19 +15,12 @@ class AdminCustodyRequestController extends Controller
 
 
 
-    private function currentAdminPersonId()
-    {
-        $user = auth()->user();
-        if (!$user) return null;
+  private function currentAdminPersonId()
+{
+    $user = auth()->user();
 
-        // Verify the user has an admin role before returning a PersonID
-        $roles = $user->role ?? null; // might be a collection
-        if (!$roles || !collect($roles)->contains('RoleName', 'Admin') && !collect($roles)->contains('RoleName', 'SuperAdmin')) {
-            return null;
-        }
-
-        return $user->PersonID ?? null;
-    }
+    return $user?->PersonID;
+}
 
     public function index()
     {
