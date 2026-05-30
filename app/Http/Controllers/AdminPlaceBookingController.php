@@ -12,22 +12,12 @@ class AdminPlaceBookingController extends Controller
 {
   
     
-    private function currentAdminPersonId()
-    {
-        $user = auth()->user();
-        if (!$user) return null;
+private function currentAdminPersonId()
+{
+    $user = auth()->user();
 
-        // Similar check style as your custody admin controller
-        $roles = $user->role ?? null;
-        if (
-            !$roles ||
-            (!collect($roles)->contains('RoleName', 'Admin') && !collect($roles)->contains('RoleName', 'SuperAdmin'))
-        ) {
-            return null;
-        }
-
-        return $user->PersonID ?? null;
-    }
+    return $user?->PersonID;
+}
 
     public function index()
     {
