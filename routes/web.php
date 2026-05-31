@@ -484,6 +484,11 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
 
 
+    // Waiting List Management
+    Route::get('/persons/waiting-list',          [PersonNewController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
+    Route::post('/persons/waiting-list/{id}/migrate', [PersonNewController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
+    Route::delete('/persons/waiting-list/{id}/decline', [PersonNewController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
+    
 
 
     });
