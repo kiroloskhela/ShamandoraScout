@@ -1962,21 +1962,53 @@ public function indexWaitingList()
 }
  
 /**
+ * Show a single waiting-list person's full profile.
+ */
+public function showWaitingList($id)
+{
+    $person = DB::table('NewUsersInformationWaitinglist')
+        ->where('PersonID', $id)
+        ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'NewUsersInformationWaitinglist.BloodTypeID')
+        ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'NewUsersInformationWaitinglist.SanaMarhalaID')
+        ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformationWaitinglist.ManteqaID')
+        ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformationWaitinglist.DistrictID')
+        ->leftJoin('Faculty', 'Faculty.FacultyID', '=', 'NewUsersInformationWaitinglist.FacultyID')
+        ->leftJoin('University', 'University.UniversityID', '=', 'NewUsersInformationWaitinglist.UniversityID')
+        ->select(
+            'NewUsersInformationWaitinglist.*',
+            'BloodType.BloodTypeName',
+            'SanaMarhala.SanaMarhalaName',
+            'Manteqa.ManteqaName',
+            'Districts.DistrictName',
+            'Faculty.FacultyName',
+            'University.UniversityName'
+        )
+        ->first();
+ 
+    if (!$person) {
+        abort(404);
+    }
+ 
+    $questions = DB::table('NewUsersPersonEntryQuestionsWaitinglist as nupq')
+        ->join('MarhalaEntryQuestions as meq', 'meq.QuestionID', '=', 'nupq.QuestionID')
+        ->select('meq.QuestionText', 'nupq.Answer')
+        ->where('nupq.PersonID', $id)
+        ->get();
+ 
+    return view('person.waiting-list-show', [
+        'person'    => $person,
+        'questions' => $questions,
+    ]);
+}
+ 
+/**
  * Migrate a person from the waiting list into the main enrolment tables.
- *
- * Copies the row from NewUsersInformationWaitinglist → NewUsersInformation
- * and from NewUsersPersonEntryQuestionsWaitinglist → NewUsersPersonEntryQuestions,
- * then removes both rows from the waiting-list tables.
- *
- * @param  int  $id
- * @return \Illuminate\Http\RedirectResponse
  */
 public function migrateWaitingList($id)
 {
     DB::beginTransaction();
  
     try {
-        // 1. Fetch person from waiting list (lock for update to prevent race conditions)
         $person = DB::table('NewUsersInformationWaitinglist')
             ->where('PersonID', $id)
             ->lockForUpdate()
@@ -1988,7 +2020,6 @@ public function migrateWaitingList($id)
                 ->with('error', 'الشخص غير موجود في قائمة الانتظار');
         }
  
-        // 2. Guard: make sure the person is not already in NewUsersInformation
         $alreadyExists = DB::table('NewUsersInformation')
             ->where('RaqamQawmy', $person->RaqamQawmy)
             ->exists();
@@ -1999,27 +2030,19 @@ public function migrateWaitingList($id)
                 ->with('error', 'الرقم القومي موجود بالفعل في قائمة التسجيل');
         }
  
-        // 3. Insert into NewUsersInformation
         DB::table('NewUsersInformation')->insert((array) $person);
  
-        // 4. Fetch and migrate questions
         $waitingQuestions = DB::table('NewUsersPersonEntryQuestionsWaitinglist')
             ->where('PersonID', $id)
             ->get();
  
         foreach ($waitingQuestions as $q) {
             DB::table('NewUsersPersonEntryQuestions')->updateOrInsert(
-                [
-                    'PersonID'   => $q->PersonID,
-                    'QuestionID' => $q->QuestionID,
-                ],
-                [
-                    'Answer' => $q->Answer,
-                ]
+                ['PersonID' => $q->PersonID, 'QuestionID' => $q->QuestionID],
+                ['Answer'   => $q->Answer]
             );
         }
  
-        // 5. Remove from waiting list tables
         DB::table('NewUsersPersonEntryQuestionsWaitinglist')->where('PersonID', $id)->delete();
         DB::table('NewUsersInformationWaitinglist')->where('PersonID', $id)->delete();
  
@@ -2030,14 +2053,7 @@ public function migrateWaitingList($id)
  
     } catch (\Throwable $e) {
         DB::rollBack();
- 
-        Log::error('migrateWaitingList failed', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-            'person_id' => $id,
-        ]);
- 
+        Log::error('migrateWaitingList failed', ['message' => $e->getMessage(), 'person_id' => $id]);
         return redirect()->route('person.waiting-list-index')
             ->with('error', 'حدث خطأ أثناء النقل: ' . $e->getMessage());
     }
@@ -2045,12 +2061,6 @@ public function migrateWaitingList($id)
  
 /**
  * Decline (delete) a person from the waiting list.
- *
- * Removes rows from both NewUsersInformationWaitinglist
- * and NewUsersPersonEntryQuestionsWaitinglist.
- *
- * @param  int  $id
- * @return \Illuminate\Http\RedirectResponse
  */
 public function declineWaitingList($id)
 {
@@ -2077,14 +2087,7 @@ public function declineWaitingList($id)
  
     } catch (\Throwable $e) {
         DB::rollBack();
- 
-        Log::error('declineWaitingList failed', [
-            'message'   => $e->getMessage(),
-            'file'      => $e->getFile(),
-            'line'      => $e->getLine(),
-            'person_id' => $id,
-        ]);
- 
+        Log::error('declineWaitingList failed', ['message' => $e->getMessage(), 'person_id' => $id]);
         return redirect()->route('person.waiting-list-index')
             ->with('error', 'حدث خطأ أثناء الحذف: ' . $e->getMessage());
     }
