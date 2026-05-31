@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CustodyApiController;
 use App\Http\Controllers\API\PlaceBookingApiController;
 use App\Http\Controllers\API\PersonSpecialCaseApiController;
 use App\Http\Controllers\API\GamesApiController;
+use App\Http\Controllers\API\VersionApiController;
 use App\Http\Controllers\API\Test;
 
 
@@ -24,7 +25,7 @@ use App\Http\Controllers\API\Test;
 // Public routes
 Route::post('/login', [LoginApiController::class, 'apiLogin'])->middleware('throttle:5,1');
 Route::post('/refresh', [TokenApiController::class, 'refresh'])->middleware('throttle:10,1');
-
+Route::get('/version/check', [VersionApiController::class, 'check']);
 
 
 // Protected routes
