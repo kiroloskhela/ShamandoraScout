@@ -31,6 +31,7 @@
                 'key' => 'SanaMarhalaName',
                 'label' => 'المرحله',
                 'type' => 'label',
+                'filter' => true,
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
