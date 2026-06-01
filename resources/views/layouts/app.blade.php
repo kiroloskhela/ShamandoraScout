@@ -236,7 +236,7 @@
 
 
                     {{-- ===================== Federations (visible to any logged-in user) ===================== --}}
-                    @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary || $isAdminFinance || $isFinance)
+                    @if ($isSuperAdmin || $isAdminSecretary || $isSecretary || $isAdminFinance || $isFinance)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
