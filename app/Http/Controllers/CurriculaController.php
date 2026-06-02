@@ -8,16 +8,30 @@ use Illuminate\Support\Facades\Storage;
 
 class CurriculaController extends Controller
 {
-    public function index()
-    {
-        $curricula = DB::table('Curricula')
-            ->join('CurriculaCategory', 'Curricula.CurriculaCategoryID', '=', 'CurriculaCategory.CurriculaCategoryID')
-            ->join('Marhala', 'Curricula.MarhalaID', '=', 'Marhala.MarhalaID')
-            ->orderByDesc('Curricula.created_at')
-            ->get();
+public function index()
+{
+    $curricula = DB::table('Curricula as c')
+        ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
+        ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
+        ->leftJoin('PersonInformation as pi', 'pi.PersonID', '=', 'c.ServentID')
+        ->select(
+            'c.*',
+            'cc.*',
+            'm.*',
+            DB::raw("
+                CONCAT(
+                    COALESCE(pi.FirstName, ''), ' ',
+                    COALESCE(pi.SecondName, ''), ' ',
+                    COALESCE(pi.ThirdName, ''), ' ',
+                    COALESCE(pi.FourthName, '')
+                ) as FullName
+            ")
+        )
+        ->orderByDesc('c.created_at')
+        ->get();
 
-        return view('Curricula.index', compact('curricula'));
-    }
+    return view('Curricula.index', compact('curricula'));
+}
 
     public function create()
     {
@@ -46,14 +60,15 @@ class CurriculaController extends Controller
         $path = $uploaded->storeAs('CurriculaDocuments', $fileName);
 
         // Insert into DB
-        DB::table('Curricula')->insert([
-            'CurriculaName'        => $request->curricula_name,
-            'CurriculaPath'        => $path,
-            'CurriculaCategoryID'  => $request->curricula_category_id,
-            'MarhalaID'            => $request->marhala_id,
-            'created_at'           => now(),
-            'updated_at'           => now(),
-        ]);
+    DB::table('Curricula')->insert([
+    'CurriculaName'        => $request->curricula_name,
+    'CurriculaPath'        => $path,
+    'CurriculaCategoryID'  => $request->curricula_category_id,
+    'MarhalaID'            => $request->marhala_id,
+    'ServentID'            => auth()->id(), // OR session('PersonID')
+    'created_at'           => now(),
+    'updated_at'           => now(),
+]);
 
         return back()->with('success', '✅ Curriculum uploaded successfully.');
     }

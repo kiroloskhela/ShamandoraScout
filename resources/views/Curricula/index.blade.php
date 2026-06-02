@@ -32,6 +32,12 @@
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
+            [
+                'key' => 'FullName',
+                'label' => 'اسم الخادم',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-900 font-medium',
+            ],
         ]" :actions="[
             [
                 'name' => 'download',
