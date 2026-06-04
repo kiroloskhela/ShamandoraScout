@@ -40,7 +40,8 @@
 
                 <template x-for="button in headerButtons" :key="button.label">
                     <a :href="button.route || '#'"
-                        :class="button.cssClass || 'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'"
+                        :class="button.cssClass ||
+                            'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'"
                         x-text="button.label">
                     </a>
                 </template>
@@ -60,236 +61,237 @@
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d=" M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
+                        </svg>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-</div>
 
-<!-- FILTER BAR -->
-<div x-show="filterableColumns.length > 0" x-data="{ open: false }" class="border-b border-gray-200">
-    <button @click="open = !open" type="button"
-        class="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 transition-colors duration-200">
-        <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-            </svg>
-            <span class="text-sm font-semibold text-emerald-700">فلتر</span>
+    <!-- FILTER BAR -->
+    <div x-show="filterableColumns.length > 0" x-data="{ open: false }" class="border-b border-gray-200">
+        <button @click="open = !open" type="button"
+            class="w-full flex items-center justify-between px-4 py-3 bg-emerald-50 hover:bg-emerald-100 transition-colors duration-200">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                <span class="text-sm font-semibold text-emerald-700">فلتر</span>
 
-            <span x-show="hasActiveFilters()" x-text="Object.keys(activeFilters).length"
-                class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emerald-600 rounded-full">
-            </span>
-        </div>
+                <span x-show="hasActiveFilters()" x-text="Object.keys(activeFilters).length"
+                    class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emerald-600 rounded-full">
+                </span>
+            </div>
 
-        <div class="flex items-center gap-3">
-            <span x-show="hasActiveFilters()" @click.stop="clearAllFilters()"
-                class="text-xs text-red-500 hover:text-red-700 underline cursor-pointer">
-                مسح الكل
-            </span>
+            <div class="flex items-center gap-3">
+                <span x-show="hasActiveFilters()" @click.stop="clearAllFilters()"
+                    class="text-xs text-red-500 hover:text-red-700 underline cursor-pointer">
+                    مسح الكل
+                </span>
 
-            <svg class="w-4 h-4 text-emerald-600 transition-transform duration-200" :class="{ 'rotate-180': open }"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-        </div>
-    </button>
+                <svg class="w-4 h-4 text-emerald-600 transition-transform duration-200" :class="{ 'rotate-180': open }"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </div>
+        </button>
 
-    <div x-show="open" x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 -translate-y-1" class="px-4 py-4 bg-white">
+        <div x-show="open" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-1" class="px-4 py-4 bg-white">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            <template x-for="col in filterableColumns" :key="col.key">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium text-gray-500" x-text="col.label"></label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <template x-for="col in filterableColumns" :key="col.key">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-gray-500" x-text="col.label"></label>
 
-                    <div class="relative">
-                        <select @change="setFilter(col.key, $event.target.value)"
-                            :value="activeFilters[col.key] || '__all__'"
-                            :class="activeFilters[col.key] ?
-                                'border-emerald-400 ring-1 ring-emerald-300 bg-emerald-50 text-emerald-800 font-medium' :
-                                'border-gray-300 bg-white text-gray-700'"
-                            class="w-full text-sm border rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
-                            <option value="__all__">— الكل —</option>
-                            <template x-for="option in getDistinctValues(col.key)" :key="option">
-                                <option :value="option" x-text="option"></option>
-                            </template>
-                        </select>
+                        <div class="relative">
+                            <select @change="setFilter(col.key, $event.target.value)"
+                                :value="activeFilters[col.key] || '__all__'"
+                                :class="activeFilters[col.key] ?
+                                    'border-emerald-400 ring-1 ring-emerald-300 bg-emerald-50 text-emerald-800 font-medium' :
+                                    'border-gray-300 bg-white text-gray-700'"
+                                class="w-full text-sm border rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
+                                <option value="__all__">— الكل —</option>
+                                <template x-for="option in getDistinctValues(col.key)" :key="option">
+                                    <option :value="option" x-text="option"></option>
+                                </template>
+                            </select>
 
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </template>
-        </div>
-
-        <div x-show="hasActiveFilters()" class="mt-3 flex flex-wrap gap-2">
-            <template x-for="col in filterableColumns" :key="col.key">
-                <template x-if="activeFilters[col.key]">
-                    <span
-                        class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-medium px-3 py-1 rounded-full border border-emerald-200">
-                        <span x-text="col.label + ': ' + activeFilters[col.key]"></span>
-                        <button @click="clearFilter(col.key)" type="button"
-                            class="hover:text-red-600 font-bold leading-none text-emerald-600 mr-1">
-                            &times;
-                        </button>
-                    </span>
                 </template>
-            </template>
+            </div>
+
+            <div x-show="hasActiveFilters()" class="mt-3 flex flex-wrap gap-2">
+                <template x-for="col in filterableColumns" :key="col.key">
+                    <template x-if="activeFilters[col.key]">
+                        <span
+                            class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-medium px-3 py-1 rounded-full border border-emerald-200">
+                            <span x-text="col.label + ': ' + activeFilters[col.key]"></span>
+                            <button @click="clearFilter(col.key)" type="button"
+                                class="hover:text-red-600 font-bold leading-none text-emerald-600 mr-1">
+                                &times;
+                            </button>
+                        </span>
+                    </template>
+                </template>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- TABLE -->
-<div class="overflow-x-auto">
-    <table class="w-full">
-        <thead class="bg-gray-100">
-            <tr>
-                <template x-for="column in columns" :key="column.key">
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div class="flex items-center justify-between">
-                            <span x-text="column.label"></span>
-
-                            <button x-show="sortable && column.sortable !== false" @click="sort(column.key)"
-                                class="mr-2 text-gray-400 hover:text-gray-600">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        :class="sortColumn === column.key ? 'text-blue-500' : ''"
-                                        :d="sortColumn === column.key ?
-                                            (sortDirection === 'desc' ?
-                                                'M19 9l-7 7-7-7' :
-                                                'M5 15l7-7 7 7') :
-                                            'M8 9l4-4 4 4m0 6l-4 4-4-4'">
-                                    </path>
-                                </svg>
-                            </button>
-                        </div>
-                    </th>
-                </template>
-
-                <th x-show="actions.length > 0"
-                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    الإجراءات
-                </th>
-            </tr>
-        </thead>
-
-        <tbody class="bg-white divide-y divide-gray-200">
-            <template x-for="(item, index) in paginatedData" :key="index">
-                <tr class="hover:bg-gray-50 transition-colors duration-200">
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-100">
+                <tr>
                     <template x-for="column in columns" :key="column.key">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div x-show="column.type === 'text' || !column.type">
-                                <span x-text="getNestedValue(item, column.key)"
-                                    :class="column.cssClass || 'text-sm text-gray-900'"></span>
-                            </div>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center justify-between">
+                                <span x-text="column.label"></span>
 
-                            <div x-show="column.type === 'label'">
-                                <label :class="column.cssClass || 'text-blue-600 font-bold text-sm'"
-                                    x-text="getNestedValue(item, column.key)"></label>
+                                <button x-show="sortable && column.sortable !== false" @click="sort(column.key)"
+                                    class="mr-2 text-gray-400 hover:text-gray-600">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            :class="sortColumn === column.key ? 'text-blue-500' : ''"
+                                            :d="sortColumn === column.key ?
+                                                (sortDirection === 'desc' ?
+                                                    'M19 9l-7 7-7-7' :
+                                                    'M5 15l7-7 7 7') :
+                                                'M8 9l4-4 4 4m0 6l-4 4-4-4'">
+                                        </path>
+                                    </svg>
+                                </button>
                             </div>
-
-                            <div x-show="column.type === 'badge'">
-                                <span
-                                    :class="column.cssClass ||
-                                        'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'"
-                                    x-text="getNestedValue(item, column.key)"></span>
-                            </div>
-                        </td>
+                        </th>
                     </template>
 
-                    <td x-show="actions.length > 0"
-                        class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
-
-                        <template x-for="action in actions" :key="action.name">
-                            <template x-if="!isActionDisabled(action, item)">
-                                <a :href="buildActionRoute(action, item)"
-                                    :class="action.cssClass ||
-                                        'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
-                                    x-text="action.label">
-                                </a>
-                            </template>
-                        </template>
-
-                        <template x-for="action in actions" :key="action.name + '-disabled'">
-                            <template x-if="isActionDisabled(action, item)">
-                                <span
-                                    :class="action.disabledClass ||
-                                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed ml-2'"
-                                    x-text="action.disabledLabel || action.label">
-                                </span>
-                            </template>
-                        </template>
-                    </td>
+                    <th x-show="actions.length > 0"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        الإجراءات
+                    </th>
                 </tr>
-            </template>
-        </tbody>
-    </table>
-</div>
+            </thead>
 
-<!-- EMPTY -->
-<div x-show="paginatedData.length === 0" class="text-center py-12">
-    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-        </path>
-    </svg>
-    <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد بيانات</h3>
-    <p class="mt-1 text-sm text-gray-500">لم يتم العثور على أي بيانات لعرضها.</p>
-</div>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <template x-for="(item, index) in paginatedData" :key="index">
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <template x-for="column in columns" :key="column.key">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div x-show="column.type === 'text' || !column.type">
+                                    <span x-text="getNestedValue(item, column.key)"
+                                        :class="column.cssClass || 'text-sm text-gray-900'"></span>
+                                </div>
 
-<!-- PAGINATION -->
-<div x-show="pagination && totalPages > 1"
-    class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-    <div class="flex-1 flex flex-wrap justify-between items-center gap-3">
-        <div class="text-sm text-gray-700">
-            عرض
-            <span class="font-medium" x-text="startRecord"></span>
-            إلى
-            <span class="font-medium" x-text="endRecord"></span>
-            من
-            <span class="font-medium" x-text="filteredData.length"></span>
-            نتيجة
-        </div>
+                                <div x-show="column.type === 'label'">
+                                    <label :class="column.cssClass || 'text-blue-600 font-bold text-sm'"
+                                        x-text="getNestedValue(item, column.key)"></label>
+                                </div>
 
-        <div class="flex items-center space-x-reverse space-x-2 flex-wrap gap-1">
-            <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
-                :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
-                class="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                    </path>
-                </svg>
-            </button>
+                                <div x-show="column.type === 'badge'">
+                                    <span
+                                        :class="column.cssClass ||
+                                            'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800'"
+                                        x-text="getNestedValue(item, column.key)"></span>
+                                </div>
+                            </td>
+                        </template>
 
-            <template x-for="page in visiblePages" :key="page">
-                <button @click="goToPage(page)"
-                    :class="page === currentPage ?
-                        'bg-blue-50 border-blue-500 text-blue-600' :
-                        'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
-                    class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md"
-                    x-text="page">
+                        <td x-show="actions.length > 0"
+                            class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
+
+                            <template x-for="action in actions" :key="action.name">
+                                <template x-if="!isActionDisabled(action, item)">
+                                    <a :href="buildActionRoute(action, item)"
+                                        :class="action.cssClass ||
+                                            'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
+                                        x-text="action.label">
+                                    </a>
+                                </template>
+                            </template>
+
+                            <template x-for="action in actions" :key="action.name + '-disabled'">
+                                <template x-if="isActionDisabled(action, item)">
+                                    <span
+                                        :class="action.disabledClass ||
+                                            'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed ml-2'"
+                                        x-text="action.disabledLabel || action.label">
+                                    </span>
+                                </template>
+                            </template>
+                        </td>
+                    </tr>
+                </template>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- EMPTY -->
+    <div x-show="paginatedData.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد بيانات</h3>
+        <p class="mt-1 text-sm text-gray-500">لم يتم العثور على أي بيانات لعرضها.</p>
+    </div>
+
+    <!-- PAGINATION -->
+    <div x-show="pagination && totalPages > 1"
+        class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div class="flex-1 flex flex-wrap justify-between items-center gap-3">
+            <div class="text-sm text-gray-700">
+                عرض
+                <span class="font-medium" x-text="startRecord"></span>
+                إلى
+                <span class="font-medium" x-text="endRecord"></span>
+                من
+                <span class="font-medium" x-text="filteredData.length"></span>
+                نتيجة
+            </div>
+
+            <div class="flex items-center space-x-reverse space-x-2 flex-wrap gap-1">
+                <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
+                    :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
+                    class="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                        </path>
+                    </svg>
                 </button>
-            </template>
 
-            <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
-                :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
-                class="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
-                    </path>
-                </svg>
-            </button>
+                <template x-for="page in visiblePages" :key="page">
+                    <button @click="goToPage(page)"
+                        :class="page === currentPage ?
+                            'bg-blue-50 border-blue-500 text-blue-600' :
+                            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'"
+                        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md"
+                        x-text="page">
+                    </button>
+                </template>
+
+                <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages"
+                    :class="currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'"
+                    class="relative inline-flex items-center px-2 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium text-gray-500">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 <script>
