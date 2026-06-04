@@ -89,6 +89,7 @@ use App\Http\Controllers\PersonTreeController;
 
 
  use App\Http\Controllers\SeasonEventServantFollowupController;
+use App\Http\Controllers\ExportController;
 
 
 /*
@@ -485,11 +486,16 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
 
 
     // Waiting List Management
-Route::get('/persons/waiting-list',                   [PersonNewController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
-Route::get('/persons/waiting-list/{id}',              [PersonNewController::class, 'showWaitingList'])    ->name('person.waiting-list-show');
-Route::get('/persons/waiting-list/{id}/migrate',      [PersonNewController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
-Route::get('/persons/waiting-list/{id}/decline',      [PersonNewController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
-    });
+    Route::get('/persons/waiting-list',                   [PersonNewController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
+    Route::get('/persons/waiting-list/{id}',              [PersonNewController::class, 'showWaitingList'])    ->name('person.waiting-list-show');
+    Route::get('/persons/waiting-list/{id}/migrate',      [PersonNewController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
+    Route::get('/persons/waiting-list/{id}/decline',      [PersonNewController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
+    
+    // Export Scouts Excel
+   Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
+     ->name('export.scouts.excel');
+
+});
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
