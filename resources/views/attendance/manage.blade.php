@@ -2,10 +2,10 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
-        <!-- Header -->
+
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">تسجيل الحضور</h1>
-            <p class="text-gray-600">اختر الموسم والفعالية المصرح لك بها ثم فعّل الحضور للأفراد</p>
+            <p class="text-gray-600">اختر الموسم والفعالية المصرح لك بها ثم سجّل حضور الأفراد</p>
         </div>
 
         @if (session('success'))
@@ -14,12 +14,11 @@
             </div>
         @endif
 
-        <!-- Selection Card -->
+        {{-- Season / Event Selection --}}
         <form method="GET" action="{{ route('attendance.manage') }}"
             class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
             <div class="grid md:grid-cols-2 gap-6">
-                <!-- Season -->
-                <div class="relative">
+                <div>
                     <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر الموسم</label>
                     <select id="season_id" name="season_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
@@ -32,9 +31,7 @@
                         @endforeach
                     </select>
                 </div>
-
-                <!-- Event (only overlapping with my groups) -->
-                <div class="relative">
+                <div>
                     <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر
                         الفعالية</label>
                     <select id="season_event_id" name="season_event_id"
@@ -55,21 +52,16 @@
             </div>
         </form>
 
-
         @if (!empty($seasonEventId))
-            @php
-                $rows = $tableRows;
-                $presentSet = array_flip($attendanceIds ?? []);
-            @endphp
-
             <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-300">
                 <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm">
                     @csrf
                     <input type="hidden" name="season_id" value="{{ $seasonId }}">
 
-                    <!-- Header: current user + search + toggle all -->
+                    {{-- Toolbar --}}
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
-                        <!-- Servent (auto) -->
+
+                        {{-- Current user --}}
                         <div class="flex items-center gap-2">
                             <span class="text-sm text-slate-700 font-semibold">أخذ الحضور بواسطة</span>
                             @php
@@ -83,12 +75,12 @@
                                         (optional($me)->FourthName ?? ''),
                                 );
                             @endphp
-                            <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                            <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
                                 {{ $fullName ?: 'أنا' }}
                             </span>
                         </div>
 
-                        <!-- Search -->
+                        {{-- Search --}}
                         <div class="relative w-full md:w-80">
                             <input id="tableSearch" type="text" placeholder="بحث: الاسم / الهاتف / القطاع / المرحلة"
                                 class="w-full h-11 pr-4 pl-10 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-sm">
@@ -99,22 +91,26 @@
                             </svg>
                         </div>
 
-                        <!-- Toggle All -->
-                        <div class="flex items-center gap-3">
-                            <label for="toggleAll" class="text-sm font-semibold text-slate-700">تبديل الكل (كل
-                                الجدول)</label>
-                            <label class="relative inline-flex items-center cursor-pointer select-none">
-                                <input id="toggleAll" type="checkbox" class="sr-only peer">
-                                <!-- OFF = red, ON = green -->
-                                <span class="w-14 h-8 bg-red-500 rounded-full transition peer-checked:bg-green-600"></span>
-                                <span
-                                    class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition peer-checked:translate-x-6"></span>
-                            </label>
+                        {{-- Mark all buttons --}}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm font-semibold text-slate-700">تعيين الكل:</span>
+                            <button type="button" id="markAllPresent"
+                                class="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-xs font-semibold hover:bg-green-200 transition">
+                                ✓ حاضر
+                            </button>
+                            <button type="button" id="markAllAbsent"
+                                class="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 text-xs font-semibold hover:bg-red-200 transition">
+                                ✗ غائب
+                            </button>
+                            <button type="button" id="markAllExcused"
+                                class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition">
+                                ~ غائب بعذر
+                            </button>
                         </div>
 
                     </div>
 
-                    <!-- Table -->
+                    {{-- Table --}}
                     <div class="overflow-x-auto">
                         <table id="attendanceTable" class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
                             <thead class="bg-slate-100">
@@ -123,45 +119,104 @@
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">الهاتف</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">القطاع</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">المرحلة</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-center">الحضور</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-center w-56">الحضور</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right" id="excuseHeader">
+                                        العذر</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($rows as $r)
+                                @forelse($tableRows as $r)
                                     @php
-                                        $checked = isset($presentSet[$r['PersonID']]);
-                                        $searchHaystack = trim(
-                                            ($r['PersonName'] ?? '') .
-                                                ' ' .
-                                                ($r['PhoneNumber'] ?? '') .
-                                                ' ' .
-                                                ($r['QetaaName'] ?? '') .
-                                                ' ' .
-                                                ($r['SanaMarhalaName'] ?? ''),
+                                        $pid = $r['PersonID'];
+                                        $status = $r['Status']; // 'present' | 'absent' | 'excused'
+                                        $excuse = $r['Excuse'];
+                                        $searchHaystack = mb_strtolower(
+                                            trim(
+                                                ($r['PersonName'] ?? '') .
+                                                    ' ' .
+                                                    ($r['PhoneNumber'] ?? '') .
+                                                    ' ' .
+                                                    ($r['QetaaName'] ?? '') .
+                                                    ' ' .
+                                                    ($r['SanaMarhalaName'] ?? ''),
+                                            ),
                                         );
                                     @endphp
-                                    <tr class="border-t" data-search="{{ e(mb_strtolower($searchHaystack)) }}">
-                                        <td class="px-4 py-2 text-right">{{ $r['PersonName'] }}</td>
-                                        <td class="px-4 py-2 text-right">{{ $r['PhoneNumber'] }}</td>
-                                        <td class="px-4 py-2 text-right">{{ $r['QetaaName'] }}</td>
-                                        <td class="px-4 py-2 text-right">{{ $r['SanaMarhalaName'] }}</td>
-                                        <td class="px-4 py-2">
-                                            <div class="flex items-center justify-center">
-                                                <label class="relative inline-flex items-center cursor-pointer select-none">
-                                                    <input type="checkbox" name="ServedIDs[]" value="{{ $r['PersonID'] }}"
-                                                        class="sr-only peer row-toggle" {{ $checked ? 'checked' : '' }}>
-                                                    <!-- OFF = red-500, ON = green-700 (darker) -->
+                                    <tr class="border-t attendance-row" data-search="{{ e($searchHaystack) }}">
+                                        <td class="px-4 py-3 text-right">{{ $r['PersonName'] }}</td>
+                                        <td class="px-4 py-3 text-right">{{ $r['PhoneNumber'] }}</td>
+                                        <td class="px-4 py-3 text-right">{{ $r['QetaaName'] }}</td>
+                                        <td class="px-4 py-3 text-right">{{ $r['SanaMarhalaName'] }}</td>
+
+                                        {{-- 3-way status selector --}}
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center justify-center gap-1">
+
+                                                {{-- Present --}}
+                                                <label class="status-label cursor-pointer">
+                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
+                                                        value="present" class="sr-only status-radio"
+                                                        data-person="{{ $pid }}"
+                                                        {{ $status === 'present' ? 'checked' : '' }}>
                                                     <span
-                                                        class="w-14 h-8 bg-red-500 rounded-full transition peer-checked:bg-green-700"></span>
-                                                    <span
-                                                        class="absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition peer-checked:translate-x-6"></span>
+                                                        class="status-btn present-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
+                                                    {{ $status === 'present'
+                                                        ? 'bg-green-600 text-white border-green-600'
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-green-400' }}">
+                                                        ✓ حاضر
+                                                    </span>
                                                 </label>
+
+                                                {{-- Absent --}}
+                                                <label class="status-label cursor-pointer">
+                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
+                                                        value="absent" class="sr-only status-radio"
+                                                        data-person="{{ $pid }}"
+                                                        {{ $status === 'absent' ? 'checked' : '' }}>
+                                                    <span
+                                                        class="status-btn absent-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
+                                                    {{ $status === 'absent'
+                                                        ? 'bg-red-600 text-white border-red-600'
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-red-400' }}">
+                                                        ✗ غائب
+                                                    </span>
+                                                </label>
+
+                                                {{-- Excused --}}
+                                                <label class="status-label cursor-pointer">
+                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
+                                                        value="excused" class="sr-only status-radio"
+                                                        data-person="{{ $pid }}"
+                                                        {{ $status === 'excused' ? 'checked' : '' }}>
+                                                    <span
+                                                        class="status-btn excused-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
+                                                    {{ $status === 'excused'
+                                                        ? 'bg-amber-500 text-white border-amber-500'
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-amber-400' }}">
+                                                        ~ عذر
+                                                    </span>
+                                                </label>
+
                                             </div>
                                         </td>
+
+                                        {{-- Excuse text — visible only when status = excused --}}
+                                        <td class="px-4 py-3 excuse-cell"
+                                            style="{{ $status !== 'excused' ? 'display:none' : '' }}">
+                                            <input type="text" name="attendance[{{ $pid }}][excuse]"
+                                                value="{{ e($excuse) }}" placeholder="اكتب العذر..." maxlength="1000"
+                                                class="w-full h-9 px-3 rounded-lg border border-slate-200 text-sm focus:border-amber-400 focus:outline-none text-right">
+                                        </td>
+                                        {{-- Placeholder cell when not excused --}}
+                                        <td class="px-4 py-3 no-excuse-cell"
+                                            style="{{ $status === 'excused' ? 'display:none' : '' }}">
+                                            <span class="text-slate-300 text-xs">—</span>
+                                        </td>
+
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-4 py-6 text-center text-slate-600">لا يوجد أفراد
+                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600">لا يوجد أفراد
                                             لعرضهم.</td>
                                     </tr>
                                 @endforelse
@@ -169,15 +224,22 @@
                         </table>
                     </div>
 
-                    <!-- Pagination (10 per page) -->
+                    {{-- Pagination --}}
                     <div id="pager" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
                         <div id="pager-info" class="text-sm text-slate-600"></div>
-                        <div class="flex items-center gap-2" id="pager-controls">
-                            <!-- Controls will be injected by JS -->
-                        </div>
+                        <div class="flex items-center gap-2" id="pager-controls"></div>
                     </div>
 
-                    <!-- Footer actions -->
+                    {{-- Summary counts --}}
+                    <div class="flex items-center gap-6 mt-4 px-2">
+                        <span class="text-sm text-green-700 font-semibold">حاضر: <span id="countPresent">0</span></span>
+                        <span class="text-sm text-red-700 font-semibold">غائب: <span id="countAbsent">0</span></span>
+                        <span class="text-sm text-amber-700 font-semibold">غائب بعذر: <span
+                                id="countExcused">0</span></span>
+                        <span class="text-sm text-slate-500">الإجمالي: <span id="countTotal">0</span></span>
+                    </div>
+
+                    {{-- Save --}}
                     <div class="flex items-center justify-center gap-3 mt-6">
                         <button type="submit"
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-600 text-white hover:bg-green-700 transition">
@@ -192,13 +254,108 @@
                     const pageSize = 10;
                     let currentPage = 1;
 
-                    const toggleAll = document.getElementById('toggleAll');
                     const searchInput = document.getElementById('tableSearch');
                     const table = document.getElementById('attendanceTable');
-                    const allRows = Array.from(table.querySelectorAll('tbody tr'));
+                    const allRows = Array.from(table.querySelectorAll('tbody tr.attendance-row'));
                     const pagerInfo = document.getElementById('pager-info');
                     const pagerControls = document.getElementById('pager-controls');
 
+                    // ── Status button visual update ──────────────────────────────
+                    function updateStatusButtons(row, value) {
+                        const btns = {
+                            present: row.querySelector('.present-btn'),
+                            absent: row.querySelector('.absent-btn'),
+                            excused: row.querySelector('.excused-btn'),
+                        };
+                        const styles = {
+                            present: ['bg-green-600', 'text-white', 'border-green-600'],
+                            absent: ['bg-red-600', 'text-white', 'border-red-600'],
+                            excused: ['bg-amber-500', 'text-white', 'border-amber-500'],
+                        };
+                        const hoverBorders = {
+                            present: 'hover:border-green-400',
+                            absent: 'hover:border-red-400',
+                            excused: 'hover:border-amber-400',
+                        };
+
+                        Object.keys(btns).forEach(key => {
+                            const btn = btns[key];
+                            if (!btn) return;
+                            // reset
+                            btn.classList.remove(
+                                'bg-green-600', 'bg-red-600', 'bg-amber-500',
+                                'text-white', 'border-green-600', 'border-red-600', 'border-amber-500',
+                                'hover:border-green-400', 'hover:border-red-400', 'hover:border-amber-400'
+                            );
+                            btn.classList.add('bg-white', 'text-slate-500', 'border-slate-200');
+
+                            if (key === value) {
+                                btn.classList.remove('bg-white', 'text-slate-500', 'border-slate-200');
+                                btn.classList.add(...styles[key]);
+                            } else {
+                                btn.classList.add(hoverBorders[key]);
+                            }
+                        });
+
+                        // show/hide excuse column cells
+                        const excuseCell = row.querySelector('.excuse-cell');
+                        const noExcuseCell = row.querySelector('.no-excuse-cell');
+                        if (excuseCell && noExcuseCell) {
+                            if (value === 'excused') {
+                                excuseCell.style.display = '';
+                                noExcuseCell.style.display = 'none';
+                            } else {
+                                excuseCell.style.display = 'none';
+                                noExcuseCell.style.display = '';
+                                // clear excuse value when switching away
+                                const input = excuseCell.querySelector('input');
+                                if (input) input.value = '';
+                            }
+                        }
+
+                        updateCounts();
+                    }
+
+                    // ── Listen for radio changes ─────────────────────────────────
+                    table.addEventListener('change', function(e) {
+                        if (!e.target.classList.contains('status-radio')) return;
+                        const row = e.target.closest('tr');
+                        updateStatusButtons(row, e.target.value);
+                    });
+
+                    // ── Mark all (visible filtered rows) ─────────────────────────
+                    function markAll(status) {
+                        getFilteredRows().forEach(row => {
+                            const radio = row.querySelector(`input[type="radio"][value="${status}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                                updateStatusButtons(row, status);
+                            }
+                        });
+                    }
+                    document.getElementById('markAllPresent')?.addEventListener('click', () => markAll('present'));
+                    document.getElementById('markAllAbsent')?.addEventListener('click', () => markAll('absent'));
+                    document.getElementById('markAllExcused')?.addEventListener('click', () => markAll('excused'));
+
+                    // ── Counts ───────────────────────────────────────────────────
+                    function updateCounts() {
+                        let p = 0,
+                            a = 0,
+                            ex = 0;
+                        allRows.forEach(row => {
+                            const checked = row.querySelector('input[type="radio"]:checked');
+                            if (!checked) return;
+                            if (checked.value === 'present') p++;
+                            else if (checked.value === 'absent') a++;
+                            else if (checked.value === 'excused') ex++;
+                        });
+                        document.getElementById('countPresent').textContent = p;
+                        document.getElementById('countAbsent').textContent = a;
+                        document.getElementById('countExcused').textContent = ex;
+                        document.getElementById('countTotal').textContent = allRows.length;
+                    }
+
+                    // ── Search + Pagination ───────────────────────────────────────
                     function normalize(s) {
                         return (s || '').toString().toLowerCase();
                     }
@@ -214,24 +371,22 @@
                         const btn = (label, disabled, onClick, extra = '') => {
                             const a = document.createElement('button');
                             a.type = 'button';
-                            a.className =
-                                `px-3 py-1 rounded border text-sm ${disabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-white hover:bg-slate-50 text-slate-700'} ${extra}`;
+                            a.className = `px-3 py-1 rounded border text-sm ${disabled
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'bg-white hover:bg-slate-50 text-slate-700'} ${extra}`;
                             a.textContent = label;
                             if (!disabled) a.addEventListener('click', onClick);
                             return a;
                         };
 
-                        // Prev
                         pagerControls.appendChild(btn('السابق', currentPage === 1, () => {
                             currentPage--;
                             renderPage();
                         }));
 
-                        // Page numbers
-                        const total = totalPages;
                         const windowSize = 5;
                         let start = Math.max(1, currentPage - Math.floor(windowSize / 2));
-                        let end = Math.min(total, start + windowSize - 1);
+                        let end = Math.min(totalPages, start + windowSize - 1);
                         start = Math.max(1, end - windowSize + 1);
 
                         if (start > 1) pagerControls.appendChild(btn('1', false, () => {
@@ -239,10 +394,10 @@
                             renderPage();
                         }));
                         if (start > 2) {
-                            const dots = document.createElement('span');
-                            dots.className = 'px-2 text-slate-500';
-                            dots.textContent = '…';
-                            pagerControls.appendChild(dots);
+                            const d = document.createElement('span');
+                            d.className = 'px-2 text-slate-500';
+                            d.textContent = '…';
+                            pagerControls.appendChild(d);
                         }
 
                         for (let p = start; p <= end; p++) {
@@ -253,25 +408,22 @@
                                 p === currentPage ? 'bg-blue-600 text-white border-blue-600' : ''));
                         }
 
-                        if (end < total - 1) {
-                            const dots2 = document.createElement('span');
-                            dots2.className = 'px-2 text-slate-500';
-                            dots2.textContent = '…';
-                            pagerControls.appendChild(dots2);
+                        if (end < totalPages - 1) {
+                            const d = document.createElement('span');
+                            d.className = 'px-2 text-slate-500';
+                            d.textContent = '…';
+                            pagerControls.appendChild(d);
                         }
-                        if (end < total) pagerControls.appendChild(btn(String(total), false, () => {
-                            currentPage = total;
+                        if (end < totalPages) pagerControls.appendChild(btn(String(totalPages), false, () => {
+                            currentPage = totalPages;
                             renderPage();
                         }));
 
-                        // Next
                         pagerControls.appendChild(btn('التالي', currentPage === totalPages || totalPages === 0, () => {
                             currentPage++;
                             renderPage();
                         }));
                     }
-
-                    let currentSlice = [];
 
                     function renderPage() {
                         const filtered = getFilteredRows();
@@ -280,41 +432,26 @@
                         if (currentPage > totalPages) currentPage = totalPages;
                         if (currentPage < 1) currentPage = 1;
 
-                        // hide all
                         allRows.forEach(tr => tr.style.display = 'none');
 
-                        // show current page slice
                         const start = (currentPage - 1) * pageSize;
-                        const end = start + pageSize;
-                        currentSlice = filtered.slice(start, end);
-                        currentSlice.forEach(tr => tr.style.display = '');
+                        filtered.slice(start, start + pageSize).forEach(tr => tr.style.display = '');
 
-                        // info
                         const from = total ? start + 1 : 0;
-                        const to = Math.min(end, total);
+                        const to = Math.min(start + pageSize, total);
                         pagerInfo.textContent = `عرض ${from}–${to} من ${total}`;
-
                         renderPager(totalPages);
                     }
 
-                    // ✅ Toggle ALL rows in the table (not just current page, not just filtered)
-                    function setAllTable(checked) {
-                        allRows.forEach(r => {
-                            const cb = r.querySelector('.row-toggle');
-                            if (cb) cb.checked = checked;
-                        });
-                    }
-
-                    // Events
-                    toggleAll?.addEventListener('change', (e) => setAllTable(e.target.checked));
-                    searchInput?.addEventListener('input', function() {
+                    searchInput?.addEventListener('input', () => {
                         currentPage = 1;
                         renderPage();
                     });
 
-                    // Initial
+                    updateCounts();
                     renderPage();
                 });
             </script>
         @endif
-    @endsection
+    </div>
+@endsection
