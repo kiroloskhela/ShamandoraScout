@@ -339,63 +339,28 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Qetaa
     Route::get('/qetaa', [QetaaController::class, 'index'])->name('qetaa.index');
-    Route::get('/qetaa/tree', [QetaaTreeController::class, 'index'])->name('qetaa.tree');
-    // Route::post('/qetaa/group', [QetaaTreeController::class, 'storeGroup'])->name('qetaa.storeGroup');
-    // Route::delete('/qetaa/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])->name('qetaa.deleteGroup');
-    // Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])->name('qetaa.storePerson');
-    // Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])->name('qetaa.removePerson');
 
-
-
-
-
- // Tree page
-    Route::get('/tree', [QetaaTreeController::class, 'index'])
-        ->name('tree.index');
-
-    // Search persons
-    Route::get('/tree/search-persons', [QetaaTreeController::class, 'searchPersons'])
-        ->name('tree.searchPersons');
-
-    // Get all Rotba list
-    Route::get('/tree/rotbas', [QetaaTreeController::class, 'getRotbaList'])
-        ->name('tree.rotbas');
-
-    // Create group
-    Route::post('/tree/groups', [QetaaTreeController::class, 'storeGroup'])
-        ->name('tree.groups.store');
-
-    // Delete group
-    Route::delete('/tree/groups/{groupId}', [QetaaTreeController::class, 'deleteGroup'])
-        ->name('tree.groups.delete');
-
-    // Add person to group
-    Route::post('/tree/persons', [QetaaTreeController::class, 'storePerson'])
-        ->name('tree.persons.store');
-
-    // Remove person from group
-    Route::delete('/tree/persons', [QetaaTreeController::class, 'removePerson'])
-        ->name('tree.persons.remove');
-
-
-           // Main tree page
+    
     Route::get('/qetaa/tree', [QetaaTreeController::class, 'index'])
         ->name('qetaa.index');
 
-    // Person search (autocomplete)
     Route::get('/qetaa/search-persons', [QetaaTreeController::class, 'searchPersons'])
         ->name('qetaa.searchPersons');
 
-    // Rotba list
     Route::get('/qetaa/rotba-list', [QetaaTreeController::class, 'getRotbaList'])
         ->name('qetaa.getRotbaList');
 
-    // Groups
     Route::post('/qetaa/group', [QetaaTreeController::class, 'storeGroup'])
         ->name('qetaa.storeGroup');
 
     Route::delete('/qetaa/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])
         ->name('qetaa.deleteGroup');
+
+    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
+        ->name('qetaa.storePerson');
+
+    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])
+        ->name('qetaa.removePerson');
 
     // People
     Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
