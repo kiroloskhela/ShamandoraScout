@@ -340,34 +340,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     // Qetaa
     Route::get('/qetaa', [QetaaController::class, 'index'])->name('qetaa.index');
 
-    
-    Route::get('/qetaa/tree', [QetaaTreeController::class, 'index'])
-        ->name('qetaa.index');
 
-    Route::get('/qetaa/search-persons', [QetaaTreeController::class, 'searchPersons'])
-        ->name('qetaa.searchPersons');
 
-    Route::get('/qetaa/rotba-list', [QetaaTreeController::class, 'getRotbaList'])
-        ->name('qetaa.getRotbaList');
-
-    Route::post('/qetaa/group', [QetaaTreeController::class, 'storeGroup'])
-        ->name('qetaa.storeGroup');
-
-    Route::delete('/qetaa/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])
-        ->name('qetaa.deleteGroup');
-
-    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
-        ->name('qetaa.storePerson');
-
-    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])
-        ->name('qetaa.removePerson');
-
-    // People
-    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
-        ->name('qetaa.storePerson');
-
-    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])
-        ->name('qetaa.removePerson');
     Route::get('/qetaa/add', [QetaaController::class, 'create'])->name('qetaa.create');
     Route::post('/qetaa/insert', [QetaaController::class, 'insert'])->name('qetaa.insert');
     Route::get('/qetaa/edit/{id}', [QetaaController::class, 'edit'])->name('qetaa.edit');
@@ -483,9 +457,39 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
    
         // Season Event Servant Followup
     Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
-        Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
-        Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
-        Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
+    Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
+    Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
+    Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
+
+
+
+    // Qetaa Tree
+    Route::get('/qetaa/tree', [QetaaTreeController::class, 'index'])
+        ->name('qetaa.index');
+
+    Route::get('/qetaa/search-persons', [QetaaTreeController::class, 'searchPersons'])
+        ->name('qetaa.searchPersons');
+
+    Route::get('/qetaa/rotba-list', [QetaaTreeController::class, 'getRotbaList'])
+        ->name('qetaa.getRotbaList');
+
+    Route::post('/qetaa/group', [QetaaTreeController::class, 'storeGroup'])
+        ->name('qetaa.storeGroup');
+
+    Route::delete('/qetaa/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])
+        ->name('qetaa.deleteGroup');
+
+    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
+        ->name('qetaa.storePerson');
+
+    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])
+        ->name('qetaa.removePerson');
+
+    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])
+        ->name('qetaa.storePerson');
+
+    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])
+        ->name('qetaa.removePerson');
     });
 
 
