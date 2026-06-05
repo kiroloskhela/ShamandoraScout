@@ -28,7 +28,8 @@ class ExportController extends Controller
                 pi.ScoutJoiningYear,
                 sm.SanaMarhalaName,
                 pi.RaqamQawmy,
-                ppn.PersonPersonalMobileNumber
+                ppn.PersonPersonalMobileNumber,
+                ppn.MotherMobileNumber,
             FROM PersonInformation pi
             LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
             LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
