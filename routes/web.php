@@ -39,6 +39,7 @@ use App\Http\Controllers\CurriculaController;
 use App\Http\Controllers\ManteqaController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\QetaaController;
+use App\Http\Controllers\QetaaTreeController;
 use App\Http\Controllers\FacultyController;
 
 use App\Http\Controllers\SeasonController;
@@ -338,6 +339,11 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Qetaa
     Route::get('/qetaa', [QetaaController::class, 'index'])->name('qetaa.index');
+    Route::get('/qetaa/tree', [QetaaTreeController::class, 'index'])->name('qetaa.tree');
+    Route::post('/qetaa/group', [QetaaTreeController::class, 'storeGroup'])->name('qetaa.storeGroup');
+    Route::delete('/qetaa/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])->name('qetaa.deleteGroup');
+    Route::post('/qetaa/person', [QetaaTreeController::class, 'storePerson'])->name('qetaa.storePerson');
+    Route::post('/qetaa/person/remove', [QetaaTreeController::class, 'removePerson'])->name('qetaa.removePerson');
     Route::get('/qetaa/add', [QetaaController::class, 'create'])->name('qetaa.create');
     Route::post('/qetaa/insert', [QetaaController::class, 'insert'])->name('qetaa.insert');
     Route::get('/qetaa/edit/{id}', [QetaaController::class, 'edit'])->name('qetaa.edit');
