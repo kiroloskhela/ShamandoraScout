@@ -8,15 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class QetaaTreeController extends Controller
 {
-    /**
-     * Show the Qetaa tree page.
-     * The logged-in user only sees people they are responsible for (same Qetaa via GroupQetaa).
-     */
     public function index(Request $request)
     {
         $userId = $request->query('id') ?? Auth::id();
 
-        // ── 1. Which Qetaas does this person serve? ─────────────────────────
         $servedQetaaIds = DB::table('GroupQetaa as gq')
             ->join('PersonGroup as pg', 'pg.GroupID', '=', 'gq.GroupID')
             ->where('pg.PersonID', $userId)
@@ -24,26 +19,15 @@ class QetaaTreeController extends Controller
             ->unique()
             ->values();
 
-        // ── 2. Load all Qetaas (static master list) ──────────────────────────
         $allQetaas = DB::table('Qetaa')->orderBy('QetaaID')->get();
 
-        // ── 3. Load all groups for those Qetaas (types 2 & 3 only) ──────────
-        //    GroupTable: GroupID, GroupTypeID, IncludedUnderGroupID, GroupName
-        //    GroupQetaa: ID, GroupID, QetaaID
         $groups = DB::table('GroupTable as gt')
             ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')
             ->whereIn('gq.QetaaID', $servedQetaaIds)
             ->whereIn('gt.GroupTypeID', [2, 3])
-            ->select(
-                'gt.GroupID',
-                'gt.GroupTypeID',
-                'gt.IncludedUnderGroupID',
-                'gt.GroupName',
-                'gq.QetaaID'
-            )
+            ->select('gt.GroupID', 'gt.GroupTypeID', 'gt.IncludedUnderGroupID', 'gt.GroupName', 'gq.QetaaID')
             ->get();
 
-        // ── 4. People the logged-in user serves ──────────────────────────────
         $people = DB::select("
             SELECT DISTINCT
                 pi.PersonID,
@@ -63,33 +47,24 @@ class QetaaTreeController extends Controller
             JOIN  GroupQetaa gq             ON gq.QetaaID   = q.QetaaID
             JOIN  PersonGroup pg3           ON pg3.GroupID  = gq.GroupID
             WHERE q.QetaaID IN (
-                SELECT gq2.QetaaID
-                FROM GroupQetaa gq2
+                SELECT gq2.QetaaID FROM GroupQetaa gq2
                 WHERE gq2.GroupID IN (
-                    SELECT pg4.GroupID
-                    FROM PersonGroup pg4
-                    WHERE pg4.PersonID = ?
+                    SELECT pg4.GroupID FROM PersonGroup pg4 WHERE pg4.PersonID = ?
                 )
             )
             ORDER BY pi.ShamandoraCode ASC
         ", [$userId]);
 
-        // ── 5. Load seasons ──────────────────────────────────────────────────
         $seasons = DB::table('Season')->orderByDesc('SeasonYear')->get();
         $currentSeasonId = $request->query('season') ?? ($seasons->first()->SeasonID ?? null);
-
-        // ── 6. Build tree structure ──────────────────────────────────────────
-        //    For each Qetaa → top-level groups (those whose IncludedUnderGroupID
-        //    is 0 or not present in groups list) → children groups under them.
 
         $groupsByQetaa = $groups->groupBy('QetaaID');
         $peopleByGroup = collect($people)->groupBy('GroupID');
 
         $tree = $allQetaas->map(function ($qetaa) use ($groupsByQetaa, $peopleByGroup, $servedQetaaIds) {
-            $qGroups   = $groupsByQetaa->get($qetaa->QetaaID, collect());
-            $groupIds  = $qGroups->pluck('GroupID')->toArray();
+            $qGroups  = $groupsByQetaa->get($qetaa->QetaaID, collect());
+            $groupIds = $qGroups->pluck('GroupID')->toArray();
 
-            // Top-level = IncludedUnderGroupID not in the group list for this qetaa
             $topLevel = $qGroups->filter(fn($g) => !in_array($g->IncludedUnderGroupID, $groupIds));
             $children = $qGroups->filter(fn($g) =>  in_array($g->IncludedUnderGroupID, $groupIds));
 
@@ -105,12 +80,10 @@ class QetaaTreeController extends Controller
             })->values();
 
             return [
-                'qetaa'       => $qetaa,
-                'groups'      => $topLevel,
-                'is_served'   => $servedQetaaIds->contains($qetaa->QetaaID),
-                'total_people'=> $peopleByGroup
-                    ->only($qGroups->pluck('GroupID')->toArray())
-                    ->flatten(1)->count(),
+                'qetaa'        => $qetaa,
+                'groups'       => $topLevel,
+                'is_served'    => $servedQetaaIds->contains($qetaa->QetaaID),
+                'total_people' => $peopleByGroup->only($qGroups->pluck('GroupID')->toArray())->flatten(1)->count(),
             ];
         });
 
@@ -118,28 +91,56 @@ class QetaaTreeController extends Controller
     }
 
     /**
-     * Store a new group (طليعة GroupTypeID=2 or فريق GroupTypeID=3).
+     * Search persons by name (for the person-add modal autocomplete).
      */
+    public function searchPersons(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $results = DB::table('PersonInformation as pi')
+            ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
+            ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+            ->where(function ($query) use ($q) {
+                $query->where(DB::raw("CONCAT(pi.FirstName, ' ', pi.SecondName)"), 'LIKE', "%{$q}%")
+                      ->orWhere('pi.FirstName',      'LIKE', "%{$q}%")
+                      ->orWhere('pi.SecondName',     'LIKE', "%{$q}%")
+                      ->orWhere('pi.ShamandoraCode', 'LIKE', "%{$q}%");
+            })
+            ->select('pi.PersonID', 'pi.FirstName', 'pi.SecondName', 'pi.ShamandoraCode', 'ri.RotbaName')
+            ->orderBy('pi.ShamandoraCode')
+            ->limit(20)
+            ->get();
+
+        return response()->json($results);
+    }
+
+    /**
+     * Return all ranks from RotbaInformation.
+     */
+    public function getRotbaList()
+    {
+        $rotbas = DB::table('RotbaInformation')->orderBy('RotbaID')->get();
+        return response()->json($rotbas);
+    }
+
     public function storeGroup(Request $request)
     {
         $request->validate([
             'GroupName'            => 'required|string|max:50',
             'GroupTypeID'          => 'required|in:2,3',
             'QetaaID'              => 'required|integer',
-            'IncludedUnderGroupID' => 'required|integer', // 0 if top-level
+            'IncludedUnderGroupID' => 'required|integer',
             'SeasonID'             => 'required|integer',
         ]);
 
-        // Enforce: TypeID=3 (فريق) cannot be under TypeID=2 (طليعة)
-        // TypeID=2 (طليعة) can be under TypeID=3 (فريق) or top-level
         if ($request->IncludedUnderGroupID > 0) {
-            $parent = DB::table('GroupTable')
-                ->where('GroupID', $request->IncludedUnderGroupID)
-                ->first();
+            $parent = DB::table('GroupTable')->where('GroupID', $request->IncludedUnderGroupID)->first();
             if ($parent && $parent->GroupTypeID == 2 && $request->GroupTypeID == 3) {
-                return response()->json([
-                    'error' => 'فريق (type 3) cannot be placed under طليعة (type 2).'
-                ], 422);
+                return response()->json(['error' => 'لا يمكن وضع فريق تحت طليعة.'], 422);
             }
         }
 
@@ -153,18 +154,11 @@ class QetaaTreeController extends Controller
             'GroupName'            => $request->GroupName,
         ]);
 
-        // Link to Qetaa
-        DB::table('GroupQetaa')->insert([
-            'GroupID' => $newId,
-            'QetaaID' => $request->QetaaID,
-        ]);
+        DB::table('GroupQetaa')->insert(['GroupID' => $newId, 'QetaaID' => $request->QetaaID]);
 
         return response()->json(['success' => true, 'GroupID' => $newId]);
     }
 
-    /**
-     * Delete a group (and cascade removes from GroupQetaa).
-     */
     public function deleteGroup(Request $request, $groupId)
     {
         DB::table('GroupQetaa')->where('GroupID', $groupId)->delete();
@@ -175,13 +169,14 @@ class QetaaTreeController extends Controller
     }
 
     /**
-     * Add a person to a group.
+     * Add a person to a group and optionally assign/update their rotba.
      */
     public function storePerson(Request $request)
     {
         $request->validate([
             'PersonID' => 'required|integer',
             'GroupID'  => 'required|integer',
+            'RotbaID'  => 'nullable|integer',
         ]);
 
         $exists = DB::table('PersonGroup')
@@ -196,12 +191,27 @@ class QetaaTreeController extends Controller
             ]);
         }
 
+        // Assign or update rotba if provided
+        if ($request->filled('RotbaID')) {
+            $rotbaExists = DB::table('PersonRotba')
+                ->where('PersonID', $request->PersonID)
+                ->exists();
+
+            if ($rotbaExists) {
+                DB::table('PersonRotba')
+                    ->where('PersonID', $request->PersonID)
+                    ->update(['RotbaID' => $request->RotbaID]);
+            } else {
+                DB::table('PersonRotba')->insert([
+                    'PersonID' => $request->PersonID,
+                    'RotbaID'  => $request->RotbaID,
+                ]);
+            }
+        }
+
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Remove a person from a group.
-     */
     public function removePerson(Request $request)
     {
         DB::table('PersonGroup')
