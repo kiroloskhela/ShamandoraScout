@@ -7,186 +7,46 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Attendance API — mobile-facing endpoints.
+ *
+ * All responses follow the envelope:  { ok: bool, ...payload }
+ * Errors add a `message` key; 4xx/5xx status codes are also set.
+ *
+ * Auth: expects a token-authenticated user whose model exposes `PersonID`.
+ */
 class AttendanceApiController extends Controller
 {
-
-/**
- * @OA\Tag(
- *   name="Attendance",
- *   description="Attendance related endpoints"
- * )
- *
- * @OA\Get(
- *   path="/api/attendance/events",
- *   operationId="attendanceEvents",
- *   tags={"Attendance"},
- *   summary="Get seasons/events or events by season",
- *   description="If person_id is provided, returns seasons with events for that person (only if person_id matches authenticated user). Otherwise requires season_id and returns events for that season for the authenticated user.",
- *   security={{"bearerAuth":{}}},
- *   @OA\Parameter(
- *     name="person_id",
- *     in="query",
- *     required=false,
- *     description="Person ID (must match authenticated user). If provided, season_id is ignored.",
- *     @OA\Schema(type="integer", example=55)
- *   ),
- *   @OA\Parameter(
- *     name="season_id",
- *     in="query",
- *     required=false,
- *     description="Season ID (required if person_id not provided).",
- *     @OA\Schema(type="integer", example=2024)
- *   ),
- *   @OA\Response(
- *     response=200,
- *     description="Success",
- *     @OA\JsonContent(
- *       oneOf={
- *         @OA\Schema(
- *           type="object",
- *           @OA\Property(property="ok", type="boolean", example=true),
- *           @OA\Property(
- *             property="seasons",
- *             type="array",
- *             @OA\Items(
- *               type="object",
- *               @OA\Property(property="SeasonID", type="integer", example=1),
- *               @OA\Property(property="SeasonName", type="string", example="Season A"),
- *               @OA\Property(property="SeasonYear", type="integer", example=2025),
- *               @OA\Property(
- *                 property="events",
- *                 type="array",
- *                 @OA\Items(
- *                   type="object",
- *                   @OA\Property(property="SeasonEventID", type="integer", example=999),
- *                   @OA\Property(property="EventID", type="integer", example=10),
- *                   @OA\Property(property="EventName", type="string", example="Weekly Meeting"),
- *                   @OA\Property(property="EventStartDate", type="string", format="date-time", example="2025-09-01 18:00:00"),
- *                   @OA\Property(property="EventEndDate", type="string", format="date-time", example="2025-09-01 20:00:00")
- *                 )
- *               )
- *             )
- *           )
- *         ),
- *         @OA\Schema(
- *           type="object",
- *           @OA\Property(property="ok", type="boolean", example=true),
- *           @OA\Property(
- *             property="events",
- *             type="array",
- *             @OA\Items(
- *               type="object",
- *               @OA\Property(property="SeasonEventID", type="integer", example=999),
- *               @OA\Property(property="SeasonID", type="integer", example=2024),
- *               @OA\Property(property="EventID", type="integer", example=10),
- *               @OA\Property(property="EventName", type="string", example="Weekly Meeting"),
- *               @OA\Property(property="EventStartDate", type="string", format="date-time", example="2025-09-01 18:00:00"),
- *               @OA\Property(property="EventEndDate", type="string", format="date-time", example="2025-09-01 20:00:00")
- *             )
- *           )
- *         )
- *       }
- *     )
- *   ),
- *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
- *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
- *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object"))
- * )
- *
- * @OA\Get(
- *   path="/api/attendance/persons",
- *   operationId="attendancePersonsLegacy",
- *   tags={"Attendance"},
- *   summary="Get persons list for a season event (legacy query)",
- *   security={{"bearerAuth":{}}},
- *   @OA\Parameter(
- *     name="season_event_id",
- *     in="query",
- *     required=true,
- *     description="SeasonEventID",
- *     @OA\Schema(type="integer", example=999)
- *   ),
- *   @OA\Response(
- *     response=200,
- *     description="Success",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\Property(property="ok", type="boolean", example=true),
- *       @OA\Property(
- *         property="persons",
- *         type="array",
- *         @OA\Items(
- *           type="object",
- *           @OA\Property(property="PersonID", type="integer", example=101),
- *           @OA\Property(property="PersonName", type="string", example="John Doe"),
- *           @OA\Property(property="PhoneNumber", type="string", example="01000000000"),
- *           @OA\Property(property="QetaaName", type="string", example="Qetaa A, Qetaa B"),
- *           @OA\Property(property="SanaMarhalaName", type="string", example="Level 1"),
- *           @OA\Property(property="Attended", type="boolean", example=true)
- *         )
- *       )
- *     )
- *   ),
- *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
- *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object"))
- * )
- *
- * @OA\Get(
- *   path="/api/attendance/persons/{seasonEventId}",
- *   operationId="attendancePersons",
- *   tags={"Attendance"},
- *   summary="Get persons list for a season event",
- *   security={{"bearerAuth":{}}},
- *   @OA\Parameter(
- *     name="seasonEventId",
- *     in="path",
- *     required=true,
- *     description="SeasonEventID",
- *     @OA\Schema(type="integer", example=999)
- *   ),
- *   @OA\Response(response=200, description="Success", @OA\JsonContent(type="object")),
- *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object"))
- * )
- *
- * @OA\Post(
- *   path="/api/attendance/save",
- *   operationId="attendanceSave",
- *   tags={"Attendance"},
- *   summary="Save attendance",
- *   description="Caller can only save for themselves (ServentID must match authenticated user).",
- *   security={{"bearerAuth":{}}},
- *   @OA\RequestBody(
- *     required=true,
- *     @OA\JsonContent(
- *       type="object",
- *       required={"SeasonEventID","ServentID"},
- *       @OA\Property(property="SeasonEventID", type="integer", example=999),
- *       @OA\Property(property="ServentID", type="integer", example=55),
- *       @OA\Property(property="Served", type="array", @OA\Items(type="integer", example=101))
- *     )
- *   ),
- *   @OA\Response(response=200, description="Saved", @OA\JsonContent(type="object")),
- *   @OA\Response(response=401, description="Unauthorized", @OA\JsonContent(type="object")),
- *   @OA\Response(response=403, description="Forbidden", @OA\JsonContent(type="object")),
- *   @OA\Response(response=422, description="Validation error", @OA\JsonContent(type="object")),
- *   @OA\Response(response=500, description="Server error", @OA\JsonContent(type="object"))
- * )
- */
-    
+    // =========================================================================
+    //  GET /api/attendance/events
+    //
+    //  Query params:
+    //    person_id   (optional)  – fetch all seasons+events for that person
+    //                              (must match the authenticated user's PersonID)
+    //    season_id   (required if person_id absent) – events for one season
+    //
+    //  Response A  (person_id given):
+    //    { ok: true, seasons: [ { SeasonID, SeasonName, SeasonYear,
+    //                             events: [ { SeasonEventID, EventID,
+    //                                         EventName, EventStartDate, EventEndDate } ] } ] }
+    //
+    //  Response B  (season_id given):
+    //    { ok: true, events: [ { SeasonEventID, EventID,
+    //                            EventName, EventStartDate, EventEndDate } ] }
+    // =========================================================================
     public function events(Request $request)
     {
-        $authPersonId = optional(Auth::user())->PersonID ?? Auth::id();
+        $authPersonId = $this->resolveAuthPersonId();
         if (!$authPersonId) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
+            return $this->unauthorized();
         }
 
-        // A) seasons + events for a specific person
+        // ── A) all seasons + events for a specific person ──────────────────
         if ($request->has('person_id')) {
             $personId = (int) $request->query('person_id');
 
-            // Safety: only allow requesting your own person_id (adjust if you want admin override)
-            if ($personId !== (int) $authPersonId) {
-                return response()->json(['ok' => false, 'message' => 'Forbidden: person_id mismatch'], 403);
+            if ($personId !== $authPersonId) {
+                return $this->forbidden('person_id mismatch');
             }
 
             $myGroups = $this->getServantGroups($personId);
@@ -195,59 +55,38 @@ class AttendanceApiController extends Controller
             }
 
             $rows = DB::table('SeasonEvent as se')
-                ->join('Event as e', 'e.EventID', '=', 'se.EventID')
+                ->join('Event as e',  'e.EventID',  '=', 'se.EventID')
                 ->join('Season as s', 's.SeasonID', '=', 'se.SeasonID')
-                ->whereExists(function ($q) use ($myGroups) {
-                    $q->select(DB::raw(1))
-                        ->from('EventQetaa as eq')
-                        ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'eq.QetaaID')
-                        ->whereColumn('eq.EventID', 'se.EventID')
-                        ->whereIn('gq.GroupID', $myGroups)
-                        ->limit(1);
-                })
+                ->whereExists(fn ($q) => $this->scopeToMyGroups($q, $myGroups))
                 ->select(
-                    's.SeasonID',
-                    's.SeasonName',
-                    's.SeasonYear',
+                    's.SeasonID', 's.SeasonName', 's.SeasonYear',
                     'se.SeasonEventID',
-                    'e.EventID',
-                    'e.EventName',
-                    'e.EventStartDate',
-                    'e.EventEndDate'
+                    'e.EventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate'
                 )
                 ->orderBy('s.SeasonYear', 'desc')
                 ->orderBy('e.EventStartDate', 'asc')
                 ->get();
 
-            // group by season
             $bySeason = [];
             foreach ($rows as $r) {
                 $sid = $r->SeasonID;
-                if (!isset($bySeason[$sid])) {
-                    $bySeason[$sid] = [
-                        'SeasonID'   => $r->SeasonID,
-                        'SeasonName' => $r->SeasonName,
-                        'SeasonYear' => $r->SeasonYear,
-                        'events'     => [],
-                    ];
-                }
-                $bySeason[$sid]['events'][] = [
-                    'SeasonEventID'  => $r->SeasonEventID,
-                    'EventID'        => $r->EventID,
-                    'EventName'      => $r->EventName,
-                    'EventStartDate' => $r->EventStartDate,
-                    'EventEndDate'   => $r->EventEndDate,
+                $bySeason[$sid] ??= [
+                    'SeasonID'   => $r->SeasonID,
+                    'SeasonName' => $r->SeasonName,
+                    'SeasonYear' => $r->SeasonYear,
+                    'events'     => [],
                 ];
+                $bySeason[$sid]['events'][] = $this->formatEvent($r);
             }
 
             return response()->json(['ok' => true, 'seasons' => array_values($bySeason)]);
         }
 
-        // B) events for a single season (auth user)
+        // ── B) events for a single season ──────────────────────────────────
         $request->validate(['season_id' => 'required|integer']);
         $seasonId = (int) $request->query('season_id');
 
-        $myGroups = $this->getServantGroups((int) $authPersonId);
+        $myGroups = $this->getServantGroups($authPersonId);
         if (empty($myGroups)) {
             return response()->json(['ok' => true, 'events' => []]);
         }
@@ -255,144 +94,153 @@ class AttendanceApiController extends Controller
         $events = DB::table('SeasonEvent as se')
             ->join('Event as e', 'e.EventID', '=', 'se.EventID')
             ->where('se.SeasonID', $seasonId)
-            ->whereExists(function ($q) use ($myGroups) {
-                $q->select(DB::raw(1))
-                    ->from('EventQetaa as eq')
-                    ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'eq.QetaaID')
-                    ->whereColumn('eq.EventID', 'se.EventID')
-                    ->whereIn('gq.GroupID', $myGroups)
-                    ->limit(1);
-            })
+            ->whereExists(fn ($q) => $this->scopeToMyGroups($q, $myGroups))
             ->select('se.SeasonEventID', 'se.SeasonID', 'e.EventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate')
             ->orderBy('e.EventStartDate', 'asc')
-            ->get();
+            ->get()
+            ->map(fn ($r) => $this->formatEvent($r));
 
         return response()->json(['ok' => true, 'events' => $events]);
     }
 
-    /**
-     * GET /api/attendance/persons?season_event_id=999  (legacy)
-     * Returns ONLY persons (from PersonQetaa) the auth user is allowed to manage for this event.
-     */
+    // =========================================================================
+    //  GET /api/attendance/persons?season_event_id={id}
+    //  GET /api/attendance/{seasonEventId}/persons          ← route-param alias
+    //
+    //  Response:
+    //    { ok: true, persons: [ { PersonID, PersonName, PhoneNumber,
+    //                             QetaaName, SanaMarhalaName,
+    //                             Status: "present"|"absent"|"excused",
+    //                             Excuse: string|null } ] }
+    // =========================================================================
     public function persons(Request $request)
     {
         $request->validate(['season_event_id' => 'required|integer']);
         $seasonEventId = (int) $request->query('season_event_id');
 
-        $authPersonId = optional(Auth::user())->PersonID ?? Auth::id();
-        if (!$authPersonId) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        return $this->buildPersonsResponse((int) $authPersonId, $seasonEventId);
+        return $this->buildPersonsResponse($seasonEventId);
     }
 
-    /**
-     * GET /api/attendance/persons/{seasonEventId}  (recommended path param)
-     */
+    /** Route-param alias: GET /api/attendance/{seasonEventId}/persons */
     public function personsBySeasonEventId(int $seasonEventId)
     {
-        $authPersonId = optional(Auth::user())->PersonID ?? Auth::id();
-        if (!$authPersonId) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        return $this->buildPersonsResponse((int) $authPersonId, (int) $seasonEventId);
+        return $this->buildPersonsResponse($seasonEventId);
     }
 
-    /**
-     * POST /api/attendance/save
-     * Body JSON:
-     * {
-     *   "SeasonEventID": 999,
-     *   "ServentID": 55,
-     *   "Served": [101,102,...]
-     * }
-     * Saves attendance ONLY for persons the servant is authorized to manage (doesn't overwrite other servants' subsets).
-     */
+    // =========================================================================
+    //  POST /api/attendance/save
+    //
+    //  Body (JSON):
+    //    {
+    //      "SeasonEventID": 12,
+    //      "attendance": {
+    //        "101": { "status": "present",  "excuse": null },
+    //        "102": { "status": "excused",  "excuse": "sick" },
+    //        "103": { "status": "absent",   "excuse": null }
+    //      }
+    //    }
+    //
+    //  Rules (mirrors the web controller exactly):
+    //   • Uses INSERT … ON DUPLICATE KEY UPDATE (upsert) — never a full delete.
+    //   • Only rows for PersonIDs within the servant's allowed Qetaas are written.
+    //   • Concurrent saves from different servants do not overwrite each other.
+    //   • `excuse` is only persisted when status = "excused"; otherwise NULL.
+    //
+    //  Response:
+    //    { ok: true, message: "Attendance saved", count: 3,
+    //      saved: [ { PersonID, Status, Excuse } ] }
+    // =========================================================================
     public function save(Request $request)
     {
+        $authPersonId = $this->resolveAuthPersonId();
+        if (!$authPersonId) {
+            return $this->unauthorized();
+        }
+
         $data = $request->validate([
-            'SeasonEventID' => 'required|integer|exists:SeasonEvent,SeasonEventID',
-            'ServentID'     => 'required|integer|exists:PersonInformation,PersonID',
-            'Served'        => 'array',
-            'Served.*'      => 'integer|exists:PersonInformation,PersonID',
+            'SeasonEventID'              => 'required|integer|exists:SeasonEvent,SeasonEventID',
+            'attendance'                 => 'required|array',
+            'attendance.*.status'        => 'required|in:present,absent,excused',
+            'attendance.*.excuse'        => 'nullable|string|max:1000',
         ]);
 
-        $authPersonId = optional(Auth::user())->PersonID ?? Auth::id();
-        if (!$authPersonId) {
-            return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
-        }
-
-        // Tight policy: the caller can only save for themselves
-        if ((int) $data['ServentID'] !== (int) $authPersonId) {
-            return response()->json(['ok' => false, 'message' => 'Forbidden: ServentID mismatch'], 403);
-        }
-
         $seasonEventId = (int) $data['SeasonEventID'];
-        $serventId     = (int) $data['ServentID'];
-        $servedInput   = array_map('intval', $data['Served'] ?? []);
+        $serventId     = $authPersonId;
 
-        // Find which Qetaas this servant can act on for this event
+        // Authorisation: which Qetaas can this servant record for this event?
         $allowedQetaas = $this->allowedQetaas($serventId, $seasonEventId);
         if (empty($allowedQetaas)) {
-            return response()->json(['ok' => false, 'message' => 'Not allowed to take attendance for this event'], 403);
+            return $this->forbidden('Not allowed to take attendance for this event');
         }
 
-        // Allowed persons are those in PersonQetaa within allowed Qetaas
+        // The full set of PersonIDs this servant is authorised to write
         $allowedPersonIds = DB::table('PersonQetaa')
             ->whereIn('QetaaID', $allowedQetaas)
             ->pluck('PersonID')
-            ->unique()
             ->map(fn ($v) => (int) $v)
+            ->flip()           // use as a set for O(1) lookup
             ->toArray();
 
-        // Keep only allowed persons from the provided list
-        $served = array_values(array_intersect($servedInput, $allowedPersonIds));
+        $rows   = [];
+        $saved  = [];
 
-        DB::beginTransaction();
-        try {
-            // Remove existing attendance ONLY for the subset this servant controls
-            if (!empty($allowedPersonIds)) {
-                DB::table('Attendance')
-                    ->where('SeasonEventID', $seasonEventId)
-                    ->whereIn('ServedID', $allowedPersonIds)
-                    ->delete();
+        foreach ((array) $data['attendance'] as $personId => $entry) {
+            $personId = (int) $personId;
+
+            // Silently skip any PersonID the servant has no authority over
+            if (!isset($allowedPersonIds[$personId])) {
+                continue;
             }
 
-            // Insert new attendance for selected persons
-            if (!empty($served)) {
-                $rows = array_map(function ($pid) use ($seasonEventId, $serventId) {
-                    return [
-                        'SeasonEventID' => $seasonEventId,
-                        'ServedID'      => (int) $pid,
-                        'ServentID'     => $serventId,
-                    ];
-                }, $served);
+            $status = $entry['status'];
+            $excuse = ($status === 'excused') ? ($entry['excuse'] ?? null) : null;
 
-                DB::table('Attendance')->insert($rows);
-            }
+            $rows[] = [
+                'SeasonEventID'    => $seasonEventId,
+                'ServedID'         => $personId,
+                'ServentID'        => $serventId,
+                'AttendanceStatus' => $status,
+                'Excuse'           => $excuse,
+            ];
 
-            DB::commit();
-            return response()->json([
-                'ok'      => true,
-                'message' => 'Attendance saved',
-                'count'   => count($served),
-                'served'  => $served,
-            ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return response()->json([
-                'ok'      => false,
-                'message' => 'Failed to save attendance',
-                'error'   => $e->getMessage()
-            ], 500);
+            $saved[] = [
+                'PersonID' => $personId,
+                'Status'   => $status,
+                'Excuse'   => $excuse,
+            ];
         }
+
+        if (!empty($rows)) {
+            // Safe concurrent upsert — identical to the web controller strategy.
+            // Each (SeasonEventID, ServedID) pair is an independent atomic operation;
+            // rows owned by other servants are never touched.
+            DB::table('Attendance')->upsert(
+                $rows,
+                ['SeasonEventID', 'ServedID'],               // unique key
+                ['ServentID', 'AttendanceStatus', 'Excuse']  // update on conflict
+            );
+        }
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Attendance saved',
+            'count'   => count($saved),
+            'saved'   => $saved,
+        ]);
     }
 
-    // ===================== helpers =====================
+    // =========================================================================
+    //  HELPERS
+    // =========================================================================
 
-    /** Groups the authenticated servant belongs to. */
+    /** Returns the PersonID of the authenticated user, or null. */
+    private function resolveAuthPersonId(): ?int
+    {
+        $id = optional(Auth::user())->PersonID ?? Auth::id();
+        return $id ? (int) $id : null;
+    }
+
+    /** GroupIDs the servant belongs to. */
     private function getServantGroups(int $serventId): array
     {
         return DB::table('PersonGroup')
@@ -402,7 +250,10 @@ class AttendanceApiController extends Controller
             ->toArray();
     }
 
-    /** Intersection of servant Qetaas and event Qetaas for a SeasonEvent. */
+    /**
+     * Intersection of the servant's Qetaas and the event's Qetaas.
+     * Returns [] if the SeasonEventID is invalid or there is no overlap.
+     */
     private function allowedQetaas(int $serventId, int $seasonEventId): array
     {
         $eventId = DB::table('SeasonEvent')
@@ -428,50 +279,98 @@ class AttendanceApiController extends Controller
         return array_values(array_intersect($myQetaas, $eventQetaas));
     }
 
-    /** Build persons list (and attended flag) for auth user and a SeasonEvent. */
-    private function buildPersonsResponse(int $authPersonId, int $seasonEventId)
+    /**
+     * Builds the persons list with Status + Excuse — mirrors the web controller.
+     * Authorisation is enforced via allowedQetaas().
+     */
+    private function buildPersonsResponse(int $seasonEventId)
     {
-        // Allowed Qetaas = intersection(my qetaas, event qetaas)
+        $authPersonId = $this->resolveAuthPersonId();
+        if (!$authPersonId) {
+            return $this->unauthorized();
+        }
+
         $allowedQetaas = $this->allowedQetaas($authPersonId, $seasonEventId);
         if (empty($allowedQetaas)) {
             return response()->json(['ok' => true, 'persons' => []]);
         }
 
         $persons = DB::table('PersonQetaa as pq')
-            ->join('PersonInformation as p', 'p.PersonID', '=', 'pq.PersonID')
-            ->leftJoin('PersonPhoneNumbers as ph', 'ph.PersonID', '=', 'p.PersonID')
-            ->leftJoin('PersonSanaMarhala as psm', 'psm.PersonID', '=', 'p.PersonID')
-            ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
-            ->leftJoin('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
+            ->join('PersonInformation as p',      'p.PersonID',       '=', 'pq.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ph', 'ph.PersonID',      '=', 'p.PersonID')
+            ->leftJoin('PersonSanaMarhala as psm', 'psm.PersonID',     '=', 'p.PersonID')
+            ->leftJoin('SanaMarhala as sm',        'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
+            ->leftJoin('Qetaa as q',               'q.QetaaID',        '=', 'pq.QetaaID')
             ->whereIn('pq.QetaaID', $allowedQetaas)
-            ->groupBy('p.PersonID', 'p.FirstName', 'p.SecondName', 'p.ThirdName', 'p.FourthName', 'sm.SanaMarhalaName')
+            ->groupBy(
+                'p.PersonID', 'p.FirstName', 'p.SecondName',
+                'p.ThirdName', 'p.FourthName', 'sm.SanaMarhalaName'
+            )
             ->selectRaw("
                 p.PersonID,
                 p.FirstName, p.SecondName, p.ThirdName, p.FourthName,
-                COALESCE(MAX(ph.PersonPersonalMobileNumber),'') as PhoneNumber,
-                COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ', '),'') as QetaaName,
-                COALESCE(sm.SanaMarhalaName,'') as SanaMarhalaName
+                COALESCE(MAX(ph.PersonPersonalMobileNumber), '') AS PhoneNumber,
+                COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ', '), '') AS QetaaName,
+                COALESCE(sm.SanaMarhalaName, '') AS SanaMarhalaName
             ")
             ->orderBy('p.FirstName')
             ->get();
 
-        $present = DB::table('Attendance')
+        // Keyed attendance map — matches the web controller's approach exactly
+        $attendanceMap = DB::table('Attendance')
             ->where('SeasonEventID', $seasonEventId)
-            ->pluck('ServedID')
-            ->toArray();
-        $presentSet = array_flip($present);
+            ->get(['ServedID', 'AttendanceStatus', 'Excuse'])
+            ->keyBy('ServedID');
 
-        $rows = $persons->map(function ($p) use ($presentSet) {
+        $rows = $persons->map(function ($p) use ($attendanceMap) {
+            $record = $attendanceMap->get($p->PersonID);
             return [
                 'PersonID'        => (int) $p->PersonID,
                 'PersonName'      => trim("{$p->FirstName} {$p->SecondName} {$p->ThirdName} {$p->FourthName}"),
                 'PhoneNumber'     => $p->PhoneNumber,
                 'QetaaName'       => $p->QetaaName,
                 'SanaMarhalaName' => $p->SanaMarhalaName,
-                'Attended'        => isset($presentSet[$p->PersonID]),
+                // Default to 'absent' when no record exists — identical to web controller
+                'Status'          => $record?->AttendanceStatus ?? 'absent',
+                'Excuse'          => $record?->Excuse ?? null,
             ];
         });
 
         return response()->json(['ok' => true, 'persons' => $rows]);
+    }
+
+    /**
+     * Reusable whereExists closure that filters SeasonEvents to only those
+     * reachable through the servant's GroupIDs.
+     */
+    private function scopeToMyGroups(\Illuminate\Database\Query\Builder $q, array $myGroups): void
+    {
+        $q->select(DB::raw(1))
+            ->from('EventQetaa as eq')
+            ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'eq.QetaaID')
+            ->whereColumn('eq.EventID', 'se.EventID')
+            ->whereIn('gq.GroupID', $myGroups)
+            ->limit(1);
+    }
+
+    private function formatEvent(object $r): array
+    {
+        return [
+            'SeasonEventID'  => $r->SeasonEventID,
+            'EventID'        => $r->EventID,
+            'EventName'      => $r->EventName,
+            'EventStartDate' => $r->EventStartDate,
+            'EventEndDate'   => $r->EventEndDate,
+        ];
+    }
+
+    private function unauthorized()
+    {
+        return response()->json(['ok' => false, 'message' => 'Unauthorized'], 401);
+    }
+
+    private function forbidden(string $reason = 'Forbidden')
+    {
+        return response()->json(['ok' => false, 'message' => $reason], 403);
     }
 }
