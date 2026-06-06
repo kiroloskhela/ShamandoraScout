@@ -31,34 +31,7 @@ class GamesApiController extends Controller
         return $user->role()->whereIn('RoleName', $roles)->exists();
     }
 
-    private function denyIfUnauthorized()
-    {
-        if (!$this->authUser()) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Unauthorized',
-            ], 401);
-        }
-
-        return null;
-    }
-
-    private function denyIfNoGamesAccess()
-    {
-        if ($deny = $this->denyIfUnauthorized()) {
-            return $deny;
-        }
-
-        // change roles here however you want
-        if (!$this->hasAnyRole(['SuperAdmin', 'AdminQetaa'])) {
-            return response()->json([
-                'ok' => false,
-                'message' => 'Forbidden',
-            ], 403);
-        }
-
-        return null;
-    }
+  
 
     private function findGame(int $id)
     {
@@ -87,9 +60,7 @@ class GamesApiController extends Controller
      */
     public function index(Request $request)
     {
-        if ($deny = $this->denyIfNoGamesAccess()) {
-            return $deny;
-        }
+      
 
         $search = trim((string) $request->query('search', ''));
 
@@ -123,9 +94,7 @@ class GamesApiController extends Controller
      */
     public function show($id)
     {
-        if ($deny = $this->denyIfNoGamesAccess()) {
-            return $deny;
-        }
+   
 
         $game = $this->findGame((int) $id);
 
@@ -147,9 +116,7 @@ class GamesApiController extends Controller
      */
     public function store(Request $request)
     {
-        if ($deny = $this->denyIfNoGamesAccess()) {
-            return $deny;
-        }
+   
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -190,10 +157,7 @@ class GamesApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if ($deny = $this->denyIfNoGamesAccess()) {
-            return $deny;
-        }
-
+     
         $game = $this->findGame((int) $id);
 
         if (!$game) {
@@ -241,9 +205,7 @@ class GamesApiController extends Controller
      */
     public function destroy($id)
     {
-        if ($deny = $this->denyIfNoGamesAccess()) {
-            return $deny;
-        }
+  
 
         $game = $this->findGame((int) $id);
 
