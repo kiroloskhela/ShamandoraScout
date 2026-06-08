@@ -114,15 +114,7 @@
                                 @foreach ($taleia->people as $person)
                                     @php
                                         $imagePath = $person->PersonSystemImagePath ?? null;
-                                        $imageSrc = $imagePath
-                                            ? (\Illuminate\Support\Str::startsWith($imagePath, [
-                                                'http://',
-                                                'https://',
-                                                '/',
-                                            ])
-                                                ? $imagePath
-                                                : asset('storage/' . $imagePath))
-                                            : null;
+                                        $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
                                     @endphp
                                     <div class="aux-person">
                                         <div class="aux-avatar">
