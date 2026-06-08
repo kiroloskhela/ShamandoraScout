@@ -119,6 +119,7 @@ class QetaaTreeController extends Controller
                         ->join('PersonInformation as pi', 'pi.PersonID', '=', 'pg.PersonID')
                         ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
                         ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+                        ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
                         ->whereIn('pg.GroupID', $taleiaIds)
                         ->select(
                             'pg.GroupID',
@@ -126,9 +127,14 @@ class QetaaTreeController extends Controller
                             'pi.FirstName',
                             'pi.SecondName',
                             'pi.ShamandoraCode',
-                            'ri.RotbaName'
+                            'ri.RotbaID',
+                            'ri.RotbaName',
+                            'pim.PersonSystemImagePath'
                         )
                         ->distinct()
+                        ->orderByRaw('CASE WHEN ri.RotbaID = 12 THEN 1 ELSE 0 END')
+                        ->orderByRaw('CASE WHEN ri.RotbaID IS NULL THEN 1 ELSE 0 END')
+                        ->orderBy('ri.RotbaID')
                         ->orderBy('pi.ShamandoraCode')
                         ->get()
                         ->groupBy('GroupID');

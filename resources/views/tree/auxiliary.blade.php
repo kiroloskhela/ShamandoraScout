@@ -4,6 +4,14 @@
     @php
         $totalPeople = $talaea->sum(fn($taleia) => $taleia->people->count());
         $initials = fn($name) => mb_substr($name ?: '؟', 0, 1, 'UTF-8');
+        $palette = [
+            ['accent' => '#2563eb', 'soft' => '#eff6ff', 'border' => '#bfdbfe', 'avatar' => '#dbeafe'],
+            ['accent' => '#16a34a', 'soft' => '#f0fdf4', 'border' => '#bbf7d0', 'avatar' => '#dcfce7'],
+            ['accent' => '#d97706', 'soft' => '#fffbeb', 'border' => '#fde68a', 'avatar' => '#fef3c7'],
+            ['accent' => '#7c3aed', 'soft' => '#f5f3ff', 'border' => '#ddd6fe', 'avatar' => '#ede9fe'],
+            ['accent' => '#0891b2', 'soft' => '#ecfeff', 'border' => '#a5f3fc', 'avatar' => '#cffafe'],
+            ['accent' => '#e11d48', 'soft' => '#fff1f2', 'border' => '#fecdd3', 'avatar' => '#ffe4e6'],
+        ];
     @endphp
 
     <div class="aux-root" dir="rtl">
@@ -86,7 +94,11 @@
 
             <section class="aux-talaea">
                 @foreach ($talaea as $taleia)
-                    <article class="aux-taleia-card">
+                    @php
+                        $colors = $palette[$loop->index % count($palette)];
+                    @endphp
+                    <article class="aux-taleia-card"
+                        style="--aux-accent: {{ $colors['accent'] }}; --aux-soft: {{ $colors['soft'] }}; --aux-border: {{ $colors['border'] }}; --aux-avatar: {{ $colors['avatar'] }};">
                         <div class="aux-taleia-head">
                             <div>
                                 <span class="aux-badge">طليعة</span>
@@ -100,8 +112,22 @@
                         @else
                             <div class="aux-people">
                                 @foreach ($taleia->people as $person)
+                                    @php
+                                        $imagePath = $person->PersonSystemImagePath ?? null;
+                                        $imageSrc = $imagePath
+                                            ? (\Illuminate\Support\Str::startsWith($imagePath, ['http://', 'https://', '/'])
+                                                ? $imagePath
+                                                : asset($imagePath))
+                                            : null;
+                                    @endphp
                                     <div class="aux-person">
-                                        <div class="aux-avatar">{{ $initials($person->FirstName ?? '') }}</div>
+                                        <div class="aux-avatar">
+                                            @if ($imageSrc)
+                                                <img src="{{ $imageSrc }}" alt="{{ $person->FirstName }} {{ $person->SecondName }}">
+                                            @else
+                                                {{ $initials($person->FirstName ?? '') }}
+                                            @endif
+                                        </div>
                                         <div class="aux-person-info">
                                             <span>{{ $person->FirstName }} {{ $person->SecondName }}</span>
                                             @if ($person->ShamandoraCode)
@@ -263,7 +289,7 @@
 
         .aux-taleia-card {
             background: #fff;
-            border: 1px solid #dbeafe;
+            border: 1px solid var(--aux-border);
             border-radius: 8px;
             box-shadow: 0 8px 24px rgba(37, 99, 235, .06);
             overflow: hidden;
@@ -274,8 +300,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px;
-            border-right: 4px solid #2563eb;
-            background: #eff6ff;
+            border-right: 4px solid var(--aux-accent);
+            background: var(--aux-soft);
         }
 
         .aux-taleia-head h2 {
@@ -292,12 +318,12 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            background: #2563eb;
+            background: var(--aux-accent);
             color: #fff;
         }
 
         .aux-badge {
-            color: #2563eb;
+            color: var(--aux-accent);
             font-size: 11px;
             font-weight: 700;
         }
@@ -326,11 +352,19 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #dbeafe;
-            color: #1d4ed8;
+            background: var(--aux-avatar);
+            color: var(--aux-accent);
             font-size: 12px;
             font-weight: 700;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .aux-avatar img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
         }
 
         .aux-person-info {
