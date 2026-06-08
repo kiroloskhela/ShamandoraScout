@@ -1,11 +1,13 @@
 {{-- resources/views/tree/_group.blade.php --}}
 @php
-    $typeLabel = [2 => 'طليعة', 3 => 'فريق'];
-    $badgeClass = [2 => 'qt-pill--blue', 3 => 'qt-pill--green'];
+    $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
+    $badgeClass = [2 => 'qt-pill--green', 3 => 'qt-pill--blue'];
     $initials = fn($name) => mb_substr($name, 0, 1, 'UTF-8');
+    $isFareeq = (int) $group->GroupTypeID === 2;
+    $isTaleia = (int) $group->GroupTypeID === 3;
 @endphp
 
-<div class="qt-group" data-group-id="{{ $group->GroupID }}">
+<div class="qt-group {{ $isFareeq ? 'qt-group--fareeq' : 'qt-group--taleia' }}" data-group-id="{{ $group->GroupID }}">
 
     {{-- Group header --}}
     <div class="qt-group__head" onclick="qtToggle(this)">
@@ -22,19 +24,23 @@
 
         <div class="qt-group__actions" onclick="event.stopPropagation()">
             @if ($isServed)
-                <button class="qt-icon-btn" title="إضافة فريق فرعي"
-                    onclick="openGroupModal({{ $qetaaId }}, 3, {{ $group->GroupID }})">
-                    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 2v8M2 6h8" />
-                    </svg>
-                </button>
-                <button class="qt-icon-btn" title="إضافة شخص" onclick="openPersonModal({{ $group->GroupID }})">
-                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <circle cx="6" cy="4" r="3" />
-                        <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
-                        <path d="M11 6v4M13 8h-4" />
-                    </svg>
-                </button>
+                @if ($isFareeq)
+                    <button class="qt-icon-btn" title="إضافة طليعة داخل الفريق"
+                        onclick="openGroupModal({{ $qetaaId }}, 3, {{ $group->GroupID }})">
+                        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 2v8M2 6h8" />
+                        </svg>
+                    </button>
+                @endif
+                @if ($isTaleia)
+                    <button class="qt-icon-btn" title="إضافة شخص" onclick="openPersonModal({{ $group->GroupID }})">
+                        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="6" cy="4" r="3" />
+                            <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
+                            <path d="M11 6v4M13 8h-4" />
+                        </svg>
+                    </button>
+                @endif
                 <button class="qt-icon-btn qt-icon-btn--danger" title="حذف المجموعة"
                     onclick="deleteGroup({{ $group->GroupID }})">
                     <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -64,7 +70,7 @@
                                 {{ $typeLabel[$child->GroupTypeID] ?? '' }}
                             </span>
 
-                            @if ($isServed)
+                            @if ($isServed && (int) $child->GroupTypeID === 3)
                                 <div class="qt-group__actions" onclick="event.stopPropagation()">
                                     <button class="qt-icon-btn" title="إضافة شخص"
                                         onclick="openPersonModal({{ $child->GroupID }})">
@@ -88,7 +94,7 @@
 
                         <div class="qt-subgroup__body">
                             @if ($child->people->isEmpty())
-                                <p class="qt-empty">لا أعضاء في هذا الفريق</p>
+                                <p class="qt-empty">لا أعضاء في هذه الطليعة</p>
                             @else
                                 <div class="qt-people">
                                     @foreach ($child->people as $person)
@@ -126,8 +132,8 @@
             </div>
         @endif
 
-        {{-- Direct people in this group --}}
-        @if ($group->people->isNotEmpty())
+        {{-- Direct people in talaea only --}}
+        @if ($isTaleia && $group->people->isNotEmpty())
             <div class="qt-people">
                 @foreach ($group->people as $person)
                     <div class="qt-person">
@@ -158,8 +164,8 @@
             </div>
         @endif
 
-        @if ($group->children->isEmpty() && $group->people->isEmpty())
-            <p class="qt-empty">لا أعضاء في هذه المجموعة</p>
+        @if ($group->children->isEmpty() && (!$isTaleia || $group->people->isEmpty()))
+            <p class="qt-empty">{{ $isFareeq ? 'لا توجد طلايع داخل هذا الفريق' : 'لا أعضاء في هذه الطليعة' }}</p>
         @endif
     </div>
 </div>

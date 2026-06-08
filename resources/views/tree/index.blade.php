@@ -3,8 +3,11 @@
 
 @section('content')
     @php
-        $typeLabel = [2 => 'طليعة', 3 => 'فريق'];
-        $typeBadgeClass = [2 => 'badge--taleia', 3 => 'badge--fareeq'];
+        $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
+        $typeBadgeClass = [2 => 'badge--fareeq', 3 => 'badge--taleia'];
+        $pageTitle = $pageTitle ?? 'هيكل الفريق';
+        $servedQetaas = $servedQetaas ?? collect();
+        $selectedQetaaId = $selectedQetaaId ?? request('qetaa');
     @endphp
 
     <div class="qt-root" dir="rtl">
@@ -18,12 +21,32 @@
                     <path d="M12 3 L12 8" />
                     <circle cx="12" cy="8" r="1.5" fill="currentColor" />
                 </svg>
-                <h1 class="qt-topbar__title">شجرة القطاعات</h1>
+                <div>
+                    <h1 class="qt-topbar__title">{{ $pageTitle }}</h1>
+                    <p class="qt-topbar__subtitle">القطاعات والمجموعات المرتبطة بالفريق الذي تخدم فيه</p>
+                </div>
             </div>
 
             <form method="GET" action="{{ url()->current() }}" id="season-form" class="qt-topbar__form">
                 @if (request('id'))
                     <input type="hidden" name="id" value="{{ $userId }}">
+                @endif
+                @if ($servedQetaas->count() > 1)
+                    <label class="qt-select-wrap qt-select-wrap--strong">
+                        <span class="qt-select-wrap__label">القطاع</span>
+                        <select name="qetaa" class="qt-select" onchange="document.getElementById('season-form').submit()">
+                            <option value="">كل القطاعات</option>
+                            @foreach ($servedQetaas as $qetaaOption)
+                                <option value="{{ $qetaaOption->QetaaID }}"
+                                    {{ (string) $qetaaOption->QetaaID === (string) $selectedQetaaId ? 'selected' : '' }}>
+                                    {{ $qetaaOption->QetaaName }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <svg class="qt-select-wrap__arrow" viewBox="0 0 10 6">
+                            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" />
+                        </svg>
+                    </label>
                 @endif
                 <label class="qt-select-wrap">
                     <span class="qt-select-wrap__label">الموسم</span>
@@ -45,7 +68,7 @@
         @php
             $servedCount = $tree->where('is_served', true)->count();
             $totalPeople = $tree->sum('total_people');
-            $totalGroups = $tree->sum(fn($n) => $n['groups']->count());
+            $totalGroups = $tree->sum('total_groups');
         @endphp
         <div class="qt-stats">
             <div class="qt-stat">
@@ -66,12 +89,28 @@
             </div>
         </div>
 
+        <div class="qt-tools">
+            <label class="qt-tree-search">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="6.5" cy="6.5" r="5" />
+                    <path d="M10.5 10.5l3.5 3.5" />
+                </svg>
+                <input type="search" id="qt-tree-search" placeholder="ابحث باسم القطاع أو المجموعة أو الشخص"
+                    oninput="qtFilterTree(this.value)">
+            </label>
+            <div class="qt-tool-actions">
+                <button class="qt-mini-btn" type="button" onclick="qtSetAll(true)">فتح الكل</button>
+                <button class="qt-mini-btn" type="button" onclick="qtSetAll(false)">غلق الكل</button>
+            </div>
+        </div>
+
         {{-- ══ TREE ════════════════════════════════════════════════════════════════ --}}
         <div class="qt-tree">
-            @foreach ($tree as $node)
+            @forelse ($tree as $node)
                 @php
                     $q = $node['qetaa'];
                     $served = $node['is_served'];
+                    $editable = $node['is_served'];
                 @endphp
 
                 <div class="qt-qetaa {{ $served ? 'qt-qetaa--served' : 'qt-qetaa--dim' }}"
@@ -87,7 +126,7 @@
 
                         <div class="qt-qetaa__info">
                             <span class="qt-qetaa__name">{{ $q->QetaaName }}</span>
-                            @if ($served)
+                            @if ($node['is_served'])
                                 <span class="qt-pill qt-pill--blue">تخدمها</span>
                             @endif
                         </div>
@@ -101,21 +140,21 @@
                                 {{ $node['total_people'] }}
                             </span>
 
-                            @if ($served)
+                            @if ($editable)
                                 <div class="qt-head-actions" onclick="event.stopPropagation()">
-                                    <button class="qt-action-btn qt-action-btn--taleia"
-                                        onclick="openGroupModal({{ $q->QetaaID }}, 2, 0)" title="إضافة طليعة">
-                                        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M6 2v8M2 6h8" />
-                                        </svg>
-                                        طليعة
-                                    </button>
                                     <button class="qt-action-btn qt-action-btn--fareeq"
-                                        onclick="openGroupModal({{ $q->QetaaID }}, 3, 0)" title="إضافة فريق">
+                                        onclick="openGroupModal({{ $q->QetaaID }}, 2, 0)" title="إضافة فريق">
                                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 2v8M2 6h8" />
                                         </svg>
                                         فريق
+                                    </button>
+                                    <button class="qt-action-btn qt-action-btn--taleia"
+                                        onclick="openGroupModal({{ $q->QetaaID }}, 3, 0)" title="إضافة طليعة مباشرة">
+                                        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M6 2v8M2 6h8" />
+                                        </svg>
+                                        طليعة
                                     </button>
                                 </div>
                             @endif
@@ -132,7 +171,7 @@
                                     @include('tree._group', [
                                         'group' => $group,
                                         'qetaaId' => $q->QetaaID,
-                                        'isServed' => $served,
+                                        'isServed' => $editable,
                                         'seasonId' => $currentSeasonId,
                                     ])
                                 @endforeach
@@ -140,7 +179,11 @@
                         @endif
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="qt-empty-panel">
+                    لا يوجد هيكل فريق مرتبط بحسابك حالياً
+                </div>
+            @endforelse
         </div>
 
         {{-- ══ MODALS ══════════════════════════════════════════════════════════════ --}}
@@ -306,7 +349,14 @@
         .qt-topbar__title {
             font-size: 17px;
             font-weight: 600;
-            letter-spacing: -.01em;
+            letter-spacing: 0;
+            margin-bottom: 2px;
+        }
+
+        .qt-topbar__subtitle {
+            font-size: 12px;
+            color: var(--qt-text-muted);
+            line-height: 1.4;
         }
 
         .qt-topbar__form {
@@ -327,6 +377,11 @@
             height: 36px;
             cursor: pointer;
             box-shadow: var(--qt-shadow);
+        }
+
+        .qt-select-wrap--strong {
+            border-color: var(--qt-blue-mid);
+            background: linear-gradient(180deg, #ffffff 0%, var(--qt-blue-soft) 100%);
         }
 
         .qt-select-wrap__label {
@@ -352,6 +407,31 @@
             cursor: pointer;
             padding: 0;
             direction: rtl;
+        }
+
+        .qt-link-btn {
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 14px;
+            border-radius: var(--qt-radius);
+            border: 1px solid var(--qt-border);
+            background: var(--qt-surface);
+            color: var(--qt-text-muted);
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            box-shadow: var(--qt-shadow);
+            white-space: nowrap;
+            transition: background var(--qt-transition), color var(--qt-transition), border-color var(--qt-transition);
+        }
+
+        .qt-link-btn:hover,
+        .qt-link-btn.is-active {
+            background: var(--qt-blue);
+            color: #fff;
+            border-color: var(--qt-blue);
         }
 
         /* ── Stats strip ─────────────────────────────────────────────────────────── */
@@ -396,6 +476,79 @@
             color: var(--qt-text-muted);
         }
 
+        /* ── Tools ──────────────────────────────────────────────────────────────── */
+        .qt-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .qt-tree-search {
+            position: relative;
+            flex: 1;
+            min-width: min(100%, 280px);
+        }
+
+        .qt-tree-search svg {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--qt-text-faint);
+            pointer-events: none;
+        }
+
+        .qt-tree-search input {
+            width: 100%;
+            height: 40px;
+            padding: 0 38px 0 12px;
+            border: 1px solid var(--qt-border);
+            border-radius: var(--qt-radius);
+            background: var(--qt-surface);
+            box-shadow: var(--qt-shadow);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            color: var(--qt-text);
+        }
+
+        .qt-tree-search input:focus {
+            border-color: var(--qt-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+        }
+
+        .qt-tool-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .qt-mini-btn {
+            height: 36px;
+            padding: 0 14px;
+            border-radius: var(--qt-radius);
+            border: 1px solid var(--qt-border);
+            background: var(--qt-surface);
+            color: var(--qt-text);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: var(--qt-shadow);
+            transition: background var(--qt-transition), border-color var(--qt-transition), color var(--qt-transition);
+        }
+
+        .qt-mini-btn:hover {
+            background: var(--qt-blue-soft);
+            border-color: var(--qt-blue-mid);
+            color: var(--qt-blue);
+        }
+
         /* ── Tree container ──────────────────────────────────────────────────────── */
         .qt-tree {
             display: flex;
@@ -407,8 +560,8 @@
         .qt-qetaa {
             background: var(--qt-surface);
             border: 1px solid var(--qt-border);
-            border-radius: var(--qt-radius-lg);
-            box-shadow: var(--qt-shadow);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
             overflow: hidden;
             transition: box-shadow var(--qt-transition);
         }
@@ -422,7 +575,7 @@
         }
 
         .qt-qetaa--served {
-            border-color: var(--qt-blue-mid);
+            border-color: #d6e4ff;
         }
 
         .qt-qetaa--served:hover {
@@ -433,10 +586,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 12px 14px;
+            padding: 14px 16px;
             cursor: pointer;
             user-select: none;
-            transition: background var(--qt-transition);
+            transition: background var(--qt-transition), border-color var(--qt-transition);
+            border-right: 4px solid var(--qt-blue);
         }
 
         .qt-qetaa__head:hover {
@@ -444,7 +598,7 @@
         }
 
         .qt-qetaa__head.is-open {
-            background: var(--qt-blue-soft);
+            background: linear-gradient(90deg, var(--qt-blue-soft), #fff);
         }
 
         .qt-chevron {
@@ -477,8 +631,8 @@
         }
 
         .qt-qetaa__name {
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -583,6 +737,7 @@
         .qt-qetaa__body {
             display: none;
             border-top: 1px solid var(--qt-border-soft);
+            background: linear-gradient(180deg, #fbfdff 0%, #ffffff 72%);
         }
 
         .qt-qetaa__body.is-open {
@@ -591,17 +746,41 @@
 
         /* ── Groups ──────────────────────────────────────────────────────────────── */
         .qt-groups {
-            padding: 12px 14px;
+            position: relative;
+            padding: 14px 22px 16px 14px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
+        }
+
+        .qt-groups::before {
+            content: "";
+            position: absolute;
+            top: 14px;
+            bottom: 18px;
+            right: 10px;
+            width: 2px;
+            background: #dbe7ff;
         }
 
         .qt-group {
+            position: relative;
             border: 1px solid var(--qt-border);
-            border-radius: var(--qt-radius);
+            border-radius: 8px;
             overflow: hidden;
             transition: border-color var(--qt-transition);
+            background: var(--qt-surface);
+            box-shadow: 0 3px 12px rgba(15, 23, 42, .04);
+        }
+
+        .qt-group::before {
+            content: "";
+            position: absolute;
+            top: 22px;
+            right: -12px;
+            width: 12px;
+            height: 2px;
+            background: #dbe7ff;
         }
 
         .qt-group:hover {
@@ -612,11 +791,19 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 9px 12px;
-            background: #fafafa;
+            padding: 10px 12px;
+            background: #fbfcfe;
             cursor: pointer;
             user-select: none;
             transition: background var(--qt-transition);
+        }
+
+        .qt-group--fareeq .qt-group__head {
+            border-right: 3px solid var(--qt-green);
+        }
+
+        .qt-group--taleia .qt-group__head {
+            border-right: 3px solid var(--qt-blue);
         }
 
         .qt-group__head:hover {
@@ -624,7 +811,7 @@
         }
 
         .qt-group__head.is-open {
-            background: #f8faff;
+            background: #f8fbff;
         }
 
         .qt-group-chevron {
@@ -702,16 +889,40 @@
 
         /* ── Subgroups ───────────────────────────────────────────────────────────── */
         .qt-subgroups {
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin: 2px 16px 10px 0;
+            padding-right: 14px;
+        }
+
+        .qt-subgroups::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            bottom: 8px;
+            right: 0;
+            width: 2px;
+            background: #d9f7e3;
         }
 
         .qt-subgroup {
+            position: relative;
             border: 1px solid var(--qt-border-soft);
-            border-radius: var(--qt-radius-sm);
+            border-radius: 8px;
             overflow: hidden;
+            background: #fff;
+        }
+
+        .qt-subgroup::before {
+            content: "";
+            position: absolute;
+            top: 18px;
+            right: -14px;
+            width: 14px;
+            height: 2px;
+            background: #d9f7e3;
         }
 
         .qt-subgroup__head {
@@ -752,21 +963,23 @@
         .qt-people {
             display: flex;
             flex-direction: column;
-            gap: 1px;
-            margin-top: 6px;
+            gap: 4px;
+            margin-top: 8px;
         }
 
         .qt-person {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 4px;
-            border-radius: var(--qt-radius-sm);
+            padding: 7px 8px;
+            border: 1px solid transparent;
+            border-radius: 8px;
             transition: background var(--qt-transition);
         }
 
         .qt-person:hover {
             background: var(--qt-bg);
+            border-color: var(--qt-border-soft);
         }
 
         .qt-person__avatar {
@@ -828,12 +1041,23 @@
             padding: 6px 4px;
         }
 
+        .qt-empty-panel {
+            background: var(--qt-surface);
+            border: 1px dashed var(--qt-border);
+            border-radius: var(--qt-radius-lg);
+            color: var(--qt-text-muted);
+            font-size: 13px;
+            padding: 22px;
+            text-align: center;
+            box-shadow: var(--qt-shadow);
+        }
+
         /* ── Modal overlay ───────────────────────────────────────────────────────── */
         .qt-overlay {
             position: fixed;
             inset: 0;
             background: rgba(15, 20, 30, .45);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 9999;
@@ -858,7 +1082,7 @@
             max-width: calc(100vw - 32px);
             box-shadow: var(--qt-shadow-lg);
             animation: qt-slide-up .18s ease;
-            overflow: hidden;
+            overflow: visible;
         }
 
         @keyframes qt-slide-up {
@@ -908,10 +1132,12 @@
         }
 
         .qt-modal__body {
+            position: relative;
             padding: 16px 18px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            overflow: visible;
         }
 
         .qt-modal__footer {
@@ -925,6 +1151,7 @@
 
         /* ── Form elements ───────────────────────────────────────────────────────── */
         .qt-field {
+            position: relative;
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -1005,12 +1232,18 @@
             border: 1px solid var(--qt-border);
             border-radius: var(--qt-radius);
             box-shadow: var(--qt-shadow-md);
-            z-index: 100;
+            z-index: 10020;
             max-height: 200px;
             overflow-y: auto;
         }
 
         .qt-suggestion-item {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            font-family: inherit;
+            text-align: right;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -1140,6 +1373,48 @@
             background: var(--qt-border);
             border-radius: 4px;
         }
+
+        @media (max-width: 720px) {
+            .qt-root {
+                padding: 16px 12px 36px;
+            }
+
+            .qt-topbar,
+            .qt-topbar__form,
+            .qt-tools {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .qt-select-wrap,
+            .qt-link-btn,
+            .qt-tool-actions,
+            .qt-mini-btn {
+                width: 100%;
+            }
+
+            .qt-tool-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .qt-qetaa__head,
+            .qt-group__head,
+            .qt-subgroup__head {
+                align-items: flex-start;
+            }
+
+            .qt-qetaa__meta,
+            .qt-group__actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
+            .qt-head-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
     </style>
 
     {{-- ══════════════════════════════════════════════ SCRIPTS ══════════════════ --}}
@@ -1155,13 +1430,51 @@
             body.classList.toggle('is-open', !open);
         }
 
+        function qtSetOpen(header, open) {
+            const body = header.nextElementSibling;
+            if (!body) return;
+            header.classList.toggle('is-open', open);
+            body.classList.toggle('is-open', open);
+        }
+
+        function qtSetAll(open) {
+            document.querySelectorAll('.qt-qetaa__head, .qt-group__head, .qt-subgroup__head')
+                .forEach(header => qtSetOpen(header, open));
+        }
+
+        function qtFilterTree(value) {
+            const query = value.trim().toLowerCase();
+
+            document.querySelectorAll('.qt-qetaa').forEach(qetaa => {
+                const matches = !query || qetaa.textContent.toLowerCase().includes(query);
+                qetaa.style.display = matches ? '' : 'none';
+
+                if (query && matches) {
+                    const head = qetaa.querySelector('.qt-qetaa__head');
+                    if (head) qtSetOpen(head, true);
+                }
+            });
+        }
+
+        function qtEscapeHtml(value) {
+            const entities = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+
+            return String(value ?? '').replace(/[&<>"']/g, char => entities[char]);
+        }
+
         // ── Group modal ────────────────────────────────────────────────────────────
         function openGroupModal(qetaaId, typeId, parentId) {
             document.getElementById('m-qetaa-id').value = qetaaId;
             document.getElementById('m-group-type').value = typeId;
             document.getElementById('m-parent-id').value = parentId;
             document.getElementById('m-group-name').value = '';
-            document.getElementById('modal-group-title').textContent = typeId == 2 ? 'إضافة طليعة' : 'إضافة فريق';
+            document.getElementById('modal-group-title').textContent = typeId == 2 ? 'إضافة فريق' : 'إضافة طليعة';
             showModal('modal-group');
             setTimeout(() => document.getElementById('m-group-name').focus(), 80);
         }
@@ -1213,7 +1526,8 @@
 
         async function deleteGroup(groupId) {
             if (!confirm('هل تريد حذف هذه المجموعة؟')) return;
-            await fetch(`/qetaa/group/${groupId}`, {
+            const url = '{{ route('qetaa.deleteGroup', ['groupId' => '__GROUP_ID__']) }}'.replace('__GROUP_ID__', groupId);
+            await fetch(url, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': CSRF
@@ -1265,12 +1579,38 @@
                     sug.style.display = 'none';
                     return;
                 }
-                sug.innerHTML = list.map(p => `
-            <div class="qt-suggestion-item" onclick="selectPerson(${p.PersonID},'${p.FirstName} ${p.SecondName}','${p.ShamandoraCode}','${p.RotbaName || ''}')">
-                <span>${p.FirstName} ${p.SecondName}</span>
-                <span class="qt-suggestion-item__code">${p.ShamandoraCode || ''}</span>
-                <span class="qt-suggestion-item__rotba">${p.RotbaName || ''}</span>
-            </div>`).join('');
+
+                sug.innerHTML = '';
+                list.forEach(p => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'qt-suggestion-item';
+
+                    const name = `${p.FirstName ?? ''} ${p.SecondName ?? ''}`.trim();
+                    const nameEl = document.createElement('span');
+                    nameEl.textContent = name;
+
+                    const codeEl = document.createElement('span');
+                    codeEl.className = 'qt-suggestion-item__code';
+                    codeEl.textContent = p.ShamandoraCode || '';
+
+                    const rotbaEl = document.createElement('span');
+                    rotbaEl.className = 'qt-suggestion-item__rotba';
+                    rotbaEl.textContent = p.RotbaName || '';
+
+                    item.append(nameEl, codeEl, rotbaEl);
+                    item.addEventListener('mousedown', event => {
+                        event.preventDefault();
+                        selectPerson(
+                            p.PersonID,
+                            name,
+                            p.ShamandoraCode || '',
+                            p.RotbaName || ''
+                        );
+                    });
+
+                    sug.appendChild(item);
+                });
                 sug.style.display = 'block';
             }, 300);
         }
