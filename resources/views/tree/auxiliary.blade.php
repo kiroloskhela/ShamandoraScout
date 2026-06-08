@@ -115,15 +115,20 @@
                                     @php
                                         $imagePath = $person->PersonSystemImagePath ?? null;
                                         $imageSrc = $imagePath
-                                            ? (\Illuminate\Support\Str::startsWith($imagePath, ['http://', 'https://', '/'])
+                                            ? (\Illuminate\Support\Str::startsWith($imagePath, [
+                                                'http://',
+                                                'https://',
+                                                '/',
+                                            ])
                                                 ? $imagePath
-                                                : asset($imagePath))
+                                                : asset('storage/' . $imagePath))
                                             : null;
                                     @endphp
                                     <div class="aux-person">
                                         <div class="aux-avatar">
                                             @if ($imageSrc)
-                                                <img src="{{ $imageSrc }}" alt="{{ $person->FirstName }} {{ $person->SecondName }}">
+                                                <img src="{{ $imageSrc }}"
+                                                    alt="{{ $person->FirstName }} {{ $person->SecondName }}">
                                             @else
                                                 {{ $initials($person->FirstName ?? '') }}
                                             @endif
