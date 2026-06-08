@@ -137,6 +137,13 @@ class QetaaTreeController extends Controller
         return [$seasons, $currentSeasonId];
     }
 
+    private function qetaaIdForGroup($groupId)
+    {
+        return DB::table('GroupQetaa')
+            ->where('GroupID', $groupId)
+            ->value('QetaaID');
+    }
+
     private function buildTree($visibleQetaaIds = null, $servedQetaaIds = null)
     {
         $servedQetaaIds = $servedQetaaIds ?? collect();
@@ -220,14 +227,22 @@ class QetaaTreeController extends Controller
     public function searchPersons(Request $request)
     {
         $q = trim($request->query('q', ''));
+        $groupId = (int) $request->query('group_id', 0);
 
-        if (strlen($q) < 2) {
+        if (strlen($q) < 2 || !$groupId) {
+            return response()->json([]);
+        }
+
+        $qetaaId = $this->qetaaIdForGroup($groupId);
+        if (!$qetaaId || !$this->servedQetaaIds(Auth::id())->contains((int) $qetaaId)) {
             return response()->json([]);
         }
 
         $results = DB::table('PersonInformation as pi')
+            ->join('PersonQetaa as pq', 'pq.PersonID', '=', 'pi.PersonID')
             ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
             ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+            ->where('pq.QetaaID', $qetaaId)
             ->where(function ($query) use ($q) {
                 $query->where(DB::raw("CONCAT(pi.FirstName, ' ', pi.SecondName)"), 'LIKE', "%{$q}%")
                       ->orWhere('pi.FirstName',      'LIKE', "%{$q}%")
@@ -235,6 +250,7 @@ class QetaaTreeController extends Controller
                       ->orWhere('pi.ShamandoraCode', 'LIKE', "%{$q}%");
             })
             ->select('pi.PersonID', 'pi.FirstName', 'pi.SecondName', 'pi.ShamandoraCode', 'ri.RotbaName')
+            ->distinct()
             ->orderBy('pi.ShamandoraCode')
             ->limit(20)
             ->get();
@@ -347,6 +363,16 @@ class QetaaTreeController extends Controller
 
         if (!$canAccessGroup) {
             return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
+        }
+
+        $qetaaId = $this->qetaaIdForGroup($request->GroupID);
+        $personInQetaa = DB::table('PersonQetaa')
+            ->where('PersonID', $request->PersonID)
+            ->where('QetaaID', $qetaaId)
+            ->exists();
+
+        if (!$personInQetaa) {
+            return response()->json(['error' => 'هذا الشخص غير تابع للقطاع الخاص بهذه الطليعة.'], 422);
         }
 
         $exists = DB::table('PersonGroup')

@@ -1573,7 +1573,8 @@
                 return;
             }
             _searchTimer = setTimeout(async () => {
-                const res = await fetch(`{{ route('qetaa.searchPersons') }}?q=${encodeURIComponent(val)}`);
+                const groupId = document.getElementById('m-person-group-id').value;
+                const res = await fetch(`{{ route('qetaa.searchPersons') }}?q=${encodeURIComponent(val)}&group_id=${encodeURIComponent(groupId)}`);
                 const list = await res.json();
                 if (!list.length) {
                     sug.style.display = 'none';
