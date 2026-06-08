@@ -11,7 +11,7 @@
             <div>
                 <p class="aux-eyebrow">بيانات الفريق</p>
                 <h1>عرض الطلائع</h1>
-                <p>اختار القطاع ثم الفريق لعرض الطلائع والأشخاص داخل كل طليعة.</p>
+                <p>اختار القطاع ثم الفريق أو الطلائع المباشرة لعرض الأشخاص داخل كل طليعة.</p>
             </div>
 
             <form method="GET" action="{{ route('qetaa.auxiliary') }}" class="aux-filters">
@@ -34,6 +34,11 @@
                     <span>الفريق</span>
                     <select name="team" onchange="this.form.submit()" {{ !$selectedQetaaId ? 'disabled' : '' }}>
                         <option value="">اختر الفريق</option>
+                        @if (($directTalaeaCount ?? 0) > 0)
+                            <option value="direct" {{ (string) $selectedTeamId === 'direct' ? 'selected' : '' }}>
+                                الطلائع المباشرة
+                            </option>
+                        @endif
                         @foreach ($teams as $team)
                             <option value="{{ $team->GroupID }}"
                                 {{ (string) $team->GroupID === (string) $selectedTeamId ? 'selected' : '' }}>
@@ -67,9 +72,9 @@
         @if (!$selectedQetaaId)
             <div class="aux-empty">اختار القطاع أولاً لعرض الفرق المتاحة.</div>
         @elseif (!$selectedTeamId)
-            <div class="aux-empty">اختار الفريق لعرض الطلائع التابعة له.</div>
+            <div class="aux-empty">اختار الفريق أو الطلائع المباشرة لعرض الطلائع التابعة له.</div>
         @elseif ($talaea->isEmpty())
-            <div class="aux-empty">لا توجد طلايع مسجلة داخل {{ $selectedTeam->GroupName ?? 'هذا الفريق' }}.</div>
+            <div class="aux-empty">لا توجد طلايع مسجلة داخل {{ $selectedTeam->GroupName ?? 'هذا الاختيار' }}.</div>
         @else
             <section class="aux-team-band">
                 <div>

@@ -49,9 +49,10 @@ class QetaaTreeController extends Controller
         }
 
         $teams = collect();
-        $selectedTeamId = null;
+        $selectedTeamId = $request->query('team');
         $selectedTeam = null;
         $talaea = collect();
+        $directTalaeaCount = 0;
 
         if ($selectedQetaaId) {
             $teams = DB::table('GroupTable as gt')
@@ -62,16 +63,44 @@ class QetaaTreeController extends Controller
                 ->orderBy('gt.GroupName')
                 ->get();
 
-            $selectedTeamId = $request->query('team');
-            if (!$selectedTeamId && $teams->count() === 1) {
+            $directTalaeaCount = DB::table('GroupTable as gt')
+                ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')
+                ->where('gq.QetaaID', $selectedQetaaId)
+                ->where('gt.GroupTypeID', 3)
+                ->where(function ($query) {
+                    $query->whereNull('gt.IncludedUnderGroupID')
+                        ->orWhere('gt.IncludedUnderGroupID', 0);
+                })
+                ->count();
+
+            if (!$selectedTeamId && $directTalaeaCount > 0 && $teams->isEmpty()) {
+                $selectedTeamId = 'direct';
+            } elseif (!$selectedTeamId && $directTalaeaCount === 0 && $teams->count() === 1) {
                 $selectedTeamId = $teams->first()->GroupID;
             }
 
-            if ($selectedTeamId && !$teams->pluck('GroupID')->contains((int) $selectedTeamId)) {
+            if ($selectedTeamId && $selectedTeamId !== 'direct' && !$teams->pluck('GroupID')->contains((int) $selectedTeamId)) {
                 $selectedTeamId = null;
             }
 
-            if ($selectedTeamId) {
+            if ($selectedTeamId === 'direct') {
+                $selectedTeam = (object) [
+                    'GroupID' => 'direct',
+                    'GroupName' => 'الطلائع المباشرة',
+                ];
+
+                $talaea = DB::table('GroupTable as gt')
+                    ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')
+                    ->where('gq.QetaaID', $selectedQetaaId)
+                    ->where('gt.GroupTypeID', 3)
+                    ->where(function ($query) {
+                        $query->whereNull('gt.IncludedUnderGroupID')
+                            ->orWhere('gt.IncludedUnderGroupID', 0);
+                    })
+                    ->select('gt.GroupID', 'gt.GroupName')
+                    ->orderBy('gt.GroupName')
+                    ->get();
+            } elseif ($selectedTeamId) {
                 $selectedTeam = $teams->firstWhere('GroupID', (int) $selectedTeamId);
 
                 $talaea = DB::table('GroupTable as gt')
@@ -80,7 +109,9 @@ class QetaaTreeController extends Controller
                     ->select('gt.GroupID', 'gt.GroupName')
                     ->orderBy('gt.GroupName')
                     ->get();
+            }
 
+            if ($selectedTeamId) {
                 $taleiaIds = $talaea->pluck('GroupID');
                 $peopleByTaleia = $taleiaIds->isEmpty()
                     ? collect()
@@ -115,7 +146,8 @@ class QetaaTreeController extends Controller
             'teams',
             'selectedTeamId',
             'selectedTeam',
-            'talaea'
+            'talaea',
+            'directTalaeaCount'
         ));
     }
 
