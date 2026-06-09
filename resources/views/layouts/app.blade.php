@@ -226,6 +226,9 @@
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                             href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
                                             الرئيسي</a>
+
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ url('/person/change-qetaa') }}">تغيير قطاع الشخص</a>
                                     @endif
                                 </div>
                             </div>

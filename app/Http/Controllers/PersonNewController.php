@@ -2093,4 +2093,125 @@ public function declineWaitingList($id)
     }
 }
 
+
+// ── 1. Show the ChangeQetaa page ──────────────────────────────────────────────
+public function showChangeQetaa()
+{
+    $qetaaList = DB::table('Qetaa')
+        ->select('QetaaID', 'QetaaName')
+        ->orderBy('QetaaName')
+        ->get();
+ 
+    return view('person.ChangeQetaa', compact('qetaaList'));
+}
+ 
+// ── 2. AJAX search endpoint (returns JSON) ────────────────────────────────────
+
+
+
+
+
+
+
+
+
+public function searchPerson(Request $request)
+{
+    $q = trim($request->input('q', ''));
+
+
+
+    $words = array_filter(explode(' ', $q));
+
+    $results = DB::table('PersonInformation as pi')
+        ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
+        ->leftJoin('Qetaa as qt',       'pq.QetaaID',  '=', 'qt.QetaaID')
+        ->select(
+            'pi.PersonID',
+            'pi.ShamandoraCode',
+            'pi.FirstName',
+            'pi.SecondName',
+            'pi.ThirdName',
+            'pi.FourthName',
+            'pi.RaqamQawmy',
+            'pq.QetaaID',
+            'qt.QetaaName'
+        )
+        // ── Strategy 1: name word matching ──
+        ->where(function ($query) use ($words) {
+            foreach ($words as $word) {
+                $query->where(function ($q2) use ($word) {
+                    $q2->where('pi.FirstName',   'like', "%{$word}%")
+                       ->orWhere('pi.SecondName', 'like', "%{$word}%")
+                       ->orWhere('pi.ThirdName',  'like', "%{$word}%")
+                       ->orWhere('pi.FourthName', 'like', "%{$word}%");
+                });
+            }
+        })
+        // ── Strategy 2: ID field matching (top-level OR, not nested) ──
+        ->orWhere('pi.RaqamQawmy',    'like', "%{$q}%")
+        ->orWhere('pi.ShamandoraCode','like', "%{$q}%")
+        ->orWhere('pi.PersonID',      'like', "%{$q}%")
+        ->groupBy(
+            'pi.PersonID',
+            'pi.ShamandoraCode',
+            'pi.FirstName',
+            'pi.SecondName',
+            'pi.ThirdName',
+            'pi.FourthName',
+            'pi.RaqamQawmy',
+            'pq.QetaaID',
+            'qt.QetaaName'
+        )
+        ->orderByRaw("
+            CASE
+                WHEN pi.FirstName   LIKE ? THEN 1
+                WHEN pi.SecondName  LIKE ? THEN 2
+                WHEN pi.ThirdName   LIKE ? THEN 3
+                WHEN pi.RaqamQawmy  LIKE ? THEN 4
+                ELSE 5
+            END
+        ", ["{$q}%", "{$q}%", "{$q}%", "{$q}%"])
+        ->limit(15)
+        ->get()
+        ->map(function ($person) {
+            $person->FullName = collect([
+                $person->FirstName,
+                $person->SecondName,
+                $person->ThirdName,
+                $person->FourthName,
+            ])->filter()->implode(' ');
+
+            return $person;
+        });
+
+    return response()->json($results);
+}
+
+
+ 
+// ── 3. Handle the POST — save the Qetaa change ───────────────────────────────
+public function changePersonQetaa(Request $request, $id)
+{
+    $request->validate([
+        'qetaa_id' => 'required|exists:Qetaa,QetaaID',
+    ]);
+ 
+    $person = DB::table('PersonInformation')->where('PersonID', $id)->first();
+ 
+    if (!$person) {
+        return view('person.entry-error');
+    }
+ 
+    $newQetaaId = $request->input('qetaa_id');
+ 
+    DB::table('PersonQetaa')->updateOrInsert(
+        ['PersonID' => $id],
+        ['QetaaID'  => $newQetaaId]
+    );
+ 
+    return redirect()
+        ->route('person.changeQetaa')
+        ->with('status', 'تم تغيير القطاع بنجاح');
+}
 }

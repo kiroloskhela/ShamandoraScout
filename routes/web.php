@@ -306,11 +306,19 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/blood/edit/{id}', [BloodTypeController::class, 'edit'])->name('blood.edit');
     Route::patch('/blood/update/{id}', [BloodTypeController::class, 'updates'])->name('blood.update');
     Route::get('/blood/delete/{id}', [BloodTypeController::class, 'deletes'])->name('blood.delete');
-    Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy');
+    Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy'); 
 
- 
-
-
+    Route::get('/person/change-qetaa', [PersonNewController::class, 'showChangeQetaa'])
+        ->name('person.changeQetaa');
+    
+    // AJAX search (called by the search box)
+    Route::get('/person/search', [PersonNewController::class, 'searchPerson'])
+        ->name('person.search');
+    
+    // POST — save the actual change
+    Route::post('/person/{id}/change-qetaa', [PersonNewController::class, 'changePersonQetaa'])
+        ->name('person.changePersonQetaa');
+    
     // Manteqa
     Route::get('/manteqa', [ManteqaController::class, 'index'])->name('manteqa.index');
     Route::get('/manteqa/add', [ManteqaController::class, 'create'])->name('manteqa.create');
