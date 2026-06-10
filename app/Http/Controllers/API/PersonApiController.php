@@ -246,14 +246,55 @@ public function showPersons(Request $request)
         }
 
         $questions = DB::table('PersonEntryQuestions')
-            ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
-            ->select('MarhalaEntryQuestions.QuestionText','PersonEntryQuestions.Answer')
-            ->where('PersonEntryQuestions.PersonID', $id)->get();
+        ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
+        ->select('MarhalaEntryQuestions.QuestionText', 'PersonEntryQuestions.Answer')
+        ->where('PersonEntryQuestions.PersonID', $id)
+        ->get();
 
-        return response()->json([
-            'person' => $person,
-            'questions' => $questions
-        ]);
+
+
+        $attendance = DB::table('PersonQetaa as pq')
+        ->join('EventQetaa as eq',     'eq.QetaaID',      '=', 'pq.QetaaID')
+        ->join('SeasonEvent as se',    'se.EventID',      '=', 'eq.EventID')
+        ->join('Event as e',           'e.EventID',       '=', 'se.EventID')
+        ->join('Season as s',          's.SeasonID',      '=', 'se.SeasonID')
+        ->leftJoin('Attendance as a',  function ($join) {
+            $join->on('a.SeasonEventID', '=', 'se.SeasonEventID')
+                 ->on('a.ServedID',      '=', 'pq.PersonID');
+        })
+        ->where('pq.PersonID', $id)
+                ->select(
+                    'se.SeasonEventID',
+                    'e.EventID',
+                    'e.EventName',
+                    'e.EventStartDate',
+                    'e.EventEndDate',
+                    's.SeasonName',
+                    's.SeasonYear',
+                    DB::raw("COALESCE(a.AttendanceStatus, 'absent') AS Status"),
+                    'a.Excuse'
+                )
+                ->orderBy('e.EventStartDate', 'asc')
+                ->get();
+
+
+        $summary = [
+            'total'   => $attendance->count(),
+            'present' => $attendance->where('Status', 'present')->count(),
+            'absent'  => $attendance->where('Status', 'absent')->count(),
+            'excused' => $attendance->where('Status', 'excused')->count(),
+            'rate'    => $attendance->count()
+                ? round($attendance->where('Status', 'present')->count() / $attendance->count() * 100, 1)
+                : 0,
+        ];
+    return response()->json([
+        'person'     => $person,
+        'questions'  => $questions,
+        'attendance' => [
+            'summary' => $summary,
+            'events'  => $attendance,
+        ],
+    ]);
     }
 
 
