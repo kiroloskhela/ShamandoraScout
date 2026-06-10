@@ -252,6 +252,7 @@ public function showPersons(Request $request)
         ->get();
 
 
+        
 
         $attendance = DB::table('PersonQetaa as pq')
         ->join('EventQetaa as eq',     'eq.QetaaID',      '=', 'pq.QetaaID')
