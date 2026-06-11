@@ -2,14 +2,14 @@
  
 return [
     'android' => [
-        'latest_version' => '1.0.6',
-        'min_version'    => '1.0.6',
+        'latest_version' => '1.0.7',
+        'min_version'    => '1.0.7',
         'force_update'   => false,
         'url'            => 'https://play.google.com/store/apps/details?id=com.shamandora.shamandora',
     ],
     'ios' => [
-        'latest_version' => '1.0.6',
-        'min_version'    => '1.0.6',
+        'latest_version' => '1.0.7',
+        'min_version'    => '1.0.7',
         'force_update'   => false,
         'url'            => 'https://apps.apple.com/us/app/shamandora/id6760709448',
     ],
