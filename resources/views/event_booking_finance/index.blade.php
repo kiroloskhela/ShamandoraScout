@@ -301,18 +301,21 @@
                     'key' => 'QetaaNames',
                     'label' => 'القطاع',
                     'type' => 'text',
+                    'filter' => true,
                     'cssClass' => 'text-sm text-slate-700',
                 ],
                 [
                     'key' => 'ShirtSize',
                     'label' => 'المقاس',
                     'type' => 'text',
+                    'filter' => true,
                     'cssClass' => 'text-sm text-slate-700',
                 ],
                 [
                     'key' => 'BookingStatusText',
                     'label' => 'الحالة',
                     'type' => 'text',
+                    'filter' => true,
                     'cssClass' => 'text-sm text-amber-700 font-semibold',
                 ],
                 [
