@@ -347,6 +347,7 @@
                     'key' => 'RemainingAmountFormatted',
                     'label' => 'المتبقي',
                     'type' => 'text',
+                    'filter' => true,
                     'cssClass' => 'text-sm text-red-700 font-semibold',
                 ],
                 [
