@@ -141,6 +141,16 @@
                                     إضافة حجز ضيف / أهالي
                                 </a>
 
+                                <a href="{{ route('eventBookingFinance.exportToday', $event->SeasonEventID) }}?summary_date={{ $selectedSummaryDate }}"
+                                    class="h-11 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    تحميل CSV اليوم
+                                </a>
+
+                                <a href="{{ route('eventBookingFinance.exportAll', $event->SeasonEventID) }}"
+                                    class="h-11 rounded-xl bg-slate-600 hover:bg-slate-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    تحميل CSV كامل
+                                </a>
+
                                 <a href="{{ route('eventBookingFinance.selector') }}"
                                     class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold inline-flex items-center justify-center transition-colors duration-200">
                                     رجوع
