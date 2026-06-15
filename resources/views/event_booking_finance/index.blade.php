@@ -83,6 +83,19 @@
                                 </div>
 
                                 <div class="flex flex-wrap gap-2.5">
+                                    {{-- Total chip --}}
+                                    @php
+                                        $totalBooked = $qetaaCounts->sum('booked_count');
+                                    @endphp
+                                    <div
+                                        class="inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-sm border-blue-200 bg-blue-50 text-blue-800">
+                                        <span>الإجمالي</span>
+                                        <span
+                                            class="inline-flex items-center justify-center min-w-[32px] h-7 rounded-full px-2 bg-blue-200 text-blue-900">
+                                            {{ $totalBooked }}
+                                        </span>
+                                    </div>
+
                                     @foreach ($qetaaCounts as $qetaa)
                                         @php
                                             $full = $qetaa->booked_count >= 50;
