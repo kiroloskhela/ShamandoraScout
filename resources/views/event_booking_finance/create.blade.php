@@ -133,7 +133,7 @@
                                 </div>
 
                                 <div id="discount-box"
-                                    class="{{ in_array(old('special_case_type'), ['HAS_BROTHERS', 'OTHER']) ? '' : 'hidden' }}">
+                                    class="{{ in_array(old('special_case_type'), ['AKHOH_RAB', 'HAS_BROTHERS', 'OTHER']) ? '' : 'hidden' }}">
                                     <label class="block mb-2 text-sm text-gray-700">مبلغ الخصم</label>
                                     <input type="number" step="0.01" min="0" name="discount_amount"
                                         id="discount_amount" value="{{ old('discount_amount', 0) }}"
@@ -203,7 +203,7 @@
 
                 const val = specialType.value;
 
-                if (val === 'HAS_BROTHERS' || val === 'OTHER') {
+                if (val === 'AKHOH_RAB' || val === 'HAS_BROTHERS' || val === 'OTHER') {
                     discountBox.classList.remove('hidden');
                 } else {
                     discountBox.classList.add('hidden');
