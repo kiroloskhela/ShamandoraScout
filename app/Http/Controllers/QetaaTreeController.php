@@ -25,9 +25,22 @@ class QetaaTreeController extends Controller
 
         $visibleQetaaIds = $selectedQetaaId ? collect([(int) $selectedQetaaId]) : $servedQetaaIds;
         $tree = $this->buildTree($visibleQetaaIds, $servedQetaaIds);
+        $overviewQetaaId = $selectedQetaaId ?: ($visibleQetaaIds->count() === 1 ? $visibleQetaaIds->first() : null);
+        $qetaaPeopleOverview = $overviewQetaaId ? $this->qetaaPeopleOverview((int) $overviewQetaaId) : null;
+        $ungroupedPeople = $qetaaPeopleOverview['ungrouped_people'] ?? collect();
         $pageTitle = 'هيكل الفريق';
 
-        return view('tree.index', compact('tree', 'seasons', 'currentSeasonId', 'userId', 'pageTitle', 'servedQetaas', 'selectedQetaaId'));
+        return view('tree.index', compact(
+            'tree',
+            'seasons',
+            'currentSeasonId',
+            'userId',
+            'pageTitle',
+            'servedQetaas',
+            'selectedQetaaId',
+            'qetaaPeopleOverview',
+            'ungroupedPeople'
+        ));
     }
 
     public function auxiliary(Request $request)
@@ -182,6 +195,68 @@ class QetaaTreeController extends Controller
         return DB::table('GroupQetaa')
             ->where('GroupID', $groupId)
             ->value('QetaaID');
+    }
+
+    private function qetaaPeopleOverview($qetaaId)
+    {
+        $groupIds = DB::table('GroupQetaa')
+            ->where('QetaaID', $qetaaId)
+            ->pluck('GroupID')
+            ->unique()
+            ->values();
+
+        $groupedPersonIds = $groupIds->isEmpty()
+            ? collect()
+            : DB::table('PersonGroup')
+                ->whereIn('GroupID', $groupIds)
+                ->pluck('PersonID')
+                ->unique()
+                ->values();
+
+        $totalPeople = DB::table('PersonQetaa')
+            ->where('QetaaID', $qetaaId)
+            ->distinct()
+            ->count('PersonID');
+
+        $peopleInGroups = $groupedPersonIds->isEmpty()
+            ? 0
+            : DB::table('PersonQetaa')
+                ->where('QetaaID', $qetaaId)
+                ->whereIn('PersonID', $groupedPersonIds)
+                ->distinct()
+                ->count('PersonID');
+
+        $ungroupedPeople = DB::table('PersonQetaa as pq')
+            ->join('PersonInformation as pi', 'pi.PersonID', '=', 'pq.PersonID')
+            ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
+            ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+            ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
+            ->where('pq.QetaaID', $qetaaId)
+            ->when($groupedPersonIds->isNotEmpty(), function ($query) use ($groupedPersonIds) {
+                $query->whereNotIn('pq.PersonID', $groupedPersonIds);
+            })
+            ->select(
+                'pi.PersonID',
+                'pi.FirstName',
+                'pi.SecondName',
+                'pi.ThirdName',
+                'pi.FourthName',
+                'pi.ShamandoraCode',
+                'ri.RotbaName',
+                'pim.PersonSystemImagePath',
+                DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) as FullName")
+            )
+            ->distinct()
+            ->orderBy('pi.ShamandoraCode')
+            ->get();
+
+        return [
+            'qetaa_id' => $qetaaId,
+            'total_people' => $totalPeople,
+            'people_in_groups' => $peopleInGroups,
+            'remaining_people' => max(0, $totalPeople - $peopleInGroups),
+            'ungrouped_people' => $ungroupedPeople,
+        ];
     }
 
     private function buildTree($visibleQetaaIds = null, $servedQetaaIds = null)
@@ -389,6 +464,7 @@ class QetaaTreeController extends Controller
 
     public function deleteGroup(Request $request, $groupId)
     {
+        $groupId = (int) $groupId;
         $canAccessGroup = DB::table('GroupQetaa')
             ->where('GroupID', $groupId)
             ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
@@ -398,11 +474,17 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'لا يمكنك حذف هذه المجموعة.'], 403);
         }
 
-        DB::table('GroupQetaa')->where('GroupID', $groupId)->delete();
-        DB::table('PersonGroup')->where('GroupID', $groupId)->delete();
-        DB::table('GroupTable')->where('GroupID', $groupId)->delete();
+        $groupIds = $this->descendantGroupIds($groupId);
 
-        return response()->json(['success' => true]);
+        DB::transaction(function () use ($groupIds) {
+            DB::table('PersonGroup')->whereIn('GroupID', $groupIds)->delete();
+            DB::table('GroupQetaa')->whereIn('GroupID', $groupIds)->delete();
+            $groupIds->reverse()->each(function ($deleteGroupId) {
+                DB::table('GroupTable')->where('GroupID', $deleteGroupId)->delete();
+            });
+        });
+
+        return response()->json(['success' => true, 'deleted_groups' => $groupIds->count()]);
     }
 
     /**
@@ -416,6 +498,9 @@ class QetaaTreeController extends Controller
             'PersonIDs.*' => 'integer',
             'GroupID'     => 'required|integer',
             'RotbaID'     => 'nullable|integer',
+            'PersonRotbas' => 'nullable|array',
+            'PersonRotbas.*.PersonID' => 'required_with:PersonRotbas|integer',
+            'PersonRotbas.*.RotbaID' => 'nullable|integer',
         ]);
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
@@ -453,24 +538,48 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'يوجد شخص غير تابع للقطاع الخاص بهذه الطليعة.'], 422);
         }
 
-        DB::transaction(function () use ($request, $personIds) {
+        $rotbaByPerson = collect($request->input('PersonRotbas', []))
+            ->filter(fn($row) => isset($row['PersonID']))
+            ->mapWithKeys(fn($row) => [
+                (int) $row['PersonID'] => $row['RotbaID'] ?? null,
+            ]);
+
+        $rotbaIds = $rotbaByPerson
+            ->filter(fn($rotbaId) => $rotbaId !== null && $rotbaId !== '')
+            ->map(fn($rotbaId) => (int) $rotbaId)
+            ->unique()
+            ->values();
+
+        if ($rotbaIds->isNotEmpty()) {
+            $validRotbaCount = DB::table('RotbaInformation')
+                ->whereIn('RotbaID', $rotbaIds)
+                ->distinct()
+                ->count('RotbaID');
+
+            if ($validRotbaCount !== $rotbaIds->count()) {
+                return response()->json(['error' => 'يوجد رتبة مختارة غير موجودة.'], 422);
+            }
+        }
+
+        DB::transaction(function () use ($request, $personIds, $rotbaByPerson) {
+            DB::table('PersonGroup')->whereIn('PersonID', $personIds)->delete();
+
+            DB::table('PersonGroup')->insert(
+                $personIds->map(fn($personId) => [
+                    'PersonID' => $personId,
+                    'GroupID'  => $request->GroupID,
+                ])->all()
+            );
+
             foreach ($personIds as $personId) {
-                $exists = DB::table('PersonGroup')
-                    ->where('PersonID', $personId)
-                    ->where('GroupID',  $request->GroupID)
-                    ->exists();
+                $rotbaId = $rotbaByPerson->has($personId)
+                    ? $rotbaByPerson->get($personId)
+                    : ($request->filled('RotbaID') ? $request->RotbaID : null);
 
-                if (!$exists) {
-                    DB::table('PersonGroup')->insert([
-                        'PersonID' => $personId,
-                        'GroupID'  => $request->GroupID,
-                    ]);
-                }
-
-                if ($request->filled('RotbaID')) {
+                if ($rotbaId !== null && $rotbaId !== '') {
                     DB::table('PersonRotba')->updateOrInsert(
                         ['PersonID' => $personId],
-                        ['RotbaID'  => $request->RotbaID]
+                        ['RotbaID'  => $rotbaId]
                     );
                 }
             }
@@ -543,5 +652,29 @@ class QetaaTreeController extends Controller
         return DB::table('RotbaInformation')
             ->where('RotbaID', $rotbaId)
             ->exists();
+    }
+
+    private function descendantGroupIds($groupId)
+    {
+        $groupIds = collect([(int) $groupId]);
+        $frontier = collect([(int) $groupId]);
+
+        while ($frontier->isNotEmpty()) {
+            $children = DB::table('GroupTable')
+                ->whereIn('IncludedUnderGroupID', $frontier)
+                ->pluck('GroupID')
+                ->map(fn($id) => (int) $id)
+                ->diff($groupIds)
+                ->values();
+
+            if ($children->isEmpty()) {
+                break;
+            }
+
+            $groupIds = $groupIds->merge($children)->unique()->values();
+            $frontier = $children;
+        }
+
+        return $groupIds;
     }
 }

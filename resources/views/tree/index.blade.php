@@ -8,6 +8,8 @@
         $pageTitle = $pageTitle ?? 'هيكل الفريق';
         $servedQetaas = $servedQetaas ?? collect();
         $selectedQetaaId = $selectedQetaaId ?? request('qetaa');
+        $qetaaPeopleOverview = $qetaaPeopleOverview ?? null;
+        $ungroupedPeople = $ungroupedPeople ?? collect();
     @endphp
 
     <div class="qt-root" dir="rtl">
@@ -88,6 +90,63 @@
                 <span class="qt-stat__lbl">شخص</span>
             </div>
         </div>
+
+        @if ($qetaaPeopleOverview)
+            <section class="qt-qetaa-overview">
+                <div class="qt-qetaa-overview__stats">
+                    <div class="qt-overview-stat">
+                        <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['total_people'] }}</span>
+                        <span class="qt-overview-stat__lbl">إجمالي أشخاص القطاع</span>
+                    </div>
+                    <div class="qt-overview-stat qt-overview-stat--ok">
+                        <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['people_in_groups'] }}</span>
+                        <span class="qt-overview-stat__lbl">داخل مجموعة</span>
+                    </div>
+                    <div class="qt-overview-stat qt-overview-stat--warn">
+                        <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['remaining_people'] }}</span>
+                        <span class="qt-overview-stat__lbl">متبقي بدون مجموعة</span>
+                    </div>
+                </div>
+
+                @if ($ungroupedPeople->isNotEmpty())
+                    <button class="qt-mini-btn qt-qetaa-overview__toggle" type="button" onclick="toggleUngroupedPeople()">
+                        عرض الأشخاص بدون مجموعة
+                    </button>
+                    <div id="qt-ungrouped-panel" class="qt-ungrouped-panel" style="display:none">
+                        @foreach ($ungroupedPeople as $person)
+                            @php
+                                $imagePath = $person->PersonSystemImagePath ?? null;
+                                $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                                $personName = $person->FullName ?: trim(($person->FirstName ?? '') . ' ' . ($person->SecondName ?? ''));
+                            @endphp
+                            <div class="qt-ungrouped-person">
+                                <div class="qt-ungrouped-person__avatar">
+                                    @if ($imageSrc)
+                                        <img src="{{ $imageSrc }}" alt="{{ $personName }}">
+                                    @else
+                                        {{ mb_substr($personName ?: '؟', 0, 1, 'UTF-8') }}
+                                    @endif
+                                </div>
+                                <div class="qt-ungrouped-person__info">
+                                    <span class="qt-ungrouped-person__name">{{ $personName }}</span>
+                                    <span class="qt-ungrouped-person__meta">
+                                        ID: {{ $person->PersonID }}
+                                        @if ($person->ShamandoraCode)
+                                            | {{ $person->ShamandoraCode }}
+                                        @endif
+                                    </span>
+                                </div>
+                                @if ($person->RotbaName)
+                                    <span class="qt-person__rotba">{{ $person->RotbaName }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="qt-qetaa-overview__done">كل أشخاص القطاع داخل مجموعات.</p>
+                @endif
+            </section>
+        @endif
 
         <div class="qt-tools">
             <label class="qt-tree-search">
@@ -246,14 +305,6 @@
                     <div id="person-selected-list" class="qt-selected-list" style="display:none"></div>
 
                     <input type="hidden" id="m-person-id">
-
-                    <label class="qt-field" style="margin-top:10px">
-                        <span class="qt-field__label">رتبة المضافين <span
-                                style="color:#aaa;font-size:11px">(اختياري)</span></span>
-                        <select id="m-rotba-id" class="qt-select qt-select--field">
-                            <option value="">— لا تغيير —</option>
-                        </select>
-                    </label>
                 </div>
                 <div class="qt-modal__footer">
                     <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-person')">إلغاء</button>
@@ -491,6 +542,151 @@
         .qt-stat__lbl {
             font-size: 11px;
             color: var(--qt-text-muted);
+        }
+
+        .qt-qetaa-overview {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: -6px 0 18px;
+        }
+
+        .qt-qetaa-overview__stats {
+            flex: 1;
+            min-width: min(100%, 360px);
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .qt-overview-stat {
+            background: var(--qt-surface);
+            border: 1px solid var(--qt-border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            box-shadow: var(--qt-shadow);
+        }
+
+        .qt-overview-stat--ok {
+            border-color: var(--qt-green-mid);
+            background: var(--qt-green-soft);
+        }
+
+        .qt-overview-stat--warn {
+            border-color: #fed7aa;
+            background: #fff7ed;
+        }
+
+        .qt-overview-stat__num {
+            display: block;
+            font-size: 21px;
+            line-height: 1;
+            font-weight: 600;
+            color: var(--qt-text);
+        }
+
+        .qt-overview-stat--ok .qt-overview-stat__num {
+            color: var(--qt-green);
+        }
+
+        .qt-overview-stat--warn .qt-overview-stat__num {
+            color: #c2410c;
+        }
+
+        .qt-overview-stat__lbl {
+            display: block;
+            margin-top: 5px;
+            font-size: 11px;
+            color: var(--qt-text-muted);
+        }
+
+        .qt-qetaa-overview__toggle {
+            height: auto;
+            min-height: 48px;
+        }
+
+        .qt-qetaa-overview__done {
+            display: flex;
+            align-items: center;
+            min-height: 48px;
+            padding: 0 14px;
+            border: 1px solid var(--qt-green-mid);
+            border-radius: 8px;
+            background: var(--qt-green-soft);
+            color: var(--qt-green);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .qt-ungrouped-panel {
+            width: 100%;
+            max-height: 260px;
+            overflow-y: auto;
+            background: var(--qt-surface);
+            border: 1px solid var(--qt-border);
+            border-radius: 8px;
+            box-shadow: var(--qt-shadow);
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 6px;
+        }
+
+        .qt-ungrouped-person {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            padding: 8px;
+            border: 1px solid var(--qt-border-soft);
+            border-radius: 8px;
+            background: #fbfcfe;
+        }
+
+        .qt-ungrouped-person__avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--qt-blue-soft), var(--qt-blue-mid));
+            color: var(--qt-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: 600;
+            overflow: hidden;
+        }
+
+        .qt-ungrouped-person__avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .qt-ungrouped-person__info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .qt-ungrouped-person__name {
+            font-size: 12px;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .qt-ungrouped-person__meta {
+            font-size: 11px;
+            color: var(--qt-text-muted);
+            direction: ltr;
+            text-align: right;
         }
 
         /* ── Tools ──────────────────────────────────────────────────────────────── */
@@ -1390,6 +1586,11 @@
             color: var(--qt-blue);
         }
 
+        .qt-selected-card__rank {
+            width: 130px;
+            flex-shrink: 0;
+        }
+
         .qt-selected-card__clear {
             width: 22px;
             height: 22px;
@@ -1486,6 +1687,16 @@
                 grid-template-columns: 1fr 1fr;
             }
 
+            .qt-qetaa-overview__stats,
+            .qt-ungrouped-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .qt-qetaa-overview__toggle,
+            .qt-qetaa-overview__done {
+                width: 100%;
+            }
+
             .qt-qetaa__head,
             .qt-group__head,
             .qt-subgroup__head {
@@ -1542,6 +1753,13 @@
                     if (head) qtSetOpen(head, true);
                 }
             });
+        }
+
+        function toggleUngroupedPeople() {
+            const panel = document.getElementById('qt-ungrouped-panel');
+            if (!panel) return;
+
+            panel.style.display = panel.style.display === 'none' ? 'grid' : 'none';
         }
 
         function qtEscapeHtml(value) {
@@ -1650,11 +1868,17 @@
             return avatar;
         }
 
-        async function loadRotbaOptions(selectId, emptyText, selectedValue = '') {
+        async function fetchRotbaList() {
             if (!_rotbaList) {
                 const res = await fetch('{{ route('qetaa.getRotbaList') }}');
                 _rotbaList = await res.json();
             }
+
+            return _rotbaList;
+        }
+
+        async function loadRotbaOptions(selectId, emptyText, selectedValue = '') {
+            const rotbaList = await fetchRotbaList();
 
             const sel = document.getElementById(selectId);
             sel.innerHTML = '';
@@ -1664,7 +1888,7 @@
             emptyOpt.textContent = emptyText;
             sel.appendChild(emptyOpt);
 
-            _rotbaList.forEach(r => {
+            rotbaList.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r.RotbaID;
                 opt.textContent = r.RotbaName;
@@ -1684,7 +1908,7 @@
             renderSelectedPersons();
 
             try {
-                await loadRotbaOptions('m-rotba-id', '— لا تغيير —');
+                await fetchRotbaList();
             } catch {}
 
             showModal('modal-person');
@@ -1717,8 +1941,10 @@
                         PersonID: p.PersonID,
                         FullName: p.FullName || `${p.FirstName ?? ''} ${p.SecondName ?? ''} ${p.ThirdName ?? ''} ${p.FourthName ?? ''}`.trim(),
                         ShamandoraCode: p.ShamandoraCode || '',
+                        RotbaID: p.RotbaID || '',
                         RotbaName: p.RotbaName || '',
-                        AvatarUrl: p.AvatarUrl || ''
+                        AvatarUrl: p.AvatarUrl || '',
+                        SelectedRotbaID: p.RotbaID || ''
                     };
 
                     const mainEl = document.createElement('span');
@@ -1797,13 +2023,27 @@
                 info.append(nameEl, codeEl);
                 if (person.RotbaName) info.append(rotbaEl);
 
+                const rankSelect = document.createElement('select');
+                rankSelect.className = 'qt-select qt-select--field qt-selected-card__rank';
+                rankSelect.innerHTML = '<option value="">— لا تغيير —</option>';
+                (_rotbaList || []).forEach(rotba => {
+                    const opt = document.createElement('option');
+                    opt.value = rotba.RotbaID;
+                    opt.textContent = rotba.RotbaName;
+                    rankSelect.appendChild(opt);
+                });
+                rankSelect.value = person.SelectedRotbaID ? String(person.SelectedRotbaID) : '';
+                rankSelect.addEventListener('change', event => {
+                    person.SelectedRotbaID = event.target.value;
+                });
+
                 const clearBtn = document.createElement('button');
                 clearBtn.type = 'button';
                 clearBtn.className = 'qt-selected-card__clear';
                 clearBtn.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l10 10M11 1L1 11" /></svg>';
                 clearBtn.addEventListener('click', () => clearPersonSelection(person.PersonID));
 
-                card.append(createPersonAvatar(person, 'qt-selected-card__avatar'), info, clearBtn);
+                card.append(createPersonAvatar(person, 'qt-selected-card__avatar'), info, rankSelect, clearBtn);
                 list.appendChild(card);
             });
         }
@@ -1816,7 +2056,10 @@
         async function submitPerson() {
             const groupId = parseInt(document.getElementById('m-person-group-id').value, 10);
             const personIds = _selectedPersons.map(person => parseInt(person.PersonID, 10)).filter(Boolean);
-            const rotbaId = document.getElementById('m-rotba-id').value;
+            const personRotbas = _selectedPersons.map(person => ({
+                PersonID: parseInt(person.PersonID, 10),
+                RotbaID: person.SelectedRotbaID || null
+            }));
 
             if (!personIds.length) {
                 alert('اختر شخصاً واحداً على الأقل');
@@ -1835,7 +2078,7 @@
                     body: JSON.stringify({
                         PersonIDs: personIds,
                         GroupID: groupId,
-                        RotbaID: rotbaId || null
+                        PersonRotbas: personRotbas
                     }),
                 });
                 const data = await res.json();
