@@ -1322,7 +1322,7 @@ public function partialRefundStore(Request $request, $bookingID)
         ])->withInput();
     }
 
-    if ($refundAmount <= 0) {
+    if ($refundAmount < 0) {
         return redirect()->back()->withErrors([
             'deduction_amount' => 'المبلغ المسترد يجب أن يكون أكبر من صفر.'
         ])->withInput();
