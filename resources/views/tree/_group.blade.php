@@ -3,6 +3,7 @@
     $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
     $badgeClass = [2 => 'qt-pill--green', 3 => 'qt-pill--blue'];
     $initials = fn($name) => mb_substr($name, 0, 1, 'UTF-8');
+    $fullName = fn($person) => trim(collect([$person->FirstName ?? null, $person->SecondName ?? null, $person->ThirdName ?? null, $person->FourthName ?? null])->filter()->implode(' '));
     $isFareeq = (int) $group->GroupTypeID === 2;
     $isTaleia = (int) $group->GroupTypeID === 3;
 @endphp
@@ -98,13 +99,22 @@
                             @else
                                 <div class="qt-people">
                                     @foreach ($child->people as $person)
+                                        @php
+                                            $personFullName = $fullName($person);
+                                            $imagePath = $person->PersonSystemImagePath ?? null;
+                                            $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                                        @endphp
                                         <div class="qt-person">
                                             <div class="qt-person__avatar">
-                                                {{ $initials($person->FirstName ?? '؟') }}
+                                                @if ($imageSrc)
+                                                    <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
+                                                @else
+                                                    {{ $initials($person->FirstName ?? '؟') }}
+                                                @endif
                                             </div>
                                             <div class="qt-person__info">
                                                 <div class="qt-person__name">
-                                                    {{ $person->FirstName }} {{ $person->SecondName }}
+                                                    {{ $personFullName }}
                                                 </div>
                                                 @if ($person->ShamandoraCode)
                                                     <span class="qt-person__code">{{ $person->ShamandoraCode }}</span>
@@ -114,6 +124,14 @@
                                                 <span class="qt-person__rotba">{{ $person->RotbaName }}</span>
                                             @endif
                                             @if ($isServed)
+                                                <button class="qt-icon-btn" title="تعديل الرتبة"
+                                                    onclick="openRotbaModal({{ $person->PersonID }}, {{ $child->GroupID }}, {{ $person->RotbaID ? (int) $person->RotbaID : 'null' }})">
+                                                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                                        stroke-width="1.8">
+                                                        <path d="M7 2h5M7 7h5M7 12h5" />
+                                                        <path d="M2 3l1 1 2-2M2 8l1 1 2-2M2 13l1 1 2-2" />
+                                                    </svg>
+                                                </button>
                                                 <button class="qt-icon-btn qt-icon-btn--danger" title="إزالة"
                                                     onclick="removePerson({{ $person->PersonID }}, {{ $child->GroupID }})">
                                                     <svg viewBox="0 0 12 14" fill="none" stroke="currentColor"
@@ -136,13 +154,22 @@
         @if ($isTaleia && $group->people->isNotEmpty())
             <div class="qt-people">
                 @foreach ($group->people as $person)
+                    @php
+                        $personFullName = $fullName($person);
+                        $imagePath = $person->PersonSystemImagePath ?? null;
+                        $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                    @endphp
                     <div class="qt-person">
                         <div class="qt-person__avatar">
-                            {{ $initials($person->FirstName ?? '؟') }}
+                            @if ($imageSrc)
+                                <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
+                            @else
+                                {{ $initials($person->FirstName ?? '؟') }}
+                            @endif
                         </div>
                         <div class="qt-person__info">
                             <div class="qt-person__name">
-                                {{ $person->FirstName }} {{ $person->SecondName }}
+                                {{ $personFullName }}
                             </div>
                             @if ($person->ShamandoraCode)
                                 <span class="qt-person__code">{{ $person->ShamandoraCode }}</span>
@@ -152,6 +179,13 @@
                             <span class="qt-person__rotba">{{ $person->RotbaName }}</span>
                         @endif
                         @if ($isServed)
+                            <button class="qt-icon-btn" title="تعديل الرتبة"
+                                onclick="openRotbaModal({{ $person->PersonID }}, {{ $group->GroupID }}, {{ $person->RotbaID ? (int) $person->RotbaID : 'null' }})">
+                                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M7 2h5M7 7h5M7 12h5" />
+                                    <path d="M2 3l1 1 2-2M2 8l1 1 2-2M2 13l1 1 2-2" />
+                                </svg>
+                            </button>
                             <button class="qt-icon-btn qt-icon-btn--danger" title="إزالة"
                                 onclick="removePerson({{ $person->PersonID }}, {{ $group->GroupID }})">
                                 <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8">

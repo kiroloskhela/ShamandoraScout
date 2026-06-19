@@ -126,6 +126,8 @@ class QetaaTreeController extends Controller
                             'pi.PersonID',
                             'pi.FirstName',
                             'pi.SecondName',
+                            'pi.ThirdName',
+                            'pi.FourthName',
                             'pi.ShamandoraCode',
                             'ri.RotbaID',
                             'ri.RotbaName',
@@ -212,14 +214,18 @@ class QetaaTreeController extends Controller
                 ->join('PersonInformation as pi', 'pi.PersonID', '=', 'pg.PersonID')
                 ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
                 ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+                ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
                 ->whereIn('pg.GroupID', $groupIds)
                 ->select(
                     'pi.PersonID',
                     'pi.FirstName',
                     'pi.SecondName',
+                    'pi.ThirdName',
+                    'pi.FourthName',
                     'pi.ShamandoraCode',
                     'ri.RotbaID',
                     'ri.RotbaName',
+                    'pim.PersonSystemImagePath',
                     'pg.GroupID'
                 )
                 ->distinct()
@@ -280,18 +286,39 @@ class QetaaTreeController extends Controller
             ->join('PersonQetaa as pq', 'pq.PersonID', '=', 'pi.PersonID')
             ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
             ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
+            ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
             ->where('pq.QetaaID', $qetaaId)
             ->where(function ($query) use ($q) {
-                $query->where(DB::raw("CONCAT(pi.FirstName, ' ', pi.SecondName)"), 'LIKE', "%{$q}%")
+                $query->where(DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)"), 'LIKE', "%{$q}%")
                       ->orWhere('pi.FirstName',      'LIKE', "%{$q}%")
                       ->orWhere('pi.SecondName',     'LIKE', "%{$q}%")
+                      ->orWhere('pi.ThirdName',      'LIKE', "%{$q}%")
+                      ->orWhere('pi.FourthName',     'LIKE', "%{$q}%")
                       ->orWhere('pi.ShamandoraCode', 'LIKE', "%{$q}%");
             })
-            ->select('pi.PersonID', 'pi.FirstName', 'pi.SecondName', 'pi.ShamandoraCode', 'ri.RotbaName')
+            ->select(
+                'pi.PersonID',
+                'pi.FirstName',
+                'pi.SecondName',
+                'pi.ThirdName',
+                'pi.FourthName',
+                'pi.ShamandoraCode',
+                'ri.RotbaID',
+                'ri.RotbaName',
+                'pim.PersonSystemImagePath',
+                DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) as FullName")
+            )
             ->distinct()
             ->orderBy('pi.ShamandoraCode')
             ->limit(20)
-            ->get();
+            ->get()
+            ->map(function ($person) {
+                $person->AvatarUrl = $person->PersonSystemImagePath
+                    ? asset('storage/' . $person->PersonSystemImagePath)
+                    : null;
+
+                return $person;
+            });
 
         return response()->json($results);
     }
@@ -384,9 +411,11 @@ class QetaaTreeController extends Controller
     public function storePerson(Request $request)
     {
         $request->validate([
-            'PersonID' => 'required|integer',
-            'GroupID'  => 'required|integer',
-            'RotbaID'  => 'nullable|integer',
+            'PersonID'    => 'required_without:PersonIDs|integer',
+            'PersonIDs'   => 'required_without:PersonID|array|min:1',
+            'PersonIDs.*' => 'integer',
+            'GroupID'     => 'required|integer',
+            'RotbaID'     => 'nullable|integer',
         ]);
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
@@ -403,44 +432,87 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
         }
 
-        $qetaaId = $this->qetaaIdForGroup($request->GroupID);
-        $personInQetaa = DB::table('PersonQetaa')
-            ->where('PersonID', $request->PersonID)
-            ->where('QetaaID', $qetaaId)
-            ->exists();
-
-        if (!$personInQetaa) {
-            return response()->json(['error' => 'هذا الشخص غير تابع للقطاع الخاص بهذه الطليعة.'], 422);
+        if ($request->filled('RotbaID') && !$this->rotbaExists($request->RotbaID)) {
+            return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
         }
 
-        $exists = DB::table('PersonGroup')
+        $qetaaId = $this->qetaaIdForGroup($request->GroupID);
+        $personIds = collect($request->input('PersonIDs', [$request->PersonID]))
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $validPersonCount = DB::table('PersonQetaa')
+            ->whereIn('PersonID', $personIds)
+            ->where('QetaaID', $qetaaId)
+            ->distinct()
+            ->count('PersonID');
+
+        if ($validPersonCount !== $personIds->count()) {
+            return response()->json(['error' => 'يوجد شخص غير تابع للقطاع الخاص بهذه الطليعة.'], 422);
+        }
+
+        DB::transaction(function () use ($request, $personIds) {
+            foreach ($personIds as $personId) {
+                $exists = DB::table('PersonGroup')
+                    ->where('PersonID', $personId)
+                    ->where('GroupID',  $request->GroupID)
+                    ->exists();
+
+                if (!$exists) {
+                    DB::table('PersonGroup')->insert([
+                        'PersonID' => $personId,
+                        'GroupID'  => $request->GroupID,
+                    ]);
+                }
+
+                if ($request->filled('RotbaID')) {
+                    DB::table('PersonRotba')->updateOrInsert(
+                        ['PersonID' => $personId],
+                        ['RotbaID'  => $request->RotbaID]
+                    );
+                }
+            }
+        });
+
+        return response()->json(['success' => true, 'count' => $personIds->count()]);
+    }
+
+    public function updatePersonRotba(Request $request)
+    {
+        $request->validate([
+            'PersonID' => 'required|integer',
+            'GroupID'  => 'required|integer',
+            'RotbaID'  => 'nullable|integer',
+        ]);
+
+        $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
+        $canAccessGroup = DB::table('GroupQetaa')
+            ->where('GroupID', $request->GroupID)
+            ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
+            ->exists();
+
+        $personInGroup = DB::table('PersonGroup')
             ->where('PersonID', $request->PersonID)
             ->where('GroupID',  $request->GroupID)
             ->exists();
 
-        if (!$exists) {
-            DB::table('PersonGroup')->insert([
-                'PersonID' => $request->PersonID,
-                'GroupID'  => $request->GroupID,
-            ]);
+        if (!$group || (int) $group->GroupTypeID !== 3 || !$canAccessGroup || !$personInGroup) {
+            return response()->json(['error' => 'لا يمكنك تعديل رتبة هذا الشخص.'], 403);
         }
 
-        // Assign or update rotba if provided
         if ($request->filled('RotbaID')) {
-            $rotbaExists = DB::table('PersonRotba')
-                ->where('PersonID', $request->PersonID)
-                ->exists();
-
-            if ($rotbaExists) {
-                DB::table('PersonRotba')
-                    ->where('PersonID', $request->PersonID)
-                    ->update(['RotbaID' => $request->RotbaID]);
-            } else {
-                DB::table('PersonRotba')->insert([
-                    'PersonID' => $request->PersonID,
-                    'RotbaID'  => $request->RotbaID,
-                ]);
+            if (!$this->rotbaExists($request->RotbaID)) {
+                return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
             }
+
+            DB::table('PersonRotba')->updateOrInsert(
+                ['PersonID' => $request->PersonID],
+                ['RotbaID'  => $request->RotbaID]
+            );
+        } else {
+            DB::table('PersonRotba')->where('PersonID', $request->PersonID)->delete();
         }
 
         return response()->json(['success' => true]);
@@ -464,5 +536,12 @@ class QetaaTreeController extends Controller
             ->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    private function rotbaExists($rotbaId)
+    {
+        return DB::table('RotbaInformation')
+            ->where('RotbaID', $rotbaId)
+            ->exists();
     }
 }

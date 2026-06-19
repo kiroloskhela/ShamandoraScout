@@ -799,6 +799,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/team/structure/group', [QetaaTreeController::class, 'storeGroup'])->name('qetaa.storeGroup');
     Route::delete('/team/structure/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])->name('qetaa.deleteGroup');
     Route::post('/team/structure/person', [QetaaTreeController::class, 'storePerson'])->name('qetaa.storePerson');
+    Route::post('/team/structure/person/rotba', [QetaaTreeController::class, 'updatePersonRotba'])->name('qetaa.updatePersonRotba');
     Route::post('/team/structure/person/remove', [QetaaTreeController::class, 'removePerson'])->name('qetaa.removePerson');
 
     // Custody Requests

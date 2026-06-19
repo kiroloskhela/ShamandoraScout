@@ -217,9 +217,9 @@
 
         {{-- Add Person Modal --}}
         <div id="modal-person" class="qt-overlay" onclick="if(event.target===this)closeModal('modal-person')">
-            <div class="qt-modal">
+            <div class="qt-modal qt-modal--wide">
                 <div class="qt-modal__header">
-                    <span>إضافة شخص</span>
+                    <span>إضافة أشخاص</span>
                     <button class="qt-modal__close" onclick="closeModal('modal-person')">
                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 1l10 10M11 1L1 11" />
@@ -243,23 +243,12 @@
                         <div id="person-suggestions" class="qt-suggestions" style="display:none"></div>
                     </label>
 
-                    <div id="person-selected-card" class="qt-selected-card" style="display:none">
-                        <div class="qt-selected-card__info">
-                            <span id="sc-name" class="qt-selected-card__name"></span>
-                            <span id="sc-code" class="qt-selected-card__code"></span>
-                            <span id="sc-rotba" class="qt-selected-card__rotba"></span>
-                        </div>
-                        <button class="qt-selected-card__clear" onclick="clearPersonSelection()">
-                            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 1l10 10M11 1L1 11" />
-                            </svg>
-                        </button>
-                    </div>
+                    <div id="person-selected-list" class="qt-selected-list" style="display:none"></div>
 
                     <input type="hidden" id="m-person-id">
 
                     <label class="qt-field" style="margin-top:10px">
-                        <span class="qt-field__label">الرتبة <span
+                        <span class="qt-field__label">رتبة المضافين <span
                                 style="color:#aaa;font-size:11px">(اختياري)</span></span>
                         <select id="m-rotba-id" class="qt-select qt-select--field">
                             <option value="">— لا تغيير —</option>
@@ -269,6 +258,34 @@
                 <div class="qt-modal__footer">
                     <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-person')">إلغاء</button>
                     <button class="qt-btn qt-btn--primary" onclick="submitPerson()">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        {{-- Edit Person Rotba Modal --}}
+        <div id="modal-rotba" class="qt-overlay" onclick="if(event.target===this)closeModal('modal-rotba')">
+            <div class="qt-modal">
+                <div class="qt-modal__header">
+                    <span>تعديل الرتبة</span>
+                    <button class="qt-modal__close" onclick="closeModal('modal-rotba')">
+                        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 1l10 10M11 1L1 11" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="qt-modal__body">
+                    <input type="hidden" id="edit-rotba-person-id">
+                    <input type="hidden" id="edit-rotba-group-id">
+                    <label class="qt-field">
+                        <span class="qt-field__label">الرتبة</span>
+                        <select id="edit-rotba-id" class="qt-select qt-select--field">
+                            <option value="">بدون رتبة</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="qt-modal__footer">
+                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-rotba')">إلغاء</button>
+                    <button class="qt-btn qt-btn--primary" onclick="submitRotbaEdit()">حفظ</button>
                 </div>
             </div>
         </div>
@@ -994,6 +1011,14 @@
             font-weight: 600;
             color: var(--qt-blue);
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .qt-person__avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .qt-person__info {
@@ -1083,6 +1108,10 @@
             box-shadow: var(--qt-shadow-lg);
             animation: qt-slide-up .18s ease;
             overflow: visible;
+        }
+
+        .qt-modal--wide {
+            width: 460px;
         }
 
         @keyframes qt-slide-up {
@@ -1257,9 +1286,60 @@
             background: var(--qt-blue-soft);
         }
 
+        .qt-suggestion-avatar,
+        .qt-selected-card__avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--qt-blue-soft), var(--qt-blue-mid));
+            color: var(--qt-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: 600;
+            overflow: hidden;
+        }
+
+        .qt-suggestion-avatar img,
+        .qt-selected-card__avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .qt-suggestion-item__main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .qt-suggestion-item__name {
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .qt-suggestion-item__meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .qt-suggestion-item__code {
             font-size: 11px;
             color: var(--qt-text-muted);
+            direction: ltr;
+        }
+
+        .qt-suggestion-item__id {
+            font-size: 11px;
+            color: var(--qt-text-muted);
+            direction: ltr;
         }
 
         .qt-suggestion-item__rotba {
@@ -1269,6 +1349,14 @@
         }
 
         /* Selected person card */
+        .qt-selected-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
         .qt-selected-card {
             display: flex;
             align-items: center;
@@ -1538,27 +1626,65 @@
 
         // ── Person modal ──────────────────────────────────────────────────────────
         let _searchTimer = null;
+        let _selectedPersons = [];
+        let _rotbaList = null;
+
+        function personInitials(name) {
+            const cleanName = String(name || '').trim();
+            return cleanName ? cleanName.slice(0, 1) : '؟';
+        }
+
+        function createPersonAvatar(person, className) {
+            const avatar = document.createElement('span');
+            avatar.className = className;
+
+            if (person.AvatarUrl) {
+                const img = document.createElement('img');
+                img.src = person.AvatarUrl;
+                img.alt = person.FullName || '';
+                avatar.appendChild(img);
+            } else {
+                avatar.textContent = personInitials(person.FullName);
+            }
+
+            return avatar;
+        }
+
+        async function loadRotbaOptions(selectId, emptyText, selectedValue = '') {
+            if (!_rotbaList) {
+                const res = await fetch('{{ route('qetaa.getRotbaList') }}');
+                _rotbaList = await res.json();
+            }
+
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '';
+
+            const emptyOpt = document.createElement('option');
+            emptyOpt.value = '';
+            emptyOpt.textContent = emptyText;
+            sel.appendChild(emptyOpt);
+
+            _rotbaList.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.RotbaID;
+                opt.textContent = r.RotbaName;
+                sel.appendChild(opt);
+            });
+
+            sel.value = selectedValue ? String(selectedValue) : '';
+        }
 
         async function openPersonModal(groupId) {
             document.getElementById('m-person-group-id').value = groupId;
             document.getElementById('m-person-id').value = '';
             document.getElementById('m-person-search').value = '';
             document.getElementById('person-suggestions').style.display = 'none';
-            document.getElementById('person-selected-card').style.display = 'none';
             document.getElementById('m-person-search').style.display = '';
+            _selectedPersons = [];
+            renderSelectedPersons();
 
-            // Load rotba list
             try {
-                const res = await fetch('{{ route('qetaa.getRotbaList') }}');
-                const list = await res.json();
-                const sel = document.getElementById('m-rotba-id');
-                sel.innerHTML = '<option value="">— لا تغيير —</option>';
-                list.forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = r.RotbaID;
-                    opt.textContent = r.RotbaName;
-                    sel.appendChild(opt);
-                });
+                await loadRotbaOptions('m-rotba-id', '— لا تغيير —');
             } catch {}
 
             showModal('modal-person');
@@ -1587,27 +1713,44 @@
                     item.type = 'button';
                     item.className = 'qt-suggestion-item';
 
-                    const name = `${p.FirstName ?? ''} ${p.SecondName ?? ''}`.trim();
+                    const person = {
+                        PersonID: p.PersonID,
+                        FullName: p.FullName || `${p.FirstName ?? ''} ${p.SecondName ?? ''} ${p.ThirdName ?? ''} ${p.FourthName ?? ''}`.trim(),
+                        ShamandoraCode: p.ShamandoraCode || '',
+                        RotbaName: p.RotbaName || '',
+                        AvatarUrl: p.AvatarUrl || ''
+                    };
+
+                    const mainEl = document.createElement('span');
+                    mainEl.className = 'qt-suggestion-item__main';
+
                     const nameEl = document.createElement('span');
-                    nameEl.textContent = name;
+                    nameEl.className = 'qt-suggestion-item__name';
+                    nameEl.textContent = person.FullName;
+
+                    const metaEl = document.createElement('span');
+                    metaEl.className = 'qt-suggestion-item__meta';
+
+                    const idEl = document.createElement('span');
+                    idEl.className = 'qt-suggestion-item__id';
+                    idEl.textContent = `ID: ${person.PersonID}`;
 
                     const codeEl = document.createElement('span');
                     codeEl.className = 'qt-suggestion-item__code';
-                    codeEl.textContent = p.ShamandoraCode || '';
+                    codeEl.textContent = person.ShamandoraCode;
 
                     const rotbaEl = document.createElement('span');
                     rotbaEl.className = 'qt-suggestion-item__rotba';
-                    rotbaEl.textContent = p.RotbaName || '';
+                    rotbaEl.textContent = person.RotbaName;
 
-                    item.append(nameEl, codeEl, rotbaEl);
+                    metaEl.append(idEl);
+                    if (person.ShamandoraCode) metaEl.append(codeEl);
+                    if (person.RotbaName) metaEl.append(rotbaEl);
+                    mainEl.append(nameEl, metaEl);
+                    item.append(createPersonAvatar(person, 'qt-suggestion-avatar'), mainEl);
                     item.addEventListener('mousedown', event => {
                         event.preventDefault();
-                        selectPerson(
-                            p.PersonID,
-                            name,
-                            p.ShamandoraCode || '',
-                            p.RotbaName || ''
-                        );
+                        selectPerson(person);
                     });
 
                     sug.appendChild(item);
@@ -1616,37 +1759,112 @@
             }, 300);
         }
 
-        function selectPerson(id, name, code, rotba) {
-            document.getElementById('m-person-id').value = id;
-            document.getElementById('m-person-search').style.display = 'none';
+        function selectPerson(person) {
+            const id = parseInt(person.PersonID, 10);
+            if (!_selectedPersons.some(selected => parseInt(selected.PersonID, 10) === id)) {
+                _selectedPersons.push(person);
+            }
+            document.getElementById('m-person-search').value = '';
             document.getElementById('person-suggestions').style.display = 'none';
-            document.getElementById('sc-name').textContent = name;
-            document.getElementById('sc-code').textContent = code;
-            document.getElementById('sc-rotba').textContent = rotba;
-            document.getElementById('person-selected-card').style.display = 'flex';
+            renderSelectedPersons();
+            document.getElementById('m-person-search').focus();
         }
 
-        function clearPersonSelection() {
-            document.getElementById('m-person-id').value = '';
-            document.getElementById('m-person-search').value = '';
-            document.getElementById('m-person-search').style.display = '';
-            document.getElementById('person-selected-card').style.display = 'none';
-            document.getElementById('person-suggestions').style.display = 'none';
-            document.getElementById('m-person-search').focus();
+        function renderSelectedPersons() {
+            const list = document.getElementById('person-selected-list');
+            list.innerHTML = '';
+            list.style.display = _selectedPersons.length ? 'flex' : 'none';
+
+            _selectedPersons.forEach(person => {
+                const card = document.createElement('div');
+                card.className = 'qt-selected-card';
+
+                const info = document.createElement('div');
+                info.className = 'qt-selected-card__info';
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'qt-selected-card__name';
+                nameEl.textContent = person.FullName;
+
+                const codeEl = document.createElement('span');
+                codeEl.className = 'qt-selected-card__code';
+                codeEl.textContent = `ID: ${person.PersonID}${person.ShamandoraCode ? ` | ${person.ShamandoraCode}` : ''}`;
+
+                const rotbaEl = document.createElement('span');
+                rotbaEl.className = 'qt-selected-card__rotba';
+                rotbaEl.textContent = person.RotbaName || '';
+
+                info.append(nameEl, codeEl);
+                if (person.RotbaName) info.append(rotbaEl);
+
+                const clearBtn = document.createElement('button');
+                clearBtn.type = 'button';
+                clearBtn.className = 'qt-selected-card__clear';
+                clearBtn.innerHTML = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l10 10M11 1L1 11" /></svg>';
+                clearBtn.addEventListener('click', () => clearPersonSelection(person.PersonID));
+
+                card.append(createPersonAvatar(person, 'qt-selected-card__avatar'), info, clearBtn);
+                list.appendChild(card);
+            });
+        }
+
+        function clearPersonSelection(personId) {
+            _selectedPersons = _selectedPersons.filter(person => parseInt(person.PersonID, 10) !== parseInt(personId, 10));
+            renderSelectedPersons();
         }
 
         async function submitPerson() {
             const groupId = parseInt(document.getElementById('m-person-group-id').value, 10);
-            const personId = parseInt(document.getElementById('m-person-id').value, 10);
+            const personIds = _selectedPersons.map(person => parseInt(person.PersonID, 10)).filter(Boolean);
             const rotbaId = document.getElementById('m-rotba-id').value;
 
-            if (!personId) {
-                alert('اختر شخصاً أولاً');
+            if (!personIds.length) {
+                alert('اختر شخصاً واحداً على الأقل');
                 return;
             }
 
             try {
                 const res = await fetch('{{ route('qetaa.storePerson') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': CSRF,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        PersonIDs: personIds,
+                        GroupID: groupId,
+                        RotbaID: rotbaId || null
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+                closeModal('modal-person');
+                window.location.reload();
+            } catch (e) {
+                alert(e.message || 'حدث خطأ');
+            }
+        }
+
+        async function openRotbaModal(personId, groupId, currentRotbaId) {
+            document.getElementById('edit-rotba-person-id').value = personId;
+            document.getElementById('edit-rotba-group-id').value = groupId;
+
+            try {
+                await loadRotbaOptions('edit-rotba-id', 'بدون رتبة', currentRotbaId || '');
+            } catch {}
+
+            showModal('modal-rotba');
+        }
+
+        async function submitRotbaEdit() {
+            const personId = parseInt(document.getElementById('edit-rotba-person-id').value, 10);
+            const groupId = parseInt(document.getElementById('edit-rotba-group-id').value, 10);
+            const rotbaId = document.getElementById('edit-rotba-id').value;
+
+            try {
+                const res = await fetch('{{ route('qetaa.updatePersonRotba') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1662,7 +1880,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
-                closeModal('modal-person');
+                closeModal('modal-rotba');
                 window.location.reload();
             } catch (e) {
                 alert(e.message || 'حدث خطأ');
