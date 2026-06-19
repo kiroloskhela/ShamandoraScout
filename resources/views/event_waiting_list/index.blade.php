@@ -92,7 +92,7 @@
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
-                    'key' => 'PersonPersonalMobileNumber',
+                    'key' => 'MotherMobileNumber',
                     'label' =>'هاتف الام',
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
