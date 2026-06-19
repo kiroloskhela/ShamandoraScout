@@ -1316,7 +1316,7 @@ public function partialRefundStore(Request $request, $bookingID)
     $deductionAmount = (float)$request->deduction_amount;
     $refundAmount = $amountPaid - $deductionAmount;
 
-    if ($deductionAmount >= $amountPaid) {
+    if ($deductionAmount > $amountPaid) {
         return redirect()->back()->withErrors([
             'deduction_amount' => 'الجزء المخصوم يجب أن يكون أقل من المبلغ المدفوع.'
         ])->withInput();
