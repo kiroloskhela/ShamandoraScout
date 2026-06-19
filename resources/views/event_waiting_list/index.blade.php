@@ -92,6 +92,12 @@
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
+                    'key' => 'PersonPersonalMobileNumber',
+                    'label' =>'هاتف الام',
+                    'type' => 'text',
+                    'cssClass' => 'text-sm text-gray-900',
+                ],
+                [
                     'key' => 'QetaaName',
                     'label' => 'القطاع',
                     'type' => 'label',
