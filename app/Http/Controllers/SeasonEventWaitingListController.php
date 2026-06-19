@@ -66,6 +66,7 @@ class SeasonEventWaitingListController extends Controller
                 'wl.QetaaID',
                 'wl.CreatedAt',
                 'ppn.PersonPersonalMobileNumber',
+                'ppn.MotherMobileNumber',
                 'q.QetaaName',
                 DB::raw("TRIM(CONCAT(
                     COALESCE(p.FirstName,''), ' ',
