@@ -767,6 +767,11 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->gr
     Route::get('/inventory-issue/getEventsForSeason', [InventoryIssueController::class, 'getEventsForSeason'])->name('inventory-issue.getEventsForSeason');
     Route::post('/inventory-issue/generate', [InventoryIssueController::class, 'generate'])->name('inventory-issue.generate');
 
+
+
+});
+
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminFirstAid'])->group(function () {
     // Medicine Inventory
     Route::get('/medicine', [MedicineInventoryController::class, 'index'])->name('medicine.index');
     Route::get('/medicine/add', [MedicineInventoryController::class, 'create'])->name('medicine.create');
@@ -789,10 +794,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->gr
     Route::patch('/medicine/{id}/stock', [MedicineInventoryController::class, 'updateStock'])->name('medicine.stock.update');
     Route::post('/medicine/{id}/restock', [MedicineInventoryController::class, 'restock'])->name('medicine.restock');
     Route::get('/medicine/search-persons', [MedicineInventoryController::class, 'searchPersons'])->name('medicine.search-persons');
-
-
-
-
 });
 
 

@@ -130,6 +130,7 @@
                         $isAdminSecretary = $auth && $user->role()->where('RoleName', 'AdminSecretary')->exists();
                         $isAdminInventory = $auth && $user->role()->where('RoleName', 'AdminInventory')->exists();
                         $isAdminFinance = $auth && $user->role()->where('RoleName', 'AdminFinance')->exists();
+                        $isAdminFirstAid = $auth && $user->role()->where('RoleName', 'AdminFirstAid')->exists();
 
                     @endphp
 
@@ -478,7 +479,7 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
-                                @if ($isSuperAdmin || $isInventory || $isAdminInventory)
+                                @if ($isSuperAdmin || $isAdminFirstAid)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('medicine.index') }}">مخزون الأدوية</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
