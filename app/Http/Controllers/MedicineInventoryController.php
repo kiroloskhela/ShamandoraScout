@@ -137,6 +137,7 @@ class MedicineInventoryController extends Controller
                 'MedicineName' => $data['medicine_name'],
                 'MedicineType' => $data['medicine_type'],
                 'ExpirationDate' => $data['expiration_date'],
+                'Amount' => $data['amount'],
                 'Notes' => $data['notes'] ?? null,
                 'updated_at' => now(),
             ]);
