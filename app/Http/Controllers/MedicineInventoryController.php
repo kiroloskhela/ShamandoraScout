@@ -129,18 +129,22 @@ class MedicineInventoryController extends Controller
                 ->with('error', 'الدواء غير موجود.');
         }
 
-        $data = $this->validateMedicine($request);
+        $data = $this->validateMedicine($request, false, true);
 
-        DB::table('MedicineInventory')
-            ->where('MedicineID', $id)
-            ->update([
-                'MedicineName' => $data['medicine_name'],
-                'MedicineType' => $data['medicine_type'],
-                'ExpirationDate' => $data['expiration_date'],
-                'Amount' => $data['amount'],
-                'Notes' => $data['notes'] ?? null,
-                'updated_at' => now(),
-            ]);
+        DB::transaction(function () use ($id, $data) {
+            $this->updateMedicineStockTotal($id, (int) $data['amount']);
+
+            DB::table('MedicineInventory')
+                ->where('MedicineID', $id)
+                ->update([
+                    'MedicineName' => $data['medicine_name'],
+                    'MedicineType' => $data['medicine_type'],
+                    'ExpirationDate' => $data['expiration_date'],
+                    'Amount' => $data['amount'],
+                    'Notes' => $data['notes'] ?? null,
+                    'updated_at' => now(),
+                ]);
+        });
 
         return redirect()
             ->route('medicine.index')
@@ -713,7 +717,7 @@ class MedicineInventoryController extends Controller
         return response()->json($persons);
     }
 
-    private function validateMedicine(Request $request, bool $withInitialStock = false): array
+    private function validateMedicine(Request $request, bool $withInitialStock = false, bool $withAmount = false): array
     {
         $rules = [
             'medicine_name' => 'required|string|max:255',
@@ -722,8 +726,11 @@ class MedicineInventoryController extends Controller
             'notes' => 'nullable|string|max:2000',
         ];
 
-        if ($withInitialStock) {
+        if ($withInitialStock || $withAmount) {
             $rules['amount'] = 'required|integer|min:0';
+        }
+
+        if ($withInitialStock) {
             $rules['location_id'] = 'required|integer|exists:MedicineLocations,LocationID';
         }
 
@@ -871,6 +878,58 @@ class MedicineInventoryController extends Controller
                 'Amount' => $total,
                 'updated_at' => now(),
             ]);
+    }
+
+    private function updateMedicineStockTotal(int $medicineId, int $newTotal): void
+    {
+        $stocks = DB::table('MedicineStock')
+            ->where('MedicineID', $medicineId)
+            ->lockForUpdate()
+            ->get();
+
+        $currentTotal = (int) $stocks->sum('Amount');
+        $difference = $newTotal - $currentTotal;
+
+        if ($difference === 0) {
+            return;
+        }
+
+        $stockLocationId = $this->stockLocationId();
+        $stockRow = $stocks->firstWhere('LocationID', $stockLocationId);
+        $stockAmount = (int) ($stockRow->Amount ?? 0);
+
+        if ($difference < 0) {
+            $requestedDecrease = abs($difference);
+            $locked = $this->activeLockedAmount($medicineId, $stockLocationId);
+            $availableInStockLocation = max(0, $stockAmount - $locked);
+
+            if ($availableInStockLocation < $requestedDecrease) {
+                throw ValidationException::withMessages([
+                    'amount' => 'لا يمكن تقليل إجمالي الكمية بهذا المقدار لأن الكمية المتاحة في ستوك غير كافية. عدّل توزيع المخزون أولاً.',
+                ]);
+            }
+        }
+
+        $newStockAmount = $stockAmount + $difference;
+
+        if ($stockRow) {
+            DB::table('MedicineStock')
+                ->where('MedicineStockID', $stockRow->MedicineStockID)
+                ->update([
+                    'Amount' => $newStockAmount,
+                    'updated_at' => now(),
+                ]);
+
+            return;
+        }
+
+        DB::table('MedicineStock')->insert([
+            'MedicineID' => $medicineId,
+            'LocationID' => $stockLocationId,
+            'Amount' => $newStockAmount,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     private function locationBreakdown($locations, string $field, string $unit): string

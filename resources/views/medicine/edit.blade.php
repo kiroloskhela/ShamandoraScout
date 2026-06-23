@@ -49,25 +49,16 @@
                             value="{{ old('expiration_date', $medicine->ExpirationDate) }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                     </div>
-<div>
-
-    <label for="amount" class="block mb-2 text-sm text-gray-700">الكمية</label>
-
-    <input type="number" 
-
-        id="amount" 
-
-        name="amount" 
-
-        min="0"
-
-        required
-
-        value="{{ old('amount', $medicine->Amount) }}"
-
-        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
-
-</div>
+                    <div>
+                        <label for="amount" id="amount_label" class="block mb-2 text-sm text-gray-700">الكمية</label>
+                        <div class="flex rounded-lg border border-slate-200 overflow-hidden focus-within:border-emerald-500">
+                            <input type="number" min="0" step="1" id="amount" name="amount" required
+                                value="{{ old('amount', $medicine->Amount) }}"
+                                class="w-full h-12 px-4 text-right text-slate-600 focus:outline-none">
+                            <span id="amount_unit"
+                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">وحدة</span>
+                        </div>
+                    </div>
                     <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <div class="text-sm text-gray-600 mb-1">المخزون الحالي</div>
                         <div class="font-bold text-gray-800">{{ $medicine->AmountText }}</div>
@@ -104,9 +95,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             const types = @json($types);
             const typeSelect = document.getElementById('medicine_type');
+            const amountLabel = document.getElementById('amount_label');
+            const amountUnit = document.getElementById('amount_unit');
 
             function updateAmountText() {
-                return types[typeSelect.value] || null;
+                const selected = types[typeSelect.value];
+                amountLabel.textContent = selected ? selected.amount_label : 'الكمية';
+                amountUnit.textContent = selected ? selected.unit : 'وحدة';
             }
 
             typeSelect.addEventListener('change', updateAmountText);
