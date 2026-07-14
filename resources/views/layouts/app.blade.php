@@ -533,7 +533,7 @@
                         </div>
                     </div>
 
-                    {{-- ===================== Password Management (SuperAdmin) ===================== --}}
+                    {{-- ===================== Password Management + Audit (SuperAdmin) ===================== --}}
                     @if ($isSuperAdmin)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
@@ -551,6 +551,8 @@
                                 <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('audit-logs.index') }}">سجل التدقيق</a>
                                 </div>
                             </div>
                         </div>

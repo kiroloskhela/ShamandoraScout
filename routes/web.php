@@ -8,6 +8,7 @@ use App\Http\Controllers\LogoutController;
 
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminPasswordController;
+use App\Http\Controllers\AuditLogController;
 
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\LiveFormEnrolmentController;
@@ -231,6 +232,9 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/admin/passwords', [AdminPasswordController::class, 'index'])->name('admin.passwords');
     Route::get('/admin/passwords/{id}/edit', [AdminPasswordController::class, 'edit'])->name('admin.passwords.edit');
     Route::post('/admin/passwords/{id}/update', [AdminPasswordController::class, 'update'])->name('admin.passwords.update');
+
+    // System audit logs
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Whatsapp
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
