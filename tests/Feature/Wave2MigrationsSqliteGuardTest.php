@@ -22,8 +22,9 @@ class Wave2MigrationsSqliteGuardTest extends TestCase
     {
         $this->assertSame('sqlite', DB::connection()->getDriverName());
 
+        // Package A-E only (exclude later same-day Wave 4 migrations e.g. jobs).
         $wave2Migrations = DB::table('migrations')
-            ->where('migration', 'like', '2026_07_15_%')
+            ->where('migration', 'like', '2026_07_15_%package_%')
             ->pluck('migration');
 
         $this->assertCount(

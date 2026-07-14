@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use App\Services\FcmService;
+use App\Jobs\SendFcmNotification;
 use Exception;
 
 class NotificationController extends Controller
@@ -50,11 +50,7 @@ class NotificationController extends Controller
         }
 
         try {
-
-            // ✅ Send notification
-            $fcm = new FcmService();
-
-            $fcm->sendToMultiple(
+            SendFcmNotification::dispatch(
                 $tokens,
                 $request->title,
                 $request->body
@@ -109,10 +105,9 @@ public static function sendToRoles(array $roleNames, string $title, string $body
             return false;
         }
 
-        // ✅ Send in chunks of 500 (FCM limit)
-        $fcm = new FcmService();
+        // ✅ Queue in chunks of 500 (FCM limit)
         foreach (array_chunk($tokens, 500) as $chunk) {
-            $fcm->sendToMultiple($chunk, $title, $body);
+            SendFcmNotification::dispatch($chunk, $title, $body);
         }
 
         return true;
@@ -141,14 +136,7 @@ public static function sendToRoles(array $roleNames, string $title, string $body
                 return false;
             }
 
-            // ✅ Send notification
-            $fcm = new FcmService();
-
-            $fcm->sendToMultiple(
-                $tokens,
-                $title,
-                $body
-            );
+            SendFcmNotification::dispatch($tokens, $title, $body);
 
             return true;
 
@@ -181,7 +169,7 @@ public static function sendToRoles(array $roleNames, string $title, string $body
             return false;
         }
 
-        (new FcmService())->sendToMultiple($tokens, $title, $body);
+        SendFcmNotification::dispatch($tokens, $title, $body);
 
         return true;
 

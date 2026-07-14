@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Auth\PasswordResetLinkService;
-use App\Services\BrevoService;
+use App\Jobs\SendPasswordResetLinkMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,7 +20,7 @@ class ForgotPasswordController extends Controller
      * Verify phone + DOB (+ optional NID), issue a reset link, and email it.
      * Password is NOT changed until the user submits the reset form.
      */
-    public function handle(Request $request, PasswordResetLinkService $resets, BrevoService $brevo)
+    public function handle(Request $request, PasswordResetLinkService $resets)
     {
         $baseRules = [
             'phone' => ['required', 'regex:/^0\d{10}$/'],
@@ -101,7 +101,7 @@ class ForgotPasswordController extends Controller
         $expireMinutes = $resets->expireMinutes();
 
         try {
-            $brevo->sendPasswordResetLinkBilingual(
+            SendPasswordResetLinkMail::dispatch(
                 $email,
                 $fullName,
                 (string) $personId,
@@ -110,13 +110,13 @@ class ForgotPasswordController extends Controller
                 $expireMinutes
             );
         } catch (\Throwable $e) {
-            Log::error('Password reset email failed', [
+            Log::error('Password reset email dispatch failed', [
                 'person_id' => $personId,
                 'error' => $e->getMessage(),
             ]);
 
-            // Local/dev: token is already issued — surface the link so the
-            // reset form can be tested without a live Brevo key.
+            // Local/dev + QUEUE_CONNECTION=sync: job runs inline and Brevo
+            // failures surface here. Token is already issued — show the link.
             if (app()->environment('local')) {
                 return back()->with(
                     'error',
