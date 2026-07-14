@@ -118,12 +118,13 @@ public function handle(Request $request)
             return back()->with('error', 'لا يوجد بريد إلكتروني مسجل لهذا المستخدم.');
         }
 
+// your public HTTPS logo & login URLs
+$logoUrl  = 'https://shamandorascout.com/img/shamandora.png'; // Absolute HTTPS URL for email clients
+$loginUrl = 'https://shamandorascout.com/login-auth';
+
+$emailSent = false;
 try {
     $brevo = app(BrevoService::class);
-
-    // your public HTTPS logo & login URLs
-    $logoUrl  = 'https://shamandorascout.com/img/shamandora.png'; // Absolute HTTPS URL for email clients
-    $loginUrl = 'https://shamandorascout.com/login-auth'; 
 
     $res = $brevo->sendTempPasswordBilingual(
         $email,
@@ -145,15 +146,26 @@ try {
     Log::error('Brevo send failed', ['class'=>get_class($e), 'msg'=>$e->getMessage()]);
 }
 
+// The email is now the only channel that carries the actual temporary
+// password (WhatsApp only sends a notification, see below), so abort
+// without touching the stored password if the email could not be sent.
+if (!$emailSent) {
+    return back()->with('error', 'Failed to send email. Password was NOT updated.');
+}
+
 
 
     try {
+        // Do NOT include the plaintext password in the WhatsApp message body.
+        // The temporary password is delivered via the email sent above; this
+        // message only notifies the user and points them to the login page.
         $payload = [
             'full_number' => $phone,
             'message'     => "اهلا بك يا {$fullName}\n"
                            . "الرقم الخاص بك: {$personId}\n"
-                           . "الرقم: {$plainPassword}\n"
-                           . "يرجى تغيير الرقم عند أول تسجيل دخول.\n"
+                           . "تم إعادة تعيين كلمة السر الخاصة بك وتم إرسال كلمة السر المؤقتة إلى بريدك الإلكتروني المسجل.\n"
+                           . "يرجى تسجيل الدخول من هنا: {$loginUrl}\n"
+                           . "يرجى تغيير كلمة السر عند أول تسجيل دخول.\n"
                            . "مرحبا بك في الكشافة.",
         ];
         $fake = Request::create('/whatsapp/send', 'POST', $payload);
@@ -169,7 +181,7 @@ try {
         ['Password' => Hash::make($plainPassword), 'updated_at' => now()]
     );
 
-    return back()->with('success', 'Temporary password sent on WhatsApp and updated in the system.');
+    return back()->with('success', 'Temporary password sent to your email and updated in the system.');
 }
 
 
