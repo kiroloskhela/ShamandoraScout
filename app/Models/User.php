@@ -33,6 +33,26 @@ class User extends Authenticatable
         return $this->belongsToMany(Roles::class, 'PersonRole', 'PersonID', 'RoleID');
     }
 
+    public function personGroups()
+    {
+        return $this->hasMany(PersonGroup::class, 'PersonID', 'PersonID');
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'PersonGroup', 'PersonID', 'GroupID');
+    }
+
+    public function qetaas()
+    {
+        return $this->belongsToMany(Qetaa::class, 'PersonQetaa', 'PersonID', 'QetaaID');
+    }
+
+    public function sanaMarhalas()
+    {
+        return $this->belongsToMany(SanaMarhala::class, 'PersonSanaMarhala', 'PersonID', 'SanaMarhalaID');
+    }
+
 public function getAvatarUrlAttribute(): string
 {
     $path = $this->image?->PersonSystemImageThumbnailPath
