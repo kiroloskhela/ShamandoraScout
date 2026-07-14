@@ -12,11 +12,13 @@ use Illuminate\Support\Facades\Log;
 class AdminPasswordController extends Controller
 {
     // List all users for password management
-    public function index()
+    public function index(Request $request)
     {
         $users = DB::table('PersonInformation')
             ->select('PersonInformation.*')
-            ->get();
+            ->orderBy('PersonID')
+            ->paginate(50)
+            ->appends($request->query());
         return view('admin.passwords-index', compact('users'));
     }
 
