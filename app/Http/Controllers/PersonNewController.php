@@ -1179,8 +1179,10 @@ private function allocateNewEnrolmentRecord(string $table, array $data): int
 
         // PersonID has no default and can't be NULL; hold a throwaway
         // placeholder for the instant between insert and the update below.
+        // PersonID has no default and can't be NULL; ShamandoraCode is
+        // varchar(10) — use a 10-char placeholder (not "TMP-…", which overflows).
         $data['PersonID'] = 0;
-        $data['ShamandoraCode'] = 'TMP-' . bin2hex(random_bytes(4));
+        $data['ShamandoraCode'] = bin2hex(random_bytes(5));
 
         $id = DB::table($table)->insertGetId($data, 'id');
 
@@ -2053,7 +2055,13 @@ public function migrateWaitingList($id)
                 ->with('error', 'الرقم القومي موجود بالفعل في قائمة التسجيل');
         }
  
-        DB::table('NewUsersInformation')->insert((array) $person);
+        // Package A adds a surrogate AUTO_INCREMENT `id` PK. Do not copy the
+        // waiting-list row's `id` (would collide); keep PersonID as the
+        // business key so linked questions stay valid. Migrated rows may
+        // therefore have PersonID != id — that is intentional here.
+        $row = (array) $person;
+        unset($row['id']);
+        DB::table('NewUsersInformation')->insert($row);
  
         $waitingQuestions = DB::table('NewUsersPersonEntryQuestionsWaitinglist')
             ->where('PersonID', $id)
