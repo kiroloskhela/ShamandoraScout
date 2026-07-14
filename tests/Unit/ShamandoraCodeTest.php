@@ -12,5 +12,6 @@ class ShamandoraCodeTest extends TestCase
         $this->assertSame('SH-00001', ShamandoraCode::fromPersonId(1));
         $this->assertSame('SH-01688', ShamandoraCode::fromPersonId(1688));
         $this->assertSame('SH-123456', ShamandoraCode::fromPersonId(123456));
+        $this->assertSame('SH-00042', ShamandoraCode::forPersonId(42));
     }
 }

@@ -29,4 +29,14 @@ class ShamandoraCode
 
         return self::PREFIX . str_pad((string) $personId, self::PADDED_LENGTH, '0', STR_PAD_LEFT);
     }
+
+    /** @deprecated Use forPersonId() */
+    public static function fromPersonId(int $personId, int $digits = 5): string
+    {
+        if ($digits !== self::PADDED_LENGTH) {
+            return self::PREFIX . str_pad((string) $personId, $digits, '0', STR_PAD_LEFT);
+        }
+
+        return self::forPersonId($personId);
+    }
 }
