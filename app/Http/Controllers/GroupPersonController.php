@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\stdClass;
 use Exception;
 use Session;
+use App\Domain\OrgTree\GroupTreeService;
 
 
 class GroupPersonController extends Controller
@@ -398,54 +399,29 @@ public function destroy(Request $request, $personId) // personId passed, not Per
 
         private function getNodesBelow($groupID, $orgIDs)
         {
-            if ($groupID==NULL)
-                return NULL;
-            
-            $sql = "SELECT GroupID FROM GroupTable WHERE GroupTable.IncludedUnderGroupID = $groupID";
-            $sql_result = DB::select($sql);
-
-            foreach($sql_result as $row)
-            {
-                array_push($orgIDs, $row->GroupID);
-                $orgIDs = array_merge($orgIDs, GroupPersonController::getNodesBelow($row->GroupID, []));
+            if ($groupID == null) {
+                return null;
             }
 
-            return $orgIDs;
+            $tree = app(GroupTreeService::class);
+            return array_values(array_unique(array_merge($orgIDs, $tree->nodesBelow((int) $groupID))));
         }
 
         private function getParentsPathString($groupID)
         {
-            if ($groupID==0)
-                return DB::selectOne("  SELECT  
-                                            CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo,
-                                            GroupTable.IncludedUnderGroupID
-                                            FROM GroupTable
-                                            LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                            WHERE GroupTable.GroupID = $groupID")->GroupInfo;
-            
-            $selectedGroup = DB::selectOne("  SELECT  
-                CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo,
-                GroupTable.IncludedUnderGroupID
-                FROM GroupTable
-                LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                WHERE GroupTable.GroupID = $groupID");
-            
-
-            $path = $selectedGroup->GroupInfo." -> ".GroupPersonController::getParentsPathString($selectedGroup->IncludedUnderGroupID);
-
-            return $path;
-            
+            return app(GroupTreeService::class)->parentsPathString((int) $groupID);
         }
 
         private function getLatestParentBeforeRoot($groupID)
-        {   
-            $parentID = DB::selectOne("     SELECT  GroupTable.IncludedUnderGroupID
-                                            FROM    GroupTable
-                                            WHERE   GroupTable.GroupID = $groupID")->IncludedUnderGroupID;
-            if($parentID==0)
+        {
+            $parentID = DB::selectOne(
+                'SELECT GroupTable.IncludedUnderGroupID FROM GroupTable WHERE GroupTable.GroupID = ?',
+                [$groupID]
+            )->IncludedUnderGroupID;
+            if ($parentID == 0) {
                 return $groupID;
-            
-            return GroupPersonController::getLatestParentBeforeRoot($parentID);
+            }
 
+            return $this->getLatestParentBeforeRoot($parentID);
         }
 }
