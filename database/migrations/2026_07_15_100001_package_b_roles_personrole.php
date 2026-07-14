@@ -11,6 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         if (Schema::hasTable('Roles') && !$this->hasPrimaryKey('Roles')) {
             // Ensure RoleID values are unique before PK.
             $dupes = DB::table('Roles')
@@ -65,5 +72,14 @@ return new class extends Migration
             [$database, $table, $indexName]
         );
         return $row && (int) $row->cnt > 0;
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 };

@@ -11,6 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         if (Schema::hasTable('GroupTable')) {
             $this->addIndexIfMissing('GroupTable', 'idx_grouptable_included_under', 'IncludedUnderGroupID');
             $this->addIndexIfMissing('GroupTable', 'idx_grouptable_grouptypeid', 'GroupTypeID');
@@ -46,6 +53,15 @@ return new class extends Migration
     public function down(): void
     {
         // Forward-preferred.
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 
     private function addIndexIfMissing(string $table, string $name, string $column): void

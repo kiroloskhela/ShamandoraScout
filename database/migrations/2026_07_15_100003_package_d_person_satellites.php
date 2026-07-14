@@ -11,6 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         $oneToOne = [
             'PersonalPhysicalAddress',
             'PersonJob',
@@ -49,6 +56,15 @@ return new class extends Migration
     public function down(): void
     {
         // Forward-preferred.
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 
     private function assertUniquePersonId(string $table): void

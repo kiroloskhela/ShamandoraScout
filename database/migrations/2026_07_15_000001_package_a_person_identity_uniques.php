@@ -14,6 +14,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         $this->assertNoDuplicates('PersonInformation', 'RaqamQawmy');
         $this->assertNoDuplicates('PersonInformation', 'ShamandoraCode');
 
@@ -32,6 +39,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!$this->isMySql()) {
+            return;
+        }
+
         if ($this->indexExists('PersonInformation', 'uq_personinformation_raqam_qawmy')) {
             Schema::table('PersonInformation', function ($table) {
                 $table->dropUnique('uq_personinformation_raqam_qawmy');
@@ -43,6 +54,15 @@ return new class extends Migration
                 $table->dropUnique('uq_personinformation_shamandora_code');
             });
         }
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 
     private function assertNoDuplicates(string $table, string $column): void

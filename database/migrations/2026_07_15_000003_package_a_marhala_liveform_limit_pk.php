@@ -11,6 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         if (!Schema::hasTable('MarhalaLiveFormLimit')) {
             return;
         }
@@ -70,6 +77,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (!$this->isMySql()) {
+            return;
+        }
+
         if (!Schema::hasTable('MarhalaLiveFormLimit')) {
             return;
         }
@@ -77,6 +88,15 @@ return new class extends Migration
         if ($this->hasPrimaryKey('MarhalaLiveFormLimit')) {
             DB::statement('ALTER TABLE `MarhalaLiveFormLimit` DROP PRIMARY KEY');
         }
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 
     private function hasPrimaryKey(string $table): bool

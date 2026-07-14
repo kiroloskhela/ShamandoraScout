@@ -11,6 +11,13 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (!$this->isMySql()) {
+            // MySQL production schema hardening only (information_schema
+            // introspection + MySQL-specific DDL). No-op on other drivers
+            // (e.g. sqlite under PHPUnit/RefreshDatabase).
+            return;
+        }
+
         $this->harden('NewUsersInformation', 'nui');
         $this->harden('NewUsersInformationWaitinglist', 'nuiwl');
     }
@@ -18,6 +25,15 @@ return new class extends Migration
     public function down(): void
     {
         // Forward-only: removing surrogate PK / uniques on live enrolment tables is unsafe.
+    }
+
+    private function isMySql(): bool
+    {
+        return in_array(
+            DB::connection($this->getConnection())->getDriverName(),
+            ['mysql', 'mariadb'],
+            true
+        );
     }
 
     private function harden(string $table, string $prefix): void
