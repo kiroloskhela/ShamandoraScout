@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class GamesApiController extends Controller
 {
+    /**
+     * Roles allowed to create/update/delete games.
+     * Mirrors the roles used for other content-management routes
+     * (e.g. CurriculaCategory, Person) in routes/web.php.
+     */
+    private const MANAGE_ROLES = ['SuperAdmin', 'AdminQetaa'];
+
     /*
     |--------------------------------------------------------------------------
     | Helpers
@@ -29,6 +36,14 @@ class GamesApiController extends Controller
         }
 
         return $user->role()->whereIn('RoleName', $roles)->exists();
+    }
+
+    private function forbidden(string $message = 'Forbidden')
+    {
+        return response()->json([
+            'ok' => false,
+            'message' => $message,
+        ], 403);
     }
 
   
@@ -116,7 +131,9 @@ class GamesApiController extends Controller
      */
     public function store(Request $request)
     {
-   
+        if (!$this->hasAnyRole(self::MANAGE_ROLES)) {
+            return $this->forbidden();
+        }
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -157,7 +174,10 @@ class GamesApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-     
+        if (!$this->hasAnyRole(self::MANAGE_ROLES)) {
+            return $this->forbidden();
+        }
+
         $game = $this->findGame((int) $id);
 
         if (!$game) {
@@ -205,7 +225,9 @@ class GamesApiController extends Controller
      */
     public function destroy($id)
     {
-  
+        if (!$this->hasAnyRole(self::MANAGE_ROLES)) {
+            return $this->forbidden();
+        }
 
         $game = $this->findGame((int) $id);
 
