@@ -16,6 +16,9 @@ class WhatsAppStatusControllerTest extends TestCase
     {
         parent::setUp();
 
+        // CI has no Vite manifest; avoid 500 from @vite in layouts.app
+        $this->withoutVite();
+
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonImages');
