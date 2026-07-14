@@ -42,16 +42,6 @@ $personsBeforeMigration = DB::select("
         try {
             $questionsAnswersPairs = $person->AnsweredQuestions ? explode(', ', $person->AnsweredQuestions) : [];
 
-            $lastPersonID = DB::table('PersonInformation')->orderBy('PersonID', 'desc')->first();
-            $thisPersonID = is_null($lastPersonID) ? 1 : ((int)$lastPersonID->PersonID + 1);
-
-            $shamandoraCode = "SH-";
-            $shamandoraCodeNumberOfDigits = 5;
-            for ($i = 0; $i < $shamandoraCodeNumberOfDigits - strlen((string)$thisPersonID); $i++) {
-                $shamandoraCode .= '0';
-            }
-            $shamandoraCode .= $thisPersonID;
-
             $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
             $pass = [];
             $alphaLength = strlen($alphabet) - 1;
@@ -64,9 +54,10 @@ $personsBeforeMigration = DB::select("
             DB::beginTransaction();
 
             // ================== Person tables ==================
-            DB::table('PersonInformation')->insert([
-                'PersonID' => $thisPersonID,
-                'ShamandoraCode' => $shamandoraCode,
+            // Use AUTO_INCREMENT PersonID (do not compute MAX+1 — race-prone).
+            $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
+                // Temporary unique placeholder until AUTO_INCREMENT PersonID is known.
+                'ShamandoraCode' => 'TMP-' . bin2hex(random_bytes(4)),
                 'FirstName' => $person->FirstName,
                 'SecondName' => $person->SecondName,
                 'ThirdName' => $person->ThirdName,
@@ -80,7 +71,12 @@ $personsBeforeMigration = DB::select("
                 'InstagramProfileURL' => $person->InstagramProfileURL,
                 'PersonalEmail' => $person->PersonalEmail,
                 'RequestPersonID' => 0,
-            ]);
+            ], 'PersonID');
+
+            $shamandoraCode = \App\Support\ShamandoraCode::fromPersonId($thisPersonID);
+            DB::table('PersonInformation')
+                ->where('PersonID', $thisPersonID)
+                ->update(['ShamandoraCode' => $shamandoraCode]);
 
             DB::table('PersonPhoneNumbers')->insert([
                 'PersonID' => $thisPersonID,
