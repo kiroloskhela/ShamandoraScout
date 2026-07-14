@@ -12,12 +12,13 @@ use Illuminate\Support\Facades\Log;
 class AdminPasswordController extends Controller
 {
     // List all users for password management
-    public function index()
+    public function index(Request $request)
     {
         $users = DB::table('PersonInformation')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
-            ->select('PersonInformation.*', 'PersonSystemPassword.Password')
-            ->get();
+            ->select('PersonInformation.*')
+            ->orderBy('PersonID')
+            ->paginate(50)
+            ->appends($request->query());
         return view('admin.passwords-index', compact('users'));
     }
 
@@ -51,10 +52,14 @@ public function update(HttpRequest $request, $id)
     // 3) Send WhatsApp using your existing sendWithHeader
     if ($phone) {
         try {
-            // Create an internal request payload for sendWithHeader
+            // Create an internal request payload for sendWithHeader.
+            // Do NOT include the plaintext password in the message body.
+            $loginUrl = route('login-auth');
             $payload = [
                 'full_number' => $phone,
-                'message'     => "Your New Password Is: {$plain}",
+                'message'     => "Your password was reset by an admin. "
+                                . "Please log in with your new password here: {$loginUrl}\n"
+                                . "If you don't know it, use \"Forgot Password\" on the login page.",
             ];
 
             // Build a fake POST Request object and call the controller directly

@@ -8,9 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Domain\EventFinance\SeasonEventBookingService;
 
 class SeasonEventBookingFinanceController extends Controller
 {
+    public function __construct(
+        private readonly SeasonEventBookingService $bookings,
+    ) {
+    }
+
     public function selector()
     {
         $seasons = DB::table('Season')->orderBy('SeasonYear', 'desc')->get();
@@ -223,8 +229,10 @@ public function index(Request $request, $seasonEventID)
             's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName'
         )
         ->orderBy('PersonFullName')
-        ->get()
-        ->map(function ($booking) {
+        ->orderBy('b.SeasonEventParticipantFinanceID')
+        ->paginate(25)
+        ->appends($request->query())
+        ->through(function ($booking) {
             if ($booking->SpecialCaseType === 'AKHOH_RAB' || (int) $booking->HasPersonSpecialCase === 1) {
                 $booking->BookingStatusText = 'أخوه رب';
             } elseif ($booking->SpecialCaseType === 'HAS_BROTHERS') {
@@ -309,16 +317,14 @@ $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
 
 public function searchEligibleGuests(Request $request, $seasonEventID)
 {
-    $query = trim((string) $request->query('q', ''));
+    $term = \App\Support\LikeSearch::fromRequest($request);
+    $fields = \App\Support\LikeSearch::namedPartyFields('g', 'GuestID');
 
     $guests = DB::table('Guests as g')
-        ->where(function ($sub) use ($query) {
-            if ($query !== '') {
-                $sub->where(DB::raw("CONCAT_WS(' ', g.FirstName, g.SecondName, g.ThirdName, g.FourthName)"), 'like', '%' . $query . '%')
-                    ->orWhere('g.GuestID', 'like', '%' . $query . '%')
-                    ->orWhere('g.MobileNumber', 'like', '%' . $query . '%')
-                    ->orWhere('g.RaqamQawmy', 'like', '%' . $query . '%');
-            }
+        ->when($term !== null, function ($query) use ($term, $fields) {
+            $query->where(function ($sub) use ($term, $fields) {
+                \App\Support\LikeSearch::applyOr($sub, $term, $fields['columns'], $fields['raw']);
+            });
         })
         ->select(
             'g.GuestID',
@@ -352,16 +358,14 @@ public function searchEligibleGuests(Request $request, $seasonEventID)
 
 public function searchEligibleFamilies(Request $request, $seasonEventID)
 {
-    $query = trim((string) $request->query('q', ''));
+    $term = \App\Support\LikeSearch::fromRequest($request);
+    $fields = \App\Support\LikeSearch::namedPartyFields('f', 'FamilyID');
 
     $families = DB::table('FamilyMembers as f')
-        ->where(function ($sub) use ($query) {
-            if ($query !== '') {
-                $sub->where(DB::raw("CONCAT_WS(' ', f.FirstName, f.SecondName, f.ThirdName, f.FourthName)"), 'like', '%' . $query . '%')
-                    ->orWhere('f.FamilyID', 'like', '%' . $query . '%')
-                    ->orWhere('f.MobileNumber', 'like', '%' . $query . '%')
-                    ->orWhere('f.RaqamQawmy', 'like', '%' . $query . '%');
-            }
+        ->when($term !== null, function ($query) use ($term, $fields) {
+            $query->where(function ($sub) use ($term, $fields) {
+                \App\Support\LikeSearch::applyOr($sub, $term, $fields['columns'], $fields['raw']);
+            });
         })
         ->select(
             'f.FamilyID',
@@ -412,7 +416,7 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
 
     public function searchEligiblePersons(Request $request, $seasonEventID)
     {
-        $query = trim((string)$request->query('q', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request);
 
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
         if (!$event) {
@@ -435,12 +439,15 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
             ->leftJoin('PersonBlackList as pb', 'p.PersonID', '=', 'pb.PersonID')
             ->leftJoin('PersonSpecialCase as psc', 'p.PersonID', '=', 'psc.PersonID')
             ->whereIn('pq.QetaaID', $eligibleQetaaIDs)
-            ->where(function ($sub) use ($query) {
-                if ($query !== '') {
-                    $sub->where(DB::raw("CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"), 'like', '%' . $query . '%')
-                        ->orWhere('p.PersonID', 'like', '%' . $query . '%')
-                        ->orWhere('ppn.PersonPersonalMobileNumber', 'like', '%' . $query . '%');
-                }
+            ->when($term !== null, function ($query) use ($term) {
+                $query->where(function ($sub) use ($term) {
+                    \App\Support\LikeSearch::applyOr(
+                        $sub,
+                        $term,
+                        ['p.PersonID', 'ppn.PersonPersonalMobileNumber'],
+                        ["CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"]
+                    );
+                });
             })
             ->select(
                 'p.PersonID',
@@ -477,8 +484,8 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
 
 public function store(Request $request, $seasonEventID)
 {
-    $event = $this->getSeasonEventFullInfo($seasonEventID);
-    $plan = DB::table('SeasonEventFinance')->where('SeasonEventID', $seasonEventID)->first();
+    $event = $this->bookings->getEventInfo((int) $seasonEventID);
+    $plan = $this->bookings->getFinancePlan((int) $seasonEventID);
 
     if (!$event || !$plan) {
         abort(404);
@@ -490,8 +497,7 @@ public function store(Request $request, $seasonEventID)
         'guest_id' => 'nullable|integer|exists:Guests,GuestID',
         'family_id' => 'nullable|integer|exists:FamilyMembers,FamilyID',
         'first_payment_date' => 'required|date',
-                    'first_payment_amount' => 'required|numeric
-                ',
+        'first_payment_amount' => 'required|numeric',
         'is_not_able_to_pay_all' => 'nullable|in:0,1',
         'special_case_type' => 'nullable|in:NONE,AKHOH_RAB,HAS_BROTHERS,OTHER',
         'discount_amount' => 'nullable|numeric',
@@ -511,197 +517,31 @@ public function store(Request $request, $seasonEventID)
         return redirect()->back()->withErrors($validator)->withInput();
     }
 
-
     $filledCount = 0;
-$filledCount += $request->filled('person_id') ? 1 : 0;
-$filledCount += $request->filled('guest_id') ? 1 : 0;
-$filledCount += $request->filled('family_id') ? 1 : 0;
+    $filledCount += $request->filled('person_id') ? 1 : 0;
+    $filledCount += $request->filled('guest_id') ? 1 : 0;
+    $filledCount += $request->filled('family_id') ? 1 : 0;
 
-if ($filledCount !== 1) {
-    return redirect()->back()->withErrors([
-        'general' => 'يجب اختيار شخص واحد فقط من نوع واحد فقط.'
-    ])->withInput();
-}
-
-    $bookingType = (string) $request->booking_type;
-    $personID = null;
-    $guestID = null;
-    $familyID = null;
-    $entityField = null;
-    $entityValue = null;
-
-    if ($bookingType === 'PERSON') {
-        if (!$request->filled('person_id')) {
-            return redirect()->back()->withErrors(['person_id' => 'يجب اختيار الشخص.'])->withInput();
-        }
-        $personID = (int) $request->person_id;
-        $entityField = 'PersonID';
-        $entityValue = $personID;
-    } elseif ($bookingType === 'GUEST') {
-        if (!$request->filled('guest_id')) {
-            return redirect()->back()->withErrors(['guest_id' => 'يجب اختيار الضيف.'])->withInput();
-        }
-        $guestID = (int) $request->guest_id;
-        $entityField = 'GuestID';
-        $entityValue = $guestID;
-    } else {
-        if (!$request->filled('family_id')) {
-            return redirect()->back()->withErrors(['family_id' => 'يجب اختيار فرد العائلة.'])->withInput();
-        }
-        $familyID = (int) $request->family_id;
-        $entityField = 'FamilyID';
-        $entityValue = $familyID;
-    }
-
-    $serventID = (int) Auth::user()->PersonID;
-
-    if ($bookingType === 'PERSON') {
-        if ($this->isBlacklisted($personID)) {
-            return redirect()->back()->withErrors([
-                'person_id' => 'هذا الشخص موجود في القائمة السوداء ولا يمكنه الحجز.'
-            ])->withInput();
-        }
-
-        if (!$this->isEligibleByQetaa($seasonEventID, $personID)) {
-            return redirect()->back()->withErrors([
-                'person_id' => 'هذا الشخص غير مؤهل لهذه الفعالية.'
-            ])->withInput();
-        }
-    }
-
-    $alreadyBooked = DB::table('SeasonEventParticipantFinance')
-        ->where('SeasonEventID', $seasonEventID)
-        ->where($entityField, $entityValue)
-        ->exists();
-
-    if ($alreadyBooked) {
+    if ($filledCount !== 1) {
         return redirect()->back()->withErrors([
-            'general' => 'هذا الحجز موجود بالفعل في هذه الفعالية.'
+            'general' => 'يجب اختيار شخص واحد فقط من نوع واحد فقط.'
         ])->withInput();
     }
 
-    $priceDate = Carbon::parse($request->first_payment_date)->format('Y-m-d');
-    $paymentDateTime = now();
+    $result = $this->bookings->createBooking(
+        (int) $seasonEventID,
+        $request->all(),
+        (int) Auth::user()->PersonID
+    );
 
-    $priceRow = DB::table('SeasonEventFinancePrice')
-        ->where('SeasonEventID', $seasonEventID)
-        ->where('StartDate', '<=', $priceDate)
-        ->where('EndDate', '>=', $priceDate)
-        ->orderBy('StartDate')
-        ->first();
-
-    if (!$priceRow) {
+    if (!$result['ok']) {
         return redirect()->back()->withErrors([
-            'first_payment_date' => 'لا يوجد سعر صالح في هذا التاريخ.'
+            $result['field'] => $result['message'],
         ])->withInput();
     }
 
-    $isPermanentSpecial = $bookingType === 'PERSON' ? $this->isSpecialCase($personID) : false;
-    $specialCaseType = $request->filled('is_not_able_to_pay_all')
-        ? ($request->special_case_type ?? 'NONE')
-        : 'NONE';
-
-    $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB') ? 1 : 0;
-
-    $discountAmount = (float) ($request->discount_amount ?? 0);
-    $specialCaseNote = $request->special_case_note;
-    $originalPrice = (float) $priceRow->Price;
-    $finalRequiredAmount = max(0, $originalPrice - $discountAmount);
-    $firstPaymentAmount = (float) $request->first_payment_amount;
-    $installmentsNumber = (int) $plan->MaxInstallmentsNumber;
-
-    if ($finalRequiredAmount <= 0) {
-        return redirect()->back()->withErrors([
-            'discount_amount' => 'المبلغ النهائي المطلوب يجب أن يكون أكبر من صفر.'
-        ])->withInput();
-    }
-
-    if ($firstPaymentAmount > $finalRequiredAmount) {
-        return redirect()->back()->withErrors([
-            'first_payment_amount' => 'لا يمكن أن تكون أول دفعة أكبر من المبلغ المطلوب النهائي.'
-        ])->withInput();
-    }
-
-    $isSpecialBehavior = $isPermanentSpecial || $specialCaseType === 'AKHOH_RAB';
-
-    if (!$isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
-        return redirect()->back()->withErrors([
-            'first_payment_amount' => 'لا يمكن أن تكون أول دفعة أقل من الحد الأدنى للمقدم.'
-        ])->withInput();
-    }
-
-    if (($specialCaseType === 'HAS_BROTHERS' || $specialCaseType === 'OTHER') && $discountAmount <= 0) {
-        return redirect()->back()->withErrors([
-            'discount_amount' => 'يجب إدخال مبلغ خصم أكبر من صفر.'
-        ])->withInput();
-    }
-
-    if ((int) $plan->MaxInstallmentsNumber === 1 && $firstPaymentAmount != $finalRequiredAmount) {
-        return redirect()->back()->withErrors([
-            'first_payment_amount' => 'هذه الفعالية تحتوي على قسط واحد فقط، لذلك يجب دفع كامل المبلغ في أول دفعة.'
-        ])->withInput();
-    }
-
-    DB::beginTransaction();
-
-    try {
-        $bookingID = DB::table('SeasonEventParticipantFinance')->insertGetId([
-            'SeasonEventID' => $seasonEventID,
-            'PersonID' => $personID,
-            'GuestID' => $guestID,
-            'FamilyID' => $familyID,
-            'ServentID' => $serventID,
-            'FirstPaymentDate' => $paymentDateTime->format('Y-m-d H:i:s'),
-            'OriginalPrice' => $originalPrice,
-            'DiscountAmount' => $discountAmount,
-            'FinalRequiredAmount' => $finalRequiredAmount,
-            'SpecialCaseType' => $specialCaseType,
-            'SpecialCaseNote' => $specialCaseNote,
-            'HasPersonSpecialCase' => $hasPersonSpecialCase,
-           'LockedPrice' => $finalRequiredAmount,
-           'IsRefunded' => 0,
-'RefundDate' => null,
-            'InstallmentsNumber' => $installmentsNumber,
-            'AmountPaid' => $firstPaymentAmount,
-            'RemainingAmount' => max(0, $finalRequiredAmount - $firstPaymentAmount),
-            'ShirtSize' => $request->shirt_size,
-            'Notes' => $request->notes,
-        ]);
-
-        $paymentID = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
-            'SeasonEventParticipantFinanceID' => $bookingID,
-            'ServentID' => $serventID,
-            'PaymentDate' => $paymentDateTime,
-            'Amount' => $firstPaymentAmount,
-            'InstallmentNumber' => 1,
-            'PaymentType' => 'PAYMENT',
-            'Notes' => 'أول دفعة',
-        ]);
-
-        $receiptID = DB::table('SeasonEventParticipantFinanceReceipt')->insertGetId([
-            'PaymentID' => $paymentID,
-            'ReceiptNumber' => 'TEMP',
-            'IssuedAt' => now(),
-            'IssuedByServentID' => $serventID,
-        ]);
-
-        DB::table('SeasonEventParticipantFinanceReceipt')
-            ->where('ReceiptID', $receiptID)
-            ->update([
-                'ReceiptNumber' => 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID,
-            ]);
-
-        DB::commit();
-
-        return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-            ->with('success', 'تم إنشاء الحجز بنجاح.');
-    } catch (Exception $e) {
-        DB::rollBack();
-
-        return redirect()->back()->withErrors([
-            'general' => 'حدث خطأ أثناء إنشاء الحجز.'
-        ])->withInput();
-    }
+    return redirect()->route('eventBookingFinance.printReceipt', $result['payment_id'])
+        ->with('success', 'تم إنشاء الحجز بنجاح.');
 }
 
 
@@ -1134,46 +974,22 @@ public function printReceipt($paymentID)
 
     private function getSeasonEventFullInfo($seasonEventID)
     {
-        return DB::table('SeasonEvent as se')
-            ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
-            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
-            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
-            ->where('se.SeasonEventID', $seasonEventID)
-            ->select(
-                'se.SeasonEventID',
-                'se.EventID',
-                's.SeasonName',
-                's.SeasonYear',
-                'e.EventName',
-                'e.EventStartDate',
-                'e.EventEndDate',
-                'et.EventTypeName'
-            )
-            ->first();
+        return $this->bookings->getEventInfo((int) $seasonEventID);
     }
 
     private function isEligibleByQetaa($seasonEventID, $personID)
     {
-        $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
-        if (!$event) {
-            return false;
-        }
-
-        return DB::table('EventQetaa as eq')
-            ->join('PersonQetaa as pq', 'eq.QetaaID', '=', 'pq.QetaaID')
-            ->where('eq.EventID', $event->EventID)
-            ->where('pq.PersonID', $personID)
-            ->exists();
+        return $this->bookings->isEligibleByQetaa((int) $seasonEventID, (int) $personID);
     }
 
     private function isBlacklisted($personID)
     {
-        return DB::table('PersonBlackList')->where('PersonID', $personID)->exists();
+        return $this->bookings->isBlacklisted((int) $personID);
     }
 
     private function isSpecialCase($personID)
     {
-        return DB::table('PersonSpecialCase')->where('PersonID', $personID)->exists();
+        return $this->bookings->isSpecialCase((int) $personID);
     }
 
 private function getBookingDetails($bookingID)

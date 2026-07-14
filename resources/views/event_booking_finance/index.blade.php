@@ -295,7 +295,7 @@
         </details>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-            <x-data-table title="قائمة الحجوزات" :data="$bookings" :columns="[
+            <x-data-table title="قائمة الحجوزات" :data="$bookings->items()" :columns="[
                 [
                     'key' => 'BookingCode',
                     'label' => 'الكود',
@@ -428,7 +428,10 @@
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
                 ],
             ]" :searchable="true"
-                :sortable="true" :pagination="true" :per-page="10" />
+                :sortable="true" :pagination="false" :per-page="25" />
+            <div class="mt-4">
+                {{ $bookings->links() }}
+            </div>
         </div>
     </div>
 @endsection

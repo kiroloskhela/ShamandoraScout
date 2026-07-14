@@ -3,7 +3,16 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons" title="إدارة المستخدمين " :add-button="[
+        <form method="GET" action="{{ url()->current() }}" class="mb-4 flex flex-wrap gap-2 items-end">
+            <div class="flex-1 min-w-[220px]">
+                <label class="block text-sm text-gray-600 mb-1">بحث</label>
+                <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="اسم / كود / هاتف / قطاع"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+            </div>
+            <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">تصفية</button>
+            <a href="{{ url()->current() }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">إعادة تعيين</a>
+        </form>
+        <x-data-table :data="$persons->items()" title="إدارة المستخدمين " :add-button="[
             'label' => 'إضافة  مستخدم',
             'route' => route('person.create'),
             'cssClass' =>
@@ -72,6 +81,9 @@
                     'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200',
             ],
         ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            :searchable="false" :sortable="false" :pagination="false" :per-page="25" />
+        <div class="mt-4">
+            {{ $persons->links() }}
+        </div>
     </div>
 @endsection

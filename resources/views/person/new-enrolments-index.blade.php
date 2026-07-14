@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons" title="إدارة المستخدمين " tableId="NewEnrolmentTable" :columns="[
+        <x-data-table :data="$persons->items()" title="إدارة المستخدمين " tableId="NewEnrolmentTable" :columns="[
             [
                 'key' => 'PersonID',
                 'label' => 'الطلب',
@@ -101,6 +101,9 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200',
                 ],
-            ]" :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            ]" :searchable="true" :sortable="true" :pagination="false" :per-page="25" />
+        <div class="mt-4">
+            {{ $persons->links() }}
+        </div>
     </div>
 @endsection

@@ -345,10 +345,10 @@ class QetaaTreeController extends Controller
      */
     public function searchPersons(Request $request)
     {
-        $q = trim($request->query('q', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request, ['q', 'search'], 2);
         $groupId = (int) $request->query('group_id', 0);
 
-        if (strlen($q) < 2 || !$groupId) {
+        if ($term === null || !$groupId) {
             return response()->json([]);
         }
 
@@ -357,19 +357,16 @@ class QetaaTreeController extends Controller
             return response()->json([]);
         }
 
+        $fields = \App\Support\LikeSearch::personIdentityFields('pi');
+
         $results = DB::table('PersonInformation as pi')
             ->join('PersonQetaa as pq', 'pq.PersonID', '=', 'pi.PersonID')
             ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
             ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
             ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
             ->where('pq.QetaaID', $qetaaId)
-            ->where(function ($query) use ($q) {
-                $query->where(DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)"), 'LIKE', "%{$q}%")
-                      ->orWhere('pi.FirstName',      'LIKE', "%{$q}%")
-                      ->orWhere('pi.SecondName',     'LIKE', "%{$q}%")
-                      ->orWhere('pi.ThirdName',      'LIKE', "%{$q}%")
-                      ->orWhere('pi.FourthName',     'LIKE', "%{$q}%")
-                      ->orWhere('pi.ShamandoraCode', 'LIKE', "%{$q}%");
+            ->where(function ($query) use ($term, $fields) {
+                \App\Support\LikeSearch::applyOr($query, $term, $fields['columns'], $fields['raw']);
             })
             ->select(
                 'pi.PersonID',

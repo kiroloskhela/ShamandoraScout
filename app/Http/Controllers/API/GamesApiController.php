@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class GamesApiController extends Controller
@@ -13,40 +12,16 @@ class GamesApiController extends Controller
     |--------------------------------------------------------------------------
     | Helpers
     |--------------------------------------------------------------------------
+    |
+    | Games write endpoints are available to any authenticated Sanctum user
+    | (any role). Route group already enforces auth:sanctum + token.expiry.
     */
-
-    private function authUser()
-    {
-        return Auth::user();
-    }
-
-    private function hasAnyRole(array $roles): bool
-    {
-        $user = $this->authUser();
-
-        if (!$user) {
-            return false;
-        }
-
-        return $user->role()->whereIn('RoleName', $roles)->exists();
-    }
-
-  
 
     private function findGame(int $id)
     {
         return DB::table('Games')
             ->where('GameID', $id)
             ->first();
-    }
-
-    private function nextGameId(): int
-    {
-        $lastGame = DB::table('Games')
-            ->orderByDesc('GameID')
-            ->first();
-
-        return $lastGame ? ((int) $lastGame->GameID + 1) : 1;
     }
 
     /*
@@ -60,7 +35,7 @@ class GamesApiController extends Controller
      */
     public function index(Request $request)
     {
-      
+        $this->authorize('games.view');
 
         $search = trim((string) $request->query('search', ''));
 
@@ -94,7 +69,7 @@ class GamesApiController extends Controller
      */
     public function show($id)
     {
-   
+        $this->authorize('games.view');
 
         $game = $this->findGame((int) $id);
 
@@ -116,7 +91,7 @@ class GamesApiController extends Controller
      */
     public function store(Request $request)
     {
-   
+        $this->authorize('games.create');
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -129,10 +104,8 @@ class GamesApiController extends Controller
             'reference_link' => 'nullable|string|max:1000',
         ]);
 
-        $gameId = $this->nextGameId();
-
-        DB::table('Games')->insert([
-            'GameID' => $gameId,
+        // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
+        $gameId = (int) DB::table('Games')->insertGetId([
             'Title' => $data['title'],
             'GameDescription' => $data['description'] ?? null,
             'Rules' => $data['rules'] ?? null,
@@ -141,7 +114,7 @@ class GamesApiController extends Controller
             'Target' => $data['target'] ?? null,
             'RequireCustody' => $data['require_custody'] ?? null,
             'ReferenceLink' => $data['reference_link'] ?? null,
-        ]);
+        ], 'GameID');
 
         $game = $this->findGame($gameId);
 
@@ -157,7 +130,8 @@ class GamesApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-     
+        $this->authorize('games.update');
+
         $game = $this->findGame((int) $id);
 
         if (!$game) {
@@ -205,7 +179,7 @@ class GamesApiController extends Controller
      */
     public function destroy($id)
     {
-  
+        $this->authorize('games.delete');
 
         $game = $this->findGame((int) $id);
 

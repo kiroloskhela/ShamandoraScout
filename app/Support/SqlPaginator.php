@@ -1,0 +1,40 @@
+<?php
+
+namespace App\Support;
+
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Server-side pagination for raw SQL SELECT lists.
+ */
+class SqlPaginator
+{
+    /**
+     * @param  list<mixed>  $bindings
+     */
+    public static function paginate(string $sql, array $bindings = [], int $perPage = 25): LengthAwarePaginator
+    {
+        $perPage = max(1, $perPage);
+
+        $countSql = 'SELECT COUNT(*) AS aggregate FROM (' . $sql . ') AS pagination_count_sub';
+        $total = (int) (DB::selectOne($countSql, $bindings)->aggregate ?? 0);
+
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $offset = max(0, ($page - 1) * $perPage);
+
+        $pageSql = $sql . ' LIMIT ? OFFSET ?';
+        $rows = DB::select($pageSql, array_merge($bindings, [$perPage, $offset]));
+
+        return new LengthAwarePaginator(
+            $rows,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => LengthAwarePaginator::resolveCurrentPath(),
+                'query' => request()->query(),
+            ]
+        );
+    }
+}

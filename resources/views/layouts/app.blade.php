@@ -49,7 +49,7 @@
     }
     </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -69,7 +69,6 @@
     </style>
 
     @stack('styles')
-    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
 <body class="bg-gray-50 ">
@@ -534,7 +533,7 @@
                         </div>
                     </div>
 
-                    {{-- ===================== Password Management (SuperAdmin) ===================== --}}
+                    {{-- ===================== Password Management + Audit (SuperAdmin) ===================== --}}
                     @if ($isSuperAdmin)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
@@ -552,6 +551,10 @@
                                 <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('audit-logs.index') }}">سجل التدقيق</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('whatsapp.status') }}">واتساب</a>
                                 </div>
                             </div>
                         </div>
