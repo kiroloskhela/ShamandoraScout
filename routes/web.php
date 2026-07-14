@@ -105,7 +105,7 @@ use App\Http\Controllers\ExportController;
 |--------------------------------------------------------------------------
 */
 Route::get('/login-auth', [LoginController::class, 'show'])->name('login-auth');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login');
 
 Route::view('/register', 'register');
 
@@ -114,6 +114,7 @@ Route::get('/forgot-password', function () {
 })->name('forgot-password.form');
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'handle'])
+    ->middleware('throttle:5,1')
     ->name('forgot-password.handle');
 
 
