@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use App\Policies\PersonPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        User::class => PersonPolicy::class,
     ];
 
     /**
@@ -21,6 +23,12 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+
+        // Games: no Eloquent model yet — Gate abilities for any authenticated user.
+        Gate::define('games.view', fn (?User $user) => $user !== null);
+        Gate::define('games.create', fn (?User $user) => $user !== null);
+        Gate::define('games.update', fn (?User $user) => $user !== null);
+        Gate::define('games.delete', fn (?User $user) => $user !== null);
     }
 }

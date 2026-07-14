@@ -35,7 +35,7 @@ class GamesApiController extends Controller
      */
     public function index(Request $request)
     {
-      
+        $this->authorize('games.view');
 
         $search = trim((string) $request->query('search', ''));
 
@@ -69,7 +69,7 @@ class GamesApiController extends Controller
      */
     public function show($id)
     {
-   
+        $this->authorize('games.view');
 
         $game = $this->findGame((int) $id);
 
@@ -91,6 +91,8 @@ class GamesApiController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('games.create');
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -128,6 +130,8 @@ class GamesApiController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->authorize('games.update');
+
         $game = $this->findGame((int) $id);
 
         if (!$game) {
@@ -175,6 +179,8 @@ class GamesApiController extends Controller
      */
     public function destroy($id)
     {
+        $this->authorize('games.delete');
+
         $game = $this->findGame((int) $id);
 
         if (!$game) {

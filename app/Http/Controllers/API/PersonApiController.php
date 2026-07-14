@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Domain\Person\AuthenticatedPersonId;
 use App\Domain\Person\PersonApiQueryService;
+use App\Models\User;
 
 class PersonApiController extends Controller
 {
@@ -162,6 +163,13 @@ public function showPersons(Request $request, PersonApiQueryService $query)
     // GET /api/person/{id}
     public function ShowProfile(Request $request, $id)
     {
+        $authUser = $request->user();
+        if (!$authUser instanceof User) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $this->authorize('view', $authUser);
+
         $id = AuthenticatedPersonId::from($request);
 
         $person = DB::table('PersonInformation')
@@ -263,6 +271,13 @@ public function showPersons(Request $request, PersonApiQueryService $query)
 
 public function ShowCalendar(Request $request, $id)
 {
+    $authUser = $request->user();
+    if (!$authUser instanceof User) {
+        return response()->json(['message' => 'Unauthenticated.'], 401);
+    }
+
+    $this->authorize('view', $authUser);
+
     $id = AuthenticatedPersonId::from($request);
 
     $events = DB::select("
