@@ -46,13 +46,12 @@
 
 ### FLAGS still needing human confirmation
 
-1. **Games manage roles** assumed `SuperAdmin|AdminQetaa` — confirm if more roles needed.
-2. **DB unique migrations** require `php artisan scout:audit-identity-duplicates` clean on each env before migrate.
-3. **Admin password WhatsApp** no longer includes plaintext; share out-of-band (forgot-password email still carries a temp password — no reset-link route yet).
-4. **Liveform dual-path**: `NewEnrolmentIdentity` still falls back to locked `MAX+1` until Package A is confirmed live everywhere; then simplify.
+1. ~~Games manage roles~~ — resolved: any authenticated Sanctum user (any role).
+2. **DB unique migrations** — run `php artisan scout:audit-identity-duplicates` before Package A uniques; Package C now collapses PersonGroup/GroupQetaa/PersonQetaa/PersonSanaMarhala dupes before UNIQUE/PK.
+3. ~~Forgot-password plaintext~~ — resolved: reset-link flow (`PasswordResetLinkService` + Brevo link email; WhatsApp already includes same URL for later primary channel).
+4. ~~Liveform MAX+1 fallback~~ — resolved: Package A surrogate `id` required; clear RuntimeException if missing.
 5. **Waiting-list → NewUsers migrate** may leave `PersonID != id` (keeps business PersonID for question FKs).
 6. **CodeRabbit** leftovers on open task PRs before any `testing` → `main` merge.
-7. **Ops**: stop any live `webhook.js` process on VPS if still running.
 
 ### Not merged to `main`
 

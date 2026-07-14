@@ -109,13 +109,19 @@ Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5
 
 Route::view('/register', 'register');
 
-Route::get('/forgot-password', function () {
-    return view('forgot-password.form');
-})->name('forgot-password.form');
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])
+    ->name('forgot-password.form');
 
 Route::post('/forgot-password', [ForgotPasswordController::class, 'handle'])
     ->middleware('throttle:5,1')
     ->name('forgot-password.handle');
+
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+
+Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
+    ->middleware('throttle:5,1')
+    ->name('password.reset.submit');
 
 
 

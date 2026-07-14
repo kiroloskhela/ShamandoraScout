@@ -27,16 +27,19 @@ return new class extends Migration
             $this->addIndexIfMissing('PersonGroup', 'idx_persongroup_groupid', 'GroupID');
             $this->addIndexIfMissing('PersonGroup', 'idx_persongroup_grouproleid', 'GroupRoleID');
             if (!$this->indexExists('PersonGroup', 'uq_persongroup_person_group_role')) {
+                $this->collapsePersonGroupDuplicates();
                 DB::statement('ALTER TABLE `PersonGroup` ADD UNIQUE INDEX `uq_persongroup_person_group_role` (`PersonID`, `GroupID`, `GroupRoleID`)');
             }
         }
 
         if (Schema::hasTable('GroupQetaa') && !$this->indexExists('GroupQetaa', 'uq_groupqetaa_group_qetaa')) {
+            $this->collapseGroupQetaaDuplicates();
             DB::statement('ALTER TABLE `GroupQetaa` ADD UNIQUE INDEX `uq_groupqetaa_group_qetaa` (`GroupID`, `QetaaID`)');
         }
 
         if (Schema::hasTable('PersonQetaa')) {
             if (!$this->hasPrimaryKey('PersonQetaa')) {
+                $this->collapseCompositeDuplicates('PersonQetaa', ['PersonID', 'QetaaID']);
                 DB::statement('ALTER TABLE `PersonQetaa` ADD PRIMARY KEY (`PersonID`, `QetaaID`)');
             }
             $this->addIndexIfMissing('PersonQetaa', 'idx_personqetaa_qetaaid', 'QetaaID');
@@ -44,6 +47,7 @@ return new class extends Migration
 
         if (Schema::hasTable('PersonSanaMarhala')) {
             if (!$this->hasPrimaryKey('PersonSanaMarhala')) {
+                $this->collapseCompositeDuplicates('PersonSanaMarhala', ['PersonID', 'SanaMarhalaID']);
                 DB::statement('ALTER TABLE `PersonSanaMarhala` ADD PRIMARY KEY (`PersonID`, `SanaMarhalaID`)');
             }
             $this->addIndexIfMissing('PersonSanaMarhala', 'idx_personsanamarhala_smid', 'SanaMarhalaID');
@@ -53,6 +57,76 @@ return new class extends Migration
     public function down(): void
     {
         // Forward-preferred.
+    }
+
+    /**
+     * Keep the lowest PersonGroupRoleID per (PersonID, GroupID, GroupRoleID).
+     */
+    private function collapsePersonGroupDuplicates(): void
+    {
+        DB::statement('
+            DELETE t1 FROM PersonGroup t1
+            INNER JOIN PersonGroup t2
+              ON t1.PersonID = t2.PersonID
+             AND t1.GroupID = t2.GroupID
+             AND t1.GroupRoleID = t2.GroupRoleID
+             AND t1.PersonGroupRoleID > t2.PersonGroupRoleID
+        ');
+    }
+
+    private function collapseGroupQetaaDuplicates(): void
+    {
+        // GroupQetaa has no surrogate PK in schema.sql — delete later exact dupes
+        // via a temp-table approach that keeps one row per (GroupID, QetaaID).
+        $dupes = DB::table('GroupQetaa')
+            ->select('GroupID', 'QetaaID')
+            ->groupBy('GroupID', 'QetaaID')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+
+        foreach ($dupes as $group) {
+            $keep = DB::table('GroupQetaa')
+                ->where('GroupID', $group->GroupID)
+                ->where('QetaaID', $group->QetaaID)
+                ->first();
+
+            DB::table('GroupQetaa')
+                ->where('GroupID', $group->GroupID)
+                ->where('QetaaID', $group->QetaaID)
+                ->delete();
+
+            DB::table('GroupQetaa')->insert([
+                'GroupID' => $keep->GroupID,
+                'QetaaID' => $keep->QetaaID,
+            ]);
+        }
+    }
+
+    /**
+     * For tables with no single-row identity beyond the composite key columns,
+     * collapse duplicate groups by deleting all and re-inserting one row.
+     *
+     * @param  list<string>  $columns
+     */
+    private function collapseCompositeDuplicates(string $table, array $columns): void
+    {
+        $select = implode(', ', array_map(fn ($c) => "`{$c}`", $columns));
+        $groups = DB::table($table)
+            ->select($columns)
+            ->groupBy($columns)
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+
+        foreach ($groups as $group) {
+            $query = DB::table($table);
+            $insert = [];
+            foreach ($columns as $column) {
+                $query->where($column, $group->{$column});
+                $insert[$column] = $group->{$column};
+            }
+            $query->delete();
+            DB::table($table)->insert($insert);
+        }
     }
 
     private function isMySql(): bool

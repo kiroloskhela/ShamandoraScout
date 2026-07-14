@@ -3,34 +3,46 @@
 namespace Tests\Unit;
 
 use App\Support\NewEnrolmentIdentity;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use RuntimeException;
+use Tests\TestCase;
 
 /**
- * Covers the pure legacy-fallback PersonID logic used by
- * PersonNewController::allocateNewEnrolmentRecord() when the Package A
- * surrogate `id` column isn't present yet (see NewEnrolmentIdentity).
- *
- * hasAutoIncrementSurrogateId() itself needs a real DB connection
- * (Schema/information_schema), so it's intentionally left to feature-level
- * coverage against a real schema rather than unit tests here.
+ * Package A surrogate-id guard used by liveform enrolment inserts.
  */
 class NewEnrolmentIdentityTest extends TestCase
 {
-    public function test_starts_at_one_when_table_is_empty(): void
+    public function test_throws_when_surrogate_id_column_is_missing(): void
     {
-        $this->assertSame(1, NewEnrolmentIdentity::nextLegacyPersonId(null));
+        Schema::dropIfExists('NewUsersInformation_test_guard');
+        Schema::create('NewUsersInformation_test_guard', function (Blueprint $table) {
+            $table->integer('PersonID');
+        });
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('missing Package A surrogate column');
+
+        try {
+            NewEnrolmentIdentity::assertSurrogateAutoIncrementId('NewUsersInformation_test_guard');
+        } finally {
+            Schema::dropIfExists('NewUsersInformation_test_guard');
+        }
     }
 
-    public function test_increments_the_current_max(): void
+    public function test_passes_when_id_column_exists_on_sqlite(): void
     {
-        $this->assertSame(2, NewEnrolmentIdentity::nextLegacyPersonId(1));
-        $this->assertSame(1689, NewEnrolmentIdentity::nextLegacyPersonId(1688));
-    }
+        Schema::dropIfExists('NewUsersInformation_test_guard');
+        Schema::create('NewUsersInformation_test_guard', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('PersonID');
+        });
 
-    public function test_handles_a_max_of_zero(): void
-    {
-        // 0 is a legitimate (if unusual) "current max" and must not be
-        // confused with the "table is empty" (null) case.
-        $this->assertSame(1, NewEnrolmentIdentity::nextLegacyPersonId(0));
+        try {
+            NewEnrolmentIdentity::assertSurrogateAutoIncrementId('NewUsersInformation_test_guard');
+            $this->assertTrue(true);
+        } finally {
+            Schema::dropIfExists('NewUsersInformation_test_guard');
+        }
     }
 }

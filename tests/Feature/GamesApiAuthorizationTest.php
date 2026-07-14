@@ -9,12 +9,9 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * These legacy tables (Games/Roles/PersonRole/PersonInformation) are not
- * managed by Laravel migrations in this app (see schema.sql), so the test
- * creates a minimal in-memory sqlite version of each just for this suite.
- *
- * Avoid RefreshDatabase: Package A+ migrations use MySQL information_schema
- * and are not sqlite-safe.
+ * Games write endpoints are open to any authenticated Sanctum user (any role).
+ * These legacy tables are not managed by Laravel migrations, so the test
+ * builds a minimal sqlite schema for this suite only.
  */
 class GamesApiAuthorizationTest extends TestCase
 {
@@ -101,11 +98,6 @@ class GamesApiAuthorizationTest extends TestCase
         return $user;
     }
 
-    /**
-     * Creates a user with the given roles and returns the Authorization
-     * header for a real Sanctum token, since the API also runs a
-     * `token.expiry` middleware that inspects the raw bearer token.
-     */
     private function authHeadersForRoles(array $roleNames): array
     {
         $user = $this->createUserWithRoles($roleNames);
@@ -122,21 +114,19 @@ class GamesApiAuthorizationTest extends TestCase
         ]);
     }
 
-    public function test_store_is_forbidden_for_user_without_required_role(): void
+    public function test_unauthenticated_store_is_rejected(): void
     {
-        $headers = $this->authHeadersForRoles(['Servant']);
-
-        $response = $this->withHeaders($headers)->postJson('/api/games', [
+        $response = $this->postJson('/api/games', [
             'title' => 'New Game',
         ]);
 
-        $response->assertStatus(403);
+        $response->assertStatus(401);
         $this->assertDatabaseCount('Games', 0);
     }
 
-    public function test_store_is_allowed_for_super_admin(): void
+    public function test_store_is_allowed_for_any_authenticated_role(): void
     {
-        $headers = $this->authHeadersForRoles(['SuperAdmin']);
+        $headers = $this->authHeadersForRoles(['Servant']);
 
         $response = $this->withHeaders($headers)->postJson('/api/games', [
             'title' => 'New Game',
@@ -147,37 +137,10 @@ class GamesApiAuthorizationTest extends TestCase
         $this->assertDatabaseCount('Games', 1);
     }
 
-    public function test_store_is_allowed_for_admin_qetaa(): void
-    {
-        $headers = $this->authHeadersForRoles(['AdminQetaa']);
-
-        $response = $this->withHeaders($headers)->postJson('/api/games', [
-            'title' => 'New Game',
-        ]);
-
-        $response->assertStatus(201);
-    }
-
-    public function test_update_is_forbidden_for_user_without_required_role(): void
+    public function test_update_is_allowed_for_any_authenticated_role(): void
     {
         $gameId = $this->seedGame();
-        $headers = $this->authHeadersForRoles(['Servant']);
-
-        $response = $this->withHeaders($headers)->putJson("/api/games/{$gameId}", [
-            'title' => 'Hacked Title',
-        ]);
-
-        $response->assertStatus(403);
-        $this->assertDatabaseHas('Games', [
-            'GameID' => $gameId,
-            'Title' => 'Original Title',
-        ]);
-    }
-
-    public function test_update_is_allowed_for_authorized_role(): void
-    {
-        $gameId = $this->seedGame();
-        $headers = $this->authHeadersForRoles(['SuperAdmin']);
+        $headers = $this->authHeadersForRoles(['Finance']);
 
         $response = $this->withHeaders($headers)->putJson("/api/games/{$gameId}", [
             'title' => 'Updated Title',
@@ -190,21 +153,10 @@ class GamesApiAuthorizationTest extends TestCase
         ]);
     }
 
-    public function test_destroy_is_forbidden_for_user_without_required_role(): void
+    public function test_destroy_is_allowed_for_any_authenticated_role(): void
     {
         $gameId = $this->seedGame();
-        $headers = $this->authHeadersForRoles(['Servant']);
-
-        $response = $this->withHeaders($headers)->deleteJson("/api/games/{$gameId}");
-
-        $response->assertStatus(403);
-        $this->assertDatabaseHas('Games', ['GameID' => $gameId]);
-    }
-
-    public function test_destroy_is_allowed_for_authorized_role(): void
-    {
-        $gameId = $this->seedGame();
-        $headers = $this->authHeadersForRoles(['AdminQetaa']);
+        $headers = $this->authHeadersForRoles(['Inventory']);
 
         $response = $this->withHeaders($headers)->deleteJson("/api/games/{$gameId}");
 

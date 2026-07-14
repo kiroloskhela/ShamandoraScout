@@ -1166,47 +1166,26 @@ private function finalizeTempLiveformFile(?string $path): ?string
  * Insert a new-enrolment row into $table (NewUsersInformation or
  * NewUsersInformationWaitinglist) and return the PersonID assigned to it.
  *
- * Prefers the Package A AUTO_INCREMENT surrogate `id` primary key when the
- * table already has it: the row is inserted via insertGetId(), and
- * PersonID/ShamandoraCode are then set to mirror the minted id. Falls back
- * to the legacy locked MAX(PersonID)+1 approach when Package A's migrations
- * haven't run in this environment yet (FLAG: keep this fallback until
- * Package A is confirmed live everywhere, then simplify).
+ * Requires Package A's AUTO_INCREMENT surrogate `id` (no MAX+1 fallback).
+ * PersonID and ShamandoraCode are set to mirror the minted id.
  */
 private function allocateNewEnrolmentRecord(string $table, array $data): int
 {
-    if (NewEnrolmentIdentity::hasAutoIncrementSurrogateId($table)) {
+    NewEnrolmentIdentity::assertSurrogateAutoIncrementId($table);
 
-        // PersonID has no default and can't be NULL; hold a throwaway
-        // placeholder for the instant between insert and the update below.
-        // PersonID has no default and can't be NULL; ShamandoraCode is
-        // varchar(10) — use a 10-char placeholder (not "TMP-…", which overflows).
-        $data['PersonID'] = 0;
-        $data['ShamandoraCode'] = bin2hex(random_bytes(5));
+    // PersonID has no default and can't be NULL; ShamandoraCode is
+    // varchar(10) — use a 10-char placeholder until the real SH- code is set.
+    $data['PersonID'] = 0;
+    $data['ShamandoraCode'] = bin2hex(random_bytes(5));
 
-        $id = DB::table($table)->insertGetId($data, 'id');
+    $id = DB::table($table)->insertGetId($data, 'id');
 
-        DB::table($table)->where('id', $id)->update([
-            'PersonID' => $id,
-            'ShamandoraCode' => ShamandoraCode::forPersonId($id),
-        ]);
+    DB::table($table)->where('id', $id)->update([
+        'PersonID' => $id,
+        'ShamandoraCode' => ShamandoraCode::forPersonId($id),
+    ]);
 
-        return $id;
-    }
-
-    $last = DB::table($table)
-        ->orderBy('PersonID', 'desc')
-        ->lockForUpdate()
-        ->first();
-
-    $thisPersonID = NewEnrolmentIdentity::nextLegacyPersonId($last ? (int) $last->PersonID : null);
-
-    $data['PersonID'] = $thisPersonID;
-    $data['ShamandoraCode'] = ShamandoraCode::forPersonId($thisPersonID);
-
-    DB::table($table)->insert($data);
-
-    return $thisPersonID;
+    return $id;
 }
 
         /**
