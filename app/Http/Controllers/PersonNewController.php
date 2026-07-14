@@ -19,6 +19,8 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Support\NewEnrolmentIdentity;
+use App\Support\ShamandoraCode;
 
 class PersonNewController extends Controller
 {
@@ -909,23 +911,6 @@ public function submitLiveformQuestions(Request $request)
 
         /*
         |--------------------------------------------------------------------------
-        | GENERATE IDS
-        |--------------------------------------------------------------------------
-        */
-
-        $last = DB::table('NewUsersInformation')
-            ->orderBy('PersonID', 'desc')
-            ->lockForUpdate()
-            ->first();
-
-        $thisPersonID = is_null($last)
-            ? 1
-            : ((int) $last->PersonID + 1);
-
-        $shamandoraCode = 'SH-' . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
-
-        /*
-        |--------------------------------------------------------------------------
         | PASSWORD
         |--------------------------------------------------------------------------
         */
@@ -963,8 +948,6 @@ public function submitLiveformQuestions(Request $request)
         */
 
         $personData = [
-            'PersonID' => $thisPersonID,
-            'ShamandoraCode' => $shamandoraCode,
             'FirstName' => $step2['first_name'],
             'SecondName' => $step2['second_name'],
             'ThirdName' => $step2['third_name'],
@@ -990,7 +973,7 @@ public function submitLiveformQuestions(Request $request)
             'SanaMarhalaID' => $step1['sana_marhala_id'],
             'SpiritualFatherName' => $step2['spiritual_father'],
             'SpiritualFatherChurchName' => $step2['spiritual_father_church'],
-            'Password' => $passString,
+            'Password' => \Illuminate\Support\Facades\Hash::make($passString),
             'PersonPersonalMobileNumber' => $step2['personal_phone_number'],
             'FatherMobileNumber' => $step2['father_phone_number'],
             'MotherMobileNumber' => $step2['mother_phone_number'],
@@ -1017,35 +1000,29 @@ public function submitLiveformQuestions(Request $request)
 
         /*
         |--------------------------------------------------------------------------
-        | NORMAL OR WAITING LIST
+        | GENERATE ID + INSERT (NORMAL OR WAITING LIST)
         |--------------------------------------------------------------------------
+        |
+        | PersonID used to be computed by hand (MAX(PersonID)+1 under a row
+        | lock). allocateNewEnrolmentRecord() prefers the Package A
+        | AUTO_INCREMENT surrogate `id` when it's present on the target
+        | table (inserting via insertGetId and mirroring PersonID to it),
+        | and only falls back to the legacy locked MAX+1 behaviour for
+        | environments that haven't run the Package A migrations yet.
         */
 
-        if ($isWaitingList) {
+        $targetTable = $isWaitingList ? 'NewUsersInformationWaitinglist' : 'NewUsersInformation';
+        $questionsTable = $isWaitingList ? 'NewUsersPersonEntryQuestionsWaitinglist' : 'NewUsersPersonEntryQuestions';
 
-            DB::table('NewUsersInformationWaitinglist')->insert($personData);
+        $thisPersonID = $this->allocateNewEnrolmentRecord($targetTable, $personData);
 
-            foreach ($questions as $question) {
+        foreach ($questions as $question) {
 
-                DB::table('NewUsersPersonEntryQuestionsWaitinglist')->insert([
-                    'PersonID' => $thisPersonID,
-                    'QuestionID' => $question->QuestionID,
-                    'Answer' => $request->input($question->QuestionID),
-                ]);
-            }
-
-        } else {
-
-            DB::table('NewUsersInformation')->insert($personData);
-
-            foreach ($questions as $question) {
-
-                DB::table('NewUsersPersonEntryQuestions')->insert([
-                    'PersonID' => $thisPersonID,
-                    'QuestionID' => $question->QuestionID,
-                    'Answer' => $request->input($question->QuestionID),
-                ]);
-            }
+            DB::table($questionsTable)->insert([
+                'PersonID' => $thisPersonID,
+                'QuestionID' => $question->QuestionID,
+                'Answer' => $request->input($question->QuestionID),
+            ]);
         }
 
         DB::commit();
@@ -1184,6 +1161,52 @@ private function finalizeTempLiveformFile(?string $path): ?string
 
     return $target;
 }
+
+/**
+ * Insert a new-enrolment row into $table (NewUsersInformation or
+ * NewUsersInformationWaitinglist) and return the PersonID assigned to it.
+ *
+ * Prefers the Package A AUTO_INCREMENT surrogate `id` primary key when the
+ * table already has it: the row is inserted via insertGetId(), and
+ * PersonID/ShamandoraCode are then set to mirror the minted id. Falls back
+ * to the legacy locked MAX(PersonID)+1 approach when Package A's migrations
+ * haven't run in this environment yet (FLAG: keep this fallback until
+ * Package A is confirmed live everywhere, then simplify).
+ */
+private function allocateNewEnrolmentRecord(string $table, array $data): int
+{
+    if (NewEnrolmentIdentity::hasAutoIncrementSurrogateId($table)) {
+
+        // PersonID has no default and can't be NULL; hold a throwaway
+        // placeholder for the instant between insert and the update below.
+        $data['PersonID'] = 0;
+        $data['ShamandoraCode'] = 'TMP-' . bin2hex(random_bytes(4));
+
+        $id = DB::table($table)->insertGetId($data, 'id');
+
+        DB::table($table)->where('id', $id)->update([
+            'PersonID' => $id,
+            'ShamandoraCode' => ShamandoraCode::forPersonId($id),
+        ]);
+
+        return $id;
+    }
+
+    $last = DB::table($table)
+        ->orderBy('PersonID', 'desc')
+        ->lockForUpdate()
+        ->first();
+
+    $thisPersonID = NewEnrolmentIdentity::nextLegacyPersonId($last ? (int) $last->PersonID : null);
+
+    $data['PersonID'] = $thisPersonID;
+    $data['ShamandoraCode'] = ShamandoraCode::forPersonId($thisPersonID);
+
+    DB::table($table)->insert($data);
+
+    return $thisPersonID;
+}
+
         /**
             * Display the specified resource.
             *
