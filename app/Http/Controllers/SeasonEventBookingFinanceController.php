@@ -8,9 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Domain\EventFinance\SeasonEventBookingService;
 
 class SeasonEventBookingFinanceController extends Controller
 {
+    public function __construct(
+        private readonly SeasonEventBookingService $bookings,
+    ) {
+    }
+
     public function selector()
     {
         $seasons = DB::table('Season')->orderBy('SeasonYear', 'desc')->get();
@@ -476,10 +482,10 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
         return response()->json($persons);
     }
 
-public function store(Request $request, $seasonEventID, \App\Domain\EventFinance\SeasonEventBookingService $bookings)
+public function store(Request $request, $seasonEventID)
 {
-    $event = $bookings->getEventInfo((int) $seasonEventID);
-    $plan = $bookings->getFinancePlan((int) $seasonEventID);
+    $event = $this->bookings->getEventInfo((int) $seasonEventID);
+    $plan = $this->bookings->getFinancePlan((int) $seasonEventID);
 
     if (!$event || !$plan) {
         abort(404);
@@ -522,7 +528,7 @@ public function store(Request $request, $seasonEventID, \App\Domain\EventFinance
         ])->withInput();
     }
 
-    $result = $bookings->createBooking(
+    $result = $this->bookings->createBooking(
         (int) $seasonEventID,
         $request->all(),
         (int) Auth::user()->PersonID
@@ -968,26 +974,22 @@ public function printReceipt($paymentID)
 
     private function getSeasonEventFullInfo($seasonEventID)
     {
-        return app(\App\Domain\EventFinance\SeasonEventBookingService::class)
-            ->getEventInfo((int) $seasonEventID);
+        return $this->bookings->getEventInfo((int) $seasonEventID);
     }
 
     private function isEligibleByQetaa($seasonEventID, $personID)
     {
-        return app(\App\Domain\EventFinance\SeasonEventBookingService::class)
-            ->isEligibleByQetaa((int) $seasonEventID, (int) $personID);
+        return $this->bookings->isEligibleByQetaa((int) $seasonEventID, (int) $personID);
     }
 
     private function isBlacklisted($personID)
     {
-        return app(\App\Domain\EventFinance\SeasonEventBookingService::class)
-            ->isBlacklisted((int) $personID);
+        return $this->bookings->isBlacklisted((int) $personID);
     }
 
     private function isSpecialCase($personID)
     {
-        return app(\App\Domain\EventFinance\SeasonEventBookingService::class)
-            ->isSpecialCase((int) $personID);
+        return $this->bookings->isSpecialCase((int) $personID);
     }
 
 private function getBookingDetails($bookingID)
