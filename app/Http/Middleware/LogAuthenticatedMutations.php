@@ -43,6 +43,10 @@ class LogAuthenticatedMutations
         // Defer write so we never break the user response on audit failure.
         app()->terminating(function () use ($user, $method, $path, $routeName, $actionTarget, $request, $payload, $status) {
             try {
+                if (!\Illuminate\Support\Facades\Schema::hasTable('audit_logs')) {
+                    return;
+                }
+
                 AuditLog::create([
                     'person_id' => $user->PersonID ?? $user->getAuthIdentifier() ?? null,
                     'actor_name' => $this->actorName($user),
