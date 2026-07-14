@@ -168,7 +168,7 @@
                             <div class="card shadow mb-4">
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable"
+                                        <table class="table table-bordered" id="serverPaginatedTable"
                                             style="table-layout: auto; border-collapse: collapse; width: 100%;"
                                             cellspacing="0">
                                             <thead>
@@ -686,14 +686,9 @@
             <script src="../../../vendor/jquery-easing/jquery.easing.min.js"></script>
 
             <!-- Custom scripts for all pages-->
-            <script src="../../../js/sb-admin-2.min.js"></script>
+            <script src="{{ asset('js/sb-admin-2.min.js') }}"></script>
 
-            <!-- Page level plugins -->
-            <script src="../../../vendor/datatables/jquery.dataTables.min.js"></script>
-            <script src="../../../vendor/datatables/dataTables.bootstrap4.min.js"></script>
-
-            <!-- Page level custom scripts -->
-            <script src="../../../js/demo/datatables-demo.js"></script>
+            {{-- Server-side pagination via $persons->links(); skip DataTables to avoid double paging. --}}
 
             <script>
                 function EditButtonClicked(itemNumber) {

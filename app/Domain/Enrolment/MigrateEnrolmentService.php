@@ -11,22 +11,18 @@ class MigrateEnrolmentService
 {
     public function migrateApprovedForQetaa(int $qetaaId): void
     {
-        $personsBeforeMigration = DB::select("
-            SELECT  NewUsersInformation.*,
-                    GROUP_CONCAT(CONCAT(NewUsersPersonEntryQuestions.QuestionID, ':', NewUsersPersonEntryQuestions.Answer) SEPARATOR ', ') AS AnsweredQuestions
-            FROM    NewUsersInformation
-            LEFT JOIN NewUsersPersonEntryQuestions
-                   ON NewUsersInformation.PersonID = NewUsersPersonEntryQuestions.PersonID
-            WHERE   IsApproved = 1 AND NewUsersInformation.QetaaID = ?
-            GROUP BY NewUsersInformation.PersonID
-        ", [$qetaaId]);
+        $personIds = DB::table('NewUsersInformation')
+            ->where('IsApproved', 1)
+            ->where('QetaaID', $qetaaId)
+            ->orderBy('PersonID')
+            ->pluck('PersonID');
 
-        foreach ($personsBeforeMigration as $person) {
+        foreach ($personIds as $personId) {
             try {
-                $this->migrateOne($person);
+                $this->migrateOneById((int) $personId);
             } catch (Throwable $e) {
                 Log::error('New enrolment migration failed', [
-                    'new_user_person_id' => $person->PersonID ?? null,
+                    'new_user_person_id' => $personId,
                     'message' => $e->getMessage(),
                 ]);
                 throw $e;
@@ -34,21 +30,38 @@ class MigrateEnrolmentService
         }
     }
 
-    public function migrateOne(object $person): int
+    /**
+     * Migrate a single approved NewUsers row inside a transaction with row locks.
+     * Returns the new PersonInformation.PersonID, or 0 if the source row is gone.
+     */
+    public function migrateOneById(int $newUserPersonId): int
     {
-        $questionsAnswersPairs = $person->AnsweredQuestions ? explode(', ', $person->AnsweredQuestions) : [];
-
         $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
         $pass = [];
         $alphaLength = strlen($alphabet) - 1;
         for ($i = 0; $i < 8; $i++) {
-            $pass[] = $alphabet[rand(0, $alphaLength)];
+            $pass[] = $alphabet[random_int(0, $alphaLength)];
         }
         $passString = implode($pass);
 
-        return (int) DB::transaction(function () use ($person, $questionsAnswersPairs, $passString) {
+        return (int) DB::transaction(function () use ($newUserPersonId, $passString) {
+            $person = DB::table('NewUsersInformation')
+                ->where('PersonID', $newUserPersonId)
+                ->where('IsApproved', 1)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$person) {
+                return 0;
+            }
+
+            $questions = DB::table('NewUsersPersonEntryQuestions')
+                ->where('PersonID', $newUserPersonId)
+                ->lockForUpdate()
+                ->get(['QuestionID', 'Answer']);
+
             $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
-                'ShamandoraCode' => bin2hex(random_bytes(5)), // varchar(10) placeholder until real SH- code is set
+                'ShamandoraCode' => bin2hex(random_bytes(5)),
                 'FirstName' => $person->FirstName,
                 'SecondName' => $person->SecondName,
                 'ThirdName' => $person->ThirdName,
@@ -169,23 +182,16 @@ class MigrateEnrolmentService
                 ]);
             }
 
-            foreach ($questionsAnswersPairs as $pair) {
-                if (strpos($pair, ':') === false) {
-                    continue;
-                }
-                [$questionID, $answer] = explode(':', $pair, 2);
+            foreach ($questions as $question) {
                 DB::table('PersonEntryQuestions')->insert([
                     'PersonID' => $thisPersonID,
-                    'QuestionID' => $questionID,
-                    'Answer' => $answer,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $question->Answer,
                 ]);
-                DB::table('NewUsersPersonEntryQuestions')
-                    ->where('PersonID', $person->PersonID)
-                    ->where('QuestionID', $questionID)
-                    ->delete();
             }
 
-            DB::table('NewUsersInformation')->where('PersonID', $person->PersonID)->delete();
+            DB::table('NewUsersPersonEntryQuestions')->where('PersonID', $newUserPersonId)->delete();
+            DB::table('NewUsersInformation')->where('PersonID', $newUserPersonId)->delete();
 
             return $thisPersonID;
         });

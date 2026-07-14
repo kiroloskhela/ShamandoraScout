@@ -223,6 +223,7 @@ public function index(Request $request, $seasonEventID)
             's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName'
         )
         ->orderBy('PersonFullName')
+        ->orderBy('b.SeasonEventParticipantFinanceID')
         ->paginate(25)
         ->appends($request->query())
         ->through(function ($booking) {

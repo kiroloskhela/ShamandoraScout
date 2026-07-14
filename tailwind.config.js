@@ -9,7 +9,8 @@ export default {
   ],
   safelist: [
     {
-      pattern: /(bg|text|border|hover:bg|hover:text|focus:bg|focus:text|focus:border|disabled:border|disabled:bg|disabled:text|peer-focus:text)-(blue|emerald|green|red)-(50|100|200|300|400|500|600|700)/,
+      pattern: /(bg|text|border)-(blue|emerald|green|red)-(50|100|200|300|400|500|600|700)/,
+      variants: ['hover', 'focus', 'disabled', 'peer-focus'],
     },
   ],
   theme: {

@@ -152,14 +152,44 @@ class NewEnrolmentAdminController extends Controller
     return redirect()->back()->with('success', 'تمت الموافقة بنجاح');
 }
 
-        // public function approveAgainNewEnrolments($id)
-        // {
-        //     $approvedInt = 1;
-        //     DB::table('NewUsersInformation')->where('PersonID', $id)->update(['IsApproved' => $approvedInt]);
-        //     $qetaa_id = DB::table('NewUsersInformation')->where('PersonID', $id)->first()->QetaaID;
-        //     return redirect()->route('person.new-enrolments-index', $qetaa_id);
-        // }
+        public function approveAgainNewEnrolments($id)
+        {
+            DB::table('NewUsersInformation')
+                ->where('PersonID', $id)
+                ->update(['IsApproved' => 1]);
 
+            return redirect()->route('person.new-enrolments-index')
+                ->with('success', 'تمت إعادة الموافقة بنجاح');
+        }
+
+        public function countNewEnrolmentsMarahel()
+        {
+            $marahel = [];
+            $counts = [];
+            for ($i = 3; $i < 22; $i++) {
+                $counts[$i] = DB::table('NewUsersInformation')->where('SanaMarhalaID', $i)->count();
+            }
+
+            return view('person.new-enrolments-marahel-count', [
+                'marahel' => $marahel,
+                'counts' => $counts,
+            ]);
+        }
+
+        public function countNewEnrolmentsQetaat()
+        {
+            $counts = [];
+            $qetaat = [];
+            for ($i = 1; $i < 10; $i++) {
+                $counts[$i] = DB::table('NewUsersInformation')->where('QetaaID', $i)->count();
+                $qetaat[$i] = DB::table('Qetaa')->where('QetaaID', $i)->select('QetaaName')->get();
+            }
+
+            return view('person.new-enrolments-qetaat-count', [
+                'qetaat' => $qetaat,
+                'counts' => $counts,
+            ]);
+        }
 
         public function editNewEnrolments($id)
 {

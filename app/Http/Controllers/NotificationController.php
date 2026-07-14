@@ -136,7 +136,9 @@ public static function sendToRoles(array $roleNames, string $title, string $body
                 return false;
             }
 
-            SendFcmNotification::dispatch($tokens, $title, $body);
+            foreach (array_chunk($tokens, 500) as $chunk) {
+                SendFcmNotification::dispatch($chunk, $title, $body);
+            }
 
             return true;
 
@@ -169,7 +171,9 @@ public static function sendToRoles(array $roleNames, string $title, string $body
             return false;
         }
 
-        SendFcmNotification::dispatch($tokens, $title, $body);
+        foreach (array_chunk($tokens, 500) as $chunk) {
+            SendFcmNotification::dispatch($chunk, $title, $body);
+        }
 
         return true;
 

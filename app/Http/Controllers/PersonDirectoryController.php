@@ -15,9 +15,8 @@ class PersonDirectoryController extends Controller
 
        public function index(Request $request)
             {
-                // ✅ Get the user ID from the request
-                $userId = $request->query('id') ?? Auth::id();
-                Log::info("Request: " . $request);
+                // Scope directory data to the authenticated user only (no ?id= impersonation).
+                $userId = Auth::id();
                 Log::info("Fetching persons for user ID: " . $userId);
 
 
@@ -73,7 +72,23 @@ ORDER BY pi.ShamandoraCode ASC
 
 public function ShowPersons(Request $request)
 {
-
+    $bindings = [];
+    $searchSql = '';
+    $q = trim((string) $request->query('q', ''));
+    if ($q !== '') {
+        $like = '%' . $q . '%';
+        $searchSql = " WHERE (
+            pi.ShamandoraCode LIKE ?
+            OR pi.FirstName LIKE ?
+            OR pi.SecondName LIKE ?
+            OR pi.ThirdName LIKE ?
+            OR pi.FourthName LIKE ?
+            OR ppn.PersonPersonalMobileNumber LIKE ?
+            OR q.QetaaName LIKE ?
+            OR sm.SanaMarhalaName LIKE ?
+        )";
+        $bindings = array_fill(0, 8, $like);
+    }
 
     $sql = "
         SELECT DISTINCT
@@ -100,17 +115,17 @@ public function ShowPersons(Request $request)
         LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
         LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
         LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
- 
-        ORDER BY pi.ShamandoraCode ASC
+        {$searchSql}
+        ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
     ";
 
-    $persons = SqlPaginator::paginate($sql, [], 25)->through(function ($person) {
+    $persons = SqlPaginator::paginate($sql, $bindings, 25)->through(function ($person) {
         $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
         return $person;
     });
 
 
-    return view("person.person-showAllPersons", ['persons' => $persons]);
+    return view("person.person-showAllPersons", ['persons' => $persons, 'q' => $q]);
 }
 
 public function show($id)

@@ -15,6 +15,12 @@ class ForgotPasswordJobDispatchTest extends TestCase
     {
         parent::setUp();
 
+        // phpunit.xml forces sqlite :memory:. Never drop/recreate on MySQL — that
+        // would destroy shared schema for later tests in the same process.
+        if (DB::getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('ForgotPasswordJobDispatchTest requires sqlite in-memory.');
+        }
+
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('PersonPhoneNumbers');
         Schema::dropIfExists('PersonInformation');

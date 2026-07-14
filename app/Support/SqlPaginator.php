@@ -15,6 +15,8 @@ class SqlPaginator
      */
     public static function paginate(string $sql, array $bindings = [], int $perPage = 25): LengthAwarePaginator
     {
+        $perPage = max(1, $perPage);
+
         $countSql = 'SELECT COUNT(*) AS aggregate FROM (' . $sql . ') AS pagination_count_sub';
         $total = (int) (DB::selectOne($countSql, $bindings)->aggregate ?? 0);
 
