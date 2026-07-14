@@ -6,13 +6,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Support\SqlPaginator;
 
 class NewEnrolmentAdminController extends Controller
 {
 
         public function indexNewEnrolmentsAndMigrations()
         {        
-            $persons = DB::select("SELECT DISTINCT nui.PersonID, 
+            $sql = "SELECT DISTINCT nui.PersonID, 
                                                     nui.FirstName, 
                                                     nui.SecondName, 
                                                     nui.ThirdName, 
@@ -25,14 +26,15 @@ class NewEnrolmentAdminController extends Controller
                                                     IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions 
                                                 FROM NewUsersInformation nui 
                                                 LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
-                                                LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID;");
-            //return $questionsDistinctCodes;
+                                                LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
+                                                ORDER BY nui.PersonID ASC";
+            $persons = SqlPaginator::paginate($sql, [], 25);
             return view("person.new-enrolments-migrate-index", array('persons' => $persons));
         }
 
         public function indexNewEnrolments()
         {        
-            $persons = DB::select("SELECT DISTINCT nui.PersonID, 
+            $sql = "SELECT DISTINCT nui.PersonID, 
                                                     nui.FirstName, 
                                                     nui.SecondName, 
                                                     nui.ThirdName, 
@@ -53,14 +55,15 @@ class NewEnrolmentAdminController extends Controller
                                                     IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions 
                                                 FROM NewUsersInformation nui 
                                                 LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
-                                                LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID;");
-            //return $questionsDistinctCodes;
+                                                LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
+                                                ORDER BY nui.PersonID ASC";
+            $persons = SqlPaginator::paginate($sql, [], 25);
             return view("person.new-enrolments-index", array('persons' => $persons));
         }
 
         public function showNewEnrolmentsByQetaaID($id)
         {
-            $persons = DB::select("SELECT DISTINCT nui.PersonID, 
+            $sql = "SELECT DISTINCT nui.PersonID, 
                                         nui.FirstName, 
                                         nui.SecondName, 
                                         nui.ThirdName, 
@@ -74,8 +77,9 @@ class NewEnrolmentAdminController extends Controller
                                     FROM NewUsersInformation nui 
                                     LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
                                     LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
-                                    WHERE nui.QetaaID = ?", [$id]);
-            //return $persons;
+                                    WHERE nui.QetaaID = ?
+                                    ORDER BY nui.PersonID ASC";
+            $persons = SqlPaginator::paginate($sql, [$id], 25);
             return view("person.new-enrolments-index", array('persons' => $persons));
         }
 

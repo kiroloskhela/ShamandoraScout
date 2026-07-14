@@ -14,6 +14,7 @@ use App\Http\Controllers\stdClass;
 use Exception;
 use Session;
 use App\Domain\OrgTree\GroupTreeService;
+use App\Support\SqlPaginator;
 
 
 class GroupPersonController extends Controller
@@ -27,7 +28,7 @@ class GroupPersonController extends Controller
         {
 
           
-                $groupPersons = DB::select("
+                $sql = "
                                     SELECT PersonGroup.*, PersonInformation.PersonID, PersonInformation.ShamandoraCode, 
                                         CONCAT(PersonInformation.FirstName, ' ', 
                                         PersonInformation.SecondName, ' ', PersonInformation.ThirdName) AS PersonFullName,
@@ -38,7 +39,10 @@ class GroupPersonController extends Controller
                                     LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
                                     LEFT JOIN GroupRole ON GroupRole.GroupRoleID = PersonGroup.GroupRoleID
                                     LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                    ");
+                                    ORDER BY PersonInformation.ShamandoraCode ASC
+                                    ";
+
+                $groupPersons = SqlPaginator::paginate($sql, [], 25);
           
          
             

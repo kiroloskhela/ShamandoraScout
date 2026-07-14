@@ -3,7 +3,7 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons" title="إدارة المستخدمين " :add-button="[
+        <x-data-table :data="$persons->items()" title="إدارة المستخدمين " :add-button="[
             'label' => 'إضافة  مستخدم',
             'route' => route('person.create'),
             'cssClass' =>
@@ -72,6 +72,9 @@
                     'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200',
             ],
         ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            :searchable="true" :sortable="true" :pagination="false" :per-page="25" />
+        <div class="mt-4">
+            {{ $persons->links() }}
+        </div>
     </div>
 @endsection

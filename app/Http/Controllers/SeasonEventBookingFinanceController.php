@@ -223,8 +223,9 @@ public function index(Request $request, $seasonEventID)
             's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName'
         )
         ->orderBy('PersonFullName')
-        ->get()
-        ->map(function ($booking) {
+        ->paginate(25)
+        ->appends($request->query())
+        ->through(function ($booking) {
             if ($booking->SpecialCaseType === 'AKHOH_RAB' || (int) $booking->HasPersonSpecialCase === 1) {
                 $booking->BookingStatusText = 'أخوه رب';
             } elseif ($booking->SpecialCaseType === 'HAS_BROTHERS') {

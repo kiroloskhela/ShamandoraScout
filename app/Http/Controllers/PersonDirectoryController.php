@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Support\SqlPaginator;
 
 class PersonDirectoryController extends Controller
 {
@@ -20,10 +21,8 @@ class PersonDirectoryController extends Controller
                 Log::info("Fetching persons for user ID: " . $userId);
 
 
-                // ✅ Run the raw SQL with group filtering
-                $rawPersons = DB::select("
-
-
+                // ✅ Run the raw SQL with group filtering (server-side page)
+                $sql = "
     SELECT DISTINCT
     pi.PersonID,
     pi.ShamandoraCode,
@@ -59,12 +58,10 @@ WHERE q.QetaaID IN (
         WHERE pg3.PersonID = ?
     )
 )
-ORDER BY pi.ShamandoraCode ASC;
+ORDER BY pi.ShamandoraCode ASC
+";
 
-               ", [$userId]);
-
-                // ✅ Convert to collection and add full_name field
-                $persons = collect($rawPersons)->map(function ($person) {
+                $persons = SqlPaginator::paginate($sql, [$userId], 25)->through(function ($person) {
                     $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
                     return $person;
                 });
@@ -78,7 +75,7 @@ public function ShowPersons(Request $request)
 {
 
 
-    $rawPersons = DB::select("
+    $sql = "
         SELECT DISTINCT
             pi.PersonID,
             pi.ShamandoraCode,
@@ -105,10 +102,9 @@ public function ShowPersons(Request $request)
         LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
  
         ORDER BY pi.ShamandoraCode ASC
-    ");
+    ";
 
-    $persons = collect($rawPersons)->map(function ($person) {
- 
+    $persons = SqlPaginator::paginate($sql, [], 25)->through(function ($person) {
         $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
         return $person;
     });
