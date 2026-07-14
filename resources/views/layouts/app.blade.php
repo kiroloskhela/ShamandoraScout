@@ -49,7 +49,7 @@
     }
     </script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -69,7 +69,6 @@
     </style>
 
     @stack('styles')
-    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 
 <body class="bg-gray-50 ">
