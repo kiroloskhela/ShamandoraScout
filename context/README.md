@@ -10,6 +10,7 @@ Persisted investigation artifacts so future sessions do **not** need to re-explo
 | [refactor-wave-status-2026-07-15.md](./refactor-wave-status-2026-07-15.md) | Wave 0–4 + Pre–Wave 5 status on `testing` |
 | [audit-logs.md](./audit-logs.md) | SuperAdmin mutating-request audit trail |
 | [whatsapp-bridge.md](./whatsapp-bridge.md) | Baileys LocalAuth bridge ops + Laravel contract |
+| [like-search.md](./like-search.md) | Shared `LikeSearch` + `PersonSearchService` |
 
 ## How to use in future chats
 

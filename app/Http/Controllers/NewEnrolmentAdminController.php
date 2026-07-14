@@ -6,81 +6,84 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Support\LikeSearch;
 use App\Support\SqlPaginator;
 
 class NewEnrolmentAdminController extends Controller
 {
-
-        public function indexNewEnrolmentsAndMigrations()
-        {        
-            $sql = "SELECT DISTINCT nui.PersonID, 
-                                                    nui.FirstName, 
-                                                    nui.SecondName, 
-                                                    nui.ThirdName, 
-                                                    nui.FourthName, 
-                                                    nui.QetaaName, 
-                                                    sm.SanaMarhalaName, 
-                                                    nui.RaqamQawmy,
-                                                    nui.IsApproved,
-                                                    nui.PersonPersonalMobileNumber, 
-                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions 
-                                                FROM NewUsersInformation nui 
-                                                LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
-                                                LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
-                                                ORDER BY nui.PersonID ASC";
-            $persons = SqlPaginator::paginate($sql, [], 25);
-            return view("person.new-enrolments-migrate-index", array('persons' => $persons));
+        private function newUsersSearchColumns(): array
+        {
+            return [
+                'nui.FirstName',
+                'nui.SecondName',
+                'nui.ThirdName',
+                'nui.FourthName',
+                'nui.QetaaName',
+                'sm.SanaMarhalaName',
+                'nui.RaqamQawmy',
+                'nui.PersonPersonalMobileNumber',
+                'CAST(nui.PersonID AS CHAR)',
+            ];
         }
 
-        public function indexNewEnrolments()
-        {        
-            $sql = "SELECT DISTINCT nui.PersonID, 
-                                                    nui.FirstName, 
-                                                    nui.SecondName, 
-                                                    nui.ThirdName, 
-                                                    nui.FourthName, 
+        private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index')
+        {
+            $term = LikeSearch::fromRequest($request);
+            $bindings = $extraBindings;
+            $whereParts = [];
 
+            if ($extraWhere !== '') {
+                $whereParts[] = '(' . $extraWhere . ')';
+            }
+            if ($term !== null) {
+                $fragment = LikeSearch::sqlOr($this->newUsersSearchColumns(), $term);
+                $whereParts[] = $fragment['sql'];
+                $bindings = array_merge($bindings, $fragment['bindings']);
+            }
 
-                                                            CONCAT_WS(' ',
+            $whereSql = $whereParts === [] ? '' : (' WHERE ' . implode(' AND ', $whereParts));
+
+            $sql = "SELECT DISTINCT nui.PersonID,
+                                                    nui.FirstName,
+                                                    nui.SecondName,
+                                                    nui.ThirdName,
+                                                    nui.FourthName,
+                                                    CONCAT_WS(' ',
                                                         nui.FirstName,
                                                         nui.SecondName,
                                                         nui.ThirdName,
                                                         nui.FourthName
                                                     ) AS FullName,
-                                                    nui.QetaaName, 
-                                                    sm.SanaMarhalaName, 
+                                                    nui.QetaaName,
+                                                    sm.SanaMarhalaName,
                                                     nui.RaqamQawmy,
                                                     nui.IsApproved,
-                                                    nui.PersonPersonalMobileNumber, 
-                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions 
-                                                FROM NewUsersInformation nui 
-                                                LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
+                                                    nui.PersonPersonalMobileNumber,
+                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions
+                                                FROM NewUsersInformation nui
+                                                LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID
                                                 LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
+                                                {$whereSql}
                                                 ORDER BY nui.PersonID ASC";
-            $persons = SqlPaginator::paginate($sql, [], 25);
-            return view("person.new-enrolments-index", array('persons' => $persons));
+
+            $persons = SqlPaginator::paginate($sql, $bindings, 25);
+
+            return view($view, ['persons' => $persons, 'q' => $term ?? '']);
         }
 
-        public function showNewEnrolmentsByQetaaID($id)
+        public function indexNewEnrolmentsAndMigrations(Request $request)
         {
-            $sql = "SELECT DISTINCT nui.PersonID, 
-                                        nui.FirstName, 
-                                        nui.SecondName, 
-                                        nui.ThirdName, 
-                                        nui.FourthName, 
-                                        nui.QetaaName, 
-                                        sm.SanaMarhalaName, 
-                                        nui.RaqamQawmy,
-                                        nui.IsApproved,
-                                        nui.PersonPersonalMobileNumber, 
-                                        IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions 
-                                    FROM NewUsersInformation nui 
-                                    LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID 
-                                    LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
-                                    WHERE nui.QetaaID = ?
-                                    ORDER BY nui.PersonID ASC";
-            $persons = SqlPaginator::paginate($sql, [$id], 25);
-            return view("person.new-enrolments-index", array('persons' => $persons));
+            return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-migrate-index');
+        }
+
+        public function indexNewEnrolments(Request $request)
+        {
+            return $this->paginateNewUsers($request);
+        }
+
+        public function showNewEnrolmentsByQetaaID(Request $request, $id)
+        {
+            return $this->paginateNewUsers($request, 'nui.QetaaID = ?', [$id]);
         }
 
         public function analyticsNewEnrolments()

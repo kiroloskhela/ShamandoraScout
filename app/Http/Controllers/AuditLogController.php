@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
@@ -19,14 +20,9 @@ class AuditLogController extends Controller
             $query->where('method', strtoupper((string) $request->input('method')));
         }
 
-        if ($request->filled('q')) {
-            $q = '%' . trim((string) $request->input('q')) . '%';
-            $query->where(function ($builder) use ($q) {
-                $builder->where('path', 'like', $q)
-                    ->orWhere('action', 'like', $q)
-                    ->orWhere('route_name', 'like', $q)
-                    ->orWhere('actor_name', 'like', $q);
-            });
+        $term = LikeSearch::fromRequest($request);
+        if ($term !== null) {
+            LikeSearch::applyOr($query, $term, ['path', 'action', 'route_name', 'actor_name']);
         }
 
         if ($request->filled('from')) {

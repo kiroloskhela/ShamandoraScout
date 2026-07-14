@@ -288,39 +288,30 @@ class PersonSpecialCaseController extends Controller
 
     public function searchPersons(Request $request)
     {
-        $userId = $request->query('id') ?? Auth::id();
-        $search = trim($request->query('search', ''));
+        $userId = Auth::id();
+        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
 
         try {
+            $bindings = [$userId];
+            $whereSql = '1=1';
+            if ($term !== null) {
+                $fragment = \App\Support\LikeSearch::sqlOr(
+                    \App\Support\LikeSearch::allowedPeopleColumns(),
+                    $term
+                );
+                $whereSql = $fragment['sql'];
+                $bindings = array_merge($bindings, $fragment['bindings']);
+            }
+
             $persons = DB::select("
                 SELECT *
                 FROM (
                     {$this->allowedPersonsSql()}
                 ) allowed_people
-                WHERE
-                    allowed_people.PersonName LIKE ?
-                    OR CAST(allowed_people.PersonID AS CHAR) LIKE ?
-                    OR allowed_people.PersonPersonalMobileNumber LIKE ?
-                    OR allowed_people.FirstName LIKE ?
-                    OR allowed_people.SecondName LIKE ?
-                    OR allowed_people.ThirdName LIKE ?
-                    OR allowed_people.FourthName LIKE ?
-                    OR allowed_people.ShamandoraCode LIKE ?
-                    OR allowed_people.RaqamQawmy LIKE ?
+                WHERE {$whereSql}
                 ORDER BY allowed_people.ShamandoraCode ASC
                 LIMIT 20
-            ", [
-                $userId,
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%",
-                "%{$search}%"
-            ]);
+            ", $bindings);
 
             return response()->json($persons);
         } catch (\Throwable $e) {

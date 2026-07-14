@@ -89,7 +89,7 @@ class SeasonEventWaitingListController extends Controller
 
     public function searchEligiblePersons(Request $request, $seasonEventID)
     {
-        $query = trim((string) $request->query('q', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request);
 
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
         if (!$event) {
@@ -127,12 +127,15 @@ class SeasonEventWaitingListController extends Controller
                     ->where('wl.SeasonEventID', $seasonEventID)
                     ->whereColumn('wl.PersonID', 'p.PersonID');
             })
-            ->where(function ($sub) use ($query) {
-                if ($query !== '') {
-                    $sub->where(DB::raw("CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"), 'like', '%' . $query . '%')
-                        ->orWhere('p.PersonID', 'like', '%' . $query . '%')
-                        ->orWhere('ppn.PersonPersonalMobileNumber', 'like', '%' . $query . '%');
-                }
+            ->when($term !== null, function ($query) use ($term) {
+                $query->where(function ($sub) use ($term) {
+                    \App\Support\LikeSearch::applyOr(
+                        $sub,
+                        $term,
+                        ['p.PersonID', 'ppn.PersonPersonalMobileNumber'],
+                        ["CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"]
+                    );
+                });
             })
             ->select(
                 'p.PersonID',

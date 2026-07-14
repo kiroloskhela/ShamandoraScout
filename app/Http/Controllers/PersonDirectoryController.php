@@ -8,124 +8,30 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Support\SqlPaginator;
+use App\Domain\Person\PersonSearchService;
+use App\Support\LikeSearch;
 
 class PersonDirectoryController extends Controller
 {
 
-       public function index(Request $request)
+       public function index(Request $request, PersonSearchService $personSearch)
             {
-                // Scope directory data to the authenticated user only (no ?id= impersonation).
                 $userId = Auth::id();
                 Log::info("Fetching persons for user ID: " . $userId);
 
+                $term = LikeSearch::fromRequest($request);
+                $persons = $personSearch->paginateScopedToPerson((int) $userId, $term);
 
-                // ✅ Run the raw SQL with group filtering (server-side page)
-                $sql = "
-    SELECT DISTINCT
-    pi.PersonID,
-    pi.ShamandoraCode,
-    pi.FirstName, 
-    pi.SecondName, 
-    pi.ThirdName, 
-    pi.FourthName, 
-    q.QetaaName,
-    pi.ScoutJoiningYear,
-    sm.SanaMarhalaName, 
-    pi.RaqamQawmy,
-    ppn.PersonPersonalMobileNumber,
-    q.QetaaID,
-    PG.PersonID AS GroupPersonID,
-    IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-    psm.SanaMarhalaID
-FROM PersonInformation pi
-LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
-WHERE q.QetaaID IN (
-    SELECT gq2.QetaaID
-    FROM GroupQetaa gq2
-    WHERE gq2.GroupID IN (
-        SELECT pg3.GroupID
-        FROM PersonGroup pg3
-        WHERE pg3.PersonID = ?
-    )
-)
-ORDER BY pi.ShamandoraCode ASC
-";
-
-                $persons = SqlPaginator::paginate($sql, [$userId], 25)->through(function ($person) {
-                    $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-                    return $person;
-                });
-
-                // ✅ Return the view with filtered persons
-                return view("person.person-index", ['persons' => $persons]);
+                return view("person.person-index", ['persons' => $persons, 'q' => $term ?? '']);
                         }
 
 
-public function ShowPersons(Request $request)
+public function ShowPersons(Request $request, PersonSearchService $personSearch)
 {
-    $bindings = [];
-    $searchSql = '';
-    $q = trim((string) $request->query('q', ''));
-    if ($q !== '') {
-        $like = '%' . $q . '%';
-        $searchSql = " WHERE (
-            pi.ShamandoraCode LIKE ?
-            OR pi.FirstName LIKE ?
-            OR pi.SecondName LIKE ?
-            OR pi.ThirdName LIKE ?
-            OR pi.FourthName LIKE ?
-            OR ppn.PersonPersonalMobileNumber LIKE ?
-            OR q.QetaaName LIKE ?
-            OR sm.SanaMarhalaName LIKE ?
-        )";
-        $bindings = array_fill(0, 8, $like);
-    }
+    $term = LikeSearch::fromRequest($request);
+    $persons = $personSearch->paginateAllPersons($term);
 
-    $sql = "
-        SELECT DISTINCT
-            pi.PersonID,
-            pi.ShamandoraCode,
-            pi.FirstName, 
-            pi.SecondName, 
-            pi.ThirdName, 
-            pi.FourthName, 
-            q.QetaaName,
-            pi.ScoutJoiningYear,
-            sm.SanaMarhalaName, 
-            pi.RaqamQawmy,
-            ppn.PersonPersonalMobileNumber,
-            q.QetaaID,
-            PG.PersonID AS GroupPersonID,
-            IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-            psm.SanaMarhalaID
-        FROM PersonInformation pi
-        LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID 
-        LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-        LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-        LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-        LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-        LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-        LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-        {$searchSql}
-        ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
-    ";
-
-    $persons = SqlPaginator::paginate($sql, $bindings, 25)->through(function ($person) {
-        $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-        return $person;
-    });
-
-
-    return view("person.person-showAllPersons", ['persons' => $persons, 'q' => $q]);
+    return view("person.person-showAllPersons", ['persons' => $persons, 'q' => $term ?? '']);
 }
 
 public function show($id)
@@ -672,77 +578,11 @@ public function showChangeQetaa()
 
 
 
-public function searchPerson(Request $request)
+public function searchPerson(Request $request, PersonSearchService $personSearch)
 {
-    $q = trim($request->input('q', ''));
+    $term = LikeSearch::fromRequest($request);
 
-
-
-    $words = array_filter(explode(' ', $q));
-
-    $results = DB::table('PersonInformation as pi')
-        ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
-        ->leftJoin('Qetaa as qt',       'pq.QetaaID',  '=', 'qt.QetaaID')
-        ->select(
-            'pi.PersonID',
-            'pi.ShamandoraCode',
-            'pi.FirstName',
-            'pi.SecondName',
-            'pi.ThirdName',
-            'pi.FourthName',
-            'pi.RaqamQawmy',
-            'pq.QetaaID',
-            'qt.QetaaName'
-        )
-        // ── Strategy 1: name word matching ──
-        ->where(function ($query) use ($words) {
-            foreach ($words as $word) {
-                $query->where(function ($q2) use ($word) {
-                    $q2->where('pi.FirstName',   'like', "%{$word}%")
-                       ->orWhere('pi.SecondName', 'like', "%{$word}%")
-                       ->orWhere('pi.ThirdName',  'like', "%{$word}%")
-                       ->orWhere('pi.FourthName', 'like', "%{$word}%");
-                });
-            }
-        })
-        // ── Strategy 2: ID field matching (top-level OR, not nested) ──
-        ->orWhere('pi.RaqamQawmy',    'like', "%{$q}%")
-        ->orWhere('pi.ShamandoraCode','like', "%{$q}%")
-        ->orWhere('pi.PersonID',      'like', "%{$q}%")
-        ->groupBy(
-            'pi.PersonID',
-            'pi.ShamandoraCode',
-            'pi.FirstName',
-            'pi.SecondName',
-            'pi.ThirdName',
-            'pi.FourthName',
-            'pi.RaqamQawmy',
-            'pq.QetaaID',
-            'qt.QetaaName'
-        )
-        ->orderByRaw("
-            CASE
-                WHEN pi.FirstName   LIKE ? THEN 1
-                WHEN pi.SecondName  LIKE ? THEN 2
-                WHEN pi.ThirdName   LIKE ? THEN 3
-                WHEN pi.RaqamQawmy  LIKE ? THEN 4
-                ELSE 5
-            END
-        ", ["{$q}%", "{$q}%", "{$q}%", "{$q}%"])
-        ->limit(15)
-        ->get()
-        ->map(function ($person) {
-            $person->FullName = collect([
-                $person->FirstName,
-                $person->SecondName,
-                $person->ThirdName,
-                $person->FourthName,
-            ])->filter()->implode(' ');
-
-            return $person;
-        });
-
-    return response()->json($results);
+    return response()->json($personSearch->typeaheadByNameOrIdentity($term));
 }
 
 

@@ -543,11 +543,29 @@ class PersonSpecialCaseApiController extends Controller
             return $deny;
         }
 
-        $search = trim($request->query('search', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
         $userPersonId = $this->authPersonId();
 
         try {
             if ($this->isSuperAdmin()) {
+                $bindings = [];
+                $whereSql = '1=1';
+                if ($term !== null) {
+                    $fragment = \App\Support\LikeSearch::sqlOr([
+                        "CONCAT(COALESCE(pi.FirstName, ''), ' ', COALESCE(pi.SecondName, ''), ' ', COALESCE(pi.ThirdName, ''), ' ', COALESCE(pi.FourthName, ''))",
+                        'CAST(pi.PersonID AS CHAR)',
+                        'ppn.PersonPersonalMobileNumber',
+                        'pi.FirstName',
+                        'pi.SecondName',
+                        'pi.ThirdName',
+                        'pi.FourthName',
+                        'pi.ShamandoraCode',
+                        'pi.RaqamQawmy',
+                    ], $term);
+                    $whereSql = $fragment['sql'];
+                    $bindings = $fragment['bindings'];
+                }
+
                 $persons = DB::select("
                     SELECT DISTINCT
                         pi.PersonID,
@@ -579,64 +597,31 @@ class PersonSpecialCaseApiController extends Controller
                     LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
                     LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
                     LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-                    WHERE
-                        CONCAT(
-                            COALESCE(pi.FirstName, ''), ' ',
-                            COALESCE(pi.SecondName, ''), ' ',
-                            COALESCE(pi.ThirdName, ''), ' ',
-                            COALESCE(pi.FourthName, '')
-                        ) LIKE ?
-                        OR CAST(pi.PersonID AS CHAR) LIKE ?
-                        OR ppn.PersonPersonalMobileNumber LIKE ?
-                        OR pi.FirstName LIKE ?
-                        OR pi.SecondName LIKE ?
-                        OR pi.ThirdName LIKE ?
-                        OR pi.FourthName LIKE ?
-                        OR pi.ShamandoraCode LIKE ?
-                        OR pi.RaqamQawmy LIKE ?
+                    WHERE {$whereSql}
                     ORDER BY pi.ShamandoraCode ASC
                     LIMIT 20
-                ", [
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%"
-                ]);
+                ", $bindings);
             } else {
+                $bindings = [$userPersonId];
+                $whereSql = '1=1';
+                if ($term !== null) {
+                    $fragment = \App\Support\LikeSearch::sqlOr(
+                        \App\Support\LikeSearch::allowedPeopleColumns(),
+                        $term
+                    );
+                    $whereSql = $fragment['sql'];
+                    $bindings = array_merge($bindings, $fragment['bindings']);
+                }
+
                 $persons = DB::select("
                     SELECT *
                     FROM (
                         {$this->allowedPersonsSql()}
                     ) allowed_people
-                    WHERE
-                        allowed_people.PersonName LIKE ?
-                        OR CAST(allowed_people.PersonID AS CHAR) LIKE ?
-                        OR allowed_people.PersonPersonalMobileNumber LIKE ?
-                        OR allowed_people.FirstName LIKE ?
-                        OR allowed_people.SecondName LIKE ?
-                        OR allowed_people.ThirdName LIKE ?
-                        OR allowed_people.FourthName LIKE ?
-                        OR allowed_people.ShamandoraCode LIKE ?
-                        OR allowed_people.RaqamQawmy LIKE ?
+                    WHERE {$whereSql}
                     ORDER BY allowed_people.ShamandoraCode ASC
                     LIMIT 20
-                ", [
-                    $userPersonId,
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%",
-                    "%{$search}%"
-                ]);
+                ", $bindings);
             }
 
             return response()->json([

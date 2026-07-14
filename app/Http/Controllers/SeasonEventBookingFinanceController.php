@@ -311,16 +311,14 @@ $qetaaCounts = DB::table('SeasonEventParticipantFinance as b')
 
 public function searchEligibleGuests(Request $request, $seasonEventID)
 {
-    $query = trim((string) $request->query('q', ''));
+    $term = \App\Support\LikeSearch::fromRequest($request);
+    $fields = \App\Support\LikeSearch::namedPartyFields('g', 'GuestID');
 
     $guests = DB::table('Guests as g')
-        ->where(function ($sub) use ($query) {
-            if ($query !== '') {
-                $sub->where(DB::raw("CONCAT_WS(' ', g.FirstName, g.SecondName, g.ThirdName, g.FourthName)"), 'like', '%' . $query . '%')
-                    ->orWhere('g.GuestID', 'like', '%' . $query . '%')
-                    ->orWhere('g.MobileNumber', 'like', '%' . $query . '%')
-                    ->orWhere('g.RaqamQawmy', 'like', '%' . $query . '%');
-            }
+        ->when($term !== null, function ($query) use ($term, $fields) {
+            $query->where(function ($sub) use ($term, $fields) {
+                \App\Support\LikeSearch::applyOr($sub, $term, $fields['columns'], $fields['raw']);
+            });
         })
         ->select(
             'g.GuestID',
@@ -354,16 +352,14 @@ public function searchEligibleGuests(Request $request, $seasonEventID)
 
 public function searchEligibleFamilies(Request $request, $seasonEventID)
 {
-    $query = trim((string) $request->query('q', ''));
+    $term = \App\Support\LikeSearch::fromRequest($request);
+    $fields = \App\Support\LikeSearch::namedPartyFields('f', 'FamilyID');
 
     $families = DB::table('FamilyMembers as f')
-        ->where(function ($sub) use ($query) {
-            if ($query !== '') {
-                $sub->where(DB::raw("CONCAT_WS(' ', f.FirstName, f.SecondName, f.ThirdName, f.FourthName)"), 'like', '%' . $query . '%')
-                    ->orWhere('f.FamilyID', 'like', '%' . $query . '%')
-                    ->orWhere('f.MobileNumber', 'like', '%' . $query . '%')
-                    ->orWhere('f.RaqamQawmy', 'like', '%' . $query . '%');
-            }
+        ->when($term !== null, function ($query) use ($term, $fields) {
+            $query->where(function ($sub) use ($term, $fields) {
+                \App\Support\LikeSearch::applyOr($sub, $term, $fields['columns'], $fields['raw']);
+            });
         })
         ->select(
             'f.FamilyID',
@@ -414,7 +410,7 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
 
     public function searchEligiblePersons(Request $request, $seasonEventID)
     {
-        $query = trim((string)$request->query('q', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request);
 
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
         if (!$event) {
@@ -437,12 +433,15 @@ public function searchEligibleFamilies(Request $request, $seasonEventID)
             ->leftJoin('PersonBlackList as pb', 'p.PersonID', '=', 'pb.PersonID')
             ->leftJoin('PersonSpecialCase as psc', 'p.PersonID', '=', 'psc.PersonID')
             ->whereIn('pq.QetaaID', $eligibleQetaaIDs)
-            ->where(function ($sub) use ($query) {
-                if ($query !== '') {
-                    $sub->where(DB::raw("CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"), 'like', '%' . $query . '%')
-                        ->orWhere('p.PersonID', 'like', '%' . $query . '%')
-                        ->orWhere('ppn.PersonPersonalMobileNumber', 'like', '%' . $query . '%');
-                }
+            ->when($term !== null, function ($query) use ($term) {
+                $query->where(function ($sub) use ($term) {
+                    \App\Support\LikeSearch::applyOr(
+                        $sub,
+                        $term,
+                        ['p.PersonID', 'ppn.PersonPersonalMobileNumber'],
+                        ["CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"]
+                    );
+                });
             })
             ->select(
                 'p.PersonID',

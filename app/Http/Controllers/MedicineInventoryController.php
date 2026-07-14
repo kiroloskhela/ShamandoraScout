@@ -685,36 +685,11 @@ class MedicineInventoryController extends Controller
         return redirect()->route('medicine.locks')->with('status', 'تم فك الحجز بنجاح.');
     }
 
-    public function searchPersons(Request $request)
+    public function searchPersons(Request $request, \App\Domain\Person\PersonSearchService $personSearch)
     {
-        $search = trim((string) $request->query('search', ''));
+        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q'], 2);
 
-        if (mb_strlen($search) < 2) {
-            return response()->json([]);
-        }
-
-        $persons = DB::table('PersonInformation as pi')
-            ->leftJoin('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
-            ->select(
-                'pi.PersonID',
-                'pi.ShamandoraCode',
-                DB::raw('MIN(ppn.PersonPersonalMobileNumber) as PersonPersonalMobileNumber'),
-                DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) as PersonName")
-            )
-            ->where(function ($query) use ($search) {
-                $like = "%{$search}%";
-                $query->whereRaw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) LIKE ?", [$like])
-                    ->orWhere('pi.PersonID', 'LIKE', $like)
-                    ->orWhere('pi.ShamandoraCode', 'LIKE', $like)
-                    ->orWhere('pi.RaqamQawmy', 'LIKE', $like)
-                    ->orWhere('ppn.PersonPersonalMobileNumber', 'LIKE', $like);
-            })
-            ->groupBy('pi.PersonID', 'pi.ShamandoraCode', 'pi.FirstName', 'pi.SecondName', 'pi.ThirdName', 'pi.FourthName')
-            ->orderBy('pi.ShamandoraCode')
-            ->limit(20)
-            ->get();
-
-        return response()->json($persons);
+        return response()->json($personSearch->typeaheadWithPhone($term));
     }
 
     private function validateMedicine(Request $request, bool $withInitialStock = false, bool $withAmount = false): array
