@@ -24,15 +24,6 @@ class GamesApiController extends Controller
             ->first();
     }
 
-    private function nextGameId(): int
-    {
-        $lastGame = DB::table('Games')
-            ->orderByDesc('GameID')
-            ->first();
-
-        return $lastGame ? ((int) $lastGame->GameID + 1) : 1;
-    }
-
     /*
     |--------------------------------------------------------------------------
     | CRUD
@@ -111,10 +102,8 @@ class GamesApiController extends Controller
             'reference_link' => 'nullable|string|max:1000',
         ]);
 
-        $gameId = $this->nextGameId();
-
-        DB::table('Games')->insert([
-            'GameID' => $gameId,
+        // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
+        $gameId = (int) DB::table('Games')->insertGetId([
             'Title' => $data['title'],
             'GameDescription' => $data['description'] ?? null,
             'Rules' => $data['rules'] ?? null,
@@ -123,7 +112,7 @@ class GamesApiController extends Controller
             'Target' => $data['target'] ?? null,
             'RequireCustody' => $data['require_custody'] ?? null,
             'ReferenceLink' => $data['reference_link'] ?? null,
-        ]);
+        ], 'GameID');
 
         $game = $this->findGame($gameId);
 

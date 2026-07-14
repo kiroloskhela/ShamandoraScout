@@ -30,27 +30,17 @@ class GamesController extends Controller
 
     public function insert(Request $request)
     {
-        $lastGameID = DB::table('Games')->orderBy('GameID', 'desc')->first();
-
-        if ($lastGameID == Null)
-            $thisGameID = 1;
-        else
-            $thisGameID = $lastGameID->GameID + 1;
-
-        DB::table('Games')->insert(
-            array(
-                'GameID' => $thisGameID,
-                'Title' => $request->title,
-                'GameDescription' => $request->description,
-                'Rules' => $request->rules,
-                'PointSystem' => $request->point_system,
-                'AgeGroup' => $request->age_group,
-                'Target' => $request->target,
-                'RequireCustody' => $request->require_custody,
-                'ReferenceLink' => $request->reference_link
-             
-            )
-        );
+        // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
+        DB::table('Games')->insert([
+            'Title' => $request->title,
+            'GameDescription' => $request->description,
+            'Rules' => $request->rules,
+            'PointSystem' => $request->point_system,
+            'AgeGroup' => $request->age_group,
+            'Target' => $request->target,
+            'RequireCustody' => $request->require_custody,
+            'ReferenceLink' => $request->reference_link,
+        ]);
 
         return redirect()->route('games.index')->with('status', 'تم ادخال اللعبة بنجاح: ' . $request->title);
     }

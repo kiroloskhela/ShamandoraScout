@@ -19,6 +19,7 @@ use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Domain\Enrolment\LiveFormCapacityService;
 use App\Support\NewEnrolmentIdentity;
 use App\Support\ShamandoraCode;
 
@@ -887,27 +888,12 @@ public function submitLiveformQuestions(Request $request)
 
         /*
         |--------------------------------------------------------------------------
-        | CHECK LIMIT
+        | CHECK LIMIT (atomic: lock limit row then count)
         |--------------------------------------------------------------------------
         */
 
-        $maxLimit = DB::table('MarhalaLiveFormLimit')
-            ->where('QetaaID', $step1['qetaa_id'])
-            ->where('SanaMarhalaID', $step1['sana_marhala_id'])
-            ->value('MaxLimit');
-
-        $maxLimit = $maxLimit ? (int) $maxLimit : 0;
-
-        $currentCount = DB::table('NewUsersInformation')
-            ->where('QetaaID', $step1['qetaa_id'])
-            ->where('SanaMarhalaID', $step1['sana_marhala_id'])
-            ->count();
-
-        $isWaitingList = false;
-
-        if (($maxLimit > 0 && $currentCount >= $maxLimit) || ($maxLimit == 0)) {
-            $isWaitingList = true;
-        }
+        $isWaitingList = app(LiveFormCapacityService::class)
+            ->shouldUseWaitingList((int) $step1['qetaa_id'], (int) $step1['sana_marhala_id']);
 
         /*
         |--------------------------------------------------------------------------
@@ -1776,21 +1762,12 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
 
         /*
         |--------------------------------------------------------------------------
-        | CHECK LIMIT AGAIN BEFORE FINALIZE
+        | CHECK LIMIT AGAIN BEFORE FINALIZE (atomic)
         |--------------------------------------------------------------------------
         */
 
-        $maxLimit = DB::table('MarhalaLiveFormLimit')
-            ->where('QetaaID', $person->QetaaID)
-            ->where('SanaMarhalaID', $person->SanaMarhalaID)
-            ->value('MaxLimit');
-
-        $maxLimit = $maxLimit ? (int) $maxLimit : 0;
-
-        $currentCount = DB::table('NewUsersInformation')
-            ->where('QetaaID', $person->QetaaID)
-            ->where('SanaMarhalaID', $person->SanaMarhalaID)
-            ->count();
+        $shouldWait = app(LiveFormCapacityService::class)
+            ->shouldUseWaitingList((int) $person->QetaaID, (int) $person->SanaMarhalaID);
 
         /*
         |--------------------------------------------------------------------------
@@ -1798,7 +1775,7 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
         |--------------------------------------------------------------------------
         */
 
-        if ($maxLimit > 0 && $currentCount > $maxLimit) {
+        if ($shouldWait) {
 
             /*
             |--------------------------------------------------------------------------
