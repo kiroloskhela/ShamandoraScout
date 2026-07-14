@@ -7,6 +7,9 @@ Persisted investigation artifacts so future sessions do **not** need to re-explo
 | [architecture-overview.md](./architecture-overview.md) | Current system architecture summary (stack, data flow, inventory) |
 | [scalability-investigation-2026-07-14.md](./scalability-investigation-2026-07-14.md) | Full scalability / architecture investigation (backend, frontend, remediation) |
 | [database-schema-reality-2026-07-14.md](./database-schema-reality-2026-07-14.md) | schema.sql as source of truth: PK/index/FK gaps vs models; DB edit packages |
+| [refactor-wave-status-2026-07-15.md](./refactor-wave-status-2026-07-15.md) | Wave 0–4 + Pre–Wave 5 status on `testing` |
+| [audit-logs.md](./audit-logs.md) | SuperAdmin mutating-request audit trail |
+| [whatsapp-bridge.md](./whatsapp-bridge.md) | Baileys LocalAuth bridge ops + Laravel contract |
 
 ## How to use in future chats
 

@@ -553,6 +553,8 @@
                                         href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('audit-logs.index') }}">سجل التدقيق</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('whatsapp.status') }}">واتساب</a>
                                 </div>
                             </div>
                         </div>

@@ -9,6 +9,7 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminPasswordController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\WhatsAppStatusController;
 
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\LiveFormEnrolmentController;
@@ -237,6 +238,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
     // Whatsapp
+    Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
     Route::post('/whatsapp/sendWithHeader', [WhatsAppBridgeController::class, 'sendWithHeader'])->name('whatsapp.sendWithHeader');
 
