@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -13,55 +12,65 @@ use Tests\TestCase;
  * These legacy tables (Games/Roles/PersonRole/PersonInformation) are not
  * managed by Laravel migrations in this app (see schema.sql), so the test
  * creates a minimal in-memory sqlite version of each just for this suite.
+ *
+ * Avoid RefreshDatabase: Package A+ migrations use MySQL information_schema
+ * and are not sqlite-safe.
  */
 class GamesApiAuthorizationTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        if (!Schema::hasTable('PersonInformation')) {
-            Schema::create('PersonInformation', function (Blueprint $table) {
-                $table->increments('PersonID');
-                $table->string('ShamandoraCode')->nullable();
-                $table->string('FirstName')->nullable();
-                $table->string('SecondName')->nullable();
-                $table->string('ThirdName')->nullable();
-            });
-        }
+        Schema::dropIfExists('Games');
+        Schema::dropIfExists('PersonRole');
+        Schema::dropIfExists('Roles');
+        Schema::dropIfExists('PersonInformation');
+        Schema::dropIfExists('personal_access_tokens');
 
-        if (!Schema::hasTable('Roles')) {
-            Schema::create('Roles', function (Blueprint $table) {
-                $table->increments('RoleID');
-                $table->string('RoleName');
-                $table->text('RoleDescription')->nullable();
-            });
-        }
+        Schema::create('PersonInformation', function (Blueprint $table) {
+            $table->increments('PersonID');
+            $table->string('ShamandoraCode')->nullable();
+            $table->string('FirstName')->nullable();
+            $table->string('SecondName')->nullable();
+            $table->string('ThirdName')->nullable();
+        });
 
-        if (!Schema::hasTable('PersonRole')) {
-            Schema::create('PersonRole', function (Blueprint $table) {
-                $table->increments('PersonRoleID');
-                $table->unsignedInteger('PersonID');
-                $table->unsignedInteger('RoleID');
-                $table->unsignedInteger('RequestPersonID')->nullable();
-            });
-        }
+        Schema::create('Roles', function (Blueprint $table) {
+            $table->increments('RoleID');
+            $table->string('RoleName');
+            $table->text('RoleDescription')->nullable();
+        });
 
-        if (!Schema::hasTable('Games')) {
-            Schema::create('Games', function (Blueprint $table) {
-                $table->increments('GameID');
-                $table->string('Title');
-                $table->text('GameDescription')->nullable();
-                $table->text('Rules')->nullable();
-                $table->text('PointSystem')->nullable();
-                $table->string('AgeGroup')->nullable();
-                $table->string('Target')->nullable();
-                $table->string('ReferenceLink')->nullable();
-                $table->string('RequireCustody')->nullable();
-            });
-        }
+        Schema::create('PersonRole', function (Blueprint $table) {
+            $table->increments('PersonRoleID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('RoleID');
+            $table->unsignedInteger('RequestPersonID')->nullable();
+        });
+
+        Schema::create('Games', function (Blueprint $table) {
+            $table->increments('GameID');
+            $table->string('Title');
+            $table->text('GameDescription')->nullable();
+            $table->text('Rules')->nullable();
+            $table->text('PointSystem')->nullable();
+            $table->string('AgeGroup')->nullable();
+            $table->string('Target')->nullable();
+            $table->string('ReferenceLink')->nullable();
+            $table->string('RequireCustody')->nullable();
+        });
+
+        Schema::create('personal_access_tokens', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->uuidMorphs('tokenable');
+            $table->string('name');
+            $table->string('token', 64)->unique();
+            $table->text('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     private function createUserWithRoles(array $roleNames): User
