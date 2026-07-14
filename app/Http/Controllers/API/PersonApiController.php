@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Domain\Person\AuthenticatedPersonId;
+use App\Domain\Person\PersonApiQueryService;
 
 class PersonApiController extends Controller
 {
@@ -16,12 +18,20 @@ class PersonApiController extends Controller
  *   description="Person endpoints (list persons, profile, calendar)"
  * )
  *
- * @OA\Get(
- *   path="/api/show-persons",
+ * @OA\Post(
+ *   path="/api/persons",
  *   operationId="showPersons",
  *   tags={"Person"},
- *   summary="List persons accessible by the authenticated user",
- *   description="Returns persons in groups/qetaat visible to the authenticated user (derived from the auth token). Any client-supplied id is ignored. Adds full_name in response.",
+ *   summary="List persons accessible by the user",
+ *   description="Returns persons in groups/qetaat visible to the provided user id. Adds full_name in response.",
+ *   @OA\RequestBody(
+ *     required=true,
+ *     @OA\JsonContent(
+ *       type="object",
+ *       required={"id"},
+ *       @OA\Property(property="id", type="integer", example=55, description="User/Person ID used to filter accessible persons")
+ *     )
+ *   ),
  *   @OA\Response(
  *     response=200,
  *     description="Success",
@@ -59,13 +69,13 @@ class PersonApiController extends Controller
  *   path="/api/person/{id}",
  *   operationId="showProfile",
  *   tags={"Person"},
- *   summary="Get authenticated user's person profile",
- *   description="Returns the authenticated user's full profile data (joined tables) and entry questions/answers. The {id} path segment is accepted for URL compatibility but is ignored; the profile returned always belongs to the authenticated user.",
+ *   summary="Get person profile",
+ *   description="Returns person full profile data (joined tables) and entry questions/answers.",
  *   @OA\Parameter(
  *     name="id",
  *     in="path",
  *     required=true,
- *     description="Ignored. Present only for URL compatibility; the authenticated user's PersonID is always used.",
+ *     description="PersonID",
  *     @OA\Schema(type="integer", example=101)
  *   ),
  *   @OA\Response(
@@ -96,16 +106,16 @@ class PersonApiController extends Controller
  * )
  *
  * @OA\Get(
- *   path="/api/calendar/{id}",
+ *   path="/api/person/{id}/calendar",
  *   operationId="showCalendar",
  *   tags={"Person"},
- *   summary="Get authenticated user's calendar events",
- *   description="Returns events accessible for the authenticated user via their group/qetaa membership. The {id} path segment is accepted for URL compatibility but is ignored; results always belong to the authenticated user.",
+ *   summary="Get person calendar events",
+ *   description="Returns events accessible for a person via their group/qetaa membership.",
  *   @OA\Parameter(
  *     name="id",
  *     in="path",
  *     required=true,
- *     description="Ignored. Present only for URL compatibility; the authenticated user's PersonID is always used.",
+ *     description="PersonID",
  *     @OA\Schema(type="integer", example=101)
  *   ),
  *   @OA\Response(
@@ -134,11 +144,9 @@ class PersonApiController extends Controller
 
 
 
-public function showPersons(Request $request)
+public function showPersons(Request $request, PersonApiQueryService $query)
 {
-    // Security: always scope by the authenticated user's own PersonID.
-    // Client-supplied "id" is intentionally ignored to prevent IDOR.
-    $userId = (int) $request->user()->PersonID;
+    $userId = AuthenticatedPersonId::from($request);
 
     if ($userId <= 0) {
         return response()->json([
@@ -147,58 +155,14 @@ public function showPersons(Request $request)
         ], 401);
     }
 
-    $persons = DB::table('PersonInformation as pi')
-        ->leftJoin('PersonEntryQuestions as peq', 'pi.PersonID', '=', 'peq.PersonID')
-        ->leftJoin('PersonSanaMarhala as psm', 'pi.PersonID', '=', 'psm.PersonID')
-        ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
-        ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
-        ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-        ->leftJoin('PersonPhoneNumbers as ppn', 'pi.PersonID', '=', 'ppn.PersonID')
-        ->leftJoin('PersonGroup as pg_main', 'pg_main.PersonID', '=', 'pi.PersonID')
-         ->leftJoin( 'PersonImages as pi_img', 'pi_img.PersonID', '=', 'pi.PersonID')
-        ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'q.QetaaID')
-        ->join('PersonGroup as pg2', 'pg2.GroupID', '=', 'gq.GroupID')
-        ->where('pg2.PersonID', $userId)
-        ->select([
-            'pi.PersonID',
-            'pi.ShamandoraCode',
-            'pi.FirstName',
-            'pi.SecondName',
-            'pi.ThirdName',
-            'pi.FourthName',
-            'q.QetaaName',
-            'pi.ScoutJoiningYear',
-            'sm.SanaMarhalaName',
-            'pi.RaqamQawmy',
-            'ppn.PersonPersonalMobileNumber',
-            'q.QetaaID',
-            'pi_img.PersonSystemImagePath',
-            DB::raw('pg_main.PersonID AS GroupPersonID'),
-            DB::raw("IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions"),
-            'psm.SanaMarhalaID',
-        ])
-        ->distinct()
-        ->orderBy('pi.ShamandoraCode', 'asc')
-        ->get()
-        ->map(function ($person) {
-            $person->full_name = trim(
-                "{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}"
-            );
-            return $person;
-        });
-
-
-
-    return response()->json(['persons' => $persons]);
+    return response()->json(['persons' => $query->personsVisibleTo($userId)]);
 }
 
 
     // GET /api/person/{id}
-    // Security: the {id} route parameter is intentionally ignored. Only the
-    // authenticated user's own PersonID is ever used, to prevent IDOR.
     public function ShowProfile(Request $request, $id)
     {
-        $id = $request->user()->PersonID;
+        $id = AuthenticatedPersonId::from($request);
 
         $person = DB::table('PersonInformation')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
@@ -216,6 +180,7 @@ public function showPersons(Request $request)
             ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
             ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
             ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
             ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
             ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
@@ -232,6 +197,7 @@ public function showPersons(Request $request)
                 'RotbaInformation.RotbaName',
                 'SanaMarhala.SanaMarhalaName',
                 'PersonSpiritualFatherInformation.SpiritualFatherName', 'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
+                'PersonSystemPassword.Password',
                 'PersonalPhysicalAddress.BuildingNumber', 'PersonalPhysicalAddress.FloorNumber', 'PersonalPhysicalAddress.AppartmentNumber', 'PersonalPhysicalAddress.MainStreetName', 'PersonalPhysicalAddress.SubStreetName', 'PersonalPhysicalAddress.NearestLandmark',
                 'Manteqa.ManteqaName', 'Districts.DistrictName' , 'PersonImages.PersonSystemImagePath'
             )
@@ -295,12 +261,9 @@ public function showPersons(Request $request)
     }
 
 
-// GET /api/calendar/{id}
-// Security: the {id} route parameter is intentionally ignored. Only the
-// authenticated user's own PersonID is ever used, to prevent IDOR.
 public function ShowCalendar(Request $request, $id)
 {
-    $id = $request->user()->PersonID;
+    $id = AuthenticatedPersonId::from($request);
 
     $events = DB::select("
             SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
