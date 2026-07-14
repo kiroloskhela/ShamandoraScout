@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Domain\Person\PersonSearchService;
 use App\Support\LikeSearch;
 
@@ -241,23 +240,14 @@ if (!empty($person->QetaaID)) {
     ]);
 }
 
-public function updates(Request $request, $id)
+public function updates(Request $request, $id, \App\Domain\Person\PersonProfileService $profiles)
 {
-    $personInfo = DB::table('PersonInformation')->where('PersonID', $id)->first();
-
-    if (!$personInfo) {
+    if (!$profiles->exists((int) $id)) {
         return view('person.entry-error');
     }
 
-    if ($request->filled('input_raqam_qawmy')) {
-        $raqamQawmyObject = DB::selectOne(
-            'SELECT COUNT(*) AS counts FROM PersonInformation WHERE RaqamQawmy = ? AND PersonID != ?',
-            [$request->input_raqam_qawmy, $id]
-        );
-
-        if (($raqamQawmyObject->counts ?? 0) > 0) {
-            return view('person.person-already-exists');
-        }
+    if ($request->filled('input_raqam_qawmy') && $profiles->raqamQawmyTaken((string) $request->input_raqam_qawmy, (int) $id)) {
+        return view('person.person-already-exists');
     }
 
     $validator = Validator::make($request->all(), [
@@ -315,211 +305,17 @@ public function updates(Request $request, $id)
     }
 
     try {
-        DB::beginTransaction();
-
-        $oldImages = DB::table('PersonImages')->where('PersonID', $id)->first();
-
-        $personSystemImagePath = $oldImages->PersonSystemImagePath ?? null;
-        $scoutOfficialUniformImagePath = $oldImages->ScoutOfficialUniformImagePath ?? null;
-
-        if ($request->hasFile('personal_image')) {
-            if ($personSystemImagePath && Storage::disk('public')->exists($personSystemImagePath)) {
-                Storage::disk('public')->delete($personSystemImagePath);
-            }
-            $personSystemImagePath = $request->file('personal_image')->store('persons/personal', 'public');
-        }
-
-        if ($request->hasFile('scout_image')) {
-            if ($scoutOfficialUniformImagePath && Storage::disk('public')->exists($scoutOfficialUniformImagePath)) {
-                Storage::disk('public')->delete($scoutOfficialUniformImagePath);
-            }
-            $scoutOfficialUniformImagePath = $request->file('scout_image')->store('persons/scout', 'public');
-        }
-
-  $affected = DB::table('PersonInformation')
-    ->where('PersonID', $id)
-    ->update([
-        'FirstName' => $request->input('first_name'),
-        'SecondName' => $request->input('second_name'),
-        'ThirdName' => $request->input('third_name'),
-        'FourthName' => $request->input('fourth_name'),
-        'Gender' => $request->input('gender'),
-        'DateOfBirth' => $request->input('birthdate_input'),
-        'RaqamQawmy' => $request->input('input_raqam_qawmy'),
-        'ScoutJoiningYear' => $request->input('joining_year_input'),
-        'BloodTypeID' => $request->input('blood_type_input'),
-        'FacebookProfileURL' => $request->input('inputFacebookLink'),
-        'InstagramProfileURL' => $request->input('inputInstagramLink'),
-        'PersonalEmail' => $request->input('email_input'),
-        'RequestPersonID' => $request->input('RequestPersonID'),
-    ]);
-
-$after = DB::table('PersonInformation')
-    ->where('PersonID', $id)
-    ->first();
-
-
-
-        $phoneData = array_filter([
-            'PersonPersonalMobileNumber' => $request->input('personal_phone_number'),
-            'FatherMobileNumber' => $request->input('father_phone_number'),
-            'MotherMobileNumber' => $request->input('mother_phone_number'),
-            'HomePhoneNumber' => $request->input('home_phone_number'),
-            'IsOPersonalPhoneNumberHavingWhatsapp' => $request->input('has_whatsapp'),
-        ], fn($value) => $value !== null && $value !== '');
-
-        if (!empty($phoneData)) {
-            DB::table('PersonPhoneNumbers')->updateOrInsert(
-                ['PersonID' => $id],
-                $phoneData
-            );
-        }
-
-        $jobData = array_filter([
-            'JobName' => $request->input('person_job'),
-            'WorkPlace' => $request->input('person_job_place'),
-        ], fn($value) => $value !== null && $value !== '');
-
-        if (!empty($jobData)) {
-            DB::table('PersonJob')->updateOrInsert(
-                ['PersonID' => $id],
-                $jobData
-            );
-        }
-
-        $learningData = array_filter([
-            'SchoolName' => $request->input('school_name'),
-            'SchoolGraduationYear' => $request->input('school_grad_year'),
-            'FacultyID' => $request->input('person_faculty'),
-            'UniversityID' => $request->input('person_university'),
-            'ActualFacultyGraduationYear' => $request->input('university_grad_year'),
-        ], fn($value) => $value !== null && $value !== '');
-
-        if (!empty($learningData)) {
-            DB::table('PersonLearningInformation')->updateOrInsert(
-                ['PersonID' => $id],
-                $learningData
-            );
-        }
-
-        if ($request->filled('rotba_kashfeyya_id')) {
-            DB::table('PersonRotbaKashfeyya')->updateOrInsert(
-                ['PersonID' => $id],
-                ['RotbaID' => $request->input('rotba_kashfeyya_id')]
-            );
-        } else {
-            DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->delete();
-        }
-
-        if ($request->filled('betaka_id')) {
-            DB::table('PersonEgazetBetakatTaqaddom')->updateOrInsert(
-                ['PersonID' => $id],
-                ['EgazetBetakatTaqaddomID' => $request->input('betaka_id')]
-            );
-        } else {
-            DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->delete();
-        }
-
-        if ($request->filled('sana_marhala_id')) {
-            DB::table('PersonSanaMarhala')->updateOrInsert(
-                ['PersonID' => $id],
-                ['SanaMarhalaID' => $request->input('sana_marhala_id')]
-            );
-        } else {
-            DB::table('PersonSanaMarhala')->where('PersonID', $id)->delete();
-        }
-
-        $spiritualData = array_filter([
-            'SpiritualFatherName' => $request->input('spiritual_father'),
-            'SpiritualFatherChurchName' => $request->input('spiritual_father_church'),
-        ], fn($value) => $value !== null && $value !== '');
-
-        if (!empty($spiritualData)) {
-            DB::table('PersonSpiritualFatherInformation')->updateOrInsert(
-                ['PersonID' => $id],
-                $spiritualData
-            );
-        }
-
-        $addressData = array_filter([
-            'BuildingNumber' => $request->input('building_number'),
-            'FloorNumber' => $request->input('floor_number'),
-            'AppartmentNumber' => $request->input('appartment_number'),
-            'MainStreetName' => $request->input('main_street_name'),
-            'SubStreetName' => $request->input('sub_street_name'),
-            'NearestLandmark' => $request->input('nearest_landmark'),
-            'ManteqaID' => $request->input('manteqa_id'),
-            'DistrictID' => $request->input('district_id'),
-        ], fn($value) => $value !== null && $value !== '');
-
-        if (!empty($addressData)) {
-            DB::table('PersonalPhysicalAddress')->updateOrInsert(
-                ['PersonID' => $id],
-                $addressData
-            );
-        }
-
-        if ($request->hasFile('personal_image') || $request->hasFile('scout_image')) {
-            DB::table('PersonImages')->updateOrInsert(
-                ['PersonID' => $id],
-                [
-                    'PersonSystemImagePath' => $personSystemImagePath,
-                    'ScoutOfficialUniformImagePath' => $scoutOfficialUniformImagePath,
-                ]
-            );
-        }
-// Questions
-$questions_debug = [];
-
-if ($request->exists('questions')) {
-    foreach (($request->questions ?? []) as $questionId => $answer) {
-        if ($answer === null || trim($answer) === '') {
-            DB::table('PersonEntryQuestions')
-                ->where('PersonID', $id)
-                ->where('QuestionID', $questionId)
-                ->delete();
-
-            $questions_debug[] = [
-                'question_id' => $questionId,
-                'action' => 'deleted',
-                'answer' => $answer,
-            ];
-
-            continue;
-        }
-
-        DB::table('PersonEntryQuestions')->updateOrInsert(
-            [
-                'PersonID' => $id,
-                'QuestionID' => $questionId,
-            ],
-            [
-                'Answer' => $answer,
-            ]
+        $profiles->updateProfile(
+            (int) $id,
+            $request->all(),
+            $request->file('personal_image'),
+            $request->file('scout_image'),
+            $request->input('questions'),
+            $request->exists('questions'),
         );
 
-        $saved = DB::table('PersonEntryQuestions')
-            ->where('PersonID', $id)
-            ->where('QuestionID', $questionId)
-            ->get();
-
-        $questions_debug[] = [
-            'question_id' => $questionId,
-            'action' => 'saved',
-            'answer_sent' => $answer,
-            'db_rows' => $saved,
-        ];
-    }
-}
-
-
-
-        DB::commit();
-return redirect()->route('person.edit', $id)->with('status', 'تم تعديل البيانات بنجاح');
-
-        //return redirect()->route('person.index')->with('status', 'تم تعديل البيانات بنجاح');
+        return redirect()->route('person.edit', $id)->with('status', 'تم تعديل البيانات بنجاح');
     } catch (\Exception $e) {
-        DB::rollBack();
         Log::error('Person update failed', [
             'person_id' => $id,
             'message' => $e->getMessage(),

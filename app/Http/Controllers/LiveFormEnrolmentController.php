@@ -718,7 +718,7 @@ public function resumeLegacyLiveformQuestions($id)
     ]);
 }
 
-public function submitLegacyLiveformQuestions(Request $request, $id)
+public function submitLegacyLiveformQuestions(Request $request, $id, \App\Domain\Enrolment\LiveFormLegacyService $legacy)
 {
     $person = DB::table('NewUsersInformation')
         ->where('PersonID', $id)
@@ -744,155 +744,26 @@ public function submitLegacyLiveformQuestions(Request $request, $id)
     DB::beginTransaction();
 
     try {
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHECK LIMIT AGAIN BEFORE FINALIZE (atomic)
-        |--------------------------------------------------------------------------
-        */
-
         $shouldWait = app(LiveFormCapacityService::class)
             ->shouldUseWaitingList((int) $person->QetaaID, (int) $person->SanaMarhalaID);
 
-        /*
-        |--------------------------------------------------------------------------
-        | IF LIMIT EXCEEDED -> MOVE TO WAITING LIST
-        |--------------------------------------------------------------------------
-        */
+        $answers = [];
+        foreach ($questions as $question) {
+            $answers[$question->QuestionID] = $request->input($question->QuestionID);
+        }
 
         if ($shouldWait) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | INSERT PERSON INTO WAITING LIST TABLE
-            |--------------------------------------------------------------------------
-            */
-
-            DB::table('NewUsersInformationWaitinglist')->insert([
-                'PersonID' => $person->PersonID,
-                'ShamandoraCode' => $person->ShamandoraCode,
-                'FirstName' => $person->FirstName,
-                'SecondName' => $person->SecondName,
-                'ThirdName' => $person->ThirdName,
-                'FourthName' => $person->FourthName,
-                'Gender' => $person->Gender,
-                'DateOfBirth' => $person->DateOfBirth,
-                'RaqamQawmy' => $person->RaqamQawmy,
-                'ScoutJoiningYear' => $person->ScoutJoiningYear,
-                'BloodTypeID' => $person->BloodTypeID,
-                'FacebookProfileURL' => $person->FacebookProfileURL,
-                'InstagramProfileURL' => $person->InstagramProfileURL,
-                'PersonalEmail' => $person->PersonalEmail,
-                'BuildingNumber' => $person->BuildingNumber,
-                'FloorNumber' => $person->FloorNumber,
-                'AppartmentNumber' => $person->AppartmentNumber,
-                'MainStreetName' => $person->MainStreetName,
-                'SubStreetName' => $person->SubStreetName,
-                'ManteqaID' => $person->ManteqaID,
-                'DistrictID' => $person->DistrictID,
-                'NearestLandmark' => $person->NearestLandmark,
-                'SanaMarhalaID' => $person->SanaMarhalaID,
-                'SpiritualFatherName' => $person->SpiritualFatherName,
-                'SpiritualFatherChurchName' => $person->SpiritualFatherChurchName,
-                'Password' => $person->Password,
-                'PersonPersonalMobileNumber' => $person->PersonPersonalMobileNumber,
-                'FatherMobileNumber' => $person->FatherMobileNumber,
-                'MotherMobileNumber' => $person->MotherMobileNumber,
-                'HomePhoneNumber' => $person->HomePhoneNumber,
-                'IsOPersonalPhoneNumberHavingWhatsapp' => $person->IsOPersonalPhoneNumberHavingWhatsapp,
-                'SchoolName' => $person->SchoolName,
-                'SchoolGraduationYear' => $person->SchoolGraduationYear,
-                'QetaaID' => $person->QetaaID,
-                'QetaaName' => $person->QetaaName,
-                'FacultyID' => $person->FacultyID,
-                'UniversityID' => $person->UniversityID,
-                'UniversityGraduationYear' => $person->UniversityGraduationYear,
-                'PersonalImagePath' => $person->PersonalImagePath,
-                'ScoutImagePath' => $person->ScoutImagePath,
-                'AllergyFood' => $person->AllergyFood,
-                'AllergyMedicine' => $person->AllergyMedicine,
-                'MedicalDiseases' => $person->MedicalDiseases,
-                'MedicalMedications' => $person->MedicalMedications,
-                'HasEmergencyCase' => $person->HasEmergencyCase,
-                'EmergencyDetails' => $person->EmergencyDetails,
-            ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | SAVE QUESTIONS TO WAITING LIST QUESTIONS TABLE
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($questions as $question) {
-
-                $answer = $request->input($question->QuestionID);
-
-                DB::table('NewUsersPersonEntryQuestionsWaitinglist')->insert([
-                    'PersonID' => $person->PersonID,
-                    'QuestionID' => $question->QuestionID,
-                    'Answer' => $answer,
-                ]);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | REMOVE FROM MAIN TABLES
-            |--------------------------------------------------------------------------
-            */
-
-            DB::table('NewUsersPersonEntryQuestions')
-                ->where('PersonID', $id)
-                ->delete();
-
-            DB::table('NewUsersInformation')
-                ->where('PersonID', $id)
-                ->delete();
-
+            $legacy->moveToWaitingList($person, $questions, $answers);
             DB::commit();
 
             return view('person.liveform-waiting-list');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NORMAL SAVE
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($questions as $question) {
-
-            $answer = $request->input($question->QuestionID);
-
-            $exists = DB::table('NewUsersPersonEntryQuestions')
-                ->where('PersonID', $id)
-                ->where('QuestionID', $question->QuestionID)
-                ->exists();
-
-            if ($exists) {
-
-                DB::table('NewUsersPersonEntryQuestions')
-                    ->where('PersonID', $id)
-                    ->where('QuestionID', $question->QuestionID)
-                    ->update([
-                        'Answer' => $answer,
-                    ]);
-
-            } else {
-
-                DB::table('NewUsersPersonEntryQuestions')->insert([
-                    'PersonID' => $id,
-                    'QuestionID' => $question->QuestionID,
-                    'Answer' => $answer,
-                ]);
-            }
-        }
-
+        $legacy->upsertAnswers((int) $id, $questions, $answers);
         DB::commit();
 
         return view('person.liveform-finalize');
-
     } catch (\Throwable $e) {
-
         DB::rollBack();
 
         Log::error('submitLegacyLiveformQuestions failed', [

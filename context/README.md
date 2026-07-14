@@ -11,6 +11,7 @@ Persisted investigation artifacts so future sessions do **not** need to re-explo
 | [audit-logs.md](./audit-logs.md) | SuperAdmin mutating-request audit trail |
 | [whatsapp-bridge.md](./whatsapp-bridge.md) | Baileys LocalAuth bridge ops + Laravel contract |
 | [like-search.md](./like-search.md) | Shared `LikeSearch` + `PersonSearchService` |
+| [thin-controllers.md](./thin-controllers.md) | Domain extractions from fat controllers |
 
 ## How to use in future chats
 
