@@ -57,7 +57,8 @@ $personsBeforeMigration = DB::select("
             // Use AUTO_INCREMENT PersonID (do not compute MAX+1 — race-prone).
             $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
                 // Temporary unique placeholder until AUTO_INCREMENT PersonID is known.
-                'ShamandoraCode' => 'TMP-' . bin2hex(random_bytes(4)),
+                // ShamandoraCode is varchar(10) NOT NULL, so this must fit in 10 chars.
+                'ShamandoraCode' => bin2hex(random_bytes(5)),
                 'FirstName' => $person->FirstName,
                 'SecondName' => $person->SecondName,
                 'ThirdName' => $person->ThirdName,

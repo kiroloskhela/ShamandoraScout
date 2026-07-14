@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\ShamandoraCode;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -38,15 +39,13 @@ class ImportPersonsFromExcel extends Command
                     continue;
                 }
 
-                $last = DB::table('PersonInformation')->orderByDesc('PersonID')->first();
-                $personID = $last ? $last->PersonID + 1 : 1;
-
-                $code = 'SH-' . str_pad($personID, 5, '0', STR_PAD_LEFT);
-
-                // ---- PersonInformation ----
-                DB::table('PersonInformation')->insert([
-                    'PersonID' => $personID,
-                    'ShamandoraCode' => $code,
+                // PersonID is omitted here on purpose: PersonInformation.PersonID
+                // is AUTO_INCREMENT. Manually computing MAX(PersonID)+1 races
+                // under concurrent runs and can produce duplicate IDs/codes.
+                $personID = (int) DB::table('PersonInformation')->insertGetId([
+                    // Temporary unique placeholder until AUTO_INCREMENT PersonID is known.
+                    // ShamandoraCode is varchar(10) NOT NULL, so this must fit in 10 chars.
+                    'ShamandoraCode' => bin2hex(random_bytes(5)),
                     'FirstName' => $row['A'],
                     'SecondName' => $row['B'],
                     'ThirdName' => $row['C'],
@@ -60,7 +59,13 @@ class ImportPersonsFromExcel extends Command
                     'InstagramProfileURL' => $row['K'],
                     'PersonalEmail' => $row['L'],
                     'RequestPersonID' => $row['M'],
-                ]);
+                ], 'PersonID');
+
+                $code = ShamandoraCode::fromPersonId($personID);
+
+                DB::table('PersonInformation')
+                    ->where('PersonID', $personID)
+                    ->update(['ShamandoraCode' => $code]);
 
                 // ---- PersonPhoneNumbers ----
                 DB::table('PersonPhoneNumbers')->insert([

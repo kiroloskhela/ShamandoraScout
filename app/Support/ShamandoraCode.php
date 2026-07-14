@@ -21,7 +21,7 @@ class ShamandoraCode
      *
      * @throws InvalidArgumentException if $personId is not a positive integer.
      */
-    public static function forPersonId(int $personId): string
+    public static function fromPersonId(int $personId): string
     {
         if ($personId < 1) {
             throw new InvalidArgumentException("Person ID must be a positive integer, got {$personId}.");
