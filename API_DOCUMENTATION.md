@@ -29,10 +29,8 @@ This document describes the available API endpoints, their usage, expected input
 ---
 
 ## Get Persons for a User
-### GET `/api/show-persons?id={userId}`
-**Description:** Returns a list of persons filtered by group membership for the given user ID.
-**Query Parameter:**
-- `id` (required): The user ID to filter persons by group.
+### GET `/api/show-persons`
+**Description:** Returns a list of persons filtered by group membership for the **authenticated** user. The user is identified solely from the bearer token (`Authorization: Bearer {token}`); any client-supplied `id` is ignored and cannot be used to view another user's data.
 **Response Example:**
 ```json
 {
@@ -64,9 +62,9 @@ This document describes the available API endpoints, their usage, expected input
 
 ## Get Person Profile
 ### GET `/api/person/{id}`
-**Description:** Returns all joined data for a person by their ID.
+**Description:** Returns all joined data for the **authenticated** user's own profile. The `{id}` path segment is accepted for URL/backward compatibility but is **ignored** — the profile returned always belongs to the user identified by the bearer token, regardless of what `{id}` is passed. This prevents one user from viewing another user's profile by changing the id in the URL (IDOR).
 **Path Parameter:**
-- `id` (required): The person ID.
+- `id`: Present for URL compatibility only; not used to select the record.
 **Response Example:**
 ```json
 {
@@ -89,6 +87,35 @@ This document describes the available API endpoints, their usage, expected input
   ]
 }
 ```
+
+---
+
+## Get Person Calendar
+### GET `/api/calendar/{id}`
+**Description:** Returns calendar events for the **authenticated** user's own group/qetaa membership. The `{id}` path segment is accepted for URL/backward compatibility but is **ignored** — results always belong to the user identified by the bearer token, regardless of what `{id}` is passed.
+**Path Parameter:**
+- `id`: Present for URL compatibility only; not used to select the record.
+**Response Example:**
+```json
+{
+  "events": [
+    {
+      "EventID": 10,
+      "EventName": "Weekly Meeting",
+      "EventStartDate": "2025-09-01 18:00:00",
+      "EventEndDate": "2025-09-01 20:00:00",
+      "EventTypeName": "Meeting",
+      "SeasonName": "Season A",
+      "SeasonYear": 2025
+    }
+  ]
+}
+```
+
+---
+
+## Security Notes
+- `/api/show-persons`, `/api/person/{id}`, and `/api/calendar/{id}` never trust a client-supplied user/person id for scoping data. They always use the `PersonID` of the user authenticated via the request's bearer token (`$request->user()->PersonID`). This closes an IDOR (Insecure Direct Object Reference) vulnerability where a caller could previously pass any `id` to read another person's data.
 
 ---
 
