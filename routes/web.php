@@ -10,7 +10,10 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminPasswordController;
 
 use App\Http\Controllers\SecretaryController;
-use App\Http\Controllers\PersonNewController;
+use App\Http\Controllers\LiveFormEnrolmentController;
+use App\Http\Controllers\NewEnrolmentAdminController;
+use App\Http\Controllers\WaitingListController;
+use App\Http\Controllers\PersonDirectoryController;
 use App\Http\Controllers\PersonProfileController;
 
 use App\Http\Controllers\RoleController;
@@ -131,25 +134,25 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/liveform', [PersonNewController::class, 'createLiveForm'])->name('person.liveform-create');
-Route::post('/liveform/step1', [PersonNewController::class, 'insertLiveForm'])->name('person.liveform-insert');
+Route::get('/liveform', [LiveFormEnrolmentController::class, 'createLiveForm'])->name('person.liveform-create');
+Route::post('/liveform/step1', [LiveFormEnrolmentController::class, 'insertLiveForm'])->name('person.liveform-insert');
 
-Route::get('/liveform/step2', [PersonNewController::class, 'showLiveFormStep2'])->name('person.liveform-step2');
-Route::post('/liveform/step2', [PersonNewController::class, 'saveLiveFormStep2'])->name('person.liveform-step2-save');
+Route::get('/liveform/step2', [LiveFormEnrolmentController::class, 'showLiveFormStep2'])->name('person.liveform-step2');
+Route::post('/liveform/step2', [LiveFormEnrolmentController::class, 'saveLiveFormStep2'])->name('person.liveform-step2-save');
 
-Route::get('/liveform/questions', [PersonNewController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
-Route::post('/liveform/questions', [PersonNewController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
+Route::get('/liveform/questions', [LiveFormEnrolmentController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
+Route::post('/liveform/questions', [LiveFormEnrolmentController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
 
 // SECURITY: public liveform delete routes removed — they referenced non-existent
 // controller methods (deletesLiveForm/destroyLiveForm) and were publicly accessible.
-//Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitLiveFormQuestions'));
-//Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@getLiveFormQuestions'));
+//Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\LiveFormEnrolmentController@submitLiveFormQuestions'));
+//Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\LiveFormEnrolmentController@getLiveFormQuestions'));
 
 // !! IMPORTANT !! THIS ROUTES SHOULD BE DELETED AFTER ALL CONFLICTS RESOLVED AND LIVEFORM QUESTIONS MIGRATED TO NEW SYSTEM, IT'S ONLY FOR RESUMING LEGACY LIVEFORM QUESTIONS IN CASE OF ANY ISSUES
-Route::get('/liveform/resume/{id}', [PersonNewController::class, 'resumeLegacyLiveformQuestions'])
+Route::get('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'resumeLegacyLiveformQuestions'])
     ->name('person.liveform-resume-questions');
 
-Route::post('/liveform/resume/{id}', [PersonNewController::class, 'submitLegacyLiveformQuestions'])
+Route::post('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'submitLegacyLiveformQuestions'])
     ->name('person.liveform-resume-questions-submit');
 
 
@@ -234,7 +237,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/whatsapp/sendWithHeader', [WhatsAppBridgeController::class, 'sendWithHeader'])->name('whatsapp.sendWithHeader');
 
     // Show ALL persons
-    Route::get('/person/ShowPersons', [PersonNewController::class, 'ShowPersons'])->name('person.ShowPersons');
+    Route::get('/person/ShowPersons', [PersonDirectoryController::class, 'ShowPersons'])->name('person.ShowPersons');
 
 
 
@@ -315,15 +318,15 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/blood/delete/{id}', [BloodTypeController::class, 'deletes'])->name('blood.delete');
     Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy'); 
 
-    Route::get('/person/change-qetaa', [PersonNewController::class, 'showChangeQetaa'])
+    Route::get('/person/change-qetaa', [PersonDirectoryController::class, 'showChangeQetaa'])
         ->name('person.changeQetaa');
     
     // AJAX search (called by the search box)
-    Route::get('/person/search', [PersonNewController::class, 'searchPerson'])
+    Route::get('/person/search', [PersonDirectoryController::class, 'searchPerson'])
         ->name('person.search');
     
     // POST — save the actual change
-    Route::post('/person/{id}/change-qetaa', [PersonNewController::class, 'changePersonQetaa'])
+    Route::post('/person/{id}/change-qetaa', [PersonDirectoryController::class, 'changePersonQetaa'])
         ->name('person.changePersonQetaa');
     
     // Manteqa
@@ -430,7 +433,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Migrate New Enrolments
     Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
-        Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
+        Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 
 
 
@@ -478,29 +481,29 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
     Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
 
-    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
-    Route::get('/person/add', [PersonNewController::class, 'create'])->name('person.create');
-    Route::post('/person/insert', [PersonNewController::class, 'insert'])->name('person.insert');
+    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
+    Route::get('/person/add', [PersonDirectoryController::class, 'create'])->name('person.create');
+    Route::post('/person/insert', [PersonDirectoryController::class, 'insert'])->name('person.insert');
 
-    Route::get('/person/entry-questions/insert/{id}', [PersonNewController::class, 'getQuestions'])->name('person.entry-questions');
-    Route::post('/person/entry-questions/submit', [PersonNewController::class, 'submitQuestions'])->name('person.entry-questions-submit');
+    Route::get('/person/entry-questions/insert/{id}', [PersonDirectoryController::class, 'getQuestions'])->name('person.entry-questions');
+    Route::post('/person/entry-questions/submit', [PersonDirectoryController::class, 'submitQuestions'])->name('person.entry-questions-submit');
 
-    Route::get('/person/show/{id}', [PersonNewController::class, 'show'])->name('person.show');
-    Route::get('/person/edit/{id}', [PersonNewController::class, 'edit'])->name('person.edit');
-    Route::patch('/person/update/{id}', [PersonNewController::class, 'updates'])->name('person.update');
+    Route::get('/person/show/{id}', [PersonDirectoryController::class, 'show'])->name('person.show');
+    Route::get('/person/edit/{id}', [PersonDirectoryController::class, 'edit'])->name('person.edit');
+    Route::patch('/person/update/{id}', [PersonDirectoryController::class, 'updates'])->name('person.update');
 
 
 
     // Delete Persons
-    Route::get('/person/delete/{id}', [PersonNewController::class, 'deletes'])->name('person.delete');
-    Route::delete('/person/destroy/{id}', [PersonNewController::class, 'destroy'])->name('person.destroy');
+    Route::get('/person/delete/{id}', [PersonDirectoryController::class, 'deletes'])->name('person.delete');
+    Route::delete('/person/destroy/{id}', [PersonDirectoryController::class, 'destroy'])->name('person.destroy');
 
 
     // Waiting List Management
-    Route::get('/persons/waiting-list',                   [PersonNewController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
-    Route::get('/persons/waiting-list/{id}',              [PersonNewController::class, 'showWaitingList'])    ->name('person.waiting-list-show');
-    Route::get('/persons/waiting-list/{id}/migrate',      [PersonNewController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
-    Route::get('/persons/waiting-list/{id}/decline',      [PersonNewController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
+    Route::get('/persons/waiting-list',                   [WaitingListController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
+    Route::get('/persons/waiting-list/{id}',              [WaitingListController::class, 'showWaitingList'])    ->name('person.waiting-list-show');
+    Route::get('/persons/waiting-list/{id}/migrate',      [WaitingListController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
+    Route::get('/persons/waiting-list/{id}/decline',      [WaitingListController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
     
     // Export Scouts Excel
    Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
@@ -521,25 +524,25 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
-Route::get('/new-enrolments/show/qetaa/{id}', [PersonNewController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
-Route::get('/new-enrolments/show/{id}', [PersonNewController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
-Route::get('/new-enrolments/person/approve/{id}', [PersonNewController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
-Route::get('/new-enrolments/person/approve-again/{id}', [PersonNewController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
-Route::get('/new-enrolments/person/delete/{id}', [PersonNewController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
-Route::delete('/new-enrolments/person/destroy/{id}', [PersonNewController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
+Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
+Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
+Route::get('/new-enrolments/person/approve/{id}', [NewEnrolmentAdminController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
+Route::get('/new-enrolments/person/approve-again/{id}', [NewEnrolmentAdminController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
+Route::get('/new-enrolments/person/delete/{id}', [NewEnrolmentAdminController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
+Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
 
 
 
 
     // New Enrolments (admin lists)
-    Route::get('/new-enrolments', [PersonNewController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
+    Route::get('/new-enrolments', [NewEnrolmentAdminController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
 
-    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
-    Route::get('/new-enrolments/count/marahel', [PersonNewController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
-    Route::get('/new-enrolments/count/qetaat', [PersonNewController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
+    Route::get('/new-enrolments/analytics', [NewEnrolmentAdminController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
+    Route::get('/new-enrolments/count/marahel', [NewEnrolmentAdminController::class, 'countNewEnrolmentsMarahel'])->name('person.new-enrolments-marahel-count');
+    Route::get('/new-enrolments/count/qetaat', [NewEnrolmentAdminController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
 
-    Route::get('/new-enrolments/edit/{id}', [PersonNewController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
-    Route::put('/new-enrolments/update/{id}', [PersonNewController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
+    Route::get('/new-enrolments/edit/{id}', [NewEnrolmentAdminController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
+    Route::put('/new-enrolments/update/{id}', [NewEnrolmentAdminController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
 
 
       // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
@@ -712,7 +715,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
     Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
     Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
 
-    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
     
     Route::get('/event', [EventController::class, 'index'])->name('event.index');
     Route::get('/event/add-recursive', [EventController::class, 'createRecursive'])->name('event.create-recursive');
@@ -885,8 +888,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
     Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
    
-    Route::get('/person', [PersonNewController::class, 'index'])->name('person.index');
+    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
 
-    Route::get('/new-enrolments/migrations', [PersonNewController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
-    Route::get('/new-enrolments/analytics', [PersonNewController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
+    Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
+    Route::get('/new-enrolments/analytics', [NewEnrolmentAdminController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
 });
