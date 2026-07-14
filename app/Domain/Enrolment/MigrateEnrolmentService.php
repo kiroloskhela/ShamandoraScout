@@ -48,7 +48,7 @@ class MigrateEnrolmentService
 
         return (int) DB::transaction(function () use ($person, $questionsAnswersPairs, $passString) {
             $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
-                'ShamandoraCode' => 'TMP-' . bin2hex(random_bytes(4)),
+                'ShamandoraCode' => bin2hex(random_bytes(5)), // varchar(10) placeholder until real SH- code is set
                 'FirstName' => $person->FirstName,
                 'SecondName' => $person->SecondName,
                 'ThirdName' => $person->ThirdName,
@@ -64,7 +64,7 @@ class MigrateEnrolmentService
                 'RequestPersonID' => 0,
             ], 'PersonID');
 
-            $shamandoraCode = 'SH-' . str_pad((string) $thisPersonID, 5, '0', STR_PAD_LEFT);
+            $shamandoraCode = \App\Support\ShamandoraCode::fromPersonId($thisPersonID);
             DB::table('PersonInformation')->where('PersonID', $thisPersonID)->update([
                 'ShamandoraCode' => $shamandoraCode,
             ]);

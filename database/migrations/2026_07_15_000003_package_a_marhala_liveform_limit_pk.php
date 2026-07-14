@@ -20,20 +20,51 @@ return new class extends Migration
 
         if (!$this->hasPrimaryKey('MarhalaLiveFormLimit')) {
             // Collapse accidental duplicates on the composite key before adding PK.
-            DB::statement('
-                DELETE t1 FROM MarhalaLiveFormLimit t1
-                INNER JOIN MarhalaLiveFormLimit t2
-                WHERE t1.QetaaID = t2.QetaaID
-                  AND t1.SanaMarhalaID = t2.SanaMarhalaID
-                  AND IFNULL(t1.Year, 0) = IFNULL(t2.Year, 0)
-                  AND t1.MaxLimit < t2.MaxLimit
-            ');
+            $this->collapseDuplicateRows();
 
             DB::statement('
                 ALTER TABLE `MarhalaLiveFormLimit`
                 MODIFY `Year` INT NOT NULL DEFAULT 0,
                 ADD PRIMARY KEY (`QetaaID`, `SanaMarhalaID`, `Year`)
             ');
+        }
+    }
+
+    /**
+     * Collapse rows that share (QetaaID, SanaMarhalaID, Year) down to one
+     * row per key, keeping the highest MaxLimit.
+     *
+     * The table has no other columns to preserve, so this is lossless
+     * beyond picking a single MaxLimit for a duplicate group. A delete+join
+     * on "MaxLimit < MaxLimit" (the previous approach) leaves duplicates
+     * behind when several rows in a group tie on MaxLimit exactly, which
+     * would then make the ADD PRIMARY KEY below fail; grouping in PHP
+     * handles ties correctly.
+     */
+    private function collapseDuplicateRows(): void
+    {
+        $duplicateGroups = DB::table('MarhalaLiveFormLimit')
+            ->select('QetaaID', 'SanaMarhalaID', 'Year')
+            ->groupBy('QetaaID', 'SanaMarhalaID', 'Year')
+            ->havingRaw('COUNT(*) > 1')
+            ->get();
+
+        foreach ($duplicateGroups as $group) {
+            $query = DB::table('MarhalaLiveFormLimit')
+                ->where('QetaaID', $group->QetaaID)
+                ->where('SanaMarhalaID', $group->SanaMarhalaID)
+                ->where('Year', $group->Year);
+
+            $maxLimit = $query->max('MaxLimit');
+
+            $query->delete();
+
+            DB::table('MarhalaLiveFormLimit')->insert([
+                'QetaaID' => $group->QetaaID,
+                'SanaMarhalaID' => $group->SanaMarhalaID,
+                'Year' => $group->Year,
+                'MaxLimit' => $maxLimit,
+            ]);
         }
     }
 
