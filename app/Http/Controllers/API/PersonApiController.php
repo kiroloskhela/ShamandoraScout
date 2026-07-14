@@ -16,20 +16,12 @@ class PersonApiController extends Controller
  *   description="Person endpoints (list persons, profile, calendar)"
  * )
  *
- * @OA\Post(
- *   path="/api/persons",
+ * @OA\Get(
+ *   path="/api/show-persons",
  *   operationId="showPersons",
  *   tags={"Person"},
- *   summary="List persons accessible by the user",
- *   description="Returns persons in groups/qetaat visible to the provided user id. Adds full_name in response.",
- *   @OA\RequestBody(
- *     required=true,
- *     @OA\JsonContent(
- *       type="object",
- *       required={"id"},
- *       @OA\Property(property="id", type="integer", example=55, description="User/Person ID used to filter accessible persons")
- *     )
- *   ),
+ *   summary="List persons accessible by the authenticated user",
+ *   description="Returns persons in groups/qetaat visible to the authenticated user (derived from the auth token). Any client-supplied id is ignored. Adds full_name in response.",
  *   @OA\Response(
  *     response=200,
  *     description="Success",
@@ -67,13 +59,13 @@ class PersonApiController extends Controller
  *   path="/api/person/{id}",
  *   operationId="showProfile",
  *   tags={"Person"},
- *   summary="Get person profile",
- *   description="Returns person full profile data (joined tables) and entry questions/answers.",
+ *   summary="Get authenticated user's person profile",
+ *   description="Returns the authenticated user's full profile data (joined tables) and entry questions/answers. The {id} path segment is accepted for URL compatibility but is ignored; the profile returned always belongs to the authenticated user.",
  *   @OA\Parameter(
  *     name="id",
  *     in="path",
  *     required=true,
- *     description="PersonID",
+ *     description="Ignored. Present only for URL compatibility; the authenticated user's PersonID is always used.",
  *     @OA\Schema(type="integer", example=101)
  *   ),
  *   @OA\Response(
@@ -104,16 +96,16 @@ class PersonApiController extends Controller
  * )
  *
  * @OA\Get(
- *   path="/api/person/{id}/calendar",
+ *   path="/api/calendar/{id}",
  *   operationId="showCalendar",
  *   tags={"Person"},
- *   summary="Get person calendar events",
- *   description="Returns events accessible for a person via their group/qetaa membership.",
+ *   summary="Get authenticated user's calendar events",
+ *   description="Returns events accessible for the authenticated user via their group/qetaa membership. The {id} path segment is accepted for URL compatibility but is ignored; results always belong to the authenticated user.",
  *   @OA\Parameter(
  *     name="id",
  *     in="path",
  *     required=true,
- *     description="PersonID",
+ *     description="Ignored. Present only for URL compatibility; the authenticated user's PersonID is always used.",
  *     @OA\Schema(type="integer", example=101)
  *   ),
  *   @OA\Response(
@@ -144,13 +136,15 @@ class PersonApiController extends Controller
 
 public function showPersons(Request $request)
 {
-    $userId = (int) $request->input('id');
+    // Security: always scope by the authenticated user's own PersonID.
+    // Client-supplied "id" is intentionally ignored to prevent IDOR.
+    $userId = (int) $request->user()->PersonID;
 
     if ($userId <= 0) {
         return response()->json([
-            'message' => 'Invalid id provided.',
+            'message' => 'Unauthenticated.',
             'persons' => [],
-        ], 422);
+        ], 401);
     }
 
     $persons = DB::table('PersonInformation as pi')
@@ -200,8 +194,12 @@ public function showPersons(Request $request)
 
 
     // GET /api/person/{id}
-    public function ShowProfile($id)
+    // Security: the {id} route parameter is intentionally ignored. Only the
+    // authenticated user's own PersonID is ever used, to prevent IDOR.
+    public function ShowProfile(Request $request, $id)
     {
+        $id = $request->user()->PersonID;
+
         $person = DB::table('PersonInformation')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
             ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID' , '=', 'PersonInformation.PersonID')
@@ -299,8 +297,13 @@ public function showPersons(Request $request)
     }
 
 
-public function ShowCalendar($id)
+// GET /api/calendar/{id}
+// Security: the {id} route parameter is intentionally ignored. Only the
+// authenticated user's own PersonID is ever used, to prevent IDOR.
+public function ShowCalendar(Request $request, $id)
 {
+    $id = $request->user()->PersonID;
+
     $events = DB::select("
             SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
             FROM PersonGroup pg
