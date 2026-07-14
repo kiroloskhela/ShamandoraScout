@@ -17,8 +17,7 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Verify phone + DOB (+ optional NID), issue a reset link, email it.
-     * WhatsApp gets the same URL (best-effort) so the channel can be primary later.
+     * Verify phone + DOB (+ optional NID), issue a reset link, and email it.
      * Password is NOT changed until the user submits the reset form.
      */
     public function handle(Request $request, PasswordResetLinkService $resets, BrevoService $brevo)
@@ -97,7 +96,8 @@ class ForgotPasswordController extends Controller
         ])));
 
         $resetUrl = $resets->issueResetUrl($email);
-        $logoUrl = url('/img/shamandora.png');
+        // Email clients cannot load localhost images — always use the public CDN/site URL.
+        $logoUrl = config('services.brevo.logo_url', 'https://shamandorascout.com/img/shamandora.png');
         $expireMinutes = $resets->expireMinutes();
 
         try {
@@ -115,27 +115,17 @@ class ForgotPasswordController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            // Local/dev: token is already issued — surface the link so the
+            // reset form can be tested without a live Brevo key.
+            if (app()->environment('local')) {
+                return back()->with(
+                    'error',
+                    'فشل إرسال البريد (Brevo). للاختبار المحلي استخدم هذا الرابط: ' . $resetUrl
+                )->withInput();
+            }
+
             return back()->with('error', 'فشل إرسال رابط إعادة التعيين إلى البريد الإلكتروني. لم يتم تغيير كلمة السر.')
                 ->withInput();
-        }
-
-        // Best-effort WhatsApp with the same URL (primary channel later).
-        try {
-            $payload = [
-                'full_number' => $phone,
-                'message' => "اهلا بك يا {$fullName}\n"
-                    . "الرقم الخاص بك: {$personId}\n"
-                    . "لإعادة تعيين كلمة السر، افتح الرابط التالي (صالح لمدة {$expireMinutes} دقيقة):\n"
-                    . "{$resetUrl}\n"
-                    . "مرحبا بك في الكشافة.",
-            ];
-            $fake = Request::create('/whatsapp/send', 'POST', $payload);
-            app(WhatsAppBridgeController::class)->send($fake);
-        } catch (\Throwable $e) {
-            Log::warning('Password reset WhatsApp notify failed (email already sent)', [
-                'person_id' => $personId,
-                'error' => $e->getMessage(),
-            ]);
         }
 
         return back()->with('success', 'تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك الإلكتروني.');

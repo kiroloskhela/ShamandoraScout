@@ -31,4 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'brevo' => [
+        'api_key' => env('BREVO_API_KEY'),
+        // Public absolute URL for email logos (Gmail cannot load localhost).
+        'logo_url' => env('BREVO_LOGO_URL', 'https://shamandorascout.com/img/shamandora.png'),
+    ],
+
 ];

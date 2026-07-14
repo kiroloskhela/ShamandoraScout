@@ -17,7 +17,7 @@ class BrevoService
 
     public function __construct()
     {
-        $apiKey = env('BREVO_API_KEY');
+        $apiKey = (string) config('services.brevo.api_key', '');
         $this->fromEmail = env('MAIL_FROM_ADDRESS', 'noreply@shamandorascout.com');
         $this->fromName = env('MAIL_FROM_NAME', 'Shamandora Scout');
         $this->replyToEmail = env('MAIL_REPLYTO_ADDRESS', 'support@shamandorascout.com');
