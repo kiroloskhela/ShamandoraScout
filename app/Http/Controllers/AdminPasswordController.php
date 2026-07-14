@@ -15,8 +15,7 @@ class AdminPasswordController extends Controller
     public function index()
     {
         $users = DB::table('PersonInformation')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
-            ->select('PersonInformation.*', 'PersonSystemPassword.Password')
+            ->select('PersonInformation.*')
             ->get();
         return view('admin.passwords-index', compact('users'));
     }

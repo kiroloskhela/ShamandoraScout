@@ -148,8 +148,8 @@ class GroupPersonController extends Controller
             }
             catch(Exception $e)
             {
-                dd($e->getMessage());
                 DB::rollBack();
+                \Illuminate\Support\Facades\Log::error('GroupPerson insert failed', ['message' => $e->getMessage()]);
                 return view('person.entry-error');
             }
 
@@ -401,8 +401,10 @@ public function destroy(Request $request, $personId) // personId passed, not Per
             if ($groupID==NULL)
                 return NULL;
             
-            $sql = "SELECT GroupID FROM GroupTable WHERE GroupTable.IncludedUnderGroupID = $groupID";
-            $sql_result = DB::select($sql);
+            $sql_result = DB::select(
+                "SELECT GroupID FROM GroupTable WHERE GroupTable.IncludedUnderGroupID = ?",
+                [$groupID]
+            );
 
             foreach($sql_result as $row)
             {
@@ -421,14 +423,14 @@ public function destroy(Request $request, $personId) // personId passed, not Per
                                             GroupTable.IncludedUnderGroupID
                                             FROM GroupTable
                                             LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                            WHERE GroupTable.GroupID = $groupID")->GroupInfo;
+                                            WHERE GroupTable.GroupID = ?", [$groupID])->GroupInfo;
             
             $selectedGroup = DB::selectOne("  SELECT  
                 CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupInfo,
                 GroupTable.IncludedUnderGroupID
                 FROM GroupTable
                 LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                WHERE GroupTable.GroupID = $groupID");
+                WHERE GroupTable.GroupID = ?", [$groupID]);
             
 
             $path = $selectedGroup->GroupInfo." -> ".GroupPersonController::getParentsPathString($selectedGroup->IncludedUnderGroupID);
@@ -441,7 +443,7 @@ public function destroy(Request $request, $personId) // personId passed, not Per
         {   
             $parentID = DB::selectOne("     SELECT  GroupTable.IncludedUnderGroupID
                                             FROM    GroupTable
-                                            WHERE   GroupTable.GroupID = $groupID")->IncludedUnderGroupID;
+                                            WHERE   GroupTable.GroupID = ?", [$groupID])->IncludedUnderGroupID;
             if($parentID==0)
                 return $groupID;
             

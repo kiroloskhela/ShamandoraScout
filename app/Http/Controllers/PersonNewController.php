@@ -990,7 +990,7 @@ public function submitLiveformQuestions(Request $request)
             'SanaMarhalaID' => $step1['sana_marhala_id'],
             'SpiritualFatherName' => $step2['spiritual_father'],
             'SpiritualFatherChurchName' => $step2['spiritual_father_church'],
-            'Password' => $passString,
+            'Password' => \Illuminate\Support\Facades\Hash::make($passString),
             'PersonPersonalMobileNumber' => $step2['personal_phone_number'],
             'FatherMobileNumber' => $step2['father_phone_number'],
             'MotherMobileNumber' => $step2['mother_phone_number'],
@@ -1467,7 +1467,7 @@ public function updates(Request $request, $id)
     ]);
 
     if ($validator->fails()) {
-        dd($validator->errors()->all());
+        return redirect()->back()->withErrors($validator)->withInput();
     }
 
     try {
@@ -1676,7 +1676,12 @@ return redirect()->route('person.edit', $id)->with('status', 'تم تعديل ا
         //return redirect()->route('person.index')->with('status', 'تم تعديل البيانات بنجاح');
     } catch (\Exception $e) {
         DB::rollBack();
-        dd($e->getMessage(), $e->getLine(), $request->all());
+        Log::error('Person update failed', [
+            'person_id' => $id,
+            'message' => $e->getMessage(),
+            'line' => $e->getLine(),
+        ]);
+        return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل البيانات')->withInput();
     }
 }
     

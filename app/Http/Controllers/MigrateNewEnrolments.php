@@ -113,9 +113,11 @@ $personsBeforeMigration = DB::select("
                 'SpiritualFatherChurchName' => $person->SpiritualFatherChurchName
             ]);
 
+            // SECURITY: hash the generated password. Plaintext here also broke login,
+            // since LoginController verifies with Hash::check().
             DB::table('PersonSystemPassword')->insert([
                 'PersonID' => $thisPersonID,
-                'Password' => $passString
+                'Password' => \Illuminate\Support\Facades\Hash::make($passString)
             ]);
 
             DB::table('PersonImages')->insert([
@@ -218,7 +220,10 @@ $personsBeforeMigration = DB::select("
             DB::commit();
         } catch (Throwable $e) {
             DB::rollBack();
-            dd($e->getMessage());
+            \Illuminate\Support\Facades\Log::error('New enrolment migration failed', [
+                'new_user_person_id' => $person->PersonID,
+                'message' => $e->getMessage(),
+            ]);
             return view('person.entry-error');
         }
     }

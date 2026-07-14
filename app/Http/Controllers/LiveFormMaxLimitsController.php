@@ -107,9 +107,8 @@ class LiveFormMaxLimitsController extends Controller
             }
             catch(Exception $e)
             {
-                //return view('person.entry-error');
-                dd($e->getMessage());
                 DB::rollBack();
+                \Illuminate\Support\Facades\Log::error('Max limit insert failed', ['message' => $e->getMessage()]);
                 return view('person.entry-error-repeat-trial');
             }
 

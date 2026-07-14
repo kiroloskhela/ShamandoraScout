@@ -133,12 +133,10 @@ Route::post('/liveform/step2', [PersonNewController::class, 'saveLiveFormStep2']
 Route::get('/liveform/questions', [PersonNewController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
 Route::post('/liveform/questions', [PersonNewController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
 
-Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');
-Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'destroyLiveForm'])->name('person.liveform-destroy');
+// SECURITY: public liveform delete routes removed — they referenced non-existent
+// controller methods (deletesLiveForm/destroyLiveForm) and were publicly accessible.
 //Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@submitLiveFormQuestions'));
 //Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\PersonNewController@getLiveFormQuestions'));
-Route::get('/liveform/person/delete/{id}', [PersonNewController::class, 'deletesLiveForm'])->name('person.liveform-delete');
-Route::delete('/liveform/person/destroy/{id}', [PersonNewController::class, 'destroyLiveForm'])->name('person.liveform-destroy');
 
 // !! IMPORTANT !! THIS ROUTES SHOULD BE DELETED AFTER ALL CONFLICTS RESOLVED AND LIVEFORM QUESTIONS MIGRATED TO NEW SYSTEM, IT'S ONLY FOR RESUMING LEGACY LIVEFORM QUESTIONS IN CASE OF ANY ISSUES
 Route::get('/liveform/resume/{id}', [PersonNewController::class, 'resumeLegacyLiveformQuestions'])
@@ -152,8 +150,9 @@ Route::post('/liveform/resume/{id}', [PersonNewController::class, 'submitLegacyL
 Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
 Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
 Route::get('/liveform/waiting', fn() => view('person.liveform-waiting-list'));
-Route::get('/person/delete/{id}', array('as'=> 'person.delete', 'uses'=>'App\Http\Controllers\PersonNewController@deletes'));
-Route::delete('/person/destroy/{id}', array('as'=> 'person.destroy', 'uses'=>'App\Http\Controllers\PersonNewController@destroy'));
+// SECURITY: public /person/delete/{id} and /person/destroy/{id} routes removed.
+// They allowed UNAUTHENTICATED deletion of any person across ~10 tables.
+// The authenticated, role-protected equivalents exist in the SuperAdmin|AdminQetaa group below.
 
 
 
