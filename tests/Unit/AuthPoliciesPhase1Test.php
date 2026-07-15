@@ -91,11 +91,13 @@ class AuthPoliciesPhase1Test extends TestCase
     {
         $user = $this->createUser();
         $policy = new GamePolicy();
+        $game = new \App\Models\Game();
 
         $this->assertTrue($policy->viewAny($user));
         $this->assertTrue($policy->create($user));
-        $this->assertTrue($policy->update($user));
-        $this->assertTrue($policy->delete($user));
+        $this->assertTrue($policy->view($user, $game));
+        $this->assertTrue($policy->update($user, $game));
+        $this->assertTrue($policy->delete($user, $game));
     }
 
     public function test_person_policy_allows_own_record(): void

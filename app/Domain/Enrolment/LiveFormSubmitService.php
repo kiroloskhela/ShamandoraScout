@@ -32,7 +32,11 @@ class LiveFormSubmitService
         // varchar(10) — use a 10-char placeholder until the real SH- code is set.
         $data['PersonID'] = 0;
         $data['ShamandoraCode'] = bin2hex(random_bytes(5));
-        $data['CreatedAt'] = $data['CreatedAt'] ?? now();
+        if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'CreatedAt')) {
+            $data['CreatedAt'] = $data['CreatedAt'] ?? now();
+        } else {
+            unset($data['CreatedAt']);
+        }
 
         $id = DB::table($table)->insertGetId($data, 'id');
 
