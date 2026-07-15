@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Auth\PasswordResetLinkService;
 use App\Jobs\SendPasswordResetLinkMail;
+use App\Services\WhatsAppBridgeClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -17,11 +18,14 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Verify phone + DOB (+ optional NID), issue a reset link, and email it.
-     * Password is NOT changed until the user submits the reset form.
+     * Verify phone + DOB (+ optional NID), issue a reset link, send via WhatsApp
+     * (and email when available). Password is NOT changed until the reset form.
      */
-    public function handle(Request $request, PasswordResetLinkService $resets)
-    {
+    public function handle(
+        Request $request,
+        PasswordResetLinkService $resets,
+        WhatsAppBridgeClient $whatsapp
+    ) {
         $baseRules = [
             'phone' => ['required', 'regex:/^0\d{10}$/'],
             'dob' => ['required', 'date_format:Y-m-d'],
@@ -83,11 +87,6 @@ class ForgotPasswordController extends Controller
         $personId = (int) $person->PersonID;
         $email = trim((string) ($person->PersonalEmail ?? ''));
 
-        if ($email === '') {
-            return back()->with('error', 'لا يوجد بريد إلكتروني مسجل لهذا المستخدم.')
-                ->withInput();
-        }
-
         $fullName = trim(implode(' ', array_filter([
             $person->FirstName ?? '',
             $person->SecondName ?? '',
@@ -95,40 +94,54 @@ class ForgotPasswordController extends Controller
             $person->FourthName ?? '',
         ])));
 
-        $resetUrl = $resets->issueResetUrl($email);
-        // Email clients cannot load localhost images — always use the public CDN/site URL.
-        $logoUrl = config('services.brevo.logo_url', 'https://shamandorascout.com/img/shamandora.png');
+        $tokenKey = $resets->tokenKeyForPerson($personId, $email !== '' ? $email : null);
+        $resetUrl = $resets->issueResetUrl($tokenKey);
         $expireMinutes = $resets->expireMinutes();
 
+        $waMessage = "مرحباً {$fullName} ♡\n"
+            . "لإعادة تعيين كلمة السر افتح الرابط التالي خلال {$expireMinutes} دقيقة:\n"
+            . "{$resetUrl}\n"
+            . 'إذا لم تطلب ذلك تجاهل هذه الرسالة.';
+
         try {
-            SendPasswordResetLinkMail::dispatch(
-                $email,
-                $fullName,
-                (string) $personId,
-                $resetUrl,
-                $logoUrl,
-                $expireMinutes
-            );
+            $whatsapp->sendText($phone, $waMessage);
         } catch (\Throwable $e) {
-            Log::error('Password reset email dispatch failed', [
+            Log::error('Password reset WhatsApp send failed', [
                 'person_id' => $personId,
                 'error' => $e->getMessage(),
             ]);
 
-            // Local/dev + QUEUE_CONNECTION=sync: job runs inline and Brevo
-            // failures surface here. Token is already issued — show the link.
             if (app()->environment('local')) {
                 return back()->with(
                     'error',
-                    'فشل إرسال البريد (Brevo). للاختبار المحلي استخدم هذا الرابط: ' . $resetUrl
+                    'فشل إرسال واتساب. للاختبار المحلي استخدم هذا الرابط: ' . $resetUrl
                 )->withInput();
             }
 
-            return back()->with('error', 'فشل إرسال رابط إعادة التعيين إلى البريد الإلكتروني. لم يتم تغيير كلمة السر.')
+            return back()->with('error', 'فشل إرسال رابط إعادة التعيين على واتساب. لم يتم تغيير كلمة السر.')
                 ->withInput();
         }
 
-        return back()->with('success', 'تم إرسال رابط إعادة تعيين كلمة السر إلى بريدك الإلكتروني.');
+        if ($email !== '') {
+            $logoUrl = config('services.brevo.logo_url', 'https://shamandorascout.com/img/shamandora.png');
+            try {
+                SendPasswordResetLinkMail::dispatch(
+                    $email,
+                    $fullName,
+                    (string) $personId,
+                    $resetUrl,
+                    $logoUrl,
+                    $expireMinutes
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Password reset email dispatch failed after WhatsApp OK', [
+                    'person_id' => $personId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return back()->with('success', 'تم إرسال رابط إعادة تعيين كلمة السر على واتساب.');
     }
 
     public function showResetForm(Request $request, string $token, PasswordResetLinkService $resets)
@@ -150,7 +163,7 @@ class ForgotPasswordController extends Controller
     {
         $data = $request->validate([
             'token' => ['required', 'string'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'password.min' => 'كلمة السر يجب ألا تقل عن 8 أحرف.',
@@ -164,13 +177,18 @@ class ForgotPasswordController extends Controller
                 ->with('error', 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطاً جديداً.');
         }
 
-        $personId = DB::table('PersonInformation')
-            ->whereRaw('LOWER(TRIM(PersonalEmail)) = ?', [$email])
-            ->value('PersonID');
+        $personId = null;
+        if (preg_match('/^person-(\d+)@password-reset\.local$/', $email, $m)) {
+            $personId = (int) $m[1];
+        } else {
+            $personId = DB::table('PersonInformation')
+                ->whereRaw('LOWER(TRIM(PersonalEmail)) = ?', [$email])
+                ->value('PersonID');
+        }
 
         if (!$personId) {
             return redirect()->route('forgot-password.form')
-                ->with('error', 'تعذر العثور على الحساب المرتبط بهذا البريد.');
+                ->with('error', 'تعذر العثور على الحساب المرتبط بهذا الرابط.');
         }
 
         DB::table('PersonSystemPassword')->updateOrInsert(

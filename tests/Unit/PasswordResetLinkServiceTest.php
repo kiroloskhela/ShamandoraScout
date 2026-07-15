@@ -30,6 +30,14 @@ class PasswordResetLinkServiceTest extends TestCase
         $url = $service->issueResetUrl('person@example.com');
 
         $this->assertStringContainsString('/reset-password/', $url);
+        $this->assertSame(
+            'person-7@password-reset.local',
+            $service->tokenKeyForPerson(7, null)
+        );
+        $this->assertSame(
+            'a@b.com',
+            $service->tokenKeyForPerson(7, 'A@B.com')
+        );
         $this->assertStringContainsString('email=person%40example.com', $url);
 
         $row = DB::table('password_reset_tokens')->where('email', 'person@example.com')->first();
