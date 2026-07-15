@@ -59,12 +59,13 @@ class NewEnrolmentAdminController extends Controller
                                                     nui.RaqamQawmy,
                                                     nui.IsApproved,
                                                     nui.PersonPersonalMobileNumber,
-                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions
+                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+                                                    DATE_FORMAT(nui.CreatedAt, '%Y-%m-%d %H:%i') AS CreatedAt
                                                 FROM NewUsersInformation nui
                                                 LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID
                                                 LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
                                                 {$whereSql}
-                                                ORDER BY nui.PersonID ASC";
+                                                ORDER BY nui.CreatedAt DESC, nui.PersonID DESC";
 
             $persons = SqlPaginator::paginate($sql, $bindings, 25);
 

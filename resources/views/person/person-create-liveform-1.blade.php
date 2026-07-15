@@ -7,17 +7,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>كشافة الشمندورة - التحاق جديد</title>
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Cairo font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#0f766e',
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .sea-bg {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(13, 148, 136, 0.25), transparent),
+                linear-gradient(165deg, #f0fdfa 0%, #ecfeff 40%, #f8fafc 100%);
         }
 
         select {
@@ -26,47 +47,36 @@
     </style>
 </head>
 
-<body class="min-h-screen bg-white text-slate-800">
-    <main class="min-h-screen flex items-center justify-center px-4 py-10">
-        <div class="w-full max-w-3xl">
-
-            <!-- Card -->
-            <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
-
+<body class="sea-bg min-h-screen text-slate-800">
+    <main class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+        <div class="w-full max-w-xl">
+            <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
                 <div class="p-6 sm:p-10">
-
-                    <!-- Logo -->
                     <div class="flex justify-center mb-6">
-                        <div
-                            class="h-28 w-28 rounded-full bg-white ring-4 ring-white shadow-md border border-slate-200 overflow-hidden">
-                            <img src="{{ asset('img/shamandora.png') }}" class="h-full w-full object-contain p-3"
-                                alt="Shamandora" />
-                        </div>
+                        <img src="{{ asset('img/shamandora.png') }}" alt="الشمندورة"
+                            class="h-24 w-24 object-contain drop-shadow-md" />
                     </div>
 
-                    <!-- Header -->
                     <div class="text-center">
-                        <h1 class="text-2xl font-bold text-slate-900">
-                            التحاق جديد
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-brand-900">
+                            طلب التحاق جديد
                         </h1>
-                        <p class="mt-2 text-sm text-slate-500">
-                            الجزء الأول: البيانات الدراسية
+                        <p class="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+                            انضم إلى مجموعة الشمندورة الكشفية البحرية — الإسكندرية
                         </p>
                     </div>
 
-                    <!-- Form -->
                     <form id="regForm" method="POST" action="{{ route('person.liveform-insert') }}"
-                        class="mt-8 space-y-6" novalidate>
+                        class="mt-8 space-y-5" novalidate>
                         @csrf
 
-                        <!-- السنة والمرحلة -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                السنة والمرحلة الدراسية <span class="text-rose-700">*</span>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">
+                                السنة والمرحلة الدراسية <span class="text-rose-600">*</span>
                             </label>
                             <select required id="sana_marhala_id" name="sana_marhala_id"
                                 class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600">
                                 <option value="" disabled selected>اختر السنة والمرحلة الدراسية</option>
                                 @foreach ($seneen_marahel as $sana_marhala)
                                     <option value="{{ $sana_marhala->SanaMarhalaID }}">
@@ -74,63 +84,48 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="error hidden mt-1 text-sm text-rose-700">
-                                هذا الحقل مطلوب
-                            </p>
+                            <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
                         </div>
 
-                        <!-- النوع -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                نوع الملتحق <span class="text-rose-700">*</span>
+                            <label class="block text-sm font-bold text-slate-700 mb-1.5">
+                                نوع الملتحق <span class="text-rose-600">*</span>
                             </label>
                             <select required id="gender" name="gender"
                                 class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5
-                                focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600">
                                 <option value="" disabled selected>اختر النوع</option>
                                 <option value="Male">ذكر</option>
                                 <option value="Female">أنثى</option>
                             </select>
-                            <p class="error hidden mt-1 text-sm text-rose-700">
-                                هذا الحقل مطلوب
-                            </p>
+                            <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
                         </div>
 
-
-
-                        <!-- checkbox -->
                         <div id="leadersCheckbox"
-                            class="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 hidden">
-                            <label class="text-sm font-semibold text-slate-700">
+                            class="flex items-center justify-between rounded-xl border border-teal-100 bg-teal-50/80 px-4 py-3 hidden">
+                            <label class="text-sm font-bold text-slate-700">
                                 تقديم لمدرسة إعداد قادة؟
                             </label>
                             <input type="checkbox" name="newLeadersSchool"
-                                class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-200" />
+                                class="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-600" />
                         </div>
 
-
-                        <!-- Submit -->
                         <button id="submitBtn" type="submit"
-                            class="w-full rounded-2xl bg-indigo-600 px-4 py-3 font-bold text-white
-                            shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400
-                            disabled:opacity-50 disabled:cursor-not-allowed">
-                            اضغط للاستمرار →
+                            class="w-full rounded-2xl bg-brand-700 px-4 py-3.5 font-bold text-white
+                            shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600
+                            disabled:opacity-50 disabled:cursor-not-allowed transition">
+                            اضغط للاستمرار ←
                         </button>
-
-                        <!-- Footer -->
-                        <div class="pt-4 border-t border-slate-200 text-center">
-                            <p class="text-xs text-slate-500">© 2024 Shamandora Scout</p>
-                            <p class="text-sm font-bold text-indigo-700">
-                                مجموعة الشمندورة الكشفية
-                            </p>
-                        </div>
                     </form>
                 </div>
             </div>
+
+            <p class="mt-8 text-center text-xs text-slate-500">
+                © {{ date('Y') }} مجموعة الشمندورة الكشفية البحرية — الإسكندرية
+            </p>
         </div>
     </main>
 
-    <!-- ================= Live Validation ================= -->
     <script>
         const form = document.getElementById('regForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -196,9 +191,6 @@
         });
 
         submitBtn.disabled = true;
-
-
-
 
         const sanaMarhalaSelect = document.getElementById('sana_marhala_id');
         const leadersCheckbox = document.getElementById('leadersCheckbox');

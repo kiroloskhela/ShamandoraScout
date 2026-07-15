@@ -10,6 +10,12 @@
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
+                'key' => 'CreatedAt',
+                'label' => 'تاريخ التقديم',
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-700 font-medium whitespace-nowrap',
+            ],
+            [
                 'key' => 'FullName',
                 'label' => 'الاسم',
                 'type' => 'label',

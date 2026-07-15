@@ -16,6 +16,7 @@ use App\Http\Controllers\WhatsAppCampaignController;
 
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\LiveFormEnrolmentController;
+use App\Http\Controllers\LiveFormSettingsController;
 use App\Http\Controllers\NewEnrolmentAdminController;
 use App\Http\Controllers\WaitingListController;
 use App\Http\Controllers\PersonDirectoryController;
@@ -120,8 +121,6 @@ Route::get('/locale/{locale}', [LocaleController::class, 'switch'])
 Route::get('/login-auth', [LoginController::class, 'show'])->name('login-auth');
 Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login');
 
-Route::view('/register', 'register');
-
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])
     ->name('forgot-password.form');
 
@@ -144,28 +143,22 @@ Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
 |--------------------------------------------------------------------------
 */
 
-Route::get('/liveform', [LiveFormEnrolmentController::class, 'createLiveForm'])->name('person.liveform-create');
-Route::post('/liveform/step1', [LiveFormEnrolmentController::class, 'insertLiveForm'])->name('person.liveform-insert');
+Route::middleware(['liveform.open'])->group(function () {
+    Route::get('/liveform', [LiveFormEnrolmentController::class, 'createLiveForm'])->name('person.liveform-create');
+    Route::post('/liveform/step1', [LiveFormEnrolmentController::class, 'insertLiveForm'])->name('person.liveform-insert');
 
-Route::get('/liveform/step2', [LiveFormEnrolmentController::class, 'showLiveFormStep2'])->name('person.liveform-step2');
-Route::post('/liveform/step2', [LiveFormEnrolmentController::class, 'saveLiveFormStep2'])->name('person.liveform-step2-save');
+    Route::get('/liveform/step2', [LiveFormEnrolmentController::class, 'showLiveFormStep2'])->name('person.liveform-step2');
+    Route::post('/liveform/step2', [LiveFormEnrolmentController::class, 'saveLiveFormStep2'])->name('person.liveform-step2-save');
 
-Route::get('/liveform/questions', [LiveFormEnrolmentController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
-Route::post('/liveform/questions', [LiveFormEnrolmentController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
+    Route::get('/liveform/questions', [LiveFormEnrolmentController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
+    Route::post('/liveform/questions', [LiveFormEnrolmentController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
 
-// SECURITY: public liveform delete routes removed — they referenced non-existent
-// controller methods (deletesLiveForm/destroyLiveForm) and were publicly accessible.
-//Route::post('/liveform/person/entry-questions/submit', array('as'=> 'person.entry-questions-submit-liveform', 'uses'=>'App\Http\Controllers\LiveFormEnrolmentController@submitLiveFormQuestions'));
-//Route::get('/liveform/person/entry-questions/insert/{id}', array('as'=> 'person.entry-questions-liveform', 'uses'=>'App\Http\Controllers\LiveFormEnrolmentController@getLiveFormQuestions'));
+    Route::get('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'resumeLegacyLiveformQuestions'])
+        ->name('person.liveform-resume-questions');
 
-// !! IMPORTANT !! THIS ROUTES SHOULD BE DELETED AFTER ALL CONFLICTS RESOLVED AND LIVEFORM QUESTIONS MIGRATED TO NEW SYSTEM, IT'S ONLY FOR RESUMING LEGACY LIVEFORM QUESTIONS IN CASE OF ANY ISSUES
-Route::get('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'resumeLegacyLiveformQuestions'])
-    ->name('person.liveform-resume-questions');
-
-Route::post('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'submitLegacyLiveformQuestions'])
-    ->name('person.liveform-resume-questions-submit');
-
-
+    Route::post('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'submitLegacyLiveformQuestions'])
+        ->name('person.liveform-resume-questions-submit');
+});
 
 Route::get('/liveform/apologize', fn() => view('person.liveform-limit-exceeded'));
 Route::get('/liveform/finalize', fn() => view('person.liveform-finalize'));
@@ -245,6 +238,10 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     // System audit logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
+    // Liveform open/close
+    Route::get('/liveform-settings', [LiveFormSettingsController::class, 'edit'])->name('liveform-settings.edit');
+    Route::put('/liveform-settings', [LiveFormSettingsController::class, 'update'])->name('liveform-settings.update');
+
     // Whatsapp
     Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
@@ -272,14 +269,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
 
 
-    // Events
-    Route::get('/event', [EventController::class, 'index'])->name('event.index');
-    Route::get('/event/add-recursive', [EventController::class, 'createRecursive'])->name('event.create-recursive');
-    Route::post('/event/insert-recursive', [EventController::class, 'insertRecursive'])->name('event.insert-recursive');
-    Route::get('/event/add', [EventController::class, 'create'])->name('event.create');
-    Route::post('/event/insert', [EventController::class, 'insert'])->name('event.insert');
-    Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
-    Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
+    // Events (shared CRUD lives in Secretary group; delete stays SuperAdmin-only)
     Route::get('/event/delete/{id}', [EventController::class, 'deletes'])->name('event.delete');
     Route::delete('/event/destroy/{id}', [EventController::class, 'destroy'])->name('event.destroy');
 
@@ -521,7 +511,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::get('/group-person/edit/{id}', [GroupPersonController::class, 'edit'])->name('group-person.edit');
     Route::patch('/group-person/update/{id}', [GroupPersonController::class, 'updates'])->name('group-person.update');
 
-    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
     Route::get('/person/add', [PersonDirectoryController::class, 'create'])->name('person.create');
     Route::post('/person/insert', [PersonDirectoryController::class, 'insert'])->name('person.insert');
 
@@ -563,6 +552,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
 });
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
+
+Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
 
 Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
 Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
@@ -755,8 +746,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
     Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
     Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
 
-    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
-    
+    // Events (SuperAdmin included via checkAuth list; delete/destroy stay SuperAdmin-only)
     Route::get('/event', [EventController::class, 'index'])->name('event.index');
     Route::get('/event/add-recursive', [EventController::class, 'createRecursive'])->name('event.create-recursive');
     Route::post('/event/insert-recursive', [EventController::class, 'insertRecursive'])->name('event.insert-recursive');
@@ -764,7 +754,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
     Route::post('/event/insert', [EventController::class, 'insert'])->name('event.insert');
     Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
     Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
-    
 
   // Locations
     Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
@@ -927,9 +916,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
     Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
     Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
-   
-    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
-
-    Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
-    Route::get('/new-enrolments/analytics', [NewEnrolmentAdminController::class, 'analyticsNewEnrolments'])->name('person.new-enrolments-analytics');
 });

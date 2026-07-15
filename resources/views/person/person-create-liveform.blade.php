@@ -7,15 +7,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>كشافة الشمندورة | إدخال بيانات</title>
 
-    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Cairo Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#0f766e',
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .sea-bg {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(13, 148, 136, 0.25), transparent),
+                linear-gradient(165deg, #f0fdfa 0%, #ecfeff 40%, #f8fafc 100%);
         }
 
         ::-webkit-scrollbar {
@@ -23,12 +47,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
+            background: #99f6e4;
             border-radius: 999px
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af
+            background: #5eead4
         }
 
         input[type="text"],
@@ -43,7 +67,7 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: left 0.75rem center;
             background-size: 1.25rem;
@@ -55,39 +79,73 @@
             text-align: right;
             direction: rtl;
         }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 </head>
 
-<body class="min-h-screen bg-white py-8">
+<body class="sea-bg min-h-screen py-8">
 
     @if (session('status'))
-        <div class="max-w-6xl mx-auto px-4 mb-4">
+        <div class="max-w-4xl mx-auto px-4 mb-4">
             <div class="rounded-xl bg-emerald-600 text-white px-5 py-4 shadow">
                 {{ session('status') }}
             </div>
         </div>
     @endif
 
-    <div class="max-w-6xl mx-auto px-4">
-        <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
+    <div class="max-w-4xl mx-auto px-4" x-data="{ step: 1 }" x-cloak id="wizardRoot">
+        <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
 
-            <!-- Header: logo top middle + centered title -->
-            <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
+            <div class="px-6 md:px-10 py-8 border-b border-teal-100 bg-gradient-to-b from-teal-50/80 to-white">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
-
-                    <!-- Logo -->
-                    <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
-
+                    <img src="{{ asset('img/shamandora.png') }}" alt="الشمندورة"
+                        class="h-20 w-20 object-contain drop-shadow-md" />
                     <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
-                            إدخال بيانات ملتحق جديد
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-brand-900">
+                            طلب التحاق جديد
                         </h1>
-                        <p class="text-slate-500 mt-2">
-                            الحقول المطلوبة عليها علامة <span class="font-bold text-rose-700">*</span>
+                        <p class="text-slate-600 mt-2 text-sm md:text-base">
+                            الحقول المطلوبة عليها علامة <span class="font-bold text-rose-600">*</span>
                         </p>
                     </div>
-
                 </div>
+
+                <!-- Horizontal stepper (RTL) -->
+                <nav class="mt-8" aria-label="خطوات التسجيل">
+                    <ol class="flex items-center justify-between gap-1 sm:gap-2">
+                        <template x-for="(label, i) in [
+                            'البيانات الشخصية',
+                            'بيانات ولي الأمر',
+                            'البيانات الدراسية',
+                            'المراجعة'
+                        ]" :key="i">
+                            <li class="flex-1 flex flex-col items-center gap-2 min-w-0">
+                                <div class="flex items-center w-full">
+                                    <div class="hidden sm:block flex-1 h-0.5 rounded"
+                                        :class="i === 0 ? 'bg-transparent' : (step > i ? 'bg-brand-600' : 'bg-slate-200')"></div>
+                                    <button type="button"
+                                        @click="if (i + 1 < step) step = i + 1"
+                                        class="relative z-10 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold transition"
+                                        :class="step === i + 1
+                                            ? 'bg-brand-700 text-white shadow-md shadow-teal-900/20 ring-4 ring-teal-100'
+                                            : (step > i + 1
+                                                ? 'bg-brand-600 text-white'
+                                                : 'bg-white text-slate-400 ring-1 ring-slate-200')">
+                                        <span x-text="i + 1"></span>
+                                    </button>
+                                    <div class="hidden sm:block flex-1 h-0.5 rounded"
+                                        :class="i === 3 ? 'bg-transparent' : (step > i + 1 ? 'bg-brand-600' : 'bg-slate-200')"></div>
+                                </div>
+                                <span class="text-[10px] sm:text-xs font-bold text-center leading-tight px-0.5"
+                                    :class="step === i + 1 ? 'text-brand-800' : 'text-slate-400'"
+                                    x-text="label"></span>
+                            </li>
+                        </template>
+                    </ol>
+                </nav>
             </div>
 
             <div class="p-6 md:p-10">
@@ -95,824 +153,649 @@
                     enctype="multipart/form-data">
                     @csrf
 
-                    <!-- ============================ Section 1 ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الأول: البيانات الشخصية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">أدخل بيانات الملتحق الأساسية.</p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                1 / 4
-                            </span>
-                        </div>
+                    <!-- ============================ STEP 1: Personal ============================ -->
+                    <div data-step="1" x-show="step === 1" x-transition.opacity.duration.200ms>
 
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <!-- names -->
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الأول <span class="text-rose-700">*</span>
-                                    <span class="text-xs text-slate-500">(بالعربي)</span>
-                                </label>
-                                <input required id="first_name" name="first_name" type="text" lang="ar"
-                                    dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الأول">
-                                <p class="error hidden mt-1 text-sm text-rose-700">
-                                    يرجى إدخال أحرف عربية فقط
-                                </p>
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">البيانات الشخصية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">أدخل بيانات الملتحق الأساسية والصورة الشخصية.</p>
                             </div>
 
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الثاني <span class="text-rose-700">*</span>
-                                    <span class="text-xs text-slate-500">(بالعربي)</span>
-                                </label>
-                                <input required id="second_name" name="second_name" type="text" lang="ar"
-                                    dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الثاني">
-                                <p class="error hidden mt-1 text-sm text-rose-700">
-                                    يرجى إدخال أحرف عربية فقط
-                                </p>
-                            </div>
-
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الثالث <span class="text-rose-700">*</span>
-                                    <span class="text-xs text-slate-500">(بالعربي)</span>
-                                </label>
-                                <input required id="third_name" name="third_name" type="text" lang="ar"
-                                    dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="الاسم الثالث">
-                                <p class="error hidden mt-1 text-sm text-rose-700">
-                                    يرجى إدخال أحرف عربية فقط
-                                </p>
-                            </div>
-
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الاسم الرابع
-                                    <span class="text-xs text-slate-500">(بالعربي)</span>
-                                </label>
-                                <input id="fourth_name" name="fourth_name" type="text" lang="ar" dir="rtl"
-                                    pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="اختياري">
-                                <p class="error hidden mt-1 text-sm text-rose-700">
-                                    يرجى إدخال أحرف عربية فقط
-                                </p>
-                            </div> <!-- gender -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    نوع الملتحق <span class="text-rose-700">*</span>
-                                </label>
-                                <select required id="gender" name="gender"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    @if ($gender == 'Male')
-                                        <option value="Male" selected>ذكر</option>
-                                        <option value="Female">أنثى</option>
-                                    @else
-                                        <option value="Female" selected>أنثى</option>
-                                        <option value="Male">ذكر</option>
-                                    @endif
-                                </select>
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
-
-                            <!-- email -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">البريد
-                                    الإلكتروني</label>
-                                <input id="email_input" name="email_input" type="email" dir="ltr"
-                                    class="field-email w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="example@email.com">
-                                <p class="error-email hidden mt-1 text-sm text-rose-700">البريد الإلكتروني غير صحيح</p>
-                            </div>
-
-                            <!-- birthdate -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    تاريخ الميلاد <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="birthdate_input" name="birthdate_input" type="date"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
-
-                            <!-- joining year -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة الالتحاق</label>
-                                <select id="joining_year_input" name="joining_year_input"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-
-                                    @for ($year = date('Y'); $year >= 2000; $year--)
-                                        <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
-                                            {{ $year }}
-                                        </option>
-                                    @endfor
-
-                                </select>
-                            </div>
-
-
-                            <!-- national id -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    الرقم القومي (14 رقم) <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="input_raqam_qawmy" name="input_raqam_qawmy" inputmode="numeric"
-                                    pattern="\d{14}" maxlength="14" type="text"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="أدخل 14 رقم">
-                                <p class="error hidden mt-1 text-sm text-rose-700" data-error="nid">
-                                    الرقم القومي يجب أن يكون 14 رقم و ان يكون صحيح
-                                </p>
-                            </div>
-
-                            <!-- Facebook -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رابط Facebook (إن
-                                    وُجد)</label>
-                                <input id="inputFacebookLink" name="inputFacebookLink" type="url"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="https://facebook.com/...">
-                            </div>
-
-                            <!-- Instagram -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رابط Instagram (إن
-                                    وُجد)</label>
-                                <input id="inputInstagramLink" name="inputInstagramLink" type="url"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="https://instagram.com/...">
-                            </div>
-
-                            <!-- blood type -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    فصيلة الدم <span class="text-rose-700">*</span>
-                                    <span class="text-xs text-slate-500 font-normal ms-2">اختر "غير محدد" عند عدم
-                                        التأكد</span>
-                                </label>
-                                <select required id="blood_type_input" name="blood_type_input"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="" disabled selected>اختر فصيلة الدم</option>
-                                    @foreach ($blood as $blood_element)
-                                        <option value="{{ $blood_element->BloodTypeID }}">
-                                            {{ $blood_element->BloodTypeName }}</option>
-                                    @endforeach
-                                </select>
-                                <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <!-- ============================ NEW SECTION: Allergy ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">قسم الحساسية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">اكتب الحساسية إن وُجدت (افصل بين العناصر
-                                    بفاصلة).</p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                صحي
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <!-- Food Allergy (Dropdown + Other text) -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    حساسية من طعام (إن وُجد)
-                                </label>
-
-                                <select id="allergy_food_select"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="" selected>لا يوجد / اختر...</option>
-                                    <option value="بقوليات (فول)">بقوليات (فول)</option>
-                                    <option value="لبن">لبن</option>
-                                    <option value="سمك">سمك</option>
-                                    <option value="فراولة">فراولة</option>
-                                    <option value="أخرى">أخرى</option>
-                                </select>
-
-                                <!-- shown only if "أخرى" -->
-                                <div id="allergy_food_other_wrap" class="hidden mt-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اكتب نوع
-                                        الاكل</label>
-                                    <input id="allergy_food_other" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        placeholder="مثال: موز">
-                                    <p class="mt-2 text-xs text-slate-500">سيتم حفظه ضمن حساسية الطعام.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-3">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        الاسم الأول <span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    </label>
+                                    <input required id="first_name" name="first_name" type="text" lang="ar"
+                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="الاسم الأول">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
                                 </div>
 
-                                <!-- this is what gets submitted to backend -->
-                                <input type="hidden" id="allergy_food" name="allergy_food" value="">
+                                <div class="md:col-span-3">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        الاسم الثاني <span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    </label>
+                                    <input required id="second_name" name="second_name" type="text" lang="ar"
+                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="الاسم الثاني">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                </div>
+
+                                <div class="md:col-span-3">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        الاسم الثالث <span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    </label>
+                                    <input required id="third_name" name="third_name" type="text" lang="ar"
+                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="الاسم الثالث">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                </div>
+
+                                <div class="md:col-span-3">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        الاسم الرابع
+                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    </label>
+                                    <input id="fourth_name" name="fourth_name" type="text" lang="ar" dir="rtl"
+                                        pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="اختياري">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        نوع الملتحق <span class="text-rose-600">*</span>
+                                    </label>
+                                    <select required id="gender" name="gender" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        @if ($gender == 'Male')
+                                            <option value="Male" selected>ذكر</option>
+                                            <option value="Female">أنثى</option>
+                                        @else
+                                            <option value="Female" selected>أنثى</option>
+                                            <option value="Male">ذكر</option>
+                                        @endif
+                                    </select>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">البريد الإلكتروني</label>
+                                    <input id="email_input" name="email_input" type="email" dir="ltr"
+                                        class="field-email w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="example@email.com">
+                                    <p class="error-email hidden mt-1 text-sm text-rose-600">البريد الإلكتروني غير صحيح</p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        تاريخ الميلاد <span class="text-rose-600">*</span>
+                                    </label>
+                                    <input required id="birthdate_input" name="birthdate_input" type="date"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">سنة الالتحاق</label>
+                                    <select id="joining_year_input" name="joining_year_input" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        @for ($year = date('Y'); $year >= 2000; $year--)
+                                            <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        الرقم القومي (14 رقم) <span class="text-rose-600">*</span>
+                                    </label>
+                                    <input required id="input_raqam_qawmy" name="input_raqam_qawmy" inputmode="numeric"
+                                        pattern="\d{14}" maxlength="14" type="text"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="أدخل 14 رقم">
+                                    <p class="error hidden mt-1 text-sm text-rose-600" data-error="nid">
+                                        الرقم القومي يجب أن يكون 14 رقم و ان يكون صحيح
+                                    </p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        موبايل الملتحق (11 رقم) <span class="text-rose-600">*</span>
+                                    </label>
+                                    <input required id="personal_phone_number" name="personal_phone_number"
+                                        inputmode="numeric" pattern="\d{11}" maxlength="11" type="text"
+                                        class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="مثال: 01xxxxxxxxx">
+                                    <p class="error hidden mt-1 text-sm text-rose-600" data-error="phone">
+                                        رقم الموبايل يجب أن يكون 11 رقم
+                                    </p>
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">رابط Facebook (إن وُجد)</label>
+                                    <input id="inputFacebookLink" name="inputFacebookLink" type="url"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="https://facebook.com/...">
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">رابط Instagram (إن وُجد)</label>
+                                    <input id="inputInstagramLink" name="inputInstagramLink" type="url"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        placeholder="https://instagram.com/...">
+                                </div>
+
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        فصيلة الدم <span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500 font-normal ms-2">اختر "غير محدد" عند عدم التأكد</span>
+                                    </label>
+                                    <select required id="blood_type_input" name="blood_type_input" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        <option value="" disabled selected>اختر فصيلة الدم</option>
+                                        @foreach ($blood as $blood_element)
+                                            <option value="{{ $blood_element->BloodTypeID }}">
+                                                {{ $blood_element->BloodTypeName }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                </div>
+
+                                <!-- Profile image -->
+                                <div class="md:col-span-12">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        صورة شخصية
+                                        <span class="text-xs text-slate-500 font-normal ms-2">JPG/PNG/WebP - حد أقصى 5 ميجا</span>
+                                    </label>
+                                    <div class="rounded-2xl border border-teal-100 bg-teal-50/40 p-4" data-upload>
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                class="h-24 w-24 rounded-2xl bg-white ring-1 ring-teal-100 overflow-hidden flex items-center justify-center shrink-0">
+                                                <img data-preview class="hidden h-full w-full object-cover" alt="">
+                                                <svg data-placeholder class="h-10 w-10 text-teal-300" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                    </path>
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <input type="file" name="profile_image"
+                                                    accept="image/jpeg,image/png,image/webp" class="hidden" data-file
+                                                    data-error-key="profile_image" data-max-size="5242880">
+                                                <div class="flex flex-col gap-2">
+                                                    <button type="button" data-pick
+                                                        class="inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-2 text-white font-bold hover:bg-brand-800 w-fit">
+                                                        اختيار ملف
+                                                    </button>
+                                                    <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+                                                    <p class="error-photo hidden mt-1 text-sm text-rose-600"
+                                                        data-error="profile_image">
+                                                        الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                    </p>
+                                                </div>
+                                                <p class="mt-2 text-xs text-slate-500">يفضل صورة واضحة للوجه بخلفية بيضاء</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </section>
 
-                            <script>
-                                (function() {
-                                    const select = document.getElementById('allergy_food_select');
-                                    const otherWrap = document.getElementById('allergy_food_other_wrap');
-                                    const otherInput = document.getElementById('allergy_food_other');
-                                    const hidden = document.getElementById('allergy_food');
-
-                                    function syncFoodAllergy() {
-                                        const v = (select.value || '').trim();
-
-                                        if (!v) {
-                                            hidden.value = '';
-                                            otherWrap.classList.add('hidden');
-                                            otherInput.value = '';
-                                            return;
-                                        }
-
-                                        if (v === 'أخرى') {
-                                            otherWrap.classList.remove('hidden');
-                                            hidden.value = (otherInput.value || '').trim(); // store what user types
-                                        } else {
-                                            otherWrap.classList.add('hidden');
-                                            otherInput.value = '';
-                                            hidden.value = v;
-                                        }
-                                    }
-
-                                    // init + events
-                                    select.addEventListener('change', syncFoodAllergy);
-                                    otherInput.addEventListener('input', syncFoodAllergy);
-
-                                    syncFoodAllergy();
-                                })();
-                            </script>
-
-
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    حساسية من دواء (إن وُجد)
-                                </label>
-                                <input id="allergy_medicine" name="allergy_medicine" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="مثال: بنسلين">
-                                <p class="mt-2 text-xs text-slate-500">يمكنك كتابة أكثر من دواء مفصول بفاصلة.</p>
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">قسم الحساسية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">اكتب الحساسية إن وُجدت (افصل بين العناصر بفاصلة).</p>
                             </div>
-                        </div>
-                    </section>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">حساسية من طعام (إن وُجد)</label>
+                                    <select id="allergy_food_select" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        <option value="" selected>لا يوجد / اختر...</option>
+                                        <option value="بقوليات (فول)">بقوليات (فول)</option>
+                                        <option value="لبن">لبن</option>
+                                        <option value="سمك">سمك</option>
+                                        <option value="فراولة">فراولة</option>
+                                        <option value="أخرى">أخرى</option>
+                                    </select>
+                                    <div id="allergy_food_other_wrap" class="hidden mt-3">
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">اكتب نوع الاكل</label>
+                                        <input id="allergy_food_other" type="text" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                            placeholder="مثال: موز">
+                                        <p class="mt-2 text-xs text-slate-500">سيتم حفظه ضمن حساسية الطعام.</p>
+                                    </div>
+                                    <input type="hidden" id="allergy_food" name="allergy_food" value="">
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">حساسية من دواء (إن وُجد)</label>
+                                    <input id="allergy_medicine" name="allergy_medicine" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: بنسلين">
+                                    <p class="mt-2 text-xs text-slate-500">يمكنك كتابة أكثر من دواء مفصول بفاصلة.</p>
+                                </div>
+                            </div>
+                        </section>
 
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <!-- ============================ NEW SECTION: Medical History ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">قسم التاريخ المرضي</h2>
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">قسم التاريخ المرضي</h2>
                                 <p class="text-slate-500 mt-1 text-sm">اختياري — يساعدنا في الحالات الطارئة.</p>
                             </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                صحي
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">أمراض مزمنة / تشخيص (إن
-                                    وُجد)</label>
-                                <input id="medical_diseases" name="medical_diseases" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="مثال: ربو، سكر، ضغط">
-                            </div>
-
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الأدوية الحالية (إن
-                                    وُجد)</label>
-                                <input id="medical_medications" name="medical_medications" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="مثال: بخاخ، أنسولين">
-                            </div>
-
-                            <div class="md:col-span-12">
-                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                                        <div>
-                                            <label
-                                                class="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                                <input id="has_emergency_case" name="has_emergency_case"
-                                                    type="checkbox" value="1"
-                                                    class="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                                هل يوجد حالات طوارئ سابقة؟
-                                            </label>
-                                            <p class="text-xs text-slate-500 mt-1">مثل: حساسية شديدة، إغماء، دخول
-                                                مستشفى…</p>
-                                        </div>
-
-                                        <div class="w-full md:w-2/3">
-                                            <input id="emergency_details" name="emergency_details" type="text"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="اكتب تفاصيل الحالة (إذا نعم)">
-                                            <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-700">
-                                                من فضلك اكتب تفاصيل الحالة لأنك اخترت "نعم"
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <!-- ============================ Section 2 ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الثاني: بيانات التواصل</h2>
-                                <p class="text-slate-500 mt-1 text-sm">أدخل أرقام التواصل والعنوان.</p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                2 / 4
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <!-- phones -->
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    موبايل الملتحق (11 رقم) <span class="text-rose-700">*</span>
-                                </label>
-                                <input required id="personal_phone_number" name="personal_phone_number"
-                                    inputmode="numeric" pattern="\d{11}" maxlength="11" type="text"
-                                    class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="مثال: 01xxxxxxxxx">
-                                <p class="error hidden mt-1 text-sm text-rose-700" data-error="phone">
-                                    رقم الموبايل يجب أن يكون 11 رقم
-                                </p>
-                            </div>
-
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأب (إن
-                                    وُجد)</label>
-                                <input id="father_phone_number" name="father_phone_number" type="text"
-                                    inputmode="numeric"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="اختياري">
-                            </div>
-
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأم (إن
-                                    وُجد) <span class="text-rose-700">*</span> </label>
-                                <input id="mother_phone_number" name="mother_phone_number" type="text"
-                                    inputmode="numeric"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="اختياري">
-                            </div>
-
-                            <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">هاتف أرضي (إن
-                                    وُجد)</label>
-                                <input id="home_phone_number" name="home_phone_number" type="text"
-                                    inputmode="numeric"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="اختياري">
-                            </div>
-
-                            <!-- whatsapp -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">هل رقم الموبايل الأساسي
-                                    عليه Whatsapp؟</label>
-                                <select id="has_whatsapp" name="has_whatsapp"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                    <option value="" disabled selected>اختر نعم أم لا</option>
-                                    <option value="True">نعم</option>
-                                    <option value="False">لا</option>
-                                </select>
-                            </div>
-
-                            <!-- address -->
-                            <div class="md:col-span-12 mt-2">
-                                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h3 class="font-bold text-slate-800">العنوان</h3>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                        <div class="md:col-span-4">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                رقم العمارة <span class="text-rose-700">*</span>
-                                            </label>
-                                            <input required id="building_number" name="building_number"
-                                                type="text" inputmode="numeric"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="رقم العمارة">
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-4">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                رقم الدور <span class="text-rose-700">*</span>
-                                            </label>
-                                            <input required id="floor_number" name="floor_number" type="text"
-                                                inputmode="numeric"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="رقم الدور">
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-4">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                رقم الشقة <span class="text-rose-700">*</span>
-                                            </label>
-                                            <input required id="appartment_number" name="appartment_number"
-                                                type="text" inputmode="numeric"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="رقم الشقة">
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                اسم الشارع <span class="text-rose-700">*</span>
-                                            </label>
-                                            <input required id="sub_street_name" name="sub_street_name"
-                                                type="text"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="اسم الشارع">
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                اسم أقرب شارع رئيسي <span class="text-rose-700">*</span>
-                                            </label>
-                                            <input required id="main_street_name" name="main_street_name"
-                                                type="text"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="أقرب شارع رئيسي">
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-12">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب علامة
-                                                مميزة</label>
-                                            <input id="nearest_landmark" name="nearest_landmark" type="text"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                placeholder="اختياري">
-                                        </div>
-
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                المنطقة <span class="text-rose-700">*</span>
-                                            </label>
-                                            <select required id="manteqa_id" name="manteqa_id"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                <option value="" disabled selected>اختر المنطقة السكنية</option>
-                                                @foreach ($manateq as $manteqa)
-                                                    <option value="{{ $manteqa->ManteqaID }}">
-                                                        {{ $manteqa->ManteqaName }}</option>
-                                                @endforeach
-                                            </select>
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                                الحي <span class="text-rose-700">*</span>
-                                            </label>
-                                            <select required id="district_id" name="district_id"
-                                                class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                                <option value="" disabled selected>اختر الحي</option>
-                                                @foreach ($districts as $district)
-                                                    <option value="{{ $district->DistrictID }}">
-                                                        {{ $district->DistrictName }}</option>
-                                                @endforeach
-                                            </select>
-                                            <p class="error hidden mt-1 text-sm text-rose-700">هذا الحقل مطلوب</p>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </section>
-
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-
-
-
-                    <!-- ============================ Section 3 ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الثالث: البيانات الدراسية والكنسية
-                                </h2>
-                                <p class="text-slate-500 mt-1 text-sm">البيانات التعليمية والكنسية (إن وُجدت).</p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                3 / 4
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-12">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">السنة والمرحلة
-                                    الدراسية</label>
-                                <select
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    name="sana_marhala_id" id="sana_marhala_id">
-                                    <option value="{{ $sana_marhala_id }}" selected>{{ $sana_marhala_name }}</option>
-                                </select>
-                            </div>
-
-                            <div class="md:col-span-8">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">اسم المدرسة</label>
-                                <input id="person_school" name="person_school" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="أدخل اسم المدرسة">
-                            </div>
-
-                            <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    سنة التخرج من المدرسة
-                                </label>
-                                <select
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    name="school_grad_year" id="school_grad_year">
-
-                                    <option value="" disabled selected>
-                                        اختر سنة التخرج من المدرسة
-                                    </option>
-
-                                    @for ($i = 1970; $i <= 2050; $i++)
-                                        <option value="{{ $i }}">{{ $i }}</option>
-                                    @endfor
-
-                                </select>
-                            </div>
-
-                            @if ($sana_marhala_id > 14)
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الكلية</label>
-                                    <select
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        name="person_faculty" id="person_faculty">
-                                        <option value="" disabled selected>اختر الكلية</option>
-                                        @foreach ($faculties as $faculty)
-                                            <option value="{{ $faculty->FacultyID }}">{{ $faculty->FacultyName }}
-                                            </option>
-                                        @endforeach
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">أمراض مزمنة / تشخيص (إن وُجد)</label>
+                                    <input id="medical_diseases" name="medical_diseases" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: ربو، سكر، ضغط">
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">الأدوية الحالية (إن وُجد)</label>
+                                    <input id="medical_medications" name="medical_medications" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: بخاخ، أنسولين">
+                                </div>
+                                <div class="md:col-span-12">
+                                    <div class="rounded-2xl bg-teal-50/50 border border-teal-100 p-4">
+                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                            <div>
+                                                <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-700">
+                                                    <input id="has_emergency_case" name="has_emergency_case"
+                                                        type="checkbox" value="1"
+                                                        class="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-600">
+                                                    هل يوجد حالات طوارئ سابقة؟
+                                                </label>
+                                                <p class="text-xs text-slate-500 mt-1">مثل: حساسية شديدة، إغماء، دخول مستشفى…</p>
+                                            </div>
+                                            <div class="w-full md:w-2/3">
+                                                <input id="emergency_details" name="emergency_details" type="text"
+                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="اكتب تفاصيل الحالة (إذا نعم)">
+                                                <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-600">
+                                                    من فضلك اكتب تفاصيل الحالة لأنك اخترت "نعم"
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="mt-8 flex justify-end">
+                            <button type="button" data-next-step="1"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                التالي ←
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ============================ STEP 2: Guardian / Contact ============================ -->
+                    <div data-step="2" x-show="step === 2" x-transition.opacity.duration.200ms>
+
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">بيانات ولي الأمر</h2>
+                                <p class="text-slate-500 mt-1 text-sm">أرقام التواصل والعنوان.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">موبايل الأب (إن وُجد)</label>
+                                    <input id="father_phone_number" name="father_phone_number" type="text"
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">موبايل الأم (إن وُجد) <span class="text-rose-600">*</span></label>
+                                    <input id="mother_phone_number" name="mother_phone_number" type="text"
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">هاتف أرضي (إن وُجد)</label>
+                                    <input id="home_phone_number" name="home_phone_number" type="text"
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">هل رقم الموبايل الأساسي عليه Whatsapp؟</label>
+                                    <select id="has_whatsapp" name="has_whatsapp" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        <option value="" disabled selected>اختر نعم أم لا</option>
+                                        <option value="True">نعم</option>
+                                        <option value="False">لا</option>
                                     </select>
                                 </div>
 
-                                <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الجامعة</label>
-                                    <select
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        name="person_university" id="person_university">
-                                        <option value="" disabled selected>اختر الجامعة</option>
-                                        @foreach ($universities as $university)
-                                            <option value="{{ $university->UniversityID }}">
-                                                {{ $university->UniversityName }}</option>
-                                        @endforeach
+                                <div class="md:col-span-12 mt-2">
+                                    <div class="rounded-2xl bg-teal-50/40 border border-teal-100 p-4">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h3 class="font-bold text-brand-900">العنوان</h3>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                            <div class="md:col-span-4">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    رقم العمارة <span class="text-rose-600">*</span>
+                                                </label>
+                                                <input required id="building_number" name="building_number"
+                                                    type="text" inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="رقم العمارة">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-4">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    رقم الدور <span class="text-rose-600">*</span>
+                                                </label>
+                                                <input required id="floor_number" name="floor_number" type="text"
+                                                    inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="رقم الدور">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-4">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    رقم الشقة <span class="text-rose-600">*</span>
+                                                </label>
+                                                <input required id="appartment_number" name="appartment_number"
+                                                    type="text" inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="رقم الشقة">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    اسم الشارع <span class="text-rose-600">*</span>
+                                                </label>
+                                                <input required id="sub_street_name" name="sub_street_name"
+                                                    type="text" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="اسم الشارع">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    اسم أقرب شارع رئيسي <span class="text-rose-600">*</span>
+                                                </label>
+                                                <input required id="main_street_name" name="main_street_name"
+                                                    type="text" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                    placeholder="أقرب شارع رئيسي">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-12">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">أقرب علامة مميزة</label>
+                                                <input id="nearest_landmark" name="nearest_landmark" type="text"
+                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                            </div>
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    المنطقة <span class="text-rose-600">*</span>
+                                                </label>
+                                                <select required id="manteqa_id" name="manteqa_id" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                                    <option value="" disabled selected>اختر المنطقة السكنية</option>
+                                                    @foreach ($manateq as $manteqa)
+                                                        <option value="{{ $manteqa->ManteqaID }}">
+                                                            {{ $manteqa->ManteqaName }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">
+                                                    الحي <span class="text-rose-600">*</span>
+                                                </label>
+                                                <select required id="district_id" name="district_id" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                                    <option value="" disabled selected>اختر الحي</option>
+                                                    @foreach ($districts as $district)
+                                                        <option value="{{ $district->DistrictID }}">
+                                                            {{ $district->DistrictName }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="mt-8 flex justify-between gap-3">
+                            <button type="button" @click="step = 1"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                → السابق
+                            </button>
+                            <button type="button" data-next-step="2"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                التالي ←
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ============================ STEP 3: Academic + scout ============================ -->
+                    <div data-step="3" x-show="step === 3" x-transition.opacity.duration.200ms>
+
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">البيانات الدراسية</h2>
+                                <p class="text-slate-500 mt-1 text-sm">البيانات التعليمية والكنسية والكشفية.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-12">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">السنة والمرحلة الدراسية</label>
+                                    <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="sana_marhala_id" id="sana_marhala_id">
+                                        <option value="{{ $sana_marhala_id }}" selected>{{ $sana_marhala_name }}</option>
                                     </select>
                                 </div>
-
-                                <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                        سنة التخرج من الجامعة
-                                    </label>
-                                    <select
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                        name="university_grad_year" id="university_grad_year">
-
-                                        <option value="" disabled selected>
-                                            اختر سنة التخرج من الجامعة
-                                        </option>
-
+                                <div class="md:col-span-8">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">اسم المدرسة</label>
+                                    <input id="person_school" name="person_school" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل اسم المدرسة">
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">سنة التخرج من المدرسة</label>
+                                    <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="school_grad_year" id="school_grad_year">
+                                        <option value="" disabled selected>اختر سنة التخرج من المدرسة</option>
                                         @for ($i = 1970; $i <= 2050; $i++)
                                             <option value="{{ $i }}">{{ $i }}</option>
                                         @endfor
-
                                     </select>
                                 </div>
-                            @endif
 
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الأب الروحي / أب
-                                    الاعتراف</label>
-                                <input id="spiritual_father" name="spiritual_father" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="أدخل الاسم">
-                            </div>
+                                @if ($sana_marhala_id > 14)
+                                    <div class="md:col-span-6">
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الكلية</label>
+                                        <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="person_faculty" id="person_faculty">
+                                            <option value="" disabled selected>اختر الكلية</option>
+                                            @foreach ($faculties as $faculty)
+                                                <option value="{{ $faculty->FacultyID }}">{{ $faculty->FacultyName }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-6">
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الجامعة</label>
+                                        <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="person_university" id="person_university">
+                                            <option value="" disabled selected>اختر الجامعة</option>
+                                            @foreach ($universities as $university)
+                                                <option value="{{ $university->UniversityID }}">
+                                                    {{ $university->UniversityName }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-6">
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">سنة التخرج من الجامعة</label>
+                                        <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="university_grad_year" id="university_grad_year">
+                                            <option value="" disabled selected>اختر سنة التخرج من الجامعة</option>
+                                            @for ($i = 1970; $i <= 2050; $i++)
+                                                <option value="{{ $i }}">{{ $i }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                @endif
 
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">كنيسة الأب الروحي / أب
-                                    الاعتراف</label>
-                                <input id="spiritual_father_church" name="spiritual_father_church" type="text"
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="أدخل الكنيسة">
-                            </div>
-                        </div>
-                    </section>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">الأب الروحي / أب الاعتراف</label>
+                                    <input id="spiritual_father" name="spiritual_father" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل الاسم">
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">كنيسة الأب الروحي / أب الاعتراف</label>
+                                    <input id="spiritual_father_church" name="spiritual_father_church" type="text"
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل الكنيسة">
+                                </div>
 
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <!-- ============================ PHOTOS SECTION ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">قسم الصور</h2>
-                                <p class="text-slate-500 mt-1 text-sm">ارفع صورة شخصية وصورة الزي الرسمي (إن وُجد).</p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                صور
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-
-                            <!-- Profile image -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    صورة شخصية
-                                    <span class="text-xs text-slate-500 font-normal ms-2">JPG/PNG/WebP - حد أقصى 5
-                                        ميجا</span>
-                                </label>
-
-                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-upload>
-                                    <div class="flex items-center gap-4">
-
-                                        <div
-                                            class="h-24 w-24 rounded-2xl bg-white ring-1 ring-slate-200 overflow-hidden flex items-center justify-center shrink-0">
-                                            <img data-preview class="hidden h-full w-full object-cover"
-                                                alt="">
-                                            <svg data-placeholder class="h-10 w-10 text-slate-300" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
-                                                </path>
-                                            </svg>
-                                        </div>
-
-                                        <div class="flex-1 min-w-0">
-                                            <input type="file" name="profile_image"
-                                                accept="image/jpeg,image/png,image/webp" class="hidden" data-file
-                                                data-error-key="profile_image" data-max-size="5242880">
-
-                                            <div class="flex flex-col gap-2">
-                                                <button type="button" data-pick
-                                                    class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700">
-                                                    اختيار ملف
-                                                </button>
-
-                                                <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
-
-                                                <p class="error-photo hidden mt-1 text-sm text-rose-700"
-                                                    data-error="profile_image">
-                                                    الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
-                                                </p>
+                                <div class="md:col-span-12">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">
+                                        صورة الزي الرسمي
+                                        <span class="text-xs text-slate-500 font-normal ms-2">اختياري - JPG/PNG/WebP - حد أقصى 5 ميجا</span>
+                                    </label>
+                                    <div class="rounded-2xl border border-teal-100 bg-teal-50/40 p-4" data-upload>
+                                        <div class="flex items-center gap-4">
+                                            <div
+                                                class="h-24 w-24 rounded-2xl bg-white ring-1 ring-teal-100 overflow-hidden flex items-center justify-center shrink-0">
+                                                <img data-preview class="hidden h-full w-full object-cover" alt="">
+                                                <svg data-placeholder class="h-10 w-10 text-teal-300" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                    </path>
+                                                </svg>
                                             </div>
-
-                                            <p class="mt-2 text-xs text-slate-500">يفضل صورة واضحة للوجه بخلفية بيضاء
-                                            </p>
+                                            <div class="flex-1 min-w-0">
+                                                <input type="file" name="scout_uniform_image"
+                                                    accept="image/jpeg,image/png,image/webp" class="hidden" data-file
+                                                    data-error-key="scout_uniform_image" data-max-size="5242880">
+                                                <div class="flex flex-col gap-2">
+                                                    <button type="button" data-pick
+                                                        class="inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-2 text-white font-bold hover:bg-brand-800 w-fit">
+                                                        اختيار ملف
+                                                    </button>
+                                                    <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+                                                    <p class="error-photo hidden mt-1 text-sm text-rose-600"
+                                                        data-error="scout_uniform_image">
+                                                        الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                    </p>
+                                                </div>
+                                                <p class="mt-2 text-xs text-slate-500">اختياري — صورة كاملة بالزي الكشفي إن أمكن</p>
+                                            </div>
                                         </div>
-
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Uniform image -->
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">
-                                    صورة الزي الرسمي
-                                    <span class="text-xs text-slate-500 font-normal ms-2">اختياري - JPG/PNG/WebP - حد
-                                        أقصى 5 ميجا</span>
-                                </label>
-
-                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-upload>
-                                    <div class="flex items-center gap-4">
-
-                                        <div
-                                            class="h-24 w-24 rounded-2xl bg-white ring-1 ring-slate-200 overflow-hidden flex items-center justify-center shrink-0">
-                                            <img data-preview class="hidden h-full w-full object-cover"
-                                                alt="">
-                                            <svg data-placeholder class="h-10 w-10 text-slate-300" fill="none"
-                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                </path>
-                                            </svg>
-                                        </div>
-
-                                        <div class="flex-1 min-w-0">
-                                            <input type="file" name="scout_uniform_image"
-                                                accept="image/jpeg,image/png,image/webp" class="hidden" data-file
-                                                data-error-key="scout_uniform_image" data-max-size="5242880">
-
-                                            <div class="flex flex-col gap-2">
-                                                <button type="button" data-pick
-                                                    class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700">
-                                                    اختيار ملف
-                                                </button>
-
-                                                <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
-
-                                                <p class="error-photo hidden mt-1 text-sm text-rose-700"
-                                                    data-error="scout_uniform_image">
-                                                    الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
-                                                </p>
-                                            </div>
-
-                                            <p class="mt-2 text-xs text-slate-500">اختياري — صورة كاملة بالزي الكشفي إن
-                                                أمكن</p>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </section>
-
-                    <div class="my-8 h-px bg-slate-200"></div>
-
-                    <!-- ============================ Section 4 ============================ -->
-                    <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                        <div class="flex items-start justify-between gap-4 mb-5">
-                            <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الرابع: البيانات الكشفية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">تحديد القطاع الكشفي ثم المتابعة لباقي الأسئلة.
-                                </p>
-                            </div>
-                            <span
-                                class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                                4 / 4
-                            </span>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                            <div class="md:col-span-12">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع الكشفي</label>
-                                <select
-                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    name="qetaa_id" id="qetaa_id" required>
-
-                                    <option value="" disabled {{ empty($qetaa_id) ? 'selected' : '' }}>
-                                        اختر القطاع الكشفي
-                                    </option>
-
-                                    @foreach ($available_qetaat as $qetaa)
-                                        <option value="{{ $qetaa['QetaaID'] }}"
-                                            {{ (string) ($qetaa_id ?? '') === (string) $qetaa['QetaaID'] ? 'selected' : '' }}>
-                                            {{ $qetaa['QetaaName'] }}
+                                <div class="md:col-span-12">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">القطاع الكشفي <span class="text-rose-600">*</span></label>
+                                    <select class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="qetaa_id" id="qetaa_id" required>
+                                        <option value="" disabled {{ empty($qetaa_id) ? 'selected' : '' }}>
+                                            اختر القطاع الكشفي
                                         </option>
-                                    @endforeach
-                                </select>
-                                <label name="qetaa_name" id="qetaa_name" value="{{ $qetaa_name }}" hidden></label>
+                                        @foreach ($available_qetaat as $qetaa)
+                                            <option value="{{ $qetaa['QetaaID'] }}"
+                                                {{ (string) ($qetaa_id ?? '') === (string) $qetaa['QetaaID'] ? 'selected' : '' }}>
+                                                {{ $qetaa['QetaaName'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                    <label name="qetaa_name" id="qetaa_name" value="{{ $qetaa_name }}" hidden></label>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="mt-8 flex justify-between gap-3">
+                            <button type="button" @click="step = 2"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                → السابق
+                            </button>
+                            <button type="button" data-next-step="3"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                المراجعة ←
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ============================ STEP 4: Review ============================ -->
+                    <div data-step="4" x-show="step === 4" x-transition.opacity.duration.200ms>
+
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">المراجعة</h2>
+                                <p class="text-slate-500 mt-1 text-sm">راجع البيانات قبل الإرسال، ثم اضغط استمرار للانتقال إلى الأسئلة.</p>
                             </div>
 
-                            <div class="md:col-span-12">
-                                <div class="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
-                                    <div class="font-bold mb-1">تنبيه مهم</div>
-                                    <div class="text-sm leading-relaxed">
-                                        برجاء التأكد من البيانات مرة أخرى قبل ضغط "استمرار".
-                                        سيتم الانتقال إلى باقي الأسئلة الخاصة بالقطاع بعد الضغط.
+                            <div id="reviewSummary" class="space-y-3 text-sm">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">الاسم الكامل</div>
+                                        <div class="font-bold text-slate-900" data-review="full_name">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">النوع</div>
+                                        <div class="font-bold text-slate-900" data-review="gender">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">تاريخ الميلاد</div>
+                                        <div class="font-bold text-slate-900" data-review="birthdate">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">فصيلة الدم</div>
+                                        <div class="font-bold text-slate-900" data-review="blood">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">موبايل الملتحق</div>
+                                        <div class="font-bold text-slate-900" data-review="phone" dir="ltr">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">الرقم القومي</div>
+                                        <div class="font-bold text-slate-900" data-review="nid" dir="ltr">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3 sm:col-span-2">
+                                        <div class="text-xs text-slate-500 mb-1">العنوان</div>
+                                        <div class="font-bold text-slate-900" data-review="address">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">المدرسة</div>
+                                        <div class="font-bold text-slate-900" data-review="school">—</div>
+                                    </div>
+                                    <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
+                                        <div class="text-xs text-slate-500 mb-1">القطاع الكشفي</div>
+                                        <div class="font-bold text-slate-900" data-review="qetaa">—</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="md:col-span-12 flex justify-end mt-2">
-                                <button id="submitBtn" type="submit"
-                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-700 px-10 py-3.5 font-bold text-white shadow hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span>استمرار</span>
-                                    <span>→</span>
-                                </button>
+                            <div class="mt-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
+                                <div class="font-bold mb-1">تنبيه مهم</div>
+                                <div class="text-sm leading-relaxed">
+                                    برجاء التأكد من البيانات مرة أخرى قبل ضغط "استمرار".
+                                    سيتم الانتقال إلى باقي الأسئلة الخاصة بالقطاع بعد الضغط.
+                                </div>
                             </div>
+                        </section>
+
+                        <div class="mt-8 flex justify-between gap-3">
+                            <button type="button" @click="step = 3"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
+                                → السابق
+                            </button>
+                            <button id="submitBtn" type="submit"
+                                class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-10 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                                <span>استمرار</span>
+                                <span>←</span>
+                            </button>
                         </div>
-                    </section>
+                    </div>
 
                 </form>
             </div>
         </div>
+
+        <p class="mt-8 text-center text-xs text-slate-500">
+            © {{ date('Y') }} مجموعة الشمندورة الكشفية البحرية — الإسكندرية
+        </p>
     </div>
 
 
     <script>
         const form = document.getElementById('regForm2');
         const submitBtn = document.getElementById('submitBtn');
+        const wizardRoot = document.getElementById('wizardRoot');
 
         const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
         const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -921,6 +804,30 @@
         const processedFiles = new Map();
         const processingState = new Map();
         const previewUrls = new WeakMap();
+
+        function getWizardStep() {
+            if (wizardRoot && window.Alpine) {
+                try {
+                    return Alpine.$data(wizardRoot).step;
+                } catch (e) {}
+            }
+            return 1;
+        }
+
+        function setWizardStep(n) {
+            if (wizardRoot && window.Alpine) {
+                try {
+                    Alpine.$data(wizardRoot).step = n;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                } catch (e) {}
+            }
+        }
+
+        function stepOfElement(el) {
+            const panel = el?.closest?.('[data-step]');
+            return panel ? parseInt(panel.getAttribute('data-step'), 10) : null;
+        }
 
         function onlyDigits(value) {
             return (value || '').replace(/\D/g, '');
@@ -1472,9 +1379,92 @@
             if (isAnyFileProcessing()) ok = false;
             if (!validateFilesBeforeSubmit()) ok = false;
 
-            submitBtn.disabled = !ok;
+            if (submitBtn) submitBtn.disabled = !ok;
             return ok;
         }
+
+        function validateStep(stepNum) {
+            const panel = form.querySelector(`[data-step="${stepNum}"]`);
+            if (!panel) return true;
+
+            let ok = true;
+            const fields = panel.querySelectorAll('.field[required], .field-email');
+            fields.forEach(el => {
+                touchedFields.add(el.id);
+                if (el.classList.contains('field-email')) {
+                    if (el.value.trim() && !validateEmailField(el)) ok = false;
+                } else if (!validateField(el)) {
+                    ok = false;
+                }
+            });
+
+            if (stepNum === 1 && !validateEmergencyDetails()) ok = false;
+
+            if (!ok) {
+                const firstInvalid = panel.querySelector('.ring-rose-200');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            return ok;
+        }
+
+        function selectText(sel) {
+            if (!sel || !sel.options || sel.selectedIndex < 0) return '';
+            return (sel.options[sel.selectedIndex]?.text || '').trim();
+        }
+
+        function refreshReviewSummary() {
+            const set = (key, val) => {
+                const el = document.querySelector(`[data-review="${key}"]`);
+                if (el) el.textContent = val || '—';
+            };
+
+            const names = ['first_name', 'second_name', 'third_name', 'fourth_name']
+                .map(id => (document.getElementById(id)?.value || '').trim())
+                .filter(Boolean)
+                .join(' ');
+
+            const genderSel = document.getElementById('gender');
+            const genderText = selectText(genderSel) || (genderSel?.value === 'Male' ? 'ذكر' : genderSel?.value === 'Female' ? 'أنثى' : '');
+
+            const building = document.getElementById('building_number')?.value || '';
+            const floor = document.getElementById('floor_number')?.value || '';
+            const apt = document.getElementById('appartment_number')?.value || '';
+            const street = document.getElementById('sub_street_name')?.value || '';
+            const mainStreet = document.getElementById('main_street_name')?.value || '';
+            const manteqa = selectText(document.getElementById('manteqa_id'));
+            const district = selectText(document.getElementById('district_id'));
+            const addressParts = [
+                building && `عمارة ${building}`,
+                floor && `دور ${floor}`,
+                apt && `شقة ${apt}`,
+                street,
+                mainStreet && `قرب ${mainStreet}`,
+                manteqa,
+                district
+            ].filter(Boolean);
+
+            set('full_name', names);
+            set('gender', genderText);
+            set('birthdate', document.getElementById('birthdate_input')?.value || '');
+            set('blood', selectText(document.getElementById('blood_type_input')));
+            set('phone', document.getElementById('personal_phone_number')?.value || '');
+            set('nid', document.getElementById('input_raqam_qawmy')?.value || '');
+            set('address', addressParts.join(' — '));
+            set('school', document.getElementById('person_school')?.value || '');
+            set('qetaa', selectText(document.getElementById('qetaa_id')));
+        }
+
+        document.querySelectorAll('[data-next-step]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const from = parseInt(btn.getAttribute('data-next-step'), 10);
+                if (!validateStep(from)) return;
+                const next = from + 1;
+                setWizardStep(next);
+                if (next === 4) refreshReviewSummary();
+            });
+        });
 
         form.addEventListener('blur', (e) => {
             const el = e.target;
@@ -1536,10 +1526,14 @@
                 const firstInvalid = form.querySelector('.ring-rose-200') || form.querySelector(
                     '.error-photo:not(.hidden)');
                 if (firstInvalid) {
-                    firstInvalid.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
+                    const step = stepOfElement(firstInvalid);
+                    if (step) setWizardStep(step);
+                    setTimeout(() => {
+                        firstInvalid.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 50);
                 }
                 return;
             }
@@ -1554,11 +1548,9 @@
             });
         });
 
-        submitBtn.disabled = false;
+        if (submitBtn) submitBtn.disabled = false;
         validateAll();
     </script>
-
-
 
 </body>
 

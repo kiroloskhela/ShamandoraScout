@@ -89,6 +89,14 @@ jobs:
             systemctl restart php8.3-fpm
             systemctl reload nginx
 
+            echo "==> Redis (install if missing; drivers still controlled by .env)"
+            if ! command -v redis-server >/dev/null 2>&1; then
+              apt-get update -qq
+              DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server
+            fi
+            systemctl enable --now redis-server 2>/dev/null || true
+            redis-cli ping || true
+
             echo "==> Queue worker (systemd)"
             if [ -f /var/www/shamandora/deploy/laravel-queue.service ]; then
               install -m 644 /var/www/shamandora/deploy/laravel-queue.service /etc/systemd/system/laravel-queue.service

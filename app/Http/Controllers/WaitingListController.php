@@ -29,10 +29,12 @@ public function indexWaitingList()
             'sm.SanaMarhalaName',
             'nui.RaqamQawmy',
             'nui.PersonPersonalMobileNumber',
-            DB::raw("IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions")
+            DB::raw("IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions"),
+            DB::raw("DATE_FORMAT(nui.CreatedAt, '%Y-%m-%d %H:%i') AS CreatedAt")
         )
         ->distinct()
-        ->orderBy('nui.PersonID', 'asc')
+        ->orderByDesc('nui.CreatedAt')
+        ->orderByDesc('nui.PersonID')
         ->get();
  
     return view('person.waiting-list-index', ['persons' => $persons]);

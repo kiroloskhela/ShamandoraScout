@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Domain\Person\PersonSearchService;
 use App\Support\LikeSearch;
+use App\Support\ShamandoraCode;
+use Throwable;
 
 class PersonDirectoryController extends Controller
 {
@@ -407,5 +410,246 @@ public function changePersonQetaa(Request $request, $id)
         ->route('person.changeQetaa')
         ->with('status', 'تم تغيير القطاع بنجاح');
 }
+
+    /**
+     * Admin direct person create (PersonInformation) — not new-enrolment liveform.
+     */
+    public function create()
+    {
+        return view('person.person-create', [
+            'marahel' => DB::table('Marhala')->get(),
+            'rotab' => DB::table('RotbaInformation')->get(),
+            'seneen_marahel' => DB::table('SanaMarhala')->get(),
+            'questionTypes' => DB::table('QuestionsTypes')->get(),
+            'blood' => DB::table('BloodType')->get(),
+            'betakat' => DB::table('EgazetBetakatTaqaddom')->get(),
+            'manateq' => DB::table('Manteqa')->get(),
+            'districts' => DB::table('Districts')->get(),
+            'qetaat' => DB::table('Qetaa')->get(),
+            'faculties' => DB::table('Faculty')->get(),
+            'universities' => DB::table('University')->get(),
+        ]);
+    }
+
+    public function insert(Request $request)
+    {
+        $exists = DB::table('PersonInformation')
+            ->where('RaqamQawmy', $request->input_raqam_qawmy)
+            ->exists();
+
+        if ($exists) {
+            return view('person.person-already-exists');
+        }
+
+        $validated = $request->validate([
+            'first_name' => 'required',
+            'second_name' => 'required',
+            'third_name' => 'required',
+            'fourth_name' => 'nullable',
+            'gender' => 'required',
+            'birthdate_input' => 'required',
+            'joining_year_input' => 'required',
+            'input_raqam_qawmy' => 'required|digits:14',
+            'blood_type_input' => 'required',
+            'personal_phone_number' => 'required|digits:11',
+            'building_number' => 'required',
+            'floor_number' => 'required',
+            'appartment_number' => 'required',
+            'sub_street_name' => 'required',
+            'manteqa_id' => 'required',
+            'district_id' => 'required',
+            'sana_marhala_id' => 'required',
+            'qetaa_id' => 'required',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
+                'ShamandoraCode' => bin2hex(random_bytes(5)),
+                'FirstName' => $request->first_name,
+                'SecondName' => $request->second_name,
+                'ThirdName' => $request->third_name,
+                'FourthName' => $request->fourth_name,
+                'Gender' => $request->gender,
+                'DateOfBirth' => $request->birthdate_input,
+                'RaqamQawmy' => $request->input_raqam_qawmy,
+                'ScoutJoiningYear' => $request->joining_year_input,
+                'BloodTypeID' => $request->blood_type_input,
+                'FacebookProfileURL' => $request->inputFacebookLink,
+                'InstagramProfileURL' => $request->inputInstagramLink,
+                'PersonalEmail' => $request->email_input,
+                'RequestPersonID' => $request->RequestPersonID ?? Auth::id(),
+            ], 'PersonID');
+
+            DB::table('PersonInformation')->where('PersonID', $thisPersonID)->update([
+                'ShamandoraCode' => ShamandoraCode::forPersonId($thisPersonID),
+            ]);
+
+            DB::table('PersonPhoneNumbers')->insert([
+                'PersonID' => $thisPersonID,
+                'PersonPersonalMobileNumber' => $request->personal_phone_number,
+                'FatherMobileNumber' => $request->father_phone_number,
+                'MotherMobileNumber' => $request->mother_phone_number,
+                'HomePhoneNumber' => $request->home_phone_number,
+                'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
+            ]);
+
+            DB::table('PersonJob')->insert([
+                'PersonID' => $thisPersonID,
+                'JobName' => $request->person_job,
+                'WorkPlace' => $request->person_job_place,
+            ]);
+
+            DB::table('PersonLearningInformation')->insert([
+                'PersonID' => $thisPersonID,
+                'SchoolName' => $request->school_name ?? $request->person_school,
+                'SchoolGraduationYear' => $request->school_grad_year,
+                'FacultyID' => $request->person_faculty,
+                'UniversityID' => $request->person_university,
+                'ActualFacultyGraduationYear' => $request->university_grad_year,
+            ]);
+
+            if ($request->filled('rotba_kashfeyya_id')) {
+                DB::table('PersonRotbaKashfeyya')->insert([
+                    'PersonID' => $thisPersonID,
+                    'RotbaID' => $request->rotba_kashfeyya_id,
+                ]);
+            }
+
+            DB::table('PersonQetaa')->insert([
+                'PersonID' => $thisPersonID,
+                'QetaaID' => $request->qetaa_id,
+            ]);
+
+            if ($request->filled('betaka_id')) {
+                DB::table('PersonEgazetBetakatTaqaddom')->insert([
+                    'PersonID' => $thisPersonID,
+                    'EgazetBetakatTaqaddomID' => $request->betaka_id,
+                ]);
+            }
+
+            DB::table('PersonSanaMarhala')->insert([
+                'PersonID' => $thisPersonID,
+                'SanaMarhalaID' => $request->sana_marhala_id,
+            ]);
+
+            DB::table('PersonSpiritualFatherInformation')->insert([
+                'PersonID' => $thisPersonID,
+                'SpiritualFatherName' => $request->spiritual_father,
+                'SpiritualFatherChurchName' => $request->spiritual_father_church,
+            ]);
+
+            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+            $pass = '';
+            for ($i = 0; $i < 8; $i++) {
+                $pass .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+
+            DB::table('PersonSystemPassword')->insert([
+                'PersonID' => $thisPersonID,
+                'Password' => Hash::make($pass),
+            ]);
+
+            DB::table('PersonalPhysicalAddress')->insert([
+                'PersonID' => $thisPersonID,
+                'BuildingNumber' => $request->building_number,
+                'FloorNumber' => $request->floor_number,
+                'AppartmentNumber' => $request->appartment_number,
+                'MainStreetName' => $request->main_street_name,
+                'SubStreetName' => $request->sub_street_name,
+                'ManteqaID' => $request->manteqa_id,
+                'DistrictID' => $request->district_id ?: 1,
+                'NearestLandmark' => $request->nearest_landmark,
+            ]);
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('person.insert failed', ['message' => $e->getMessage()]);
+
+            return view('person.entry-error');
+        }
+
+        return redirect()
+            ->route('person.entry-questions', $thisPersonID)
+            ->with('status', 'تم إنشاء الشخص. كلمة المرور المؤقتة: '.$pass);
+    }
+
+    public function getQuestions($id)
+    {
+        $person = DB::table('PersonInformation')
+            ->where('PersonInformation.PersonID', $id)
+            ->join('PersonQetaa', 'PersonInformation.PersonID', '=', 'PersonQetaa.PersonID')
+            ->join('Qetaa', 'PersonQetaa.QetaaID', '=', 'Qetaa.QetaaID')
+            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
+            ->select(
+                'PersonInformation.*',
+                'PersonSystemPassword.Password',
+                'PersonQetaa.QetaaID',
+                'Qetaa.QetaaName'
+            )
+            ->first();
+
+        if (! $person) {
+            return view('person.entry-error');
+        }
+
+        $questions = DB::table('MarhalaEntryQuestions')
+            ->where('QetaaID', $person->QetaaID)
+            ->where('NotToBeShown', '=', 0)
+            ->get();
+
+        return view('person.person-questions', [
+            'questions' => $questions,
+            'person' => $person,
+        ]);
+    }
+
+    public function submitQuestions(Request $request)
+    {
+        $person = DB::table('PersonInformation')
+            ->where('PersonInformation.PersonID', $request->person_id)
+            ->join('PersonQetaa', 'PersonInformation.PersonID', '=', 'PersonQetaa.PersonID')
+            ->join('Qetaa', 'PersonQetaa.QetaaID', '=', 'Qetaa.QetaaID')
+            ->select('PersonInformation.PersonID', 'PersonQetaa.QetaaID')
+            ->first();
+
+        if (! $person) {
+            return view('person.entry-error');
+        }
+
+        $questions = DB::table('MarhalaEntryQuestions')
+            ->where('QetaaID', $person->QetaaID)
+            ->where('NotToBeShown', '=', 0)
+            ->get();
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($questions as $question) {
+                $answer = $request->input((string) $question->QuestionID);
+                if ($question->IsRequired && ($answer === null || $answer === '')) {
+                    DB::rollBack();
+
+                    return view('person.entry-error-repeat-trial');
+                }
+                DB::table('PersonEntryQuestions')->insert([
+                    'PersonID' => $request->person_id,
+                    'QuestionID' => $question->QuestionID,
+                    'Answer' => $answer,
+                ]);
+            }
+
+            DB::commit();
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('person.submitQuestions failed', ['message' => $e->getMessage()]);
+
+            return view('person.entry-error');
+        }
+
+        return redirect()->route('person.index');
+    }
 
 }
