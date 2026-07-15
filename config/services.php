@@ -37,4 +37,10 @@ return [
         'logo_url' => env('BREVO_LOGO_URL', 'https://shamandorascout.com/img/shamandora.png'),
     ],
 
+    'whatsapp' => [
+        'bridge_url' => env('WHATSAPP_BRIDGE_URL', 'http://127.0.0.1:3010/send'),
+        'bridge_base_url' => env('WHATSAPP_BRIDGE_BASE_URL'),
+        'bridge_token' => env('WHATSAPP_BRIDGE_TOKEN'),
+    ],
+
 ];

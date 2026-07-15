@@ -45,14 +45,14 @@ class WhatsAppStatusController extends Controller
 
     private function bridgeBaseUrl(): string
     {
-        $explicit = env('WHATSAPP_BRIDGE_BASE_URL');
+        $explicit = config('services.whatsapp.bridge_base_url');
         if (is_string($explicit) && $explicit !== '') {
             return rtrim($explicit, '/');
         }
 
-        $sendUrl = (string) env('WHATSAPP_BRIDGE_URL', 'http://127.0.0.1:3000/send');
+        $sendUrl = (string) config('services.whatsapp.bridge_url', 'http://127.0.0.1:3010/send');
         $base = preg_replace('#/send/?$#', '', $sendUrl);
 
-        return $base !== '' ? rtrim($base, '/') : 'http://127.0.0.1:3000';
+        return $base !== '' ? rtrim($base, '/') : 'http://127.0.0.1:3010';
     }
 }

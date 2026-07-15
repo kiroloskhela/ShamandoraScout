@@ -72,8 +72,8 @@ class WhatsAppBridgeController extends Controller
 
         try {
             $res = Http::timeout(20)
-                ->withHeaders(['X-Bridge-Token' => env('WHATSAPP_BRIDGE_TOKEN')])
-                ->post(env('WHATSAPP_BRIDGE_URL'), $payload);
+                ->withHeaders(['X-Bridge-Token' => (string) config('services.whatsapp.bridge_token')])
+                ->post((string) config('services.whatsapp.bridge_url'), $payload);
 
             if ($res->successful() && ($res->json('ok') === true)) {
                 Log::info('WhatsApp sent', [
