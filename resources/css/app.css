@@ -128,6 +128,19 @@ html.dark .bg-slate-200 {
   background-color: rgb(51 65 85) !important;
 }
 
+/* Light gradients paint over remapped solid surfaces — flatten them in dark */
+html.dark .bg-gradient-to-l.from-slate-50,
+html.dark .bg-gradient-to-r.from-slate-50,
+html.dark .bg-gradient-to-b.from-slate-50,
+html.dark .bg-gradient-to-t.from-slate-50,
+html.dark .bg-gradient-to-l.from-white,
+html.dark .bg-gradient-to-r.from-white,
+html.dark .bg-gradient-to-b.from-white,
+html.dark .via-white {
+  background-image: none !important;
+  background-color: rgb(var(--surface-raised)) !important;
+}
+
 /* ─── Text ─────────────────────────────────────────────── */
 html.dark .text-gray-900,
 html.dark .text-gray-800,

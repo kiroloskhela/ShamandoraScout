@@ -15,7 +15,7 @@
         @endif
 
         <div class="mb-5 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div class="bg-gradient-to-l from-slate-50 via-white to-blue-50/40 px-5 py-5">
+            <div class="bg-white px-5 py-5">
                 <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
                     <div class="min-w-0 flex-1">
                         <div class="flex items-start gap-3">
@@ -68,7 +68,7 @@
                         </div>
 
                         @if (isset($qetaaCounts) && $qetaaCounts->count())
-                            <div class="mt-5 rounded-2xl border border-slate-200 bg-white/80 p-4">
+                            <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-3">
                                     <div>
                                         <div class="text-sm font-extrabold text-slate-800">{{ __('Bookings count by sector') }}</div>
@@ -121,7 +121,7 @@
                     </div>
 
                     <div class="shrink-0 xl:w-[280px] xl:pt-6">
-                        <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 shadow-sm">
                             <div class="text-sm font-extrabold text-slate-800 mb-3">{{ __('Quick actions') }}</div>
 
                             <div class="grid grid-cols-1 gap-2">
@@ -156,7 +156,7 @@
 
         <details class="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden group">
             <summary
-                class="cursor-pointer list-none px-4 py-3 bg-gradient-to-l from-slate-50 to-white border-b border-slate-100 flex items-center justify-between">
+                class="cursor-pointer list-none px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div
                         class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base font-bold">
