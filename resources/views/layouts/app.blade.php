@@ -99,7 +99,7 @@
             <!-- Sidebar Navigation -->
             <aside id="sidebar"
                 data-dir="{{ $dir }}"
-                class="fixed inset-y-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700/80 shadow-xl transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:self-stretch lg:h-auto lg:min-h-full {{ $isRtl ? 'right-0 border-l translate-x-full' : 'left-0 border-r -translate-x-full' }}">
+                class="fixed inset-y-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700/80 shadow-xl transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 {{ $isRtl ? 'right-0 border-l translate-x-full' : 'left-0 border-r -translate-x-full' }}">
                 <!-- Mobile Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800 lg:hidden shrink-0">
                     <h2 class="text-lg font-semibold text-gray-800">{{ __('Menu') }}</h2>
@@ -626,7 +626,7 @@
             <!-- Main Content Area -->
             <main class="flex-1 flex flex-col min-w-0 w-full bg-gray-50 dark:bg-slate-950">
                 <!-- Header Bar -->
-                <header class="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3"
+                <header class="bg-white/95 dark:bg-slate-900/90 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3 sticky top-0 z-10 backdrop-blur-md"
                     style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
 
                     <!-- Start: Mobile menu button / Page title -->
