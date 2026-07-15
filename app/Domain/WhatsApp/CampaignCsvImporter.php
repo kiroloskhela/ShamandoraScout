@@ -11,6 +11,9 @@ use RuntimeException;
  * Expected columns (header, case-insensitive):
  *   - Phone Number (aliases: phone, phone_number, number, mobile)
  *   - Message (aliases: message, msg, text, body)
+ *
+ * Delimiter is auto-detected (comma, semicolon, or tab) so Excel locale
+ * exports that use ";" still work.
  */
 class CampaignCsvImporter
 {
@@ -30,26 +33,50 @@ class CampaignCsvImporter
             throw new RuntimeException('تعذر قراءة ملف CSV.');
         }
 
-        $handle = fopen($absolutePath, 'rb');
+        $raw = file_get_contents($absolutePath);
+        if ($raw === false || $raw === '') {
+            throw new RuntimeException('ملف CSV فارغ.');
+        }
+
+        // Normalize encodings Excel sometimes writes
+        if (str_starts_with($raw, "\xFF\xFE") || str_starts_with($raw, "\xFE\xFF")) {
+            $converted = @mb_convert_encoding($raw, 'UTF-8', 'UTF-16');
+            if (is_string($converted) && $converted !== '') {
+                $raw = $converted;
+            }
+        }
+
+        $raw = preg_replace('/^\xEF\xBB\xBF/', '', $raw) ?? $raw;
+
+        $firstLine = strtok($raw, "\r\n") ?: '';
+        $delimiter = $this->detectDelimiter($firstLine);
+
+        $handle = fopen('php://memory', 'r+b');
         if ($handle === false) {
             throw new RuntimeException('تعذر فتح ملف CSV.');
         }
 
+        fwrite($handle, $raw);
+        rewind($handle);
+
         try {
-            $header = fgetcsv($handle);
+            $header = fgetcsv($handle, 0, $delimiter);
             if ($header === false || $header === [null] || $header === []) {
                 throw new RuntimeException('ملف CSV فارغ.');
             }
 
-            // Strip UTF-8 BOM from first cell
             if (isset($header[0])) {
                 $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', (string) $header[0]) ?? (string) $header[0];
             }
 
             $map = $this->mapColumns($header);
             if ($map['phone'] === null || $map['message'] === null) {
+                $found = implode(' | ', array_map(
+                    static fn ($h) => trim((string) $h),
+                    $header
+                ));
                 throw new RuntimeException(
-                    'يجب أن يحتوي CSV على عمودين: Phone Number و Message.'
+                    'يجب أن يحتوي CSV على عمودين: Phone Number و Message. العناوين الموجودة: '.$found
                 );
             }
 
@@ -57,7 +84,7 @@ class CampaignCsvImporter
             $seenPhones = [];
             $line = 1;
 
-            while (($cols = fgetcsv($handle)) !== false) {
+            while (($cols = fgetcsv($handle, 0, $delimiter)) !== false) {
                 $line++;
                 if ($cols === [null] || $this->rowEmpty($cols)) {
                     continue;
@@ -116,6 +143,39 @@ class CampaignCsvImporter
     }
 
     /**
+     * Prefer the delimiter that yields recognizable Phone/Message headers.
+     */
+    private function detectDelimiter(string $headerLine): string
+    {
+        $headerLine = preg_replace('/^\xEF\xBB\xBF/', '', $headerLine) ?? $headerLine;
+        $best = ',';
+        $bestScore = -1;
+
+        foreach ([',', ';', "\t"] as $delimiter) {
+            $cols = str_getcsv($headerLine, $delimiter);
+            if (count($cols) < 2) {
+                continue;
+            }
+
+            $map = $this->mapColumns($cols);
+            $score = count($cols);
+            if ($map['phone'] !== null) {
+                $score += 10;
+            }
+            if ($map['message'] !== null) {
+                $score += 10;
+            }
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $delimiter;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
      * @param  list<string|null>  $header
      * @return array{phone: ?int, message: ?int}
      */
@@ -126,15 +186,21 @@ class CampaignCsvImporter
 
         foreach ($header as $i => $raw) {
             $key = $this->normalizeHeader((string) $raw);
-            if (in_array($key, ['phone number', 'phone_number', 'phonenumber', 'phone', 'number', 'mobile', 'رقم الهاتف', 'رقم'], true)) {
+            if (in_array($key, [
+                'phone number', 'phone_number', 'phonenumber', 'phone', 'number', 'mobile',
+                'رقم الهاتف', 'رقم', 'موبايل',
+            ], true)) {
                 $phone = (int) $i;
             }
-            if (in_array($key, ['message', 'msg', 'text', 'body', 'الرسالة', 'رساله'], true)) {
+            if (in_array($key, [
+                'message', 'messages', 'msg', 'text', 'body',
+                'الرسالة', 'رساله', 'رسالة',
+            ], true)) {
                 $message = (int) $i;
             }
         }
 
-        // Fallback: first two columns if headers are exactly those English labels with spaces quirks
+        // Fallback: first two columns when headers are unrecognized but present
         if ($phone === null && $message === null && count($header) >= 2) {
             $phone = 0;
             $message = 1;
@@ -146,6 +212,8 @@ class CampaignCsvImporter
     private function normalizeHeader(string $value): string
     {
         $value = trim(mb_strtolower($value));
+        // Non-breaking / exotic spaces from Excel
+        $value = preg_replace('/[\x{00A0}\x{2007}\x{202F}]+/u', ' ', $value) ?? $value;
         $value = preg_replace('/\s+/', ' ', $value) ?? $value;
 
         return $value;

@@ -30,6 +30,7 @@
             <li>مثال: <span class="font-mono" dir="ltr">1000485402</span> يصبح <span class="font-mono" dir="ltr">+201000485402</span></li>
             <li>أو مع صفر: <span class="font-mono" dir="ltr">01012345678</span> → <span class="font-mono" dir="ltr">+201012345678</span></li>
             <li>حد أقصى 2000 صف</li>
+            <li>لو فتحت الملف في Excel وحفظته، الفاصل قد يصبح <span class="font-mono">;</span> — النظام يقبله تلقائياً</li>
         </ul>
         <a href="{{ route('whatsapp.campaigns.csv-template') }}"
             class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold">
