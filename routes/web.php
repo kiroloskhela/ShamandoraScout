@@ -10,6 +10,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminPasswordController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\WhatsAppStatusController;
+use App\Http\Controllers\WhatsAppCampaignController;
 
 use App\Http\Controllers\SecretaryController;
 use App\Http\Controllers\LiveFormEnrolmentController;
@@ -241,6 +242,20 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
     Route::post('/whatsapp/sendWithHeader', [WhatsAppBridgeController::class, 'sendWithHeader'])->name('whatsapp.sendWithHeader');
+
+    // WhatsApp campaigns (bulk messaging)
+    Route::get('/whatsapp/campaigns', [WhatsAppCampaignController::class, 'index'])->name('whatsapp.campaigns.index');
+    Route::get('/whatsapp/campaigns/create', [WhatsAppCampaignController::class, 'create'])->name('whatsapp.campaigns.create');
+    Route::post('/whatsapp/campaigns', [WhatsAppCampaignController::class, 'store'])->name('whatsapp.campaigns.store');
+    Route::get('/whatsapp/campaigns/contacts/search', [WhatsAppCampaignController::class, 'searchContacts'])->name('whatsapp.campaigns.contacts.search');
+    Route::post('/whatsapp/campaigns/preview', [WhatsAppCampaignController::class, 'preview'])->name('whatsapp.campaigns.preview');
+    Route::get('/whatsapp/campaigns/{campaign}', [WhatsAppCampaignController::class, 'show'])->name('whatsapp.campaigns.show');
+    Route::get('/whatsapp/campaigns/{campaign}/edit', [WhatsAppCampaignController::class, 'edit'])->name('whatsapp.campaigns.edit');
+    Route::put('/whatsapp/campaigns/{campaign}', [WhatsAppCampaignController::class, 'update'])->name('whatsapp.campaigns.update');
+    Route::post('/whatsapp/campaigns/{campaign}/confirm', [WhatsAppCampaignController::class, 'confirm'])->name('whatsapp.campaigns.confirm');
+    Route::post('/whatsapp/campaigns/{campaign}/pause', [WhatsAppCampaignController::class, 'pause'])->name('whatsapp.campaigns.pause');
+    Route::post('/whatsapp/campaigns/{campaign}/resume', [WhatsAppCampaignController::class, 'resume'])->name('whatsapp.campaigns.resume');
+    Route::post('/whatsapp/campaigns/{campaign}/cancel', [WhatsAppCampaignController::class, 'cancel'])->name('whatsapp.campaigns.cancel');
 
     // Show ALL persons
     Route::get('/person/ShowPersons', [PersonDirectoryController::class, 'ShowPersons'])->name('person.ShowPersons');
