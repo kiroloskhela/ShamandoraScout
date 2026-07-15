@@ -552,14 +552,14 @@
                         </div>
                     </div>
 
-                    {{-- ===================== Password Management + Audit (SuperAdmin) ===================== --}}
+                    {{-- ===================== SuperAdmin tools ===================== --}}
                     @if ($isSuperAdmin)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">{{ __('Password management') }}</span>
+                                    <span class="font-medium">{{ __('SuperAdmin') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -626,7 +626,7 @@
             <!-- Main Content Area -->
             <main class="flex-1 flex flex-col min-w-0 w-full bg-gray-50 dark:bg-slate-950">
                 <!-- Header Bar -->
-                <header class="bg-white/95 dark:bg-slate-900/90 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3 sticky top-0 z-10 backdrop-blur-md"
+                <header class="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3"
                     style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
 
                     <!-- Start: Mobile menu button / Page title -->
