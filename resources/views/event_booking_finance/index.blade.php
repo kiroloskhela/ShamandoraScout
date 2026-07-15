@@ -137,7 +137,7 @@
 
                                 <a href="{{ route('eventBookingFinance.exportToday', $event->SeasonEventID) }}?summary_date={{ $selectedSummaryDate }}"
                                     class="h-11 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-cyan-200/90">
-                                    {{ __('Download today's CSV') }}
+                                    {{ __("Download today's CSV") }}
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.exportAll', $event->SeasonEventID) }}"
