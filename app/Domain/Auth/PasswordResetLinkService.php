@@ -11,15 +11,29 @@ use RuntimeException;
 /**
  * Password reset via opaque link tokens.
  *
- * Channels (email now; WhatsApp later) only ever carry the reset URL — never
+ * Delivery channels (email / WhatsApp) only ever carry the reset URL — never
  * a plaintext password. Tokens are stored hashed in `password_reset_tokens`
- * (email PK), matching schema.sql / Laravel's default table shape.
+ * (email PK). When a person has no email, a synthetic key
+ * `person-{id}@password-reset.local` is used so WhatsApp-only resets work.
  */
 class PasswordResetLinkService
 {
     public function __construct(
         private readonly int $expireMinutes = 60
     ) {
+    }
+
+    /**
+     * Token table key for a person: real email when present, else synthetic.
+     */
+    public function tokenKeyForPerson(int $personId, ?string $email): string
+    {
+        $email = strtolower(trim((string) $email));
+        if ($email !== '') {
+            return $email;
+        }
+
+        return 'person-' . $personId . '@password-reset.local';
     }
 
     /**
@@ -46,6 +60,11 @@ class PasswordResetLinkService
         return url('/reset-password/' . urlencode($plainToken)) . '?' . http_build_query([
             'email' => $email,
         ]);
+    }
+
+    public function issueResetUrlForPerson(int $personId, ?string $email): string
+    {
+        return $this->issueResetUrl($this->tokenKeyForPerson($personId, $email));
     }
 
     public function tokenIsValid(string $email, string $plainToken): bool

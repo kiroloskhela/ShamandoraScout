@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\WhatsAppBridgeClient;
 
 class WhatsAppBridgeController extends Controller
 {
+    public function __construct(
+        private readonly WhatsAppBridgeClient $bridge
+    ) {
+    }
+
     // === Public: original send (kept) ===
     public function send(Request $request)
     {
@@ -17,7 +22,7 @@ class WhatsAppBridgeController extends Controller
             'message'     => 'required|string|max:4096',
         ]);
 
-        $normalized = $this->normalizeEgNumber($data['full_number']); // +20...
+        $normalized = $this->bridge->normalizeEgNumber($data['full_number']);
         return $this->sendToBridge($normalized, $data['message']);
     }
 
@@ -29,7 +34,7 @@ class WhatsAppBridgeController extends Controller
             'message'     => 'required|string|max:4096',
         ]);
 
-        $normalized = $this->normalizeEgNumber($data['full_number']); // +20...
+        $normalized = $this->bridge->normalizeEgNumber($data['full_number']);
 
         // Find person by phone (robust: tries multiple variants)
         $person = $this->findPersonByPhone($normalized);
@@ -65,49 +70,14 @@ class WhatsAppBridgeController extends Controller
     // --- Shared bridge caller ---
     private function sendToBridge(string $normalizedE164, string $message)
     {
-        $payload = [
-            'full_number' => $normalizedE164,  // Node expects +XXXXXXXX
-            'message'     => $message,
-        ];
-
         try {
-            $res = Http::timeout(20)
-                ->withHeaders(['X-Bridge-Token' => (string) config('services.whatsapp.bridge_token')])
-                ->post((string) config('services.whatsapp.bridge_url'), $payload);
-
-            if ($res->successful() && ($res->json('ok') === true)) {
-                Log::info('WhatsApp sent', [
-                    'to'        => $res->json('to'),
-                    'messageId' => $res->json('messageId'),
-                ]);
-                return back()->with('success', 'تم إرسال رسالة الواتساب بنجاح.');
-            }
-
-            Log::warning('Bridge failed', ['status' => $res->status(), 'body' => $res->body()]);
-            return back()->with('error', 'Bridge error: '.$res->body());
-
+            $this->bridge->sendText($normalizedE164, $message);
+            return back()->with('success', 'تم إرسال رسالة الواتساب بنجاح.');
         } catch (\Throwable $e) {
             Log::error('Bridge exception', ['error' => $e->getMessage()]);
             return back()->with('error', 'Bridge exception: '.$e->getMessage());
         }
     }
-
-    // --- Normalize Egyptian numbers to +20XXXXXXXXXX ---
-    private function normalizeEgNumber(string $input): string
-    {
-        $digits = preg_replace('/\D+/', '', $input ?? '');
-
-        if ($digits === '') {
-            return '+2'; // degenerate but prevents nulls
-        }
-
-        // If already starts with 20... keep, else add 20
-        if (str_starts_with($digits, '20')) {
-            return '+'.$digits;
-        }
-        return '+2'.$digits;
-    }
-
 
     private function findPersonByPhone(string $normalizedE164)
     {
