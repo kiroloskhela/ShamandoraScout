@@ -8,9 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ __('Shamandora Scout - Complete information') }}</title>
 
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var dark = stored === null ? true : stored === 'dark';
+                if (dark) document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -40,6 +50,23 @@
             background:
                 radial-gradient(ellipse 80% 50% at 50% -20%, rgba(13, 148, 136, 0.25), transparent),
                 linear-gradient(165deg, #f0fdfa 0%, #ecfeff 40%, #f8fafc 100%);
+        }
+
+        html.dark .sea-bg {
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -25%, rgba(13, 148, 136, 0.22), transparent 55%),
+                linear-gradient(165deg, #020617 0%, #0f172a 100%);
+            color: #e2e8f0;
+        }
+
+        html.dark .bg-white\/90 { background-color: rgba(15, 23, 42, 0.92) !important; }
+        html.dark .bg-white { background-color: #0f172a !important; }
+        html.dark .text-brand-900, html.dark .text-brand-800 { color: #5eead4 !important; }
+        html.dark .text-slate-600, html.dark .text-slate-500, html.dark .text-slate-700 { color: #94a3b8 !important; }
+        html.dark input, html.dark select, html.dark textarea {
+            background-color: #020617 !important;
+            border-color: #475569 !important;
+            color: #f8fafc !important;
         }
 
         ::-webkit-scrollbar {
@@ -80,6 +107,11 @@
 </head>
 
 <body class="sea-bg min-h-screen py-8">
+    <div class="fixed top-4 {{ $locale === 'ar' ? 'left-4' : 'right-4' }} z-20">
+        <button type="button" id="themeToggle"
+            class="p-2 rounded-lg border border-teal-200 bg-white/90 text-teal-800 dark:border-slate-600 dark:bg-slate-900/90 dark:text-teal-300 shadow-sm"
+            aria-label="{{ __('Dark') }}">◐</button>
+    </div>
     @php
         $isResumeMode = !empty($is_resume_mode);
         $existingAnswers = $existingAnswers ?? [];
@@ -315,6 +347,14 @@
             © {{ date('Y') }} {{ __('Sea Shamandora Scout Group — Alexandria') }}
         </p>
     </div>
+    <script>
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const root = document.documentElement;
+            const nextDark = !root.classList.contains('dark');
+            root.classList.toggle('dark', nextDark);
+            try { localStorage.setItem('theme', nextDark ? 'dark' : 'light'); } catch (e) {}
+        });
+    </script>
 </body>
 
 </html>

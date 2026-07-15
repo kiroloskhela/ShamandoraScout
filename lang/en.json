@@ -953,5 +953,9 @@
     "— All —": "— All —",
     "✓ Present": "✓ Present",
     "✗ Absent": "✗ Absent",
-    "💾 Save attendance": "💾 Save attendance"
+    "💾 Save attendance": "💾 Save attendance",
+    "Pagination Navigation": "Pagination Navigation",
+    "Go to page :page": "Go to page :page",
+    "pagination.previous": "Previous",
+    "pagination.next": "Next"
 }

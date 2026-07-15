@@ -29,10 +29,14 @@ class GroupPersonController extends Controller
 
           
                 $sql = "
-                                    SELECT PersonGroup.*, PersonInformation.PersonID, PersonInformation.ShamandoraCode, 
-                                        CONCAT(PersonInformation.FirstName, ' ', 
+                                    SELECT PersonGroup.PersonGroupRoleID,
+                                        PersonGroup.PersonID,
+                                        PersonGroup.GroupID,
+                                        PersonGroup.GroupRoleID,
+                                        PersonInformation.ShamandoraCode,
+                                        CONCAT(PersonInformation.FirstName, ' ',
                                         PersonInformation.SecondName, ' ', PersonInformation.ThirdName) AS PersonFullName,
-                                        GroupRole.GroupRoleName, 
+                                        GroupRole.GroupRoleName,
                                         CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupDetails
                                     FROM PersonGroup
                                     LEFT JOIN PersonInformation ON PersonGroup.PersonID = PersonInformation.PersonID
@@ -67,7 +71,7 @@ class GroupPersonController extends Controller
             {
                 $object = new \stdClass;
                 $object->GroupID = $g->GroupID;
-                $object->GroupInfo = GroupPersonController::getParentsPathString($g->GroupID);
+                $object->GroupInfo = $this->getParentsPathString($g->GroupID);
                 array_push($groups, $object);
             }
 
@@ -100,7 +104,7 @@ class GroupPersonController extends Controller
             {
                 $object = new \stdClass;
                 $object->GroupID = $g->GroupID;
-                $object->GroupInfo = GroupPersonController::getParentsPathString($g->GroupID);
+                $object->GroupInfo = $this->getParentsPathString($g->GroupID);
                 array_push($groups, $object);
             }
 
@@ -211,14 +215,14 @@ public function edit($id)
             foreach ($directGroupsConnectedToKhadem as $groupConnected) {
                 $allGroupsIDsBelowKhadem = array_merge(
                     $allGroupsIDsBelowKhadem,
-                    GroupPersonController::getNodesBelow($groupConnected, [$groupConnected])
+                    $this->getNodesBelow($groupConnected, [$groupConnected])
                 );
             }
 
             foreach ($allGroupsIDsBelowKhadem as $g) {
                 $groups->push((object)[
                     'GroupID'   => $g,
-                    'GroupInfo' => GroupPersonController::getParentsPathString($g),
+                    'GroupInfo' => $this->getParentsPathString($g),
                 ]);
             }
         }
@@ -360,7 +364,7 @@ public function destroy(Request $request, $personId) // personId passed, not Per
         // No group_id provided → check how many links exist
         $links = DB::table('PersonGroup')
             ->where('PersonID', $personId)
-            ->select('PersonGroupID', 'GroupID')
+            ->select('PersonGroupRoleID', 'GroupID')
             ->get();
 
         if ($links->isEmpty()) {
@@ -373,13 +377,13 @@ public function destroy(Request $request, $personId) // personId passed, not Per
             DB::rollBack();
             // Ask the user to choose; redirect back to the confirm page that lists options
             return redirect()
-                ->route('group-person.deletes', ['id' => $personId])
+                ->route('group-person.delete', ['id' => $personId])
                 ->with('error', 'Multiple links found. Please select which group to delete.');
         }
 
         // Exactly one link → delete it
         $deleted = DB::table('PersonGroup')
-            ->where('PersonGroupID', $links->first()->PersonGroupID)
+            ->where('PersonGroupRoleID', $links->first()->PersonGroupRoleID)
             ->delete();
 
         if (!$deleted) {

@@ -17,7 +17,9 @@ class SqlPaginator
     {
         $perPage = max(1, $perPage);
 
-        $countSql = 'SELECT COUNT(*) AS aggregate FROM (' . $sql . ') AS pagination_count_sub';
+        // Strip trailing ORDER BY for cheaper/safer counts; derived tables still need unique column names.
+        $countInner = preg_replace('/\s+ORDER\s+BY\s+.+$/is', '', trim($sql)) ?? trim($sql);
+        $countSql = 'SELECT COUNT(*) AS aggregate FROM (' . $countInner . ') AS pagination_count_sub';
         $total = (int) (DB::selectOne($countSql, $bindings)->aggregate ?? 0);
 
         $page = LengthAwarePaginator::resolveCurrentPage();

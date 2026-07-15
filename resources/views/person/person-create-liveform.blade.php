@@ -8,9 +8,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ __('Shamandora Scout | Enter data') }}</title>
 
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var dark = stored === null ? true : stored === 'dark';
+                if (dark) document.documentElement.classList.add('dark');
+            } catch (e) {}
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -43,6 +53,73 @@
                 linear-gradient(165deg, #f0fdfa 0%, #ecfeff 40%, #f8fafc 100%);
         }
 
+        html.dark .sea-bg {
+            background:
+                radial-gradient(ellipse 90% 55% at 50% -25%, rgba(13, 148, 136, 0.22), transparent 55%),
+                radial-gradient(ellipse 50% 40% at 100% 100%, rgba(30, 64, 175, 0.12), transparent 50%),
+                linear-gradient(165deg, #020617 0%, #0f172a 50%, #020617 100%);
+            color: #e2e8f0;
+        }
+
+        html.dark .rounded-3xl.bg-white\/90,
+        html.dark .bg-white\/90 {
+            background-color: rgba(15, 23, 42, 0.92) !important;
+        }
+
+        html.dark .bg-white,
+        html.dark section.bg-white {
+            background-color: #0f172a !important;
+        }
+
+        html.dark .border-teal-100,
+        html.dark .ring-teal-100 {
+            border-color: #134e4a !important;
+            --tw-ring-color: rgba(45, 212, 191, 0.25);
+        }
+
+        html.dark .from-teal-50\/80 {
+            --tw-gradient-from: rgba(19, 78, 74, 0.45) !important;
+            --tw-gradient-to: transparent !important;
+        }
+
+        html.dark .to-white {
+            --tw-gradient-to: #0f172a !important;
+        }
+
+        html.dark .text-brand-900,
+        html.dark .text-brand-800 {
+            color: #5eead4 !important;
+        }
+
+        html.dark .text-slate-600,
+        html.dark .text-slate-500,
+        html.dark .text-slate-700,
+        html.dark .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        html.dark .text-slate-900 {
+            color: #f1f5f9 !important;
+        }
+
+        html.dark input.field,
+        html.dark select.field,
+        html.dark textarea.field,
+        html.dark input[type="text"],
+        html.dark input[type="email"],
+        html.dark input[type="date"],
+        html.dark input[type="url"],
+        html.dark select,
+        html.dark textarea {
+            background-color: #020617 !important;
+            border-color: #475569 !important;
+            color: #f8fafc !important;
+        }
+
+        html.dark .bg-slate-200 {
+            background-color: #334155 !important;
+        }
+
         ::-webkit-scrollbar {
             width: 10px
         }
@@ -52,8 +129,16 @@
             border-radius: 999px
         }
 
+        html.dark ::-webkit-scrollbar-thumb {
+            background: #134e4a;
+        }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #5eead4
+        }
+
+        html.dark ::-webkit-scrollbar-thumb:hover {
+            background: #0d9488;
         }
 
         input[type="text"],
@@ -88,6 +173,11 @@
 </head>
 
 <body class="sea-bg min-h-screen py-8">
+    <div class="fixed top-4 {{ $locale === 'ar' ? 'left-4' : 'right-4' }} z-20">
+        <button type="button" id="themeToggle"
+            class="p-2 rounded-lg border border-teal-200 bg-white/90 text-teal-800 dark:border-slate-600 dark:bg-slate-900/90 dark:text-teal-300 shadow-sm"
+            aria-label="{{ __('Dark') }}">◐</button>
+    </div>
 
     @if (session('status'))
         <div class="max-w-4xl mx-auto px-4 mb-4">
@@ -1546,6 +1636,13 @@
 
         if (submitBtn) submitBtn.disabled = false;
         validateAll();
+
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const root = document.documentElement;
+            const nextDark = !root.classList.contains('dark');
+            root.classList.toggle('dark', nextDark);
+            try { localStorage.setItem('theme', nextDark ? 'dark' : 'light'); } catch (e) {}
+        });
     </script>
 
 </body>

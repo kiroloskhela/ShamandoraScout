@@ -953,5 +953,9 @@
     "— All —": "— الكل —",
     "✓ Present": "✓ حاضر",
     "✗ Absent": "✗ غائب",
-    "💾 Save attendance": "💾 حفظ الحضور"
+    "💾 Save attendance": "💾 حفظ الحضور",
+    "Pagination Navigation": "التنقل بين الصفحات",
+    "Go to page :page": "الانتقال إلى الصفحة :page",
+    "pagination.previous": "السابق",
+    "pagination.next": "التالي"
 }

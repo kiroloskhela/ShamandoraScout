@@ -4,7 +4,7 @@
     $isRtl = $locale === 'ar';
     $dir = $isRtl ? 'rtl' : 'ltr';
 @endphp
-<html lang="{{ $locale }}" dir="{{ $dir }}" class="bg-gray-50">
+<html lang="{{ $locale }}" dir="{{ $dir }}" class="bg-gray-50 dark:bg-slate-950">
 
 <head>
     <meta charset="UTF-8">
@@ -88,18 +88,18 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 dark:bg-slate-950">
+<body class="bg-gray-50 dark:bg-slate-950 min-h-screen">
     <!-- Main Layout Container -->
-    <div class="flex flex-col h-screen">
+    <div class="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950">
         <!-- Main Wrapper -->
-        <div class="flex flex-1 flex-col md:flex-row">
+        <div class="flex flex-1 flex-col md:flex-row bg-gray-50 dark:bg-slate-950 min-h-0">
             <!-- Sidebar Overlay (Mobile) -->
-            <div id="sidebarOverlay" class="fixed inset-0 z-40 bg-black/50 lg:hidden hidden"></div>
+            <div id="sidebarOverlay" class="fixed inset-0 z-40 bg-black/50 dark:bg-black/70 backdrop-blur-[2px] lg:hidden hidden"></div>
 
             <!-- Sidebar Navigation -->
             <aside id="sidebar"
                 data-dir="{{ $dir }}"
-                class="fixed inset-y-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 shadow-xl transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:h-screen {{ $isRtl ? 'right-0 border-l translate-x-full' : 'left-0 border-r -translate-x-full' }}">
+                class="fixed inset-y-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700/80 shadow-xl transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:self-stretch lg:h-auto lg:min-h-full {{ $isRtl ? 'right-0 border-l translate-x-full' : 'left-0 border-r -translate-x-full' }}">
                 <!-- Mobile Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800 lg:hidden shrink-0">
                     <h2 class="text-lg font-semibold text-gray-800">{{ __('Menu') }}</h2>
@@ -113,13 +113,13 @@
                 </div>
 
                 <!-- User Profile Section -->
-                <div class="flex flex-col items-center p-6 border-b border-gray-200 shrink-0">
+                <div class="flex flex-col items-center p-6 border-b border-gray-200 dark:border-slate-800 shrink-0 bg-gradient-to-b from-transparent to-transparent dark:from-teal-950/30 dark:to-transparent">
                     <div class=" relative mb-3">
                         <img src="{{ Auth::user()->avatar_url }}" alt="User Avatar"
-                            class="w-16 h-16 rounded-full border-2 border-white shadow-sm">
+                            class="w-16 h-16 rounded-full border-2 border-white dark:border-slate-700 shadow-sm ring-2 ring-emerald-500/20 dark:ring-emerald-400/30">
 
                         <span
-                            class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
+                            class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full shadow-[0_0_0_2px_rgba(52,211,153,0.25)]"></span>
                     </div>
                     <div class="text-center">
                         <h4 class="font-medium text-gray-800">{{ Auth::user()->FirstName ?? '' }}
@@ -608,7 +608,7 @@
 
 
                 <!-- Mobile Logout Footer -->
-                <div class="p-4 border-t border-gray-200 lg:hidden shrink-0">
+                <div class="p-4 border-t border-gray-200 dark:border-slate-800 lg:hidden shrink-0">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
@@ -624,9 +624,9 @@
             </aside>
 
             <!-- Main Content Area -->
-            <main class="flex-1 flex flex-col min-w-0 w-full">
+            <main class="flex-1 flex flex-col min-w-0 w-full bg-gray-50 dark:bg-slate-950">
                 <!-- Header Bar -->
-                <header class="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-10"
+                <header class="bg-white/95 dark:bg-slate-900/90 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3 sticky top-0 z-10 backdrop-blur-md"
                     style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
 
                     <!-- Start: Mobile menu button / Page title -->
@@ -656,7 +656,7 @@
                     <!-- End: theme + language + logout -->
                     <div class="flex items-center justify-end gap-1 sm:gap-2">
                         <button type="button" id="themeToggle"
-                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                            class="p-2 text-gray-600 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                             title="{{ __('Dark') }} / {{ __('Light') }}" aria-label="{{ __('Dark') }}">
                             <svg id="iconSun" class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -703,7 +703,7 @@
                 </header>
 
                 <!-- Content Area -->
-                <div class="flex-1 overflow-y-auto">
+                <div class="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
                     <div class="p-4 lg:p-6">
                         @yield('content')
                     </div>
@@ -713,15 +713,14 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-white dark:bg-slate-900 shadow-sm border-t border-gray-200 dark:border-slate-800 px-4 py-3 text-center">
-            <p class="text-sm text-gray-600">{{ __('All rights reserved. Shamandora Scout.') }}</p>
+        <footer class="bg-white dark:bg-slate-900 shadow-sm border-t border-gray-200 dark:border-slate-800 px-4 py-3 text-center shrink-0">
+            <p class="text-sm text-gray-600 dark:text-slate-400">{{ __('All rights reserved. Shamandora Scout.') }}</p>
         </footer>
 
     </div>
 
     <!-- Page loading overlay -->
-    <!-- Page loading overlay -->
-    <div id="pageLoadingOverlay" class="fixed inset-0 z-50 bg-white/70 backdrop-blur-sm"
+    <div id="pageLoadingOverlay" class="fixed inset-0 z-50 bg-white/70 dark:bg-slate-950/80 backdrop-blur-sm"
         style="display: none; align-items: center; justify-content: center;">
         <div class="flex flex-col items-center gap-4">
 
@@ -730,7 +729,7 @@
 
                 {{-- Spinning ring --}}
                 <svg class="absolute inset-0 w-full h-full" viewBox="0 0 160 160">
-                    <circle cx="80" cy="80" r="72" fill="none" stroke="#e5e7eb"
+                    <circle cx="80" cy="80" r="72" fill="none" class="stroke-gray-200 dark:stroke-slate-700"
                         stroke-width="4" />
                     <circle cx="80" cy="80" r="72" fill="none" stroke="#1D9E75" stroke-width="4"
                         stroke-linecap="round" stroke-dasharray="110 340"
@@ -738,7 +737,7 @@
                 </svg>
 
                 {{-- Logo circle --}}
-                <div class="relative z-10 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden"
+                <div class="relative z-10 rounded-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-[0_0_32px_rgba(16,185,129,0.15)] flex items-center justify-center overflow-hidden"
                     style="width: 128px; height: 128px;">
                     <img src="{{ asset('img/shamandora.png') }}" alt="شماندورة"
                         style="width: 108px; height: 108px; object-fit: contain;">
@@ -746,7 +745,7 @@
             </div>
 
             {{-- Label --}}
-            <p class="text-sm text-gray-500">{{ __('Loading...') }}</p>
+            <p class="text-sm text-gray-500 dark:text-slate-400">{{ __('Loading...') }}</p>
         </div>
     </div>
 

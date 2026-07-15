@@ -197,6 +197,108 @@
                 flex-shrink: 0;
             }
 
+            /* Dark theme */
+            html.dark .sc-calendar-card {
+                background: #0f172a;
+                border-color: #1e293b;
+                box-shadow: 0 0 0 1px rgba(51, 65, 85, 0.7), 0 16px 40px rgba(0, 0, 0, 0.4);
+            }
+
+            html.dark .sc-calendar-head {
+                border-bottom-color: #1e293b;
+            }
+
+            html.dark .sc-calendar-title {
+                color: #f8fafc;
+            }
+
+            html.dark .sc-calendar-count {
+                color: #5eead4;
+                background: rgba(19, 78, 74, 0.45);
+            }
+
+            html.dark .fc-custom-calendar {
+                --fc-border-color: #334155;
+                --fc-page-bg-color: #0f172a;
+                --fc-neutral-bg-color: #1e293b;
+                --fc-today-bg-color: rgba(19, 78, 74, 0.35);
+                --fc-list-event-hover-bg-color: #1e293b;
+                --fc-neutral-text-color: #cbd5e1;
+            }
+
+            html.dark .fc-custom-calendar .fc-toolbar-title {
+                color: #f1f5f9;
+            }
+
+            html.dark .fc-custom-calendar .fc-button {
+                background: #0d9488;
+            }
+
+            html.dark .fc-custom-calendar .fc-button:hover:not(:disabled) {
+                background: #14b8a6;
+            }
+
+            html.dark .fc-custom-calendar .fc-button-active {
+                background: #115e59 !important;
+            }
+
+            html.dark .fc-custom-calendar .fc-col-header-cell {
+                background: #1e293b;
+                color: #94a3b8;
+            }
+
+            html.dark .fc-custom-calendar .fc-daygrid-day-number {
+                color: #e2e8f0;
+            }
+
+            html.dark .fc-custom-calendar .fc-day-today {
+                background: rgba(19, 78, 74, 0.35) !important;
+            }
+
+            html.dark .fc-custom-calendar .fc-day-today .fc-daygrid-day-number {
+                background: #14b8a6;
+            }
+
+            html.dark .fc-custom-calendar .fc-list-event-title a,
+            html.dark .fc-custom-calendar .fc-list-event-time {
+                color: #f1f5f9;
+            }
+
+            html.dark .sc-calendar-legend {
+                border-top-color: #1e293b;
+                background: #020617;
+            }
+
+            html.dark .sc-legend-item {
+                background: #0f172a;
+                border-color: #334155;
+                color: #cbd5e1;
+            }
+
+            html.dark .sc-event-modal-content {
+                background: #0f172a;
+                border: 1px solid #334155;
+                color: #f1f5f9;
+                box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+            }
+
+            html.dark .sc-event-modal-header {
+                border-bottom-color: #1e293b;
+            }
+
+            html.dark .sc-event-modal-title {
+                color: #f8fafc;
+            }
+
+            html.dark .sc-event-modal-close {
+                background: #1e293b;
+                color: #cbd5e1;
+            }
+
+            html.dark .sc-event-modal-close:hover {
+                background: #334155;
+            }
+
             .sc-event-modal {
                 position: fixed;
                 inset: 0;

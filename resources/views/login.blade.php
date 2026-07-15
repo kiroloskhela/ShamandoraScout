@@ -30,6 +30,14 @@
             font-family: {{ $isRtl ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
         }
 
+        html.dark body {
+            background-image:
+                radial-gradient(ellipse 90% 60% at 50% -20%, rgba(13, 148, 136, 0.22), transparent 55%),
+                radial-gradient(ellipse 50% 40% at 100% 100%, rgba(30, 64, 175, 0.14), transparent 50%),
+                radial-gradient(ellipse 40% 30% at 0% 80%, rgba(5, 150, 105, 0.1), transparent 45%);
+            background-attachment: fixed;
+        }
+
         .input-field {
             transition: all 0.25s ease;
         }
@@ -40,8 +48,9 @@
         }
 
         .dark .input-field:focus {
-            border-color: #94a3b8;
-            background-color: #1e293b;
+            border-color: #2dd4bf;
+            background-color: #020617;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
         }
 
         .login-btn {
@@ -52,18 +61,32 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
             transform: translateY(-1px);
         }
+
+        .dark .login-btn:hover {
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+        }
+
+        .login-card {
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .dark .login-card {
+            box-shadow:
+                0 0 0 1px rgba(51, 65, 85, 0.85),
+                0 24px 48px rgba(0, 0, 0, 0.45);
+        }
     </style>
 </head>
 
 <body class="bg-white dark:bg-slate-950 min-h-screen flex items-center justify-center p-4 text-gray-900 dark:text-slate-100">
     <div class="fixed top-4 {{ $isRtl ? 'left-4' : 'right-4' }} z-20 flex items-center gap-2">
         <button type="button" id="themeToggle"
-            class="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200"
+            class="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-gray-700 dark:text-emerald-300 hover:border-emerald-400/50 transition-colors"
             aria-label="{{ __('Dark') }}">
             <span class="text-sm font-semibold">◐</span>
         </button>
         <a href="{{ route('locale.switch', $locale === 'ar' ? 'en' : 'ar') }}"
-            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-gray-700 dark:text-slate-200">
+            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-sm font-semibold text-gray-700 dark:text-slate-200 hover:border-emerald-400/50 transition-colors">
             {{ $locale === 'ar' ? 'EN' : 'ع' }}
         </a>
     </div>
@@ -72,8 +95,9 @@
         <div class="grid lg:grid-cols-2 gap-8 items-center min-h-[80vh]">
 
             <div class="order-2 lg:order-1">
-                <div class="bg-white dark:bg-slate-900 rounded-2xl p-8 lg:p-12 shadow-lg border border-gray-100 dark:border-slate-800">
-                    <h2 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-8 text-center">{{ __('Log in') }}</h2>
+                <div class="login-card bg-white dark:bg-slate-900/95 rounded-2xl p-8 lg:p-12 shadow-lg border border-gray-100 dark:border-slate-700/80">
+                    <h2 class="text-3xl font-bold text-gray-800 dark:text-slate-50 mb-2 text-center">{{ __('Log in') }}</h2>
+                    <p class="text-center text-sm text-gray-500 dark:text-slate-400 mb-8">{{ __('Shamandora Scout') }}</p>
 
                     @if ($errors->any())
                         <div class="mb-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-200">
@@ -167,13 +191,13 @@
             <div class="flex flex-col items-center justify-center text-gray-800 dark:text-slate-100 order-1 lg:order-2">
                 <div class="mb-8">
                     <div
-                        class="w-40 h-40 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center shadow-md border border-gray-200 dark:border-slate-700 overflow-hidden">
+                        class="w-40 h-40 bg-gray-100 dark:bg-slate-900 rounded-full flex items-center justify-center shadow-md dark:shadow-[0_0_40px_rgba(16,185,129,0.2)] border border-gray-200 dark:border-emerald-500/30 overflow-hidden ring-4 ring-transparent dark:ring-emerald-500/10">
                         <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora Scout') }}"
                             class="w-full h-full object-contain">
                     </div>
                 </div>
 
-                <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center">
+                <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-l dark:from-emerald-300 dark:to-teal-200">
                     {{ __('Shamandora Scout Group') }}
                 </h1>
 

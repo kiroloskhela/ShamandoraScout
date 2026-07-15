@@ -10,10 +10,24 @@
   :root {
     --font-family-sans: 'Cairo', 'Segoe UI', sans-serif;
     --font-family-latin: 'Source Sans 3', 'Segoe UI', sans-serif;
+    --surface-page: 249 250 251;
+    --surface-raised: 255 255 255;
+    --surface-sunken: 243 244 246;
+    --surface-border: 229 231 235;
+    --surface-muted: 107 114 128;
+    --accent: 5 150 105;
+    --ring-focus: 16 185 129;
     color-scheme: light;
   }
 
   html.dark {
+    --surface-page: 2 6 23;
+    --surface-raised: 15 23 42;
+    --surface-sunken: 30 41 59;
+    --surface-border: 51 65 85;
+    --surface-muted: 148 163 184;
+    --accent: 52 211 153;
+    --ring-focus: 45 212 191;
     color-scheme: dark;
   }
 
@@ -46,41 +60,80 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply antialiased;
     font-family: inherit;
+    background-color: rgb(var(--surface-page));
+    color: rgb(17 24 39);
   }
 
   html.dark body {
-    @apply bg-slate-950 text-slate-100;
+    color: rgb(241 245 249);
+    background-color: rgb(var(--surface-page));
+    background-image:
+      radial-gradient(ellipse 90% 55% at 50% -30%, rgb(13 148 136 / 0.14), transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 0%, rgb(30 64 175 / 0.1), transparent 45%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background-color: rgb(167 243 208);
+    color: rgb(6 78 59);
+  }
+
+  html.dark ::selection {
+    background-color: rgb(19 78 74);
+    color: rgb(204 251 241);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--ring-focus));
+    outline-offset: 2px;
   }
 }
 
-/* Plain dark overrides (html.dark) — avoids Tailwind mangling .dark + hover\: escapes */
-html.dark .bg-white {
-  background-color: rgb(30 41 59) !important;
+/* ─── Surfaces ─────────────────────────────────────────── */
+/* html itself can carry bg-* — match element + descendants */
+html.dark,
+html.dark.bg-gray-50,
+html.dark.bg-slate-50,
+html.dark.bg-slate-950 {
+  background-color: rgb(var(--surface-page)) !important;
 }
-html.dark .bg-white\/80 {
-  background-color: rgb(30 41 59 / 0.9) !important;
+html.dark .bg-white {
+  background-color: rgb(var(--surface-raised)) !important;
+}
+html.dark .bg-white\/80,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
+  background-color: rgb(15 23 42 / 0.92) !important;
 }
 html.dark .bg-white\/70 {
-  background-color: rgb(2 6 23 / 0.8) !important;
+  background-color: rgb(2 6 23 / 0.82) !important;
 }
 html.dark .bg-gray-50,
-html.dark .bg-slate-50 {
-  background-color: rgb(15 23 42) !important;
+html.dark .bg-slate-50,
+html.dark .bg-slate-950 {
+  background-color: rgb(var(--surface-page)) !important;
 }
 html.dark .bg-gray-100,
 html.dark .bg-slate-100 {
-  background-color: rgb(51 65 85) !important;
+  background-color: rgb(30 41 59) !important;
 }
-html.dark .bg-slate-50\/40 {
+html.dark .bg-slate-50\/40,
+html.dark .bg-slate-50\/50 {
   background-color: rgb(15 23 42 / 0.55) !important;
 }
+html.dark .bg-gray-200,
+html.dark .bg-slate-200 {
+  background-color: rgb(51 65 85) !important;
+}
 
+/* ─── Text ─────────────────────────────────────────────── */
 html.dark .text-gray-900,
 html.dark .text-gray-800,
 html.dark .text-slate-900,
-html.dark .text-slate-800 {
+html.dark .text-slate-800,
+html.dark .text-black {
   color: rgb(248 250 252) !important;
 }
 html.dark .text-gray-700,
@@ -93,45 +146,82 @@ html.dark .text-slate-600,
 html.dark .text-slate-500 {
   color: rgb(203 213 225) !important;
 }
-html.dark .text-gray-400 {
+html.dark .text-gray-400,
+html.dark .text-slate-400 {
   color: rgb(148 163 184) !important;
 }
+html.dark .text-gray-300 {
+  color: rgb(203 213 225) !important;
+}
 
+/* ─── Borders / dividers ───────────────────────────────── */
 html.dark .border-gray-100,
 html.dark .border-gray-200,
 html.dark .border-slate-100,
-html.dark .border-slate-200 {
-  border-color: rgb(71 85 105) !important;
+html.dark .border-slate-200,
+html.dark .border-white {
+  border-color: rgb(var(--surface-border)) !important;
 }
 html.dark .border-gray-300,
 html.dark .border-slate-300 {
+  border-color: rgb(71 85 105) !important;
+}
+html.dark .border-gray-400 {
   border-color: rgb(100 116 139) !important;
 }
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(51 65 85) !important;
+}
 
+/* ─── Soft tint surfaces ───────────────────────────────── */
 html.dark .bg-emerald-50,
-html.dark .bg-emerald-50\/70 {
-  background-color: rgb(6 78 59 / 0.45) !important;
+html.dark .bg-emerald-50\/70,
+html.dark .bg-emerald-100 {
+  background-color: rgb(6 78 59 / 0.4) !important;
 }
 html.dark .bg-red-50,
 html.dark .bg-red-50\/70,
 html.dark .bg-red-100 {
-  background-color: rgb(127 29 29 / 0.45) !important;
+  background-color: rgb(127 29 29 / 0.4) !important;
 }
 html.dark .bg-blue-50,
 html.dark .bg-blue-100 {
-  background-color: rgb(30 64 175 / 0.4) !important;
+  background-color: rgb(30 58 138 / 0.4) !important;
 }
 html.dark .bg-green-50,
 html.dark .bg-green-100 {
-  background-color: rgb(20 83 45 / 0.45) !important;
+  background-color: rgb(20 83 45 / 0.4) !important;
 }
-html.dark .bg-amber-50 {
-  background-color: rgb(146 64 14 / 0.4) !important;
+html.dark .bg-amber-50,
+html.dark .bg-amber-100,
+html.dark .bg-yellow-50,
+html.dark .bg-yellow-100 {
+  background-color: rgb(120 53 15 / 0.4) !important;
 }
-html.dark .bg-rose-50 {
-  background-color: rgb(159 18 57 / 0.4) !important;
+html.dark .bg-rose-50,
+html.dark .bg-rose-100,
+html.dark .bg-pink-50,
+html.dark .bg-pink-100 {
+  background-color: rgb(136 19 55 / 0.4) !important;
+}
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-100,
+html.dark .bg-purple-50,
+html.dark .bg-purple-100,
+html.dark .bg-violet-50 {
+  background-color: rgb(76 29 149 / 0.35) !important;
+}
+html.dark .bg-cyan-50,
+html.dark .bg-teal-50 {
+  background-color: rgb(19 78 74 / 0.45) !important;
+}
+html.dark .bg-orange-50 {
+  background-color: rgb(154 52 18 / 0.4) !important;
 }
 
+/* Soft tint text */
 html.dark .text-emerald-600,
 html.dark .text-emerald-700,
 html.dark .text-emerald-800 {
@@ -153,26 +243,167 @@ html.dark .text-blue-700,
 html.dark .text-blue-800 {
   color: rgb(147 197 253) !important;
 }
-html.dark .text-amber-800 {
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-yellow-700,
+html.dark .text-yellow-800 {
   color: rgb(253 230 138) !important;
 }
-html.dark .text-rose-700 {
+html.dark .text-rose-600,
+html.dark .text-rose-700,
+html.dark .text-pink-600,
+html.dark .text-pink-700 {
   color: rgb(251 113 133) !important;
 }
+html.dark .text-indigo-600,
+html.dark .text-indigo-700,
+html.dark .text-purple-600,
+html.dark .text-purple-700 {
+  color: rgb(196 181 253) !important;
+}
+html.dark .text-cyan-600,
+html.dark .text-cyan-700,
+html.dark .text-teal-600,
+html.dark .text-teal-700,
+html.dark .text-teal-800 {
+  color: rgb(45 212 191) !important;
+}
+html.dark .text-orange-600,
+html.dark .text-orange-700 {
+  color: rgb(253 186 116) !important;
+}
 
-html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark .border-emerald-200,
+html.dark .border-emerald-300 {
+  border-color: rgb(6 95 70) !important;
+}
+html.dark .border-red-200,
+html.dark .border-red-300 {
+  border-color: rgb(153 27 27) !important;
+}
+html.dark .border-blue-200 {
+  border-color: rgb(30 64 175) !important;
+}
+html.dark .border-amber-200,
+html.dark .border-yellow-200 {
+  border-color: rgb(146 64 14) !important;
+}
+html.dark .border-teal-100,
+html.dark .border-teal-200 {
+  border-color: rgb(19 78 74) !important;
+}
+
+/* ─── Forms ────────────────────────────────────────────── */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 html.dark textarea,
 html.dark select {
-  background-color: rgb(15 23 42) !important;
+  background-color: rgb(2 6 23) !important;
   color: rgb(248 250 252) !important;
-  border-color: rgb(100 116 139) !important;
+  border-color: rgb(71 85 105) !important;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.35);
+}
+html.dark input:not([type="checkbox"]):not([type="radio"]):focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: rgb(45 212 191) !important;
+  box-shadow: 0 0 0 3px rgb(45 212 191 / 0.2), inset 0 1px 2px rgb(0 0 0 / 0.35) !important;
 }
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: rgb(148 163 184) !important;
+  color: rgb(100 116 139) !important;
+}
+html.dark input[type="checkbox"],
+html.dark input[type="radio"] {
+  background-color: rgb(15 23 42) !important;
+  border-color: rgb(100 116 139) !important;
+}
+html.dark option,
+html.dark optgroup {
+  background-color: rgb(15 23 42);
+  color: rgb(248 250 252);
+}
+html.dark input:disabled,
+html.dark textarea:disabled,
+html.dark select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-/* Bold, high-contrast dark buttons */
+/* ─── Tables ───────────────────────────────────────────── */
+html.dark table thead {
+  background-color: rgb(30 41 59) !important;
+}
+html.dark table tbody tr:hover {
+  background-color: rgb(30 41 59 / 0.65) !important;
+}
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-slate-50:hover {
+  background-color: rgb(30 41 59 / 0.7) !important;
+}
+
+/* ─── Nav / interactive soft hovers (avoid Tailwind escape pitfalls) ─── */
+html.dark nav a:hover,
+html.dark nav button:hover,
+html.dark aside nav a:hover,
+html.dark aside nav button:hover {
+  background-color: rgb(6 78 59 / 0.35) !important;
+  color: rgb(110 231 183) !important;
+}
+html.dark header button:hover,
+html.dark header a:hover {
+  background-color: rgb(51 65 85 / 0.7) !important;
+}
+html.dark header form button:hover,
+html.dark aside form button:hover {
+  background-color: rgb(127 29 29 / 0.35) !important;
+  color: rgb(252 165 165) !important;
+}
+
+/* ─── Shadows → softer glow in dark ────────────────────── */
+html.dark .shadow,
+html.dark .shadow-sm {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(51 65 85 / 0.5) !important;
+}
+html.dark .shadow-md,
+html.dark .shadow-lg {
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.45), 0 0 0 1px rgb(51 65 85 / 0.55) !important;
+}
+html.dark .shadow-xl,
+html.dark .shadow-2xl {
+  box-shadow: 0 20px 48px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(71 85 105 / 0.45) !important;
+}
+html.dark .ring-1 {
+  --tw-ring-color: rgb(71 85 105 / 0.8);
+}
+
+/* ─── Sticky header glass ──────────────────────────────── */
+html.dark header.sticky,
+html.dark .sticky.top-0 {
+  backdrop-filter: blur(12px);
+  background-color: rgb(15 23 42 / 0.88) !important;
+}
+
+/* ─── Scrollbars ───────────────────────────────────────── */
+html.dark {
+  scrollbar-color: rgb(71 85 105) rgb(15 23 42);
+}
+html.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: rgb(15 23 42);
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
+  border-radius: 999px;
+  border: 2px solid rgb(15 23 42);
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}
+
+/* ─── Buttons — high contrast ──────────────────────────── */
 html.dark a.bg-slate-100,
 html.dark button.bg-slate-100,
 html.dark a.bg-gray-100,
@@ -201,25 +432,29 @@ html.dark a.bg-gray-700,
 html.dark button.bg-gray-700,
 html.dark a.bg-gray-800,
 html.dark button.bg-gray-800 {
-  background-color: rgb(100 116 139) !important;
+  background-color: rgb(71 85 105) !important;
   color: #fff !important;
   border: 2px solid rgb(203 213 225) !important;
   font-weight: 800 !important;
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.4);
 }
 html.dark a.bg-slate-600:hover,
-html.dark button.bg-slate-600:hover {
+html.dark button.bg-slate-600:hover,
+html.dark a.bg-gray-600:hover,
+html.dark button.bg-gray-600:hover {
   background-color: rgb(148 163 184) !important;
   color: rgb(15 23 42) !important;
 }
 
 html.dark a.bg-blue-600,
-html.dark button.bg-blue-600 {
+html.dark button.bg-blue-600,
+html.dark a.bg-blue-500,
+html.dark button.bg-blue-500 {
   background-color: rgb(37 99 235) !important;
   color: #fff !important;
-  border: 2px solid rgb(147 197 253) !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgb(37 99 235 / 0.45);
+  border: 1px solid rgb(96 165 250 / 0.55) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
 }
 html.dark a.bg-blue-600:hover,
 html.dark button.bg-blue-600:hover {
@@ -229,12 +464,14 @@ html.dark button.bg-blue-600:hover {
 html.dark a.bg-emerald-600,
 html.dark button.bg-emerald-600,
 html.dark a.bg-green-600,
-html.dark button.bg-green-600 {
+html.dark button.bg-green-600,
+html.dark a.bg-emerald-500,
+html.dark button.bg-emerald-500 {
   background-color: rgb(5 150 105) !important;
   color: #fff !important;
-  border: 2px solid rgb(110 231 183) !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgb(16 185 129 / 0.4);
+  border: 1px solid rgb(52 211 153 / 0.45) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
 }
 html.dark a.bg-emerald-600:hover,
 html.dark button.bg-emerald-600:hover,
@@ -244,33 +481,112 @@ html.dark button.bg-green-600:hover {
 }
 
 html.dark a.bg-cyan-600,
-html.dark button.bg-cyan-600 {
-  background-color: rgb(8 145 178) !important;
+html.dark button.bg-cyan-600,
+html.dark a.bg-teal-600,
+html.dark button.bg-teal-600,
+html.dark a.bg-teal-700,
+html.dark button.bg-teal-700 {
+  background-color: rgb(13 148 136) !important;
   color: #fff !important;
-  border: 2px solid rgb(103 232 249) !important;
+  border: 2px solid rgb(94 234 212) !important;
   font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgb(6 182 212 / 0.4);
+  box-shadow: 0 4px 16px rgb(20 184 166 / 0.4);
 }
 html.dark a.bg-cyan-600:hover,
-html.dark button.bg-cyan-600:hover {
-  background-color: rgb(6 182 212) !important;
+html.dark button.bg-cyan-600:hover,
+html.dark a.bg-teal-700:hover,
+html.dark button.bg-teal-700:hover {
+  background-color: rgb(20 184 166) !important;
 }
 
 html.dark a.bg-red-600,
-html.dark button.bg-red-600 {
+html.dark button.bg-red-600,
+html.dark a.bg-red-500,
+html.dark button.bg-red-500 {
   background-color: rgb(220 38 38) !important;
   color: #fff !important;
-  border: 2px solid rgb(252 165 165) !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 16px rgb(239 68 68 / 0.4);
+  border: 1px solid rgb(252 165 165 / 0.45) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+}
+html.dark a.bg-red-600:hover,
+html.dark button.bg-red-600:hover {
+  background-color: rgb(239 68 68) !important;
 }
 
 html.dark a.bg-orange-500,
 html.dark button.bg-orange-500,
 html.dark a.bg-amber-500,
-html.dark button.bg-amber-500 {
+html.dark button.bg-amber-500,
+html.dark a.bg-yellow-500,
+html.dark button.bg-yellow-500 {
   background-color: rgb(245 158 11) !important;
   color: rgb(15 23 42) !important;
   border: 2px solid rgb(253 230 138) !important;
   font-weight: 800 !important;
+}
+html.dark a.bg-purple-600,
+html.dark button.bg-purple-600,
+html.dark a.bg-indigo-600,
+html.dark button.bg-indigo-600 {
+  background-color: rgb(124 58 237) !important;
+  color: #fff !important;
+  border: 2px solid rgb(196 181 253) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 16px rgb(139 92 246 / 0.4);
+}
+html.dark a.bg-pink-600,
+html.dark button.bg-pink-600,
+html.dark a.bg-rose-600,
+html.dark button.bg-rose-600 {
+  background-color: rgb(225 29 72) !important;
+  color: #fff !important;
+  border: 2px solid rgb(251 113 133) !important;
+  font-weight: 800 !important;
+}
+
+/* Disabled buttons */
+html.dark a.bg-gray-400,
+html.dark button.bg-gray-400,
+html.dark .cursor-not-allowed.bg-gray-400 {
+  background-color: rgb(71 85 105) !important;
+  color: rgb(203 213 225) !important;
+  border: 2px solid rgb(100 116 139) !important;
+  opacity: 0.7;
+  box-shadow: none !important;
+}
+
+/* ─── Cards / elevated panels ──────────────────────────── */
+html.dark .rounded-xl.shadow,
+html.dark .rounded-xl.shadow-lg,
+html.dark .rounded-2xl.shadow,
+html.dark .rounded-2xl.shadow-lg,
+html.dark .rounded-lg.shadow,
+html.dark .rounded-lg.shadow-lg {
+  box-shadow:
+    0 0 0 1px rgb(51 65 85 / 0.8),
+    0 12px 32px rgb(0 0 0 / 0.4) !important;
+}
+
+/* Avatar status ring */
+html.dark .border-white {
+  border-color: rgb(15 23 42) !important;
+}
+
+/* Code / mono chips */
+html.dark code,
+html.dark kbd,
+html.dark pre {
+  background-color: rgb(2 6 23) !important;
+  color: rgb(226 232 240) !important;
+  border-color: rgb(51 65 85);
+}
+
+/* Links in content */
+html.dark main a.underline,
+html.dark main a.text-teal-700 {
+  color: rgb(45 212 191) !important;
+}
+html.dark main a.underline:hover {
+  color: rgb(94 234 212) !important;
 }
