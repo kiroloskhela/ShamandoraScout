@@ -132,27 +132,27 @@
 
                             <div class="grid grid-cols-1 gap-2">
                                 <a href="{{ route('eventBookingFinance.create', $event->SeasonEventID) }}"
-                                    class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-blue-300/80">
                                     إضافة حجز شخص
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.createGuestFamily', $event->SeasonEventID) }}"
-                                    class="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    class="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-emerald-300/80">
                                     إضافة حجز ضيف / أهالي
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.exportToday', $event->SeasonEventID) }}?summary_date={{ $selectedSummaryDate }}"
-                                    class="h-11 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    class="h-11 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-cyan-200/90">
                                     تحميل CSV اليوم
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.exportAll', $event->SeasonEventID) }}"
-                                    class="h-11 rounded-xl bg-slate-600 hover:bg-slate-700 text-white text-sm font-bold inline-flex items-center justify-center transition-colors duration-200 shadow-sm">
+                                    class="h-11 rounded-xl bg-slate-600 hover:bg-slate-500 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-slate-300">
                                     تحميل CSV كامل
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.selector') }}"
-                                    class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold inline-flex items-center justify-center transition-colors duration-200">
+                                    class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 border-2 border-slate-400 shadow-sm">
                                     رجوع
                                 </a>
                             </div>
