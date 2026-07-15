@@ -9,17 +9,24 @@ use Illuminate\Support\Facades\DB;
  */
 class LiveFormLegacyService
 {
+    public function __construct(
+        private readonly LiveFormSubmitService $submit,
+    ) {
+    }
+
     /**
      * Copy NewUsers row + answers into waiting-list tables and delete from main.
+     *
+     * Remints waiting-list id/PersonID so Package A invariant PersonID === id holds.
      *
      * @param  iterable<object>  $questions  MarhalaEntryQuestions rows
      * @param  array<int|string, mixed>  $answers  questionId => answer
      */
     public function moveToWaitingList(object $person, iterable $questions, array $answers): void
     {
-        DB::table('NewUsersInformationWaitinglist')->insert([
-            'PersonID' => $person->PersonID,
-            'ShamandoraCode' => $person->ShamandoraCode,
+        $oldPersonId = (int) $person->PersonID;
+
+        $row = [
             'FirstName' => $person->FirstName,
             'SecondName' => $person->SecondName,
             'ThirdName' => $person->ThirdName,
@@ -64,22 +71,24 @@ class LiveFormLegacyService
             'MedicalMedications' => $person->MedicalMedications,
             'HasEmergencyCase' => $person->HasEmergencyCase,
             'EmergencyDetails' => $person->EmergencyDetails,
-        ]);
+        ];
+
+        $newId = $this->submit->allocateNewEnrolmentRecord('NewUsersInformationWaitinglist', $row);
 
         foreach ($questions as $question) {
             DB::table('NewUsersPersonEntryQuestionsWaitinglist')->insert([
-                'PersonID' => $person->PersonID,
+                'PersonID' => $newId,
                 'QuestionID' => $question->QuestionID,
                 'Answer' => $answers[$question->QuestionID] ?? null,
             ]);
         }
 
         DB::table('NewUsersPersonEntryQuestions')
-            ->where('PersonID', $person->PersonID)
+            ->where('PersonID', $oldPersonId)
             ->delete();
 
         DB::table('NewUsersInformation')
-            ->where('PersonID', $person->PersonID)
+            ->where('PersonID', $oldPersonId)
             ->delete();
     }
 

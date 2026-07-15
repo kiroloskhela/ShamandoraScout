@@ -89,9 +89,18 @@ jobs:
             systemctl restart php8.3-fpm
             systemctl reload nginx
 
-            # Restart queue worker if managed by systemd (ignore if absent)
-            systemctl try-restart laravel-queue.service 2>/dev/null || true
-            # Or pm2 queue if present
+            echo "==> Queue worker (systemd)"
+            if [ -f /var/www/shamandora/deploy/laravel-queue.service ]; then
+              install -m 644 /var/www/shamandora/deploy/laravel-queue.service /etc/systemd/system/laravel-queue.service
+              systemctl daemon-reload
+              systemctl enable laravel-queue.service
+              systemctl restart laravel-queue.service
+              systemctl --no-pager --full status laravel-queue.service || true
+            else
+              systemctl try-restart laravel-queue.service 2>/dev/null || true
+            fi
+
+            # Or pm2 queue if present (legacy)
             if command -v pm2 >/dev/null 2>&1; then
               pm2 restart shamandora-queue 2>/dev/null || true
             fi

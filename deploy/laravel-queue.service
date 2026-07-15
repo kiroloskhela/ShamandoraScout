@@ -1,0 +1,21 @@
+[Unit]
+Description=Shamandora Scout Laravel queue worker
+After=network.target mysql.service mariadb.service
+Requires=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=3
+WorkingDirectory=/var/www/shamandora
+ExecStart=/usr/bin/php /var/www/shamandora/artisan queue:work database --sleep=1 --tries=3 --max-time=3600 --timeout=120
+Nice=10
+
+# Clear leftover jobs lock on stop
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

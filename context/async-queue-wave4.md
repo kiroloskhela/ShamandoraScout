@@ -18,15 +18,33 @@ php artisan migrate
 
 ## Worker
 
-Run a worker in every environment that uses `database` (or Redis) queues:
+Production installs `deploy/laravel-queue.service` on every deploy to `main`
+(`systemctl enable --now laravel-queue.service`).
+
+Local / manual:
 
 ```bash
-php artisan queue:work
+php artisan queue:work database --sleep=1 --tries=3
 ```
 
-Without a worker, jobs sit in the `jobs` table and mail/FCM will not send.
+Without a worker, jobs sit in the `jobs` table and mail/FCM/WhatsApp campaigns will not send.
+
+Verify on the VPS:
+
+```bash
+systemctl status laravel-queue.service
+php artisan queue:failed
+```
 
 PHPUnit keeps `QUEUE_CONNECTION=sync` so jobs run inline unless faked.
+
+## Production `.env`
+
+```env
+QUEUE_CONNECTION=database
+```
+
+If this is still `sync`, queued jobs run inside the HTTP request (no worker needed, but slower).
 
 ## Jobs
 
