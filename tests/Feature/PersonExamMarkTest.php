@@ -14,6 +14,8 @@ class PersonExamMarkTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutVite();
+
         if (DB::getDriverName() !== 'sqlite') {
             $this->markTestSkipped('PersonExamMarkTest requires sqlite in-memory.');
         }
