@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'حجوزات الفعالية'])
+@extends('layouts.app', ['pageTitle' => __('Event bookings')])
 
 @section('content')
     <div class="container mx-auto px-4 py-6" dir="rtl">
@@ -26,7 +26,7 @@
 
                             <div class="min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <h2 class="text-xl font-extrabold text-slate-800">حجوزات الفعالية</h2>
+                                    <h2 class="text-xl font-extrabold text-slate-800">{{ __('Event bookings') }}</h2>
 
                                     <span
                                         class="inline-flex items-center rounded-full bg-blue-100 text-blue-800 px-3 py-1 text-[11px] font-bold">
@@ -34,36 +34,34 @@
                                     </span>
                                 </div>
 
-                                <p class="mt-1 text-sm text-slate-500">
-                                    متابعة حجوزات الفعالية وإدارة الأشخاص والضيوف والأهالي
-                                </p>
+                                <p class="mt-1 text-sm text-slate-500">{{ __('Follow up event bookings and manage people, guests, and families') }}</p>
                             </div>
                         </div>
 
                         <div class="mt-4 flex flex-wrap gap-2.5 text-xs font-medium">
                             <span
                                 class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-slate-700">
-                                <span class="text-slate-400">الموسم</span>
+                                <span class="text-slate-400">{{ __('Season') }}</span>
                                 <span class="font-extrabold text-slate-800">{{ $event->SeasonName }}
                                     ({{ $event->SeasonYear }})</span>
                             </span>
 
                             <span
                                 class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-blue-700">
-                                <span class="text-blue-500">الفعالية</span>
+                                <span class="text-blue-500">{{ __('Event') }}</span>
                                 <span class="font-extrabold">{{ $event->EventName }}</span>
                             </span>
 
                             <span
                                 class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700">
-                                <span class="text-emerald-500">البداية</span>
+                                <span class="text-emerald-500">{{ __('Start') }}</span>
                                 <span
                                     class="font-extrabold">{{ \Carbon\Carbon::parse($event->EventStartDate)->format('Y-m-d') }}</span>
                             </span>
 
                             <span
                                 class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700">
-                                <span class="text-rose-500">النهاية</span>
+                                <span class="text-rose-500">{{ __('End') }}</span>
                                 <span
                                     class="font-extrabold">{{ \Carbon\Carbon::parse($event->EventEndDate)->format('Y-m-d') }}</span>
                             </span>
@@ -73,12 +71,12 @@
                             <div class="mt-5 rounded-2xl border border-slate-200 bg-white/80 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-3">
                                     <div>
-                                        <div class="text-sm font-extrabold text-slate-800">عدد الحجوزات حسب القطاع</div>
-                                        <div class="text-xs text-slate-500 mt-1">عرض سريع لحالة كل قطاع</div>
+                                        <div class="text-sm font-extrabold text-slate-800">{{ __('Bookings count by sector') }}</div>
+                                        <div class="text-xs text-slate-500 mt-1">{{ __('Quick view of each sector status') }}</div>
                                     </div>
 
                                     <div class="text-xs text-slate-400">
-                                        {{ $qetaaCounts->count() }} قطاع
+                                        {{ __(':count sector', ['count' => $qetaaCounts->count()]) }}
                                     </div>
                                 </div>
 
@@ -89,7 +87,7 @@
                                     @endphp
                                     <div
                                         class="inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-sm border-blue-200 bg-blue-50 text-blue-800">
-                                        <span>الإجمالي</span>
+                                        <span>{{ __('Total') }}</span>
                                         <span
                                             class="inline-flex items-center justify-center min-w-[32px] h-7 rounded-full px-2 bg-blue-200 text-blue-900">
                                             {{ $totalBooked }}
@@ -113,9 +111,7 @@
                                             </span>
 
                                             @if ($full)
-                                                <span class="hidden sm:inline text-[11px] text-red-700">
-                                                    مكتمل
-                                                </span>
+                                                <span class="hidden sm:inline text-[11px] text-red-700">{{ __('Full') }}</span>
                                             @endif
                                         </div>
                                     @endforeach
@@ -126,35 +122,31 @@
 
                     <div class="shrink-0 xl:w-[280px] xl:pt-6">
                         <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                            <div class="text-sm font-extrabold text-slate-800 mb-3">
-                                إجراءات سريعة
-                            </div>
+                            <div class="text-sm font-extrabold text-slate-800 mb-3">{{ __('Quick actions') }}</div>
 
                             <div class="grid grid-cols-1 gap-2">
                                 <a href="{{ route('eventBookingFinance.create', $event->SeasonEventID) }}"
                                     class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-blue-300/80">
-                                    إضافة حجز شخص
+                                    {{ __('Add person booking') }}
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.createGuestFamily', $event->SeasonEventID) }}"
                                     class="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-emerald-300/80">
-                                    إضافة حجز ضيف / أهالي
+                                    {{ __('Add guest / family booking') }}
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.exportToday', $event->SeasonEventID) }}?summary_date={{ $selectedSummaryDate }}"
                                     class="h-11 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-cyan-200/90">
-                                    تحميل CSV اليوم
+                                    {{ __('Download today's CSV') }}
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.exportAll', $event->SeasonEventID) }}"
                                     class="h-11 rounded-xl bg-slate-600 hover:bg-slate-500 text-white text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 shadow-md border-2 border-slate-300">
-                                    تحميل CSV كامل
+                                    {{ __('Download full CSV') }}
                                 </a>
 
                                 <a href="{{ route('eventBookingFinance.selector') }}"
-                                    class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 border-2 border-slate-400 shadow-sm">
-                                    رجوع
-                                </a>
+                                    class="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-sm font-extrabold inline-flex items-center justify-center transition-colors duration-200 border-2 border-slate-400 shadow-sm">{{ __('Back') }}</a>
                             </div>
                         </div>
                     </div>
@@ -171,8 +163,8 @@
                         📊
                     </div>
                     <div>
-                        <h3 class="text-sm font-extrabold text-slate-800">الملخص السريع</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">إحصائيات اليوم المحدد + الإجمالي</p>
+                        <h3 class="text-sm font-extrabold text-slate-800">{{ __('Quick summary') }}</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">{{ __('Selected day stats + totals') }}</p>
                     </div>
                 </div>
 
@@ -187,9 +179,7 @@
                     class="bg-white rounded-2xl border border-slate-200 p-3">
                     <div class="flex flex-col md:flex-row md:items-end gap-3">
                         <div class="flex-1">
-                            <label for="summary_date" class="block text-xs font-bold text-slate-700 mb-2">
-                                اختر يوم الدفع
-                            </label>
+                            <label for="summary_date" class="block text-xs font-bold text-slate-700 mb-2">{{ __('Choose payment day') }}</label>
 
                             <select name="summary_date" id="summary_date"
                                 class="w-full h-11 px-4 border rounded-xl text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
@@ -208,13 +198,11 @@
 
                         <div class="flex gap-2">
                             <button type="submit"
-                                class="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors duration-200">
-                                تطبيق
-                            </button>
+                                class="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold transition-colors duration-200">{{ __('Apply') }}</button>
 
                             <a href="{{ route('eventBookingFinance.index', $event->SeasonEventID) }}"
                                 class="h-11 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-bold transition-colors duration-200 inline-flex items-center">
-                                إعادة ضبط
+                                {{ __('Reset') }}
                             </a>
                         </div>
                     </div>
@@ -225,13 +213,13 @@
                         <div class="text-center mb-4">
                             <div
                                 class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 font-extrabold text-sm">
-                                إجمالي يوم {{ \Carbon\Carbon::parse($selectedSummaryDate)->format('Y-m-d') }}
+                                {{ __('Day total') }} {{ \Carbon\Carbon::parse($selectedSummaryDate)->format('Y-m-d') }}
                             </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                                <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
+                                <div class="text-[11px] text-slate-500 mb-1">{{ __('Bookings count') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-slate-800 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['people_count']) }}
@@ -239,7 +227,7 @@
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
-                                <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
+                                <div class="text-[11px] text-emerald-700 mb-1">{{ __('Collected') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-emerald-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['payments_amount'], 2) }}
@@ -247,7 +235,7 @@
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
-                                <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
+                                <div class="text-[11px] text-red-700 mb-1">{{ __('Refunded') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-red-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($selectedDaySummary['refund_amount'], 2) }}
@@ -259,14 +247,12 @@
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
                         <div class="text-center mb-4">
                             <div
-                                class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 font-extrabold text-sm">
-                                إجمالي الحجز
-                            </div>
+                                class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 font-extrabold text-sm">{{ __('Booking total') }}</div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-2">
                             <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center">
-                                <div class="text-[11px] text-slate-500 mb-1">عدد الحجوزات</div>
+                                <div class="text-[11px] text-slate-500 mb-1">{{ __('Bookings count') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-slate-800 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['people_count']) }}
@@ -274,7 +260,7 @@
                             </div>
 
                             <div class="rounded-xl border border-emerald-100 bg-emerald-50/70 px-2 py-3 text-center">
-                                <div class="text-[11px] text-emerald-700 mb-1">المحصّل</div>
+                                <div class="text-[11px] text-emerald-700 mb-1">{{ __('Collected') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-emerald-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['payments_amount'], 2) }}
@@ -282,7 +268,7 @@
                             </div>
 
                             <div class="rounded-xl border border-red-100 bg-red-50/70 px-2 py-3 text-center">
-                                <div class="text-[11px] text-red-700 mb-1">المرتجع</div>
+                                <div class="text-[11px] text-red-700 mb-1">{{ __('Refunded') }}</div>
                                 <div
                                     class="text-lg font-extrabold text-red-700 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['refund_amount'], 2) }}
@@ -295,93 +281,93 @@
         </details>
 
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
-            <x-data-table title="قائمة الحجوزات" :data="$bookings->items()" :columns="[
+            <x-data-table title="{{ __('Bookings list') }}" :data="$bookings->items()" :columns="[
                 [
                     'key' => 'BookingCode',
-                    'label' => 'الكود',
+                    'label' => __('Code'),
                     'type' => 'text',
                     'cssClass' => 'text-sm font-bold text-slate-900',
                 ],
                 // [
                 //     'key' => 'BookingEntityType',
-                //     'label' => 'النوع',
+                //     'label' => __('Gender'),
                 //     'type' => 'text',
                 //     'cssClass' => 'text-sm text-slate-700',
                 // ],
                 [
                     'key' => 'PersonFullName',
-                    'label' => 'الاسم',
+                    'label' => __('Name'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-slate-900 font-semibold',
                 ],
                 [
                     'key' => 'PersonPersonalMobileNumber',
-                    'label' => 'الموبايل',
+                    'label' => __('Mobile'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-slate-700',
                 ],
                 [
                     'key' => 'QetaaNames',
-                    'label' => 'القطاع',
+                    'label' => __('Sector'),
                     'type' => 'text',
                     'filter' => true,
                     'cssClass' => 'text-sm text-slate-700',
                 ],
                 [
                     'key' => 'ShirtSize',
-                    'label' => 'المقاس',
+                    'label' => __('Size'),
                     'type' => 'text',
                     'filter' => true,
                     'cssClass' => 'text-sm text-slate-700',
                 ],
                 [
                     'key' => 'BookingStatusText',
-                    'label' => 'الحالة',
+                    'label' => __('Status'),
                     'type' => 'text',
                     'filter' => true,
                     'cssClass' => 'text-sm text-amber-700 font-semibold',
                 ],
                 [
                     'key' => 'FinalRequiredAmountFormatted',
-                    'label' => 'المطلوب',
+                    'label' => __('Required amount'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-slate-700 font-semibold',
                 ],
                 [
                     'key' => 'AmountPaidFormatted',
-                    'label' => 'المدفوع',
+                    'label' => __('Paid'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-green-700 font-semibold',
                 ],
                 [
                     'key' => 'RemainingAmountFormatted',
-                    'label' => 'المتبقي',
+                    'label' => __('Remaining'),
                     'type' => 'text',
                     'filter' => true,
                     'cssClass' => 'text-sm text-red-700 font-semibold',
                 ],
                 [
                     'key' => 'PaymentsProgress',
-                    'label' => 'عدد الأقساط',
+                    'label' => __('Installments count'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'FirstPaymentDateFormatted',
-                    'label' => 'أول دفعة',
+                    'label' => __('First payment'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'LastPaymentDateFormatted',
-                    'label' => 'آخر دفعة',
+                    'label' => __('Last payment'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
             ]" :actions="[
                 [
                     'name' => 'add_installment',
-                    'label' => 'إضافة دفعة',
+                    'label' => __('Add payment'),
                     'route' => route('eventBookingFinance.createInstallment', ':id'),
                     'idField' => 'SeasonEventParticipantFinanceID',
                     'cssClass' =>
@@ -389,7 +375,7 @@
                 ],
                 [
                     'name' => 'edit_last_payment',
-                    'label' => 'تعديل آخر دفعة',
+                    'label' => __('Edit last payment'),
                     'route' => route('eventBookingFinance.editLastPayment', ':id'),
                     'idField' => 'LastPaymentID',
                     'cssClass' =>
@@ -397,7 +383,7 @@
                 ],
                 [
                     'name' => 'print_receipt',
-                    'label' => 'طباعة آخر إيصال',
+                    'label' => __('Print last receipt'),
                     'route' => route('eventBookingFinance.printReceipt', ':id'),
                     'idField' => 'LastPaymentID',
                     'cssClass' =>
@@ -405,7 +391,7 @@
                 ],
                 [
                     'name' => 'refund_full',
-                    'label' => 'استرداد كامل',
+                    'label' => __('Full refund'),
                     'route' => route('eventBookingFinance.refundPage', ':id'),
                     'idField' => 'SeasonEventParticipantFinanceID',
                     'cssClass' =>
@@ -413,7 +399,7 @@
                 ],
                 [
                     'name' => 'refund_partial',
-                    'label' => 'استرداد مع خصم جزء',
+                    'label' => __('Partial refund with deduction'),
                     'route' => route('eventBookingFinance.partialRefundPage', ':id'),
                     'idField' => 'SeasonEventParticipantFinanceID',
                     'cssClass' =>
@@ -421,7 +407,7 @@
                 ],
                 [
                     'name' => 'show',
-                    'label' => 'عرض',
+                    'label' => __('View'),
                     'route' => route('eventBookingFinance.show', ':id'),
                     'idField' => 'SeasonEventParticipantFinanceID',
                     'cssClass' =>

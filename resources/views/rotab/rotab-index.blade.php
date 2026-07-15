@@ -23,14 +23,14 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('rotab.edit', ':id'),
                 'idField' => 'RotbaID',
                 'cssClass' => 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ml-2'
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('rotab.delete', ':id'),
                 'idField' => 'RotbaID',
                 'cssClass' => 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200'

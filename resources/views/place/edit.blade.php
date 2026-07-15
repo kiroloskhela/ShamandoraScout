@@ -16,11 +16,11 @@
 
                     <!-- Location -->
                     <div class="relative">
-                        <label for="location_id" class="block mb-2 text-sm text-gray-700">اختر الموقع</label>
+                        <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose location') }}</label>
                         <select id="location_id" name="location_id" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
                                    focus:border-emerald-500 focus:outline-none">
-                            <option value="" disabled>اختر الموقع</option>
+                            <option value="" disabled>{{ __('Choose location') }}</option>
 
                             @foreach ($locations as $location)
                                 <option value="{{ $location->LocationID }}"

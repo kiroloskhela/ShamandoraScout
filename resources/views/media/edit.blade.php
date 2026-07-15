@@ -12,10 +12,10 @@
         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
             <h3 class="text-sm font-semibold text-gray-700 mb-2">معلومات الفعالية:</h3>
             <p class="text-sm text-gray-600">
-                <strong>الموسم:</strong> {{ $seasonEvent->SeasonName }} ({{ $seasonEvent->SeasonYear }})
+                <strong>{{ __('Season:') }}</strong> {{ $seasonEvent->SeasonName }} ({{ $seasonEvent->SeasonYear }})
             </p>
             <p class="text-sm text-gray-600">
-                <strong>الفعالية:</strong> {{ $seasonEvent->EventName }}
+                <strong>{{ __('Event:') }}</strong> {{ $seasonEvent->EventName }}
             </p>
         </div>
 
@@ -47,9 +47,7 @@
                 <!-- Buttons -->
                 <div class="flex justify-between gap-4">
                     <a href="{{ route('media.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition">
-                        إلغاء
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition">{{ __('Cancel') }}</a>
                     <button type="submit"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-emerald-50 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-600 transition">
                         حفظ التغييرات

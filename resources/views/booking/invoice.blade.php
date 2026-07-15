@@ -120,7 +120,7 @@
 
                             <!-- Left column -->
                             <div class="text-left">
-                                <div class="text-gray-500 text-sm mb-1">الاسم</div>
+                                <div class="text-gray-500 text-sm mb-1">{{ __('Name') }}</div>
                                 <div class="font-bold text-gray-800">{{ $data->FullName }}</div>
                             </div>
 
@@ -130,12 +130,12 @@
                             </div>
 
                             <div class="text-left">
-                                <div class="text-gray-500 text-sm mb-1">المرحلة</div>
+                                <div class="text-gray-500 text-sm mb-1">{{ __('Stage') }}</div>
                                 <div class="font-bold text-gray-800">{{ $data->SanaMarhalaName ?? '-' }}</div>
                             </div>
 
                             <div class="col-span-2 text-right">
-                                <div class="text-gray-500 text-sm mb-1">الفعالية</div>
+                                <div class="text-gray-500 text-sm mb-1">{{ __('Event') }}</div>
                                 <div class="font-bold text-gray-800">
                                     {{ $data->SeasonName }} {{ $data->SeasonYear }} — {{ $data->EventName }}
                                 </div>

@@ -1,60 +1,60 @@
-@extends('layouts.app', ['pageTitle' => 'الملتحقين الجدد'])
+@extends('layouts.app', ['pageTitle' => __('New enrolments')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons->items()" title="إدارة المستخدمين " tableId="NewEnrolmentTable" :columns="[
+        <x-data-table :data="$persons->items()" title="{{ __('Manage users') }}" tableId="NewEnrolmentTable" :columns="[
             [
                 'key' => 'PersonID',
-                'label' => 'الطلب',
+                'label' => __('Request'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'CreatedAt',
-                'label' => 'تاريخ التقديم',
+                'label' => __('Submitted at'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700 font-medium whitespace-nowrap',
             ],
             [
                 'key' => 'FullName',
-                'label' => 'الاسم',
+                'label' => __('Name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'المرحلة',
+                'label' => __('Stage'),
                 'type' => 'label',
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'القطاع',
+                'label' => __('Sector'),
                 'type' => 'label',
                 'filter' => true,
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'RaqamQawmy',
-                'label' => 'الرقم القومي',
+                'label' => __('National ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'PersonPersonalMobileNumber',
-                'label' => 'رقم الموبايل',
+                'label' => __('Mobile number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'HasAnsweredQuestions',
-                'label' => 'هل أكمل الأسئلة؟',
+                'label' => __('Completed questions?'),
                 'type' => 'text',
                 'cssClass' => 'text-sm font-semibold',
             ],
             [
                 'key' => 'IsApproved',
-                'label' => 'الحالة',
+                'label' => __('Status'),
                 'type' => 'text',
                 'cssClass' => 'text-sm font-semibold',
             ],
@@ -62,8 +62,8 @@
             :actions="[
                 [
                     'name' => 'approve',
-                    'label' => 'موافقة',
-                    'disabledLabel' => 'تمت الموافقة',
+                    'label' => __('Approve'),
+                    'disabledLabel' => __('Approved'),
                     'disableWhen' => [
                         'field' => 'IsApproved',
                         'value' => 1,
@@ -77,7 +77,7 @@
                 ],
                 [
                     'name' => 'reject',
-                    'label' => 'رفض',
+                    'label' => __('Reject'),
                     'route' => route('person.new-enrolments-delete', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -85,7 +85,7 @@
                 ],
                 [
                     'name' => 'show',
-                    'label' => 'عرض',
+                    'label' => __('View'),
                     'route' => route('person.new-enrolments-show', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -93,7 +93,7 @@
                 ],
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('person.new-enrolments-edit', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -101,7 +101,7 @@
                 ],
                 [
                     'name' => 'fill',
-                    'label' => 'إكمال الأسئلة',
+                    'label' => __('Complete questions'),
                     'route' => route('person.liveform-resume-questions', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>

@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'عرض بيانات الملتحق'])
+@extends('layouts.app', ['pageTitle' => __('View applicant data')])
 
 @section('content')
     <!DOCTYPE html>
@@ -9,7 +9,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <title>كشافة الشمندورة - عرض بيانات الملتحق</title>
+        <title>{{ __('Shamandora Scout - View applicant data') }}</title>
 
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -64,8 +64,8 @@
                     <div class="flex flex-col items-center justify-center gap-4 text-center">
                         <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
                         <div>
-                            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">بيانات الملتحق</h1>
-                            <p class="text-slate-500 mt-2">عرض جميع البيانات المسجلة بنفس أسلوب صفحات الملتحقين الجدد</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">{{ __('Applicant data') }}</h1>
+                            <p class="text-slate-500 mt-2">{{ __('View all registered data in the same style as new enrolments pages') }}</p>
                         </div>
                     </div>
                 </div>
@@ -103,16 +103,16 @@
                         <div class="mb-2">
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div class="font-bold text-slate-800">الصور</div>
-                                    <div class="text-xs text-slate-500">سيتم عرض الصور المتاحة فقط</div>
+                                    <div class="font-bold text-slate-800">{{ __('Photos') }}</div>
+                                    <div class="text-xs text-slate-500">{{ __('Only available photos will be shown') }}</div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                     @if ($personalUrl)
                                         <div class="md:col-span-6">
                                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                                <div class="font-semibold text-slate-800 mb-3">الصورة الشخصية</div>
-                                                <img src="{{ $personalUrl }}" alt="الصورة الشخصية"
+                                                <div class="font-semibold text-slate-800 mb-3">{{ __('Personal photo') }}</div>
+                                                <img src="{{ $personalUrl }}" alt="{{ __('Personal photo') }}"
                                                     class="w-full h-80 object-cover rounded-xl border border-slate-200">
                                             </div>
                                         </div>
@@ -121,8 +121,8 @@
                                     @if ($scoutUrl)
                                         <div class="md:col-span-6">
                                             <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                                <div class="font-semibold text-slate-800 mb-3">الصورة الكشفية</div>
-                                                <img src="{{ $scoutUrl }}" alt="الصورة الكشفية"
+                                                <div class="font-semibold text-slate-800 mb-3">{{ __('Scout uniform photo') }}</div>
+                                                <img src="{{ $scoutUrl }}" alt="{{ __('Scout uniform photo') }}"
                                                     class="w-full h-80 object-cover rounded-xl border border-slate-200">
                                             </div>
                                         </div>
@@ -135,8 +135,8 @@
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الأول: البيانات الشخصية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">عرض البيانات الأساسية للملتحق.</p>
+                                <h2 class="text-xl font-bold text-slate-900">{{ __('Part 1: Personal information') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __("Show the applicant's basic information.") }}</p>
                             </div>
                             <span
                                 class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">1
@@ -145,88 +145,88 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الرقم التعريفي</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('ID number') }}</label>
                                 <input type="text" readonly value="{{ $person->PersonID }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">كود الشمندورة</label>
-                                <input type="text" readonly value="{{ $person->ShamandoraCode ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Shamandora code') }}</label>
+                                <input type="text" readonly value="{{ $person->ShamandoraCode ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">نوع الملتحق</label>
-                                <input type="text" readonly value="{{ $person->Gender == 'Male' ? 'ذكر' : 'أنثى' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Applicant gender') }}</label>
+                                <input type="text" readonly value="{{ $person->Gender == 'Male' ? __('Male') : __('Female') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">فصيلة الدم</label>
-                                <input type="text" readonly value="{{ $person->BloodTypeName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Blood type') }}</label>
+                                <input type="text" readonly value="{{ $person->BloodTypeName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الأول</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('First name') }}</label>
                                 <input type="text" readonly value="{{ $person->FirstName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثاني</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Second name') }}</label>
                                 <input type="text" readonly value="{{ $person->SecondName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثالث</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Third name') }}</label>
                                 <input type="text" readonly value="{{ $person->ThirdName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الرابع</label>
-                                <input type="text" readonly value="{{ $person->FourthName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Fourth name') }}</label>
+                                <input type="text" readonly value="{{ $person->FourthName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">البريد الإلكتروني</label>
-                                <input type="text" readonly value="{{ $person->PersonalEmail ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Email') }}</label>
+                                <input type="text" readonly value="{{ $person->PersonalEmail ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
                                     dir="ltr">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">تاريخ الميلاد</label>
-                                <input type="text" readonly value="{{ $person->DateOfBirth ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Date of birth') }}</label>
+                                <input type="text" readonly value="{{ $person->DateOfBirth ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة الالتحاق</label>
-                                <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Joining year') }}</label>
+                                <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الرقم القومي</label>
-                                <input type="text" readonly value="{{ $person->RaqamQawmy ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('National ID') }}</label>
+                                <input type="text" readonly value="{{ $person->RaqamQawmy ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">لينك فيسبوك</label>
-                                <input type="text" readonly value="{{ $person->FacebookProfileURL ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Facebook link') }}</label>
+                                <input type="text" readonly value="{{ $person->FacebookProfileURL ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
                                     dir="ltr">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">لينك انستجرام</label>
-                                <input type="text" readonly value="{{ $person->InstagramProfileURL ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Instagram link') }}</label>
+                                <input type="text" readonly value="{{ $person->InstagramProfileURL ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
                                     dir="ltr">
                             </div>
@@ -236,8 +236,8 @@
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الثاني: بيانات التواصل والعنوان</h2>
-                                <p class="text-slate-500 mt-1 text-sm">عرض أرقام التواصل والعنوان.</p>
+                                <h2 class="text-xl font-bold text-slate-900">{{ __('Part 2: Contact and address') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Show contact numbers and address.') }}</p>
                             </div>
                             <span
                                 class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">2
@@ -246,83 +246,82 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الموبايل الشخصي</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Personal mobile') }}</label>
                                 <input type="text" readonly
-                                    value="{{ $person->PersonPersonalMobileNumber ?? 'لا يوجد' }}"
+                                    value="{{ $person->PersonPersonalMobileNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأب</label>
-                                <input type="text" readonly value="{{ $person->FatherMobileNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Father mobile') }}</label>
+                                <input type="text" readonly value="{{ $person->FatherMobileNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأم</label>
-                                <input type="text" readonly value="{{ $person->MotherMobileNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Mother mobile') }}</label>
+                                <input type="text" readonly value="{{ $person->MotherMobileNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">التليفون الأرضي</label>
-                                <input type="text" readonly value="{{ $person->HomePhoneNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Landline') }}</label>
+                                <input type="text" readonly value="{{ $person->HomePhoneNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">واتساب على الرقم
-                                    الأساسي</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('WhatsApp on primary number') }}</label>
                                 <input type="text" readonly
-                                    value="{{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '1' ? 'نعم' : 'لا' }}"
+                                    value="{{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '1' ? __('Yes') : __('No') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رقم المبنى</label>
-                                <input type="text" readonly value="{{ $person->BuildingNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Building number') }}</label>
+                                <input type="text" readonly value="{{ $person->BuildingNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الدور</label>
-                                <input type="text" readonly value="{{ $person->FloorNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Floor number') }}</label>
+                                <input type="text" readonly value="{{ $person->FloorNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الشقة</label>
-                                <input type="text" readonly value="{{ $person->AppartmentNumber ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Apartment number') }}</label>
+                                <input type="text" readonly value="{{ $person->AppartmentNumber ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الشارع الرئيسي</label>
-                                <input type="text" readonly value="{{ $person->MainStreetName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Main street') }}</label>
+                                <input type="text" readonly value="{{ $person->MainStreetName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الشارع الفرعي</label>
-                                <input type="text" readonly value="{{ $person->SubStreetName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Side street') }}</label>
+                                <input type="text" readonly value="{{ $person->SubStreetName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-12">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب علامة مميزة</label>
-                                <input type="text" readonly value="{{ $person->NearestLandmark ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Nearest landmark') }}</label>
+                                <input type="text" readonly value="{{ $person->NearestLandmark ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">المنطقة</label>
-                                <input type="text" readonly value="{{ $person->ManteqaName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Area') }}</label>
+                                <input type="text" readonly value="{{ $person->ManteqaName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الحي</label>
-                                <input type="text" readonly value="{{ $person->DistrictName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('District') }}</label>
+                                <input type="text" readonly value="{{ $person->DistrictName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
                         </div>
@@ -331,8 +330,8 @@
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الثالث: البيانات الدراسية والكنسية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">عرض البيانات التعليمية والكنسية.</p>
+                                <h2 class="text-xl font-bold text-slate-900">{{ __('Part 3: Educational and church data') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Show educational and church data.') }}</p>
                             </div>
                             <span
                                 class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">3
@@ -341,68 +340,64 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-12">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">السنة والمرحلة
-                                    الدراسية</label>
-                                <input type="text" readonly value="{{ $person->SanaMarhalaName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Academic year and stage') }}</label>
+                                <input type="text" readonly value="{{ $person->SanaMarhalaName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الوظيفة</label>
-                                <input type="text" readonly value="{{ $person->JobName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Job name') }}</label>
+                                <input type="text" readonly value="{{ $person->JobName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">مكان العمل</label>
-                                <input type="text" readonly value="{{ $person->WorkPlace ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Workplace') }}</label>
+                                <input type="text" readonly value="{{ $person->WorkPlace ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">اسم المدرسة</label>
-                                <input type="text" readonly value="{{ $person->SchoolName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('School name') }}</label>
+                                <input type="text" readonly value="{{ $person->SchoolName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
-                                    المدرسة</label>
-                                <input type="text" readonly value="{{ $person->SchoolGraduationYear ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('School graduation year') }}</label>
+                                <input type="text" readonly value="{{ $person->SchoolGraduationYear ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الكلية</label>
-                                <input type="text" readonly value="{{ $person->FacultyName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Faculty') }}</label>
+                                <input type="text" readonly value="{{ $person->FacultyName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الجامعة</label>
-                                <input type="text" readonly value="{{ $person->UniversityName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('University') }}</label>
+                                <input type="text" readonly value="{{ $person->UniversityName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
-                                    الجامعة</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('University graduation year') }}</label>
                                 <input type="text" readonly
-                                    value="{{ $person->ActualFacultyGraduationYear ?? 'لا يوجد' }}"
+                                    value="{{ $person->ActualFacultyGraduationYear ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الأب الروحي</label>
-                                <input type="text" readonly value="{{ $person->SpiritualFatherName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Spiritual father name') }}</label>
+                                <input type="text" readonly value="{{ $person->SpiritualFatherName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-12">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">كنيسة الأب الروحي / أب
-                                    الاعتراف</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __("Spiritual father's church / confession father's church") }}</label>
                                 <input type="text" readonly
-                                    value="{{ $person->SpiritualFatherChurchName ?? 'لا يوجد' }}"
+                                    value="{{ $person->SpiritualFatherChurchName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
                         </div>
@@ -411,8 +406,8 @@
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الرابع: البيانات الكشفية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">بيانات القطاع والرتبة والإجازة.</p>
+                                <h2 class="text-xl font-bold text-slate-900">{{ __('Part 4: Scout information') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Sector, rank and certificate details.') }}</p>
                             </div>
                             <span
                                 class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">4
@@ -421,21 +416,21 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الرتبة الكشفية</label>
-                                <input type="text" readonly value="{{ $person->RotbaName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Scout rank') }}</label>
+                                <input type="text" readonly value="{{ $person->RotbaName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">إجازة بطاقة التقدم</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Progress badge certificate') }}</label>
                                 <input type="text" readonly
-                                    value="{{ $person->EgazetBetakatTaqaddomName ?? 'لا يوجد' }}"
+                                    value="{{ $person->EgazetBetakatTaqaddomName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع الكشفي</label>
-                                <input type="text" readonly value="{{ $person->QetaaName ?? 'لا يوجد' }}"
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Scout sector') }}</label>
+                                <input type="text" readonly value="{{ $person->QetaaName ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
                         </div>
@@ -444,8 +439,8 @@
                     <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                         <div class="flex items-start justify-between gap-4 mb-5">
                             <div>
-                                <h2 class="text-xl font-bold text-slate-900">الجزء الأخير: الأسئلة المختصة بالقطاع</h2>
-                                <p class="text-slate-500 mt-1 text-sm">عرض الأسئلة وإجاباتها المسجلة بوضوح.</p>
+                                <h2 class="text-xl font-bold text-slate-900">{{ __('Final part: Sector questions') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Show questions and their recorded answers clearly.') }}</p>
                             </div>
                             <span
                                 class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">5
@@ -453,7 +448,7 @@
                         </div>
 
                         <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 mb-4 text-slate-800">
-                            <div class="font-bold">القطاع: {{ $person->QetaaName ?? 'لا يوجد' }}</div>
+                            <div class="font-bold">{{ __('Sector:') }} {{ $person->QetaaName ?? __('None') }}</div>
                         </div>
 
                         @if (!$questions->isEmpty())
@@ -461,9 +456,9 @@
                                 @foreach ($questions as $question)
                                     <div class="rounded-2xl border border-slate-200 bg-white p-4">
                                         <div class="font-semibold text-slate-900 mb-2">
-                                            السؤال: {{ $question->QuestionText }}
+                                            {{ __('Question:') }} {{ $question->QuestionText }}
                                         </div>
-                                        <div class="text-sm text-slate-600 mb-2">إجابة الملتحق</div>
+                                        <div class="text-sm text-slate-600 mb-2">{{ __('Applicant answer') }}</div>
                                         <textarea readonly rows="3"
                                             class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">{{ $question->Answer }}</textarea>
                                     </div>
@@ -471,7 +466,7 @@
                             </div>
                         @else
                             <div class="rounded-2xl bg-amber-50 border border-amber-200 p-5 text-amber-900">
-                                لا يوجد أسئلة لهذا الشخص في هذا القطاع
+                                {{ __('No questions for this person in this sector') }}
                             </div>
                         @endif
                     </section>

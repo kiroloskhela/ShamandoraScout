@@ -24,7 +24,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('role.edit', ':id'),
                 'idField' => 'RoleID',
                 'cssClass' =>
@@ -32,7 +32,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('role.delete', ':id'),
                 'idField' => 'RoleID',
                 'cssClass' =>

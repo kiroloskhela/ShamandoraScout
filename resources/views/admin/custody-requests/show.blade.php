@@ -33,7 +33,7 @@
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div class="text-sm text-gray-700 flex items-center gap-2">
-                    <span class="font-bold">الحالة:</span>
+                    <span class="font-bold">{{ __('Status:') }}</span>
                     @if ($requestRow->Status === 'pending')
                         <span
                             class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
@@ -43,7 +43,7 @@
                             الموافقة</span>
                     @else
                         <span
-                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">مرفوض</span>
+                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
                     @endif
                 </div>
 
@@ -85,8 +85,8 @@
                             <thead class="bg-slate-50">
                                 <tr class="text-sm text-slate-700">
                                     <th class="p-3 border-b">م</th>
-                                    <th class="p-3 border-b">الصنف</th>
-                                    <th class="p-3 border-b">الوحدة</th>
+                                    <th class="p-3 border-b">{{ __('Item') }}</th>
+                                    <th class="p-3 border-b">{{ __('Unit') }}</th>
                                     <th class="p-3 border-b">المطلوب</th>
                                     <th class="p-3 border-b">المعتمد</th>
                                     <th class="p-3 border-b">ملاحظة على الصنف</th>
@@ -113,7 +113,7 @@
                                             <input type="text" name="item_note[{{ $it->RequestItemID }}]"
                                                 value="{{ old('item_note.' . $it->RequestItemID) }}"
                                                 class="w-full h-10 border rounded-lg px-3 text-right border-slate-200 focus:border-blue-500 focus:outline-none"
-                                                placeholder="اختياري">
+                                                placeholder="{{ __('Optional') }}">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -144,11 +144,11 @@
                         <thead class="bg-slate-50">
                             <tr class="text-sm text-slate-700">
                                 <th class="p-3 border-b">م</th>
-                                <th class="p-3 border-b">الصنف</th>
-                                <th class="p-3 border-b">الوحدة</th>
+                                <th class="p-3 border-b">{{ __('Item') }}</th>
+                                <th class="p-3 border-b">{{ __('Unit') }}</th>
                                 <th class="p-3 border-b">المطلوب</th>
                                 <th class="p-3 border-b">المعتمد</th>
-                                <th class="p-3 border-b">ملاحظة</th>
+                                <th class="p-3 border-b">{{ __('Note') }}</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm text-slate-800">
@@ -205,9 +205,7 @@
                     <div class="mt-4 flex justify-center">
                         <button type="submit"
                             class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
-                                   bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">
-                            رفض
-                        </button>
+                                   bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">{{ __('Reject') }}</button>
                     </div>
                 </form>
             </div>

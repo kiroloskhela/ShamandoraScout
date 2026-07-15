@@ -1,11 +1,11 @@
-@extends('layouts.app', ['pageTitle' => 'طلبات حجز الأماكن'])
+@extends('layouts.app', ['pageTitle' => __('Place booking requests')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
 
         {{-- Header --}}
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">طلبات حجز الأماكن</h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ __('Place booking requests') }}</h1>
             <p class="text-gray-600">مراجعة واعتماد/رفض طلبات المستخدمين</p>
         </div>
 
@@ -31,19 +31,19 @@
 
         <div class="grid md:grid-cols-4 gap-4 mb-6 text-center">
             <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-blue-200">
-                <div class="text-sm text-gray-500 mb-1">الإجمالي</div>
+                <div class="text-sm text-gray-500 mb-1">{{ __('Total') }}</div>
                 <div class="text-2xl font-bold text-blue-800">{{ $allCount }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-yellow-200">
-                <div class="text-sm text-gray-500 mb-1">قيد المراجعة</div>
+                <div class="text-sm text-gray-500 mb-1">{{ __('Pending review') }}</div>
                 <div class="text-2xl font-bold text-yellow-700">{{ $pendingCount }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-green-200">
-                <div class="text-sm text-gray-500 mb-1">تمت الموافقة</div>
+                <div class="text-sm text-gray-500 mb-1">{{ __('Approved') }}</div>
                 <div class="text-2xl font-bold text-green-700">{{ $approvedCount }}</div>
             </div>
             <div class="bg-white rounded-lg shadow-lg p-4 border-2 border-red-200">
-                <div class="text-sm text-gray-500 mb-1">مرفوض</div>
+                <div class="text-sm text-gray-500 mb-1">{{ __('Rejected') }}</div>
                 <div class="text-2xl font-bold text-red-700">{{ $rejectedCount }}</div>
             </div>
         </div>
@@ -59,7 +59,7 @@
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
             <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="font-bold text-gray-800">فلتر</div>
+                <div class="font-bold text-gray-800">{{ __('Filter') }}</div>
 
                 <div class="flex items-center gap-2 flex-wrap">
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'all']) }}"
@@ -69,19 +69,13 @@
                     </a>
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'pending']) }}"
                         class="px-4 py-2 text-xs rounded-full border transition
-                               {{ $filter === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">
-                        قيد المراجعة
-                    </a>
+                               {{ $filter === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">{{ __('Pending review') }}</a>
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'approved']) }}"
                         class="px-4 py-2 text-xs rounded-full border transition
-                               {{ $filter === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">
-                        تمت الموافقة
-                    </a>
+                               {{ $filter === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">{{ __('Approved') }}</a>
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'rejected']) }}"
                         class="px-4 py-2 text-xs rounded-full border transition
-                               {{ $filter === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">
-                        مرفوض
-                    </a>
+                               {{ $filter === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-gray-700 border-slate-200 hover:bg-slate-50' }}">{{ __('Rejected') }}</a>
                 </div>
             </div>
 
@@ -96,16 +90,16 @@
                 <table class="w-full text-center border border-slate-200 rounded-lg overflow-hidden">
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
-                            <th class="p-3 border-b">رقم الطلب</th>
+                            <th class="p-3 border-b">{{ __('Request number') }}</th>
                             <th class="p-3 border-b">المستخدم</th>
-                            <th class="p-3 border-b">الموقع</th>
-                            <th class="p-3 border-b">المكان</th>
-                            <th class="p-3 border-b">التاريخ</th>
-                            <th class="p-3 border-b">من</th>
-                            <th class="p-3 border-b">إلى</th>
-                            <th class="p-3 border-b">الحالة</th>
+                            <th class="p-3 border-b">{{ __('Location') }}</th>
+                            <th class="p-3 border-b">{{ __('Place') }}</th>
+                            <th class="p-3 border-b">{{ __('Date') }}</th>
+                            <th class="p-3 border-b">{{ __('From') }}</th>
+                            <th class="p-3 border-b">{{ __('To') }}</th>
+                            <th class="p-3 border-b">{{ __('Status') }}</th>
                             <th class="p-3 border-b">تاريخ الإرسال</th>
-                            <th class="p-3 border-b">التفاصيل</th>
+                            <th class="p-3 border-b">{{ __('Details') }}</th>
                         </tr>
                     </thead>
 
@@ -126,19 +120,13 @@
                                 <td class="p-3">
                                     @if ($r->Status === 'pending')
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">
-                                            قيد المراجعة
-                                        </span>
+                                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">{{ __('Pending review') }}</span>
                                     @elseif ($r->Status === 'approved')
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">
-                                            تمت الموافقة
-                                        </span>
+                                            class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">{{ __('Approved') }}</span>
                                     @else
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">
-                                            مرفوض
-                                        </span>
+                                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
                                     @endif
                                 </td>
 

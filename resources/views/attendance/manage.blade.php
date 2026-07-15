@@ -1,11 +1,11 @@
-@extends('layouts.app', ['pageTitle' => 'تسجيل الحضور'])
+@extends('layouts.app', ['pageTitle' => __('Record attendance')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
 
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">تسجيل الحضور</h1>
-            <p class="text-gray-600">اختر الموسم والفعالية المصرح لك بها ثم سجّل حضور الأفراد</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ __('Record attendance') }}</h1>
+            <p class="text-gray-600">{{ __('Choose the season and authorized event, then record individual attendance') }}</p>
         </div>
 
         @if (session('success'))
@@ -19,11 +19,11 @@
             class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر الموسم</label>
+                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose season') }}</label>
                     <select id="season_id" name="season_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                         onchange="this.form.submit()">
-                        <option value="">-- اختر الموسم --</option>
+                        <option value="">{{ __('-- Choose season --') }}</option>
                         @foreach ($seasons as $s)
                             <option value="{{ $s->SeasonID }}" {{ ($seasonId ?? null) == $s->SeasonID ? 'selected' : '' }}>
                                 {{ $s->SeasonName }} ({{ $s->SeasonYear }})
@@ -32,12 +32,11 @@
                     </select>
                 </div>
                 <div>
-                    <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر
-                        الفعالية</label>
+                    <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose event') }}</label>
                     <select id="season_event_id" name="season_event_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 {{ !empty($seasonId) ? 'text-slate-600' : 'text-slate-400' }} focus:border-blue-500 focus:outline-none"
                         {{ !empty($seasonId) ? '' : 'disabled' }} onchange="this.form.submit()">
-                        <option value="">-- اختر الفعالية --</option>
+                        <option value="">{{ __('-- Choose event --') }}</option>
                         @foreach ($events as $e)
                             <option value="{{ $e->SeasonEventID }}"
                                 {{ ($seasonEventId ?? null) == $e->SeasonEventID ? 'selected' : '' }}>
@@ -46,7 +45,7 @@
                         @endforeach
                     </select>
                     @if (($seasonId ?? null) && $events->isEmpty())
-                        <p class="mt-2 text-xs text-amber-600">لا توجد فعاليات تخص مجموعاتك في هذا الموسم.</p>
+                        <p class="mt-2 text-xs text-amber-600">{{ __('No events for your groups in this season.') }}</p>
                     @endif
                 </div>
             </div>
@@ -63,7 +62,7 @@
 
                         {{-- Current user --}}
                         <div class="flex items-center gap-2">
-                            <span class="text-sm text-slate-700 font-semibold">أخذ الحضور بواسطة</span>
+                            <span class="text-sm text-slate-700 font-semibold">{{ __('Attendance taken by') }}</span>
                             @php
                                 $fullName = trim(
                                     (optional($me)->FirstName ?? '') .
@@ -76,13 +75,13 @@
                                 );
                             @endphp
                             <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
-                                {{ $fullName ?: 'أنا' }}
+                                {{ $fullName ?: __('Me') }}
                             </span>
                         </div>
 
                         {{-- Search --}}
                         <div class="relative w-full md:w-80">
-                            <input id="tableSearch" type="text" placeholder="بحث: الاسم / الهاتف / القطاع / المرحلة"
+                            <input id="tableSearch" type="text" placeholder="{{ __('Search: name / phone / sector / stage') }}"
                                 class="w-full h-11 pr-4 pl-10 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-sm">
                             <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24"
                                 fill="none">
@@ -93,19 +92,13 @@
 
                         {{-- Mark all buttons --}}
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-sm font-semibold text-slate-700">تعيين الكل:</span>
+                            <span class="text-sm font-semibold text-slate-700">{{ __('Set all:') }}</span>
                             <button type="button" id="markAllPresent"
-                                class="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-xs font-semibold hover:bg-green-200 transition">
-                                ✓ حاضر
-                            </button>
+                                class="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-xs font-semibold hover:bg-green-200 transition">{{ __('✓ Present') }}</button>
                             <button type="button" id="markAllAbsent"
-                                class="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 text-xs font-semibold hover:bg-red-200 transition">
-                                ✗ غائب
-                            </button>
+                                class="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 text-xs font-semibold hover:bg-red-200 transition">{{ __('✗ Absent') }}</button>
                             <button type="button" id="markAllExcused"
-                                class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition">
-                                ~ غائب بعذر
-                            </button>
+                                class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition">{{ __('~ Absent with excuse') }}</button>
                         </div>
 
                     </div>
@@ -115,13 +108,12 @@
                         <table id="attendanceTable" class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
                             <thead class="bg-slate-100">
                                 <tr>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">الاسم</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">الهاتف</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">القطاع</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">المرحلة</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-center w-56">الحضور</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right" id="excuseHeader">
-                                        العذر</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Name') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Phone') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Sector') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Stage') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-center w-56">{{ __('Attendance section') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -162,9 +154,7 @@
                                                         class="status-btn present-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'present'
                                                         ? 'bg-green-600 text-white border-green-600'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-green-400' }}">
-                                                        ✓ حاضر
-                                                    </span>
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-green-400' }}">{{ __('✓ Present') }}</span>
                                                 </label>
 
                                                 {{-- Absent --}}
@@ -177,9 +167,7 @@
                                                         class="status-btn absent-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'absent'
                                                         ? 'bg-red-600 text-white border-red-600'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-red-400' }}">
-                                                        ✗ غائب
-                                                    </span>
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-red-400' }}">{{ __('✗ Absent') }}</span>
                                                 </label>
 
                                                 {{-- Excused --}}
@@ -192,9 +180,7 @@
                                                         class="status-btn excused-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'excused'
                                                         ? 'bg-amber-500 text-white border-amber-500'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-amber-400' }}">
-                                                        ~ عذر
-                                                    </span>
+                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-amber-400' }}">{{ __('~ Excuse') }}</span>
                                                 </label>
 
                                             </div>
@@ -204,7 +190,7 @@
                                         <td class="px-4 py-3 excuse-cell"
                                             style="{{ $status !== 'excused' ? 'display:none' : '' }}">
                                             <input type="text" name="attendance[{{ $pid }}][excuse]"
-                                                value="{{ e($excuse) }}" placeholder="اكتب العذر..." maxlength="1000"
+                                                value="{{ e($excuse) }}" placeholder="{{ __('Write the excuse...') }}" maxlength="1000"
                                                 class="w-full h-9 px-3 rounded-lg border border-slate-200 text-sm focus:border-amber-400 focus:outline-none text-right">
                                         </td>
                                         {{-- Placeholder cell when not excused --}}
@@ -216,8 +202,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600">لا يوجد أفراد
-                                            لعرضهم.</td>
+                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600">{{ __('No people to display.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -232,19 +217,17 @@
 
                     {{-- Summary counts --}}
                     <div class="flex items-center gap-6 mt-4 px-2">
-                        <span class="text-sm text-green-700 font-semibold">حاضر: <span id="countPresent">0</span></span>
-                        <span class="text-sm text-red-700 font-semibold">غائب: <span id="countAbsent">0</span></span>
-                        <span class="text-sm text-amber-700 font-semibold">غائب بعذر: <span
+                        <span class="text-sm text-green-700 font-semibold">{{ __('Present:') }} <span id="countPresent">0</span></span>
+                        <span class="text-sm text-red-700 font-semibold">{{ __('Absent:') }} <span id="countAbsent">0</span></span>
+                        <span class="text-sm text-amber-700 font-semibold">{{ __('Absent with excuse:') }} <span
                                 id="countExcused">0</span></span>
-                        <span class="text-sm text-slate-500">الإجمالي: <span id="countTotal">0</span></span>
+                        <span class="text-sm text-slate-500">{{ __('Total:') }} <span id="countTotal">0</span></span>
                     </div>
 
                     {{-- Save --}}
                     <div class="flex items-center justify-center gap-3 mt-6">
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-600 text-white hover:bg-green-700 transition">
-                            💾 حفظ الحضور
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-600 text-white hover:bg-green-700 transition">{{ __('💾 Save attendance') }}</button>
                     </div>
                 </form>
             </div>
@@ -379,7 +362,7 @@
                             return a;
                         };
 
-                        pagerControls.appendChild(btn('السابق', currentPage === 1, () => {
+                        pagerControls.appendChild(btn(@json(__('Previous')), currentPage === 1, () => {
                             currentPage--;
                             renderPage();
                         }));
@@ -419,7 +402,7 @@
                             renderPage();
                         }));
 
-                        pagerControls.appendChild(btn('التالي', currentPage === totalPages || totalPages === 0, () => {
+                        pagerControls.appendChild(btn(@json(__('Next')), currentPage === totalPages || totalPages === 0, () => {
                             currentPage++;
                             renderPage();
                         }));
@@ -439,7 +422,7 @@
 
                         const from = total ? start + 1 : 0;
                         const to = Math.min(start + pageSize, total);
-                        pagerInfo.textContent = `عرض ${from}–${to} من ${total}`;
+                        pagerInfo.textContent = @json(__('Showing :from–:to of :total')).replace(':from', from).replace(':to', to).replace(':total', total);
                         renderPager(totalPages);
                     }
 

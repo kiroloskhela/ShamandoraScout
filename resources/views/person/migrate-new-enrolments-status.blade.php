@@ -56,7 +56,7 @@
                                     <div class="copyright text-center my-auto">
                                     <span>Copyright &copy; Shamandora Scout 2024</span>
                                         <br />
-                                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة الكشفية</span>
+                                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">{{ __('Shamandora Scout Group') }}</span>
                                     </div>
                                 </div>
                         </div>

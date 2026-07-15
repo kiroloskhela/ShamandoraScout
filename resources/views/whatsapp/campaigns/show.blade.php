@@ -1,17 +1,17 @@
-@extends('layouts.app', ['pageTitle' => 'حملة واتساب'])
+@extends('layouts.app', ['pageTitle' => __('WhatsApp campaign')])
 
 @section('content')
 <div class="container mx-auto px-4 py-8" dir="rtl">
     <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">{{ $campaign->name }}</h1>
-            <p class="text-sm text-gray-500 mt-1">الحالة: <strong>{{ $campaign->status }}</strong>
-                · أُنشئت {{ optional($campaign->created_at)->format('Y-m-d H:i') }}</p>
+            <p class="text-sm text-gray-500 mt-1">{{ __('Status:') }}<strong>{{ $campaign->status }}</strong>
+                · {{ __('Created :datetime', ['datetime' => optional($campaign->created_at)->format('Y-m-d H:i')]) }}</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('whatsapp.campaigns.index') }}" class="px-3 py-2 border rounded-lg text-sm">رجوع</a>
+            <a href="{{ route('whatsapp.campaigns.index') }}" class="px-3 py-2 border rounded-lg text-sm">{{ __('Back') }}</a>
             @if ($campaign->isEditable() && !str_starts_with((string) $campaign->message_template, '[CSV]'))
-                <a href="{{ route('whatsapp.campaigns.edit', $campaign) }}" class="px-3 py-2 border rounded-lg text-sm">تعديل</a>
+                <a href="{{ route('whatsapp.campaigns.edit', $campaign) }}" class="px-3 py-2 border rounded-lg text-sm">{{ __('Edit') }}</a>
             @endif
         </div>
     </div>
@@ -25,12 +25,12 @@
 
     <div class="grid md:grid-cols-4 gap-4 mb-6">
         @foreach ([
-            'total' => 'الإجمالي',
-            'pending' => 'قيد الانتظار',
-            'sent' => 'أُرسلت',
-            'failed' => 'فشلت',
-            'skipped' => 'تخطّيت',
-            'cancelled' => 'أُلغيت',
+            'total' => __('Total'),
+            'pending' => __('Pending'),
+            'sent' => __('Sent'),
+            'failed' => __('Failed'),
+            'skipped' => __('Skipped'),
+            'cancelled' => __('Cancelled'),
         ] as $key => $label)
             <div class="bg-white border rounded-lg p-4 shadow-sm">
                 <div class="text-xs text-gray-500">{{ $label }}</div>
@@ -40,38 +40,38 @@
     </div>
 
     <div class="bg-white border rounded-lg p-4 mb-6 space-y-3">
-        <h2 class="font-bold">القالب</h2>
+        <h2 class="font-bold">{{ __('Template') }}</h2>
         <pre class="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded">{{ $campaign->message_template }}</pre>
-        <p class="text-sm text-gray-600">تأخير {{ $campaign->min_delay_seconds }}–{{ $campaign->max_delay_seconds }} ث · حد {{ $campaign->max_messages_per_hour }}/ساعة</p>
+        <p class="text-sm text-gray-600">{{ __('Delay :min–:max sec · limit :limit/hour', ['min' => $campaign->min_delay_seconds, 'max' => $campaign->max_delay_seconds, 'limit' => $campaign->max_messages_per_hour]) }}</p>
 
         <div class="flex flex-wrap gap-2 pt-2">
             @if ($campaign->canStart())
                 <form method="POST" action="{{ route('whatsapp.campaigns.confirm', $campaign) }}" class="flex flex-wrap items-center gap-3"
-                    onsubmit="return confirm('تأكيد بدء إرسال الحملة؟');">
+                    onsubmit="return confirm(__('Confirm starting campaign send?'));">
                     @csrf
                     @if (($counts['pending'] ?? 0) > $highCountThreshold)
                         <label class="text-sm text-amber-800 flex items-center gap-2">
                             <input type="checkbox" name="acknowledge_high_count" value="1" required>
-                            أؤكد أن عدد المستلمين كبير ({{ $counts['pending'] }})
+                            {{ __('I confirm the recipient count is large (:count)', ['count' => $counts['pending']]) }}
                         </label>
                     @endif
-                    <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">تأكيد والإرسال</button>
+                    <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">{{ __('Confirm and send') }}</button>
                 </form>
             @endif
             @if ($campaign->canPause())
                 <form method="POST" action="{{ route('whatsapp.campaigns.pause', $campaign) }}">@csrf
-                    <button class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm">إيقاف مؤقت</button>
+                    <button class="bg-amber-500 text-white px-4 py-2 rounded-lg text-sm">{{ __('Pause') }}</button>
                 </form>
             @endif
             @if ($campaign->canResume())
                 <form method="POST" action="{{ route('whatsapp.campaigns.resume', $campaign) }}">@csrf
-                    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">استئناف</button>
+                    <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">{{ __('Resume') }}</button>
                 </form>
             @endif
             @if ($campaign->canCancel())
                 <form method="POST" action="{{ route('whatsapp.campaigns.cancel', $campaign) }}"
-                    onsubmit="return confirm('إلغاء الحملة؟');">@csrf
-                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm">إلغاء</button>
+                    onsubmit="return confirm(__('Cancel campaign?'));">@csrf
+                    <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm">{{ __('Cancel') }}</button>
                 </form>
             @endif
         </div>
@@ -82,12 +82,12 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-3 py-2 text-right">PersonID</th>
-                    <th class="px-3 py-2 text-right">الهاتف</th>
-                    <th class="px-3 py-2 text-right">الرسالة</th>
-                    <th class="px-3 py-2 text-right">الحالة</th>
+                    <th class="px-3 py-2 text-right">{{ __('Phone') }}</th>
+                    <th class="px-3 py-2 text-right">{{ __('Message') }}</th>
+                    <th class="px-3 py-2 text-right">{{ __('Status') }}</th>
                     <th class="px-3 py-2 text-right">Message ID</th>
-                    <th class="px-3 py-2 text-right">خطأ</th>
-                    <th class="px-3 py-2 text-right">أُرسلت</th>
+                    <th class="px-3 py-2 text-right">{{ __('Error') }}</th>
+                    <th class="px-3 py-2 text-right">{{ __('Sent') }}</th>
                 </tr>
             </thead>
             <tbody>

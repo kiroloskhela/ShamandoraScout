@@ -26,9 +26,7 @@
 
                     <div class="flex justify-center">
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
-                            التالي
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">{{ __('Next') }}</button>
                     </div>
                 </div>
             </form>

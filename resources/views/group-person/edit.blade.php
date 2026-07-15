@@ -17,14 +17,14 @@
 
                     <!-- المجموعة الكشفية -->
                     <div class="relative">
-                        <label for="group_id" class="block mb-2 text-sm text-gray-700">اختر المجموعة الكشفية</label>
+                        <label for="group_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose scout group') }}</label>
                         <select name="group_id" id="group_id" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                             @if (optional($selectedGroup)->GroupID)
                                 <option value="{{ $selectedGroup->GroupID }}" selected>{{ $selectedGroup->GroupInfo }}
                                 </option>
                             @else
-                                <option value="" selected disabled>اختر المجموعة الكشفية</option>
+                                <option value="" selected disabled>{{ __('Choose scout group') }}</option>
                             @endif
 
                             @foreach ($groups as $group)
@@ -93,14 +93,10 @@
                     <!-- أزرار -->
                     <div class="flex items-center justify-center gap-3">
                         <a href="{{ route('group-person.index') }}"
-                            class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                            إلغاء
-                        </a>
+                            class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">{{ __('Cancel') }}</a>
 
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">
-                            تعديل
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition">{{ __('Edit') }}</button>
                     </div>
 
                 </div>

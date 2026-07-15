@@ -52,7 +52,7 @@
                 </div>
 
                 <div>
-                    <label for="question_text" class="block mb-2 text-sm text-gray-700">نص السؤال</label>
+                    <label for="question_text" class="block mb-2 text-sm text-gray-700">{{ __('Question text') }}</label>
                     <textarea id="question_text" name="question_text" rows="3" required
                         class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none"
                         placeholder="ادخل نص السؤال المطلوب">{{ old('question_text', $entryQuestion->QuestionText) }}</textarea>
@@ -113,9 +113,7 @@
                                         placeholder="اختيار رقم {{ $loop->iteration }}" value="{{ $answer }}"
                                         required>
                                     <button type="button"
-                                        class="remove-btn h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm">
-                                        إزالة
-                                    </button>
+                                        class="remove-btn h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm">{{ __('Remove') }}</button>
                                 </div>
                             @endforeach
                         </div>

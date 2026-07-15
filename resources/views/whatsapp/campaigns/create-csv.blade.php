@@ -7,7 +7,7 @@
             <h1 class="text-2xl font-bold text-gray-800">حملة من ملف CSV</h1>
             <p class="text-sm text-gray-500 mt-1">كل رقم يمكن أن يحصل على رسالة مختلفة. يُضاف كود مصر <span class="font-mono" dir="ltr">+20</span> تلقائياً.</p>
         </div>
-        <a href="{{ route('whatsapp.campaigns.index') }}" class="px-3 py-2 border rounded-lg text-sm">رجوع</a>
+        <a href="{{ route('whatsapp.campaigns.index') }}" class="px-3 py-2 border rounded-lg text-sm">{{ __('Back') }}</a>
     </div>
 
     @if (session('error'))

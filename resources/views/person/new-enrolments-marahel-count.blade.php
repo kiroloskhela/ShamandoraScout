@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>كشافة الشمندورة - لوحة التحكم</title>
+    <title>{{ __('Shamandora Scout - Dashboard') }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -52,7 +52,7 @@
             <li class="nav-item active">
                 <a class="nav-link" href={{ url('/index') }}>
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span style="font-family: 'Cairo', sans-serif; font-weight: lighter;">لوحة التحكم</span></a>
+                    <span style="font-family: 'Cairo', sans-serif; font-weight: lighter;">{{ __('Dashboard') }}</span></a>
             </li>
 
             <!-- Divider -->
@@ -149,16 +149,16 @@
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
                     aria-expanded="true" aria-controls="collapsePages">
                     <i class="fas fa-fw fa-cog"></i>
-                    <span style="font-family: 'Cairo', sans-serif;">الالتحاقات الجديدة</span>
+                    <span style="font-family: 'Cairo', sans-serif;">{{ __('New enrolments') }}</span>
                 </a>
                 <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">صفحات التسجيل والدخول</h6>
-                        <a class="collapse-item" href={{ url('/liveform') }}>فورم التسجيل LIVE!</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments') }}>مراجعة طلبات الالتحاق</a>
-                        <a class="collapse-item" href={{ url('/max-limits') }}>الحد الأقصى للطلبات</a>
-                        <a class="collapse-item" href={{ url('/entry-questions') }}>التحكم في أسئلة القطاعات</a>
-                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>احصائيات طلبات الالتحاق</a>
+                        <h6 class="collapse-header">{{ __('Login & registration pages') }}</h6>
+                        <a class="collapse-item" href={{ url('/liveform') }}>{{ __('LIVE registration form') }}</a>
+                        <a class="collapse-item" href={{ url('/new-enrolments') }}>{{ __('Review enrolment requests') }}</a>
+                        <a class="collapse-item" href={{ url('/max-limits') }}>{{ __('Max request limits') }}</a>
+                        <a class="collapse-item" href={{ url('/entry-questions') }}>{{ __('Sector questions control') }}</a>
+                        <a class="collapse-item" href={{ url('/new-enrolments/analytics') }}>{{ __('Enrolment analytics') }}</a>
                         <a class="collapse-item" href={{ url('/new-enrolments/migrations') }}>  تحويل الطلبات إلى النظام الرئيسي</a>
                     </div>
                 </div>
@@ -194,7 +194,7 @@
                     <form
                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" style="font-family: 'Cairo', sans-serif; direction: rtl;" placeholder="ابحث عن ...."
+                            <input type="text" class="form-control bg-light border-0 small" style="font-family: 'Cairo', sans-serif; direction: rtl;" placeholder="{{ __('Search...') }}"
                                 aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="button">
@@ -422,7 +422,7 @@
                     <div class="copyright text-center my-auto">
                     <span>Copyright &copy; Shamandora Scouts {{date("Y")}}</span>
                         <br />
-                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة الكشفية</span>
+                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">{{ __('Shamandora Scout Group') }}</span>
                     </div>
                 </div>
             </footer>

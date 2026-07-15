@@ -22,7 +22,7 @@
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between flex-wrap gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="font-bold text-gray-700">الحالة:</span>
+                    <span class="font-bold text-gray-700">{{ __('Status:') }}</span>
                     @if ($requestRow->Status === 'pending')
                         <span
                             class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
@@ -32,30 +32,24 @@
                             الموافقة</span>
                     @else
                         <span
-                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">مرفوض</span>
+                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
                     @endif
                 </div>
 
                 <div class="flex items-center gap-2">
                     <a href="{{ route('custody_requests.my') }}"
-                        class="px-4 py-2 text-xs rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200">
-                        رجوع
-                    </a>
+                        class="px-4 py-2 text-xs rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200">{{ __('Back') }}</a>
 
                     @if ($requestRow->Status === 'pending')
                         <a href="{{ route('custody_requests.edit', $requestRow->RequestID) }}"
-                            class="px-4 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                            تعديل
-                        </a>
+                            class="px-4 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">{{ __('Edit') }}</a>
 
                         <form method="POST" action="{{ route('custody_requests.destroy', $requestRow->RequestID) }}"
                             onsubmit="return confirm('هل أنت متأكد من حذف الطلب؟');">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                class="px-4 py-2 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">
-                                حذف
-                            </button>
+                                class="px-4 py-2 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">{{ __('Delete') }}</button>
                         </form>
                     @endif
                 </div>
@@ -103,11 +97,11 @@
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
                             <th class="p-3 border-b">م</th>
-                            <th class="p-3 border-b">الصنف</th>
-                            <th class="p-3 border-b">الوحدة</th>
+                            <th class="p-3 border-b">{{ __('Item') }}</th>
+                            <th class="p-3 border-b">{{ __('Unit') }}</th>
                             <th class="p-3 border-b">المطلوب</th>
                             <th class="p-3 border-b">المعتمد</th>
-                            <th class="p-3 border-b">ملاحظة</th>
+                            <th class="p-3 border-b">{{ __('Note') }}</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm text-slate-800">

@@ -30,7 +30,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('place.edit', ':id'),
                 'idField' => 'PlaceID',
                 'cssClass' =>
@@ -38,7 +38,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('place.delete', ':id'),
                 'idField' => 'PlaceID',
                 'cssClass' =>

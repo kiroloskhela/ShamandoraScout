@@ -110,17 +110,17 @@
                         <div class="mb-2">
                             <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div class="font-bold text-slate-800">الصور</div>
+                                    <div class="font-bold text-slate-800">{{ __('Photos') }}</div>
                                     <div class="text-xs text-slate-500">يمكنك عرض الصور الحالية وتغييرها</div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                     <div class="md:col-span-6">
                                         <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                            <div class="font-semibold text-slate-800 mb-3">الصورة الشخصية</div>
+                                            <div class="font-semibold text-slate-800 mb-3">{{ __('Personal photo') }}</div>
 
                                             @if ($personalUrl)
-                                                <img src="{{ $personalUrl }}" alt="الصورة الشخصية"
+                                                <img src="{{ $personalUrl }}" alt="{{ __('Personal photo') }}"
                                                     class="w-full h-72 object-cover rounded-xl border border-slate-200 mb-4">
                                             @else
                                                 <div
@@ -136,10 +136,10 @@
 
                                     <div class="md:col-span-6">
                                         <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                            <div class="font-semibold text-slate-800 mb-3">الصورة الكشفية</div>
+                                            <div class="font-semibold text-slate-800 mb-3">{{ __('Scout uniform photo') }}</div>
 
                                             @if ($scoutUrl)
-                                                <img src="{{ $scoutUrl }}" alt="الصورة الكشفية"
+                                                <img src="{{ $scoutUrl }}" alt="{{ __('Scout uniform photo') }}"
                                                     class="w-full h-72 object-cover rounded-xl border border-slate-200 mb-4">
                                             @else
                                                 <div
@@ -159,7 +159,7 @@
                         <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                             <div class="flex items-start justify-between gap-4 mb-5">
                                 <div>
-                                    <h2 class="text-xl font-bold text-slate-900">الجزء الأول: البيانات الشخصية</h2>
+                                    <h2 class="text-xl font-bold text-slate-900">{{ __('Part 1: Personal information') }}</h2>
                                     <p class="text-slate-500 mt-1 text-sm">تعديل البيانات الأساسية للملتحق.</p>
                                 </div>
                                 <span
@@ -175,47 +175,45 @@
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">كود الشمندورة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Shamandora code') }}</label>
                                     <input type="text" readonly value="{{ $person->ShamandoraCode ?? 'لا يوجد' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الأول</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('First name') }}</label>
                                     <input type="text" name="first_name" value="{{ $person->FirstName }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثاني</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Second name') }}</label>
                                     <input type="text" name="second_name" value="{{ $person->SecondName }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثالث</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Third name') }}</label>
                                     <input type="text" name="third_name" value="{{ $person->ThirdName }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الرابع</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Fourth name') }}</label>
                                     <input type="text" name="fourth_name" value="{{ $person->FourthName ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">نوع الملتحق</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Applicant gender') }}</label>
                                     <select name="gender"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
-                                        <option value="Male" {{ $person->Gender == 'Male' ? 'selected' : '' }}>ذكر
-                                        </option>
-                                        <option value="Female" {{ $person->Gender == 'Female' ? 'selected' : '' }}>أنثى
-                                        </option>
+                                        <option value="Male" {{ $person->Gender == 'Male' ? 'selected' : '' }}>{{ __('Male') }}</option>
+                                        <option value="Female" {{ $person->Gender == 'Female' ? 'selected' : '' }}>{{ __('Female') }}</option>
                                     </select>
                                 </div>
 
@@ -228,14 +226,14 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">تاريخ الميلاد</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Date of birth') }}</label>
                                     <input type="date" name="birthdate_input" value="{{ $person->DateOfBirth }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">سنة الالتحاق</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Joining year') }}</label>
                                     <input type="number" name="joining_year_input"
                                         value="{{ $person->ScoutJoiningYear }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -243,17 +241,17 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الرقم القومي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('National ID') }}</label>
                                     <input type="number" name="input_raqam_qawmy" value="{{ $person->RaqamQawmy }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">فصيلة الدم</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Blood type') }}</label>
                                     <select name="blood_type_input"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <option value="">اختر فصيلة الدم</option>
+                                        <option value="">{{ __('Choose blood type') }}</option>
                                         @foreach ($blood as $b)
                                             <option value="{{ $b->BloodTypeID }}"
                                                 {{ $person->BloodTypeID == $b->BloodTypeID ? 'selected' : '' }}>
@@ -294,7 +292,7 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الموبايل الشخصي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Personal mobile') }}</label>
                                     <input type="number" name="personal_phone_number"
                                         value="{{ $person->PersonPersonalMobileNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -302,21 +300,21 @@
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأب</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Father mobile') }}</label>
                                     <input type="number" name="father_phone_number"
                                         value="{{ $person->FatherMobileNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الأم</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Mother mobile') }}</label>
                                     <input type="number" name="mother_phone_number"
                                         value="{{ $person->MotherMobileNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">التليفون الأرضي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Landline') }}</label>
                                     <input type="text" name="home_phone_number"
                                         value="{{ $person->HomePhoneNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -327,18 +325,14 @@
                                     <select name="has_whatsapp"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="1"
-                                            {{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '1' ? 'selected' : '' }}>
-                                            نعم
-                                        </option>
+                                            {{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                         <option value="0"
-                                            {{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '0' ? 'selected' : '' }}>
-                                            لا
-                                        </option>
+                                            {{ (string) ($person->IsOPersonalPhoneNumberHavingWhatsapp ?? '') === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                     </select>
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">رقم المبنى</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Building number') }}</label>
                                     <input type="text" name="building_number"
                                         value="{{ $person->BuildingNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -346,14 +340,14 @@
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الدور</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Floor number') }}</label>
                                     <input type="text" name="floor_number" value="{{ $person->FloorNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الشقة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Apartment number') }}</label>
                                     <input type="text" name="appartment_number"
                                         value="{{ $person->AppartmentNumber ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -361,14 +355,14 @@
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الشارع الرئيسي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Main street') }}</label>
                                     <input type="text" name="main_street_name"
                                         value="{{ $person->MainStreetName ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الشارع الفرعي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Side street') }}</label>
                                     <input type="text" name="sub_street_name"
                                         value="{{ $person->SubStreetName ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -376,14 +370,14 @@
                                 </div>
 
                                 <div class="md:col-span-12">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب علامة مميزة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Nearest landmark') }}</label>
                                     <input type="text" name="nearest_landmark"
                                         value="{{ $person->NearestLandmark ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">المنطقة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Area') }}</label>
                                     <select name="manteqa_id"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">اختر المنطقة</option>
@@ -397,7 +391,7 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الحي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('District') }}</label>
                                     <select name="district_id"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">اختر الحي</option>
@@ -447,13 +441,13 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">مكان العمل</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Workplace') }}</label>
                                     <input type="text" name="person_job_place" value="{{ $person->WorkPlace ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم المدرسة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('School name') }}</label>
                                     <input type="text" name="school_name" value="{{ $person->SchoolName ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
@@ -467,7 +461,7 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الكلية</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Faculty') }}</label>
                                     <select name="person_faculty"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">اختر الكلية</option>
@@ -481,7 +475,7 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الجامعة</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('University') }}</label>
                                     <select name="person_university"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">اختر الجامعة</option>
@@ -503,7 +497,7 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">اسم الأب الروحي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Spiritual father name') }}</label>
                                     <input type="text" name="spiritual_father"
                                         value="{{ $person->SpiritualFatherName ?? '' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -522,7 +516,7 @@
                         <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                             <div class="flex items-start justify-between gap-4 mb-5">
                                 <div>
-                                    <h2 class="text-xl font-bold text-slate-900">الجزء الرابع: البيانات الكشفية</h2>
+                                    <h2 class="text-xl font-bold text-slate-900">{{ __('Part 4: Scout information') }}</h2>
                                     <p class="text-slate-500 mt-1 text-sm">تعديل بيانات الرتبة والبطاقة والقطاع.</p>
                                 </div>
                                 <span
@@ -532,7 +526,7 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">الرتبة الكشفية</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Scout rank') }}</label>
                                     <select name="rotba_kashfeyya_id"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">اختر الرتبة</option>
@@ -561,7 +555,7 @@
                                 </div>
 
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع الكشفي</label>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Scout sector') }}</label>
                                     <input type="text" readonly value="{{ $person->QetaaName ?? 'لا يوجد' }}"
                                         class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                                 </div>
@@ -571,7 +565,7 @@
                         <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
                             <div class="flex items-start justify-between gap-4 mb-5">
                                 <div>
-                                    <h2 class="text-xl font-bold text-slate-900">الجزء الأخير: الأسئلة المختصة بالقطاع</h2>
+                                    <h2 class="text-xl font-bold text-slate-900">{{ __('Final part: Sector questions') }}</h2>
                                     <p class="text-slate-500 mt-1 text-sm">عرض الأسئلة مع إمكانية تعديل الإجابات المسجلة.
                                     </p>
                                 </div>
@@ -591,7 +585,7 @@
                                             <div class="font-semibold text-slate-900 mb-2">
                                                 السؤال: {{ $question->QuestionText }}
                                             </div>
-                                            <div class="text-sm text-slate-600 mb-2">إجابة الملتحق</div>
+                                            <div class="text-sm text-slate-600 mb-2">{{ __('Applicant answer') }}</div>
                                             <textarea name="questions[{{ $question->QuestionID }}]"
                                                 class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 rows="3">{{ $question->Answer }}</textarea>

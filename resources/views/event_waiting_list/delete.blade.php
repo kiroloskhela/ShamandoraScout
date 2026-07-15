@@ -18,14 +18,14 @@
             </div>
 
             <div class="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-6 space-y-3 text-sm text-gray-800">
-                <div><strong>الموسم:</strong> {{ $row->SeasonName }} ({{ $row->SeasonYear }})</div>
-                <div><strong>الفعالية:</strong> {{ $row->EventTypeName }} - {{ $row->EventName }}</div>
-                <div><strong>بداية الفعالية:</strong> {{ $row->EventStartDate }}</div>
-                <div><strong>نهاية الفعالية:</strong> {{ $row->EventEndDate }}</div>
+                <div><strong>{{ __('Season:') }}</strong> {{ $row->SeasonName }} ({{ $row->SeasonYear }})</div>
+                <div><strong>{{ __('Event:') }}</strong> {{ $row->EventTypeName }} - {{ $row->EventName }}</div>
+                <div><strong>{{ __('Event start:') }}</strong> {{ $row->EventStartDate }}</div>
+                <div><strong>{{ __('Event end:') }}</strong> {{ $row->EventEndDate }}</div>
                 <hr>
-                <div><strong>الاسم:</strong> {{ $row->PersonFullName }}</div>
+                <div><strong>{{ __('Name:') }}</strong> {{ $row->PersonFullName }}</div>
                 <div><strong>PersonID:</strong> {{ $row->PersonID }}</div>
-                <div><strong>الموبايل:</strong> {{ $row->PersonPersonalMobileNumber ?? '-' }}</div>
+                <div><strong>{{ __('Mobile:') }}</strong> {{ $row->PersonPersonalMobileNumber ?? '-' }}</div>
                 <div><strong>القطاع:</strong> {{ $row->QetaaName ?? '-' }}</div>
                 <div><strong>أضافه الخادم:</strong> {{ $row->ServentFullName ?? '-' }}</div>
                 <div><strong>تاريخ الإضافة:</strong> {{ $row->CreatedAt }}</div>
@@ -33,9 +33,7 @@
 
             <div class="flex justify-center gap-3">
                 <a href="{{ route('eventWaitingList.index', $row->SeasonEventID) }}"
-                    class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                    رجوع
-                </a>
+                    class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
 
                 <form method="POST" action="{{ route('eventWaitingList.destroy', $row->SeasonEventWaitingListID) }}">
                     @csrf

@@ -35,7 +35,7 @@
             ],
             [
                 'key' => 'GroupDetails',
-                'label' => 'اسم المجموعة',
+                'label' => __('Group name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
@@ -43,7 +43,7 @@
             :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('group-person.edit', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -51,7 +51,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('group-person.delete', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>

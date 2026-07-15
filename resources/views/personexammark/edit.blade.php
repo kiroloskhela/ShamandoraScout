@@ -74,16 +74,14 @@
                     </div>
 
                     <div>
-                        <label for="note" class="block mb-2 text-sm text-gray-700">ملاحظة (اختياري)</label>
+                        <label for="note" class="block mb-2 text-sm text-gray-700">{{ __('Note (optional)') }}</label>
                         <textarea id="note" name="note" rows="2"
                             class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none">{{ old('note', $mark->Note) }}</textarea>
                     </div>
 
                     <div class="flex justify-center gap-3">
                         <a href="{{ route('personexammark.index') }}"
-                            class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
-                            رجوع
-                        </a>
+                            class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition">{{ __('Back') }}</a>
                         <button type="submit"
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition">
                             حفظ التعديل

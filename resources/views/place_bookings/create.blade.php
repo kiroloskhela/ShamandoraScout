@@ -34,10 +34,10 @@
 
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">الموقع</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Location') }}</label>
                     <select id="location_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none">
-                        <option value="" selected disabled>اختر الموقع</option>
+                        <option value="" selected disabled>{{ __('Choose location') }}</option>
                         @foreach ($locations as $l)
                             <option value="{{ $l->LocationID }}"
                                 {{ old('location_id') == $l->LocationID ? 'selected' : '' }}>
@@ -49,11 +49,11 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">المكان</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Place') }}</label>
                     <select id="place_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                         disabled>
-                        <option value="" selected disabled>اختر المكان</option>
+                        <option value="" selected disabled>{{ __('Choose place') }}</option>
                     </select>
                     <p class="mt-2 text-xs text-gray-500">سيتم تحميل الأماكن تلقائيًا بعد اختيار الموقع.</p>
                 </div>
@@ -63,13 +63,13 @@
         {{-- Optional Info --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">معلومات إضافية (اختياري)</h2>
-                <span class="text-xs text-gray-500">القطاع</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('Additional info (optional)') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Sector') }}</span>
             </div>
 
             <div class="grid md:grid-cols-1 gap-6">
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">القطاع</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Sector') }}</label>
                     <select id="qetaa_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                         <option value="">-- بدون --</option>
@@ -92,19 +92,19 @@
 
             <div class="grid md:grid-cols-3 gap-6 items-end">
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">التاريخ</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Date') }}</label>
                     <input type="date" id="booking_date" value="{{ old('booking_date') }}"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">من</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('From') }}</label>
                     <input type="time" id="time_from" value="{{ old('time_from') }}"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">إلى</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('To') }}</label>
                     <input type="time" id="time_to" value="{{ old('time_to') }}"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none">
                 </div>
@@ -118,13 +118,13 @@
         {{-- Note --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">ملاحظة (اختياري)</h2>
-                <span class="text-xs text-gray-500">رسالة للإدارة</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('Note (optional)') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Message to admin') }}</span>
             </div>
 
             <textarea id="user_note" rows="3"
                 class="w-full border rounded-lg p-3 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                placeholder="اكتب أي ملاحظة...">{{ old('user_note') }}</textarea>
+                placeholder="{{ __('Write any note...') }}">{{ old('user_note') }}</textarea>
         </div>
 
         {{-- Submit --}}
@@ -149,7 +149,7 @@
                 </button>
 
                 <p class="mt-3 text-xs text-gray-500">
-                    سيتم إرسال الطلب بحالة <span class="font-bold">قيد المراجعة</span>.
+                    سيتم إرسال الطلب بحالة <span class="font-bold">{{ __('Pending review') }}</span>.
                 </p>
             </form>
         </div>
@@ -190,14 +190,14 @@
             }
 
             async function loadPlaces(locationId, selectedPlaceId = null) {
-                placeSelect.innerHTML = '<option value="" selected disabled>جاري التحميل...</option>';
+                placeSelect.innerHTML = '<option value="" selected disabled>{{ __('Loading...') }}</option>';
                 placeSelect.setAttribute('disabled', 'disabled');
 
                 try {
                     const res = await fetch(`{{ url('/ajax/places') }}/${locationId}`);
                     const data = await res.json();
 
-                    placeSelect.innerHTML = '<option value="" selected disabled>اختر المكان</option>';
+                    placeSelect.innerHTML = '<option value="" selected disabled>{{ __('Choose place') }}</option>';
 
                     if (!Array.isArray(data) || data.length === 0) {
                         placeSelect.innerHTML =

@@ -253,7 +253,7 @@
 <body>
     <div class="page">
         @php
-            $copies = ['نسخة الماليه', 'نسخة المشترك'];
+            $copies = [__('Finance copy'), __('Participant copy')];
         @endphp
 
         @foreach ($copies as $copyLabel)
@@ -261,126 +261,125 @@
                 <div class="receipt-content">
                     <div class="header">
                         <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="logo-top">
-                        <div class="title">إيصال {{ $receipt->PaymentType === 'REFUND' ? 'استرداد' : 'دفع' }}</div>
-                        <div class="subtitle">مجموعة الشمندورة الكشفية</div>
+                        <div class="title">{{ __('Receipt') }} {{ $receipt->PaymentType === 'REFUND' ? __('Refund') : __('Pay') }}</div>
+                        <div class="subtitle">{{ __('Shamandora Scout Group') }}</div>
                         <div class="copy-badge">{{ $copyLabel }}</div>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">بيانات الإيصال</div>
+                        <div class="section-title">{{ __('Receipt details') }}</div>
                         <div class="row">
                             <div class="cell">
-                                <span class="label">رقم الإيصال:</span>
+                                <span class="label">{{ __('Receipt number:') }}</span>
                                 {{ $receipt->ReceiptNumber }}
                             </div>
                             <div class="cell">
-                                <span class="label">وقت الإصدار:</span>
+                                <span class="label">{{ __('Issued at:') }}</span>
                                 {{ $receipt->IssuedAt }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="cell">
-                                <span class="label">الموسم:</span>
+                                <span class="label">{{ __('Season:') }}</span>
                                 {{ $receipt->SeasonName }} ({{ $receipt->SeasonYear }})
                             </div>
                             <div class="cell">
-                                <span class="label">الفعالية:</span>
+                                <span class="label">{{ __('Event:') }}</span>
                                 {{ $receipt->EventTypeName }} - {{ $receipt->EventName }}
                             </div>
                         </div>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">بيانات المشترك</div>
+                        <div class="section-title">{{ __('Participant details') }}</div>
                         <div class="row">
                             <div class="cell">
-                                <span class="label">اسم الشخص:</span>
+                                <span class="label">{{ __('Person name:') }}</span>
                                 {{ $receipt->PersonFullName }}
                             </div>
                             <div class="cell">
-                                <span class="label">الرقم التعريفي:</span>
+                                <span class="label">{{ __('ID number:') }}</span>
                                 {{ $receipt->PersonID }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="cell">
-                                <span class="label">الموبايل:</span>
+                                <span class="label">{{ __('Mobile:') }}</span>
                                 {{ $receipt->PersonPersonalMobileNumber ?: '-' }}
                             </div>
                             <div class="cell">
-                                <span class="label">القائد المستلم:</span>
+                                <span class="label">{{ __('Receiving leader:') }}</span>
                                 {{ $receipt->ServentFullName }}
                             </div>
                         </div>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">بيانات العملية</div>
+                        <div class="section-title">{{ __('Transaction details') }}</div>
                         <div class="row">
                             <div class="cell">
-                                <span class="label">نوع العملية:</span>
-                                {{ $receipt->PaymentType === 'REFUND' ? 'استرداد' : 'دفع' }}
+                                <span class="label">{{ __('Transaction type:') }}</span>
+                                {{ $receipt->PaymentType === 'REFUND' ? __('Refund') : __('Pay') }}
                             </div>
                             <div class="cell">
-                                <span class="label">رقم القسط:</span>
+                                <span class="label">{{ __('Installment number:') }}</span>
                                 {{ $receipt->InstallmentNumber }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="cell">
-                                <span class="label">تاريخ العملية:</span>
+                                <span class="label">{{ __('Transaction date:') }}</span>
                                 {{ $receipt->PaymentDate }}
                             </div>
                             <div class="cell">
-                                <span class="label">عدد الأقساط:</span>
+                                <span class="label">{{ __('Installments count:') }}</span>
                                 {{ $receipt->InstallmentsNumber }}
                             </div>
                         </div>
 
                         <div class="amount-box">
-                            <div class="amount-title">المبلغ</div>
+                            <div class="amount-title">{{ __('Amount') }}</div>
                             <div class="amount">{{ number_format($receipt->Amount, 2) }}</div>
                         </div>
                     </div>
 
                     <div class="section">
-                        <div class="section-title">البيانات المالية</div>
+                        <div class="section-title">{{ __('Financial details') }}</div>
                         <div class="row">
                             <div class="cell">
-                                <span class="label">السعر الأصلي:</span>
+                                <span class="label">{{ __('Original price:') }}</span>
                                 {{ number_format($receipt->OriginalPrice, 2) }}
                             </div>
                             <div class="cell">
-                                <span class="label">الخصم:</span>
+                                <span class="label">{{ __('Discount:') }}</span>
                                 {{ number_format($receipt->DiscountAmount, 2) }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="cell">
-                                <span class="label">المطلوب النهائي:</span>
+                                <span class="label">{{ __('Final required:') }}</span>
                                 {{ number_format($receipt->FinalRequiredAmount, 2) }}
                             </div>
                             <div class="cell">
-                                <span class="label">إجمالي المدفوع الآن:</span>
+                                <span class="label">{{ __('Total paid now:') }}</span>
                                 {{ number_format($receipt->AmountPaid, 2) }}
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="cell">
-                                <span class="label">المتبقي:</span>
+                                <span class="label">{{ __('Remaining:') }}</span>
                                 {{ number_format($receipt->RemainingAmount, 2) }}
                             </div>
                             <div class="cell"></div>
                         </div>
                     </div>
 
-                    <div class="footer-note">
-                        هذا الإيصال معتمد كإثبات {{ $receipt->PaymentType === 'REFUND' ? 'استرداد' : 'دفع' }}.
+                    <div class="footer-note">{{ __('This receipt is approved as proof of') }} {{ $receipt->PaymentType === 'REFUND' ? __('Refund') : __('Pay') }}.
                     </div>
 
                 </div>
@@ -394,8 +393,8 @@
         @endforeach
 
         <div class="actions">
-            <button onclick="window.print()">طباعة</button>
-            <button class="secondary" onclick="window.history.back()">رجوع</button>
+            <button onclick="window.print()">{{ __('Print') }}</button>
+            <button class="secondary" onclick="window.history.back()">{{ __('Back') }}</button>
         </div>
     </div>
 </body>

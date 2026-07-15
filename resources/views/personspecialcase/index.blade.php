@@ -16,13 +16,13 @@
             ],
             [
                 'key' => 'PersonName',
-                'label' => 'الشخص',
+                'label' => __('Person'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'PersonID',
-                'label' => 'رقم الشخص',
+                'label' => __('Person ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -34,20 +34,20 @@
             ],
             [
                 'key' => 'CaseDate',
-                'label' => 'التاريخ',
+                'label' => __('Date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'Note',
-                'label' => 'الملاحظة',
+                'label' => __('Note'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('personspecialcase.edit', ':id'),
                 'idField' => 'SpecialCaseID',
                 'cssClass' =>
@@ -55,7 +55,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('personspecialcase.delete', ':id'),
                 'idField' => 'SpecialCaseID',
                 'cssClass' =>

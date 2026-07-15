@@ -1,11 +1,11 @@
-@extends('layouts.app', ['pageTitle' => 'الملف الشخصي'])
+@extends('layouts.app', ['pageTitle' => __('Profile')])
 
-@section('title', 'الملف الشخصي | الشمندورة')
+@section('title', __('Profile | Shamandora'))
 
 @section('content')
 @php
     $p = $person;
-    $fullName = trim(collect([$p->FirstName ?? '', $p->SecondName ?? '', $p->ThirdName ?? '', $p->FourthName ?? ''])->filter()->implode(' ')) ?: 'المستخدم';
+    $fullName = trim(collect([$p->FirstName ?? '', $p->SecondName ?? '', $p->ThirdName ?? '', $p->FourthName ?? ''])->filter()->implode(' ')) ?: __('User');
     $code = $p->ShamandoraCode ?? null;
     $photoPath = $p->PersonalImagePath ?? null;
     $photoUrl = null;
@@ -16,9 +16,9 @@
     }
     $initials = strtoupper(mb_substr($p->FirstName ?? 'م', 0, 1) . mb_substr($p->SecondName ?? '', 0, 1));
     $addressParts = array_filter([
-        $p->BuildingNumber ? 'مبنى ' . $p->BuildingNumber : null,
-        $p->FloorNumber ? 'دور ' . $p->FloorNumber : null,
-        $p->AppartmentNumber ? 'شقة ' . $p->AppartmentNumber : null,
+        $p->BuildingNumber ? __('Building') . ' ' . $p->BuildingNumber : null,
+        $p->FloorNumber ? __('Floor') . ' ' . $p->FloorNumber : null,
+        $p->AppartmentNumber ? __('Apartment') . ' ' . $p->AppartmentNumber : null,
         $p->MainStreetName,
         $p->SubStreetName,
         $p->NearestLandmark,
@@ -27,7 +27,7 @@
     ]);
     $address = $addressParts ? implode('، ', $addressParts) : null;
     $emergency = $p->FatherMobileNumber ?: ($p->MotherMobileNumber ?: null);
-    $emergencyLabel = $p->FatherMobileNumber ? 'الأب' : ($p->MotherMobileNumber ? 'الأم' : null);
+    $emergencyLabel = $p->FatherMobileNumber ? __('Father') : ($p->MotherMobileNumber ? __('Mother') : null);
     $attendanceRate = $attendance['summary']['rate'] ?? 0;
     $badgeName = $p->EgazetBetakatTaqaddomName ?? null;
     $qrPayload = urlencode($code ?: ('PID-' . ($p->PersonID ?? '')));
@@ -108,7 +108,7 @@
                     </div>
                     <span class="inline-flex items-center gap-1.5 rounded-full bg-teal-50 text-teal-800 px-3 py-1 text-xs font-bold ring-1 ring-teal-200">
                         <span class="h-1.5 w-1.5 rounded-full bg-teal-500"></span>
-                        نشط
+                        {{ __('Active') }}
                     </span>
                 </div>
 
@@ -146,7 +146,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15.232 5.232l3.536 3.536M4 20h4.586a1 1 0 00.707-.293l9.414-9.414a2 2 0 000-2.828l-3.172-3.172a2 2 0 00-2.828 0L4.293 14.707A1 1 0 004 15.414V20z" />
                         </svg>
-                        تعديل الملف
+                        {{ __('Edit profile') }}
                     </a>
                 </div>
             </div>
@@ -154,13 +154,13 @@
     </section>
 
     {{-- Tabs --}}
-    <nav class="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200" role="tablist" aria-label="أقسام الملف">
+    <nav class="mb-5 flex gap-1 overflow-x-auto border-b border-slate-200" role="tablist" aria-label="{{ __('Profile sections') }}">
         @foreach ([
-            'personal' => 'البيانات الشخصية',
-            'study' => 'بيانات الدراسة',
-            'attendance' => 'الحضور',
-            'custody' => 'العهدة',
-            'bookings' => 'الحجوزات',
+            'personal' => __('Personal data'),
+            'study' => __('Study data'),
+            'attendance' => __('Attendance section'),
+            'custody' => __('Custody'),
+            'bookings' => __('Bookings'),
         ] as $key => $label)
             <button type="button" role="tab"
                 class="tab-btn shrink-0 px-4 py-3 text-sm text-slate-500 border-b-2 border-transparent hover:text-teal-700"
@@ -181,19 +181,19 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                             </span>
-                            <h2 class="text-lg font-bold text-slate-900">معلومات الاتصال</h2>
+                            <h2 class="text-lg font-bold text-slate-900">{{ __('Contact information') }}</h2>
                         </div>
                         <dl class="space-y-4">
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">رقم الهاتف</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('Phone number') }}</dt>
                                 <dd class="text-base font-bold text-slate-900" dir="ltr">{{ $val($p->PersonPersonalMobileNumber ?? null) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">البريد الإلكتروني</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('Email') }}</dt>
                                 <dd class="text-base font-bold text-slate-900 break-all" dir="ltr">{{ $val($p->PersonalEmail ?? null) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">هاتف الطوارئ</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('Emergency phone') }}</dt>
                                 <dd class="text-base font-bold text-slate-900">
                                     <span dir="ltr">{{ $val($emergency) }}</span>
                                     @if ($emergencyLabel)
@@ -209,19 +209,19 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             </span>
-                            <h2 class="text-lg font-bold text-slate-900">المعلومات القانونية</h2>
+                            <h2 class="text-lg font-bold text-slate-900">{{ __('Legal information') }}</h2>
                         </div>
                         <dl class="space-y-4">
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">الرقم القومي</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('National ID') }}</dt>
                                 <dd class="text-base font-bold text-slate-900 font-mono" dir="ltr">{{ $val($p->RaqamQawmy ?? null) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">تاريخ الميلاد</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('Date of birth') }}</dt>
                                 <dd class="text-base font-bold text-slate-900">{{ $val($p->DateOfBirth ?? null) }}</dd>
                             </div>
                             <div>
-                                <dt class="text-xs font-semibold text-slate-500 mb-1">العنوان</dt>
+                                <dt class="text-xs font-semibold text-slate-500 mb-1">{{ __('Address') }}</dt>
                                 <dd class="text-sm font-semibold text-slate-800 leading-relaxed">{{ $val($address) }}</dd>
                             </div>
                         </dl>
@@ -233,19 +233,19 @@
                         <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                         </span>
-                        <h2 class="text-lg font-bold text-slate-900">المعلومات الطبية والمهارات</h2>
+                        <h2 class="text-lg font-bold text-slate-900">{{ __('Medical and skills information') }}</h2>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">فصيلة الدم</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Blood type') }}</div>
                             <div class="text-base font-bold text-slate-900">{{ $val($p->BloodTypeName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">الرتبة الكشفية</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Scout rank') }}</div>
                             <div class="text-base font-bold text-slate-900">{{ $val($p->RotbaName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">سنة الالتحاق</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Joining year') }}</div>
                             <div class="text-base font-bold text-slate-900">{{ $val($p->ScoutJoiningYear ?? null) }}</div>
                         </div>
                     </div>
@@ -255,38 +255,38 @@
             {{-- Study --}}
             <div x-show="tab === 'study'" x-cloak class="fade-in">
                 <article class="rounded-2xl bg-white p-5 sm:p-6 shadow-sm ring-1 ring-slate-200/80">
-                    <h2 class="text-lg font-bold text-slate-900 mb-5">بيانات الدراسة والعمل</h2>
+                    <h2 class="text-lg font-bold text-slate-900 mb-5">{{ __('Study and work data') }}</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">المرحلة / السنة</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Stage / year') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->SanaMarhalaName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">المدرسة</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('School') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->SchoolName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">الجامعة</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('University') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->UniversityName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">الكلية</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Faculty') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->FacultyName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">الوظيفة</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Job') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->JobName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">مكان العمل</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Workplace') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->WorkPlace ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">أب الاعتراف</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Spiritual father') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->SpiritualFatherName ?? null) }}</div>
                         </div>
                         <div>
-                            <div class="text-xs font-semibold text-slate-500 mb-1">كنيسة أب الاعتراف</div>
+                            <div class="text-xs font-semibold text-slate-500 mb-1">{{ __('Spiritual father church') }}</div>
                             <div class="font-bold text-slate-900">{{ $val($p->SpiritualFatherChurchName ?? null) }}</div>
                         </div>
                     </div>
@@ -297,10 +297,10 @@
             <div x-show="tab === 'attendance'" x-cloak class="fade-in space-y-4">
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     @foreach ([
-                        ['label' => 'الإجمالي', 'value' => $attendance['summary']['total'], 'class' => 'bg-slate-50 text-slate-800'],
-                        ['label' => 'حضور', 'value' => $attendance['summary']['present'], 'class' => 'bg-emerald-50 text-emerald-800'],
-                        ['label' => 'غياب', 'value' => $attendance['summary']['absent'], 'class' => 'bg-rose-50 text-rose-800'],
-                        ['label' => 'بعذر', 'value' => $attendance['summary']['excused'], 'class' => 'bg-amber-50 text-amber-800'],
+                        ['label' => __('Total'), 'value' => $attendance['summary']['total'], 'class' => 'bg-slate-50 text-slate-800'],
+                        ['label' => __('Present'), 'value' => $attendance['summary']['present'], 'class' => 'bg-emerald-50 text-emerald-800'],
+                        ['label' => __('Absent'), 'value' => $attendance['summary']['absent'], 'class' => 'bg-rose-50 text-rose-800'],
+                        ['label' => __('Excused'), 'value' => $attendance['summary']['excused'], 'class' => 'bg-amber-50 text-amber-800'],
                     ] as $stat)
                         <div class="rounded-2xl {{ $stat['class'] }} p-4 text-center ring-1 ring-black/5">
                             <div class="text-2xl font-bold">{{ $stat['value'] }}</div>
@@ -310,7 +310,7 @@
                 </div>
 
                 <article class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 font-bold text-slate-900">آخر الفعاليات</div>
+                    <div class="px-5 py-4 border-b border-slate-100 font-bold text-slate-900">{{ __('Recent events') }}</div>
                     @forelse ($attendance['events'] as $ev)
                         <div class="px-5 py-3.5 flex items-center justify-between gap-3 border-b border-slate-50 last:border-0">
                             <div class="min-w-0">
@@ -319,16 +319,16 @@
                             </div>
                             @php
                                 $statusMap = [
-                                    'present' => ['حضور', 'bg-emerald-50 text-emerald-700'],
-                                    'excused' => ['بعذر', 'bg-amber-50 text-amber-700'],
-                                    'absent' => ['غياب', 'bg-rose-50 text-rose-700'],
+                                    'present' => [__('Present'), 'bg-emerald-50 text-emerald-700'],
+                                    'excused' => [__('Excused'), 'bg-amber-50 text-amber-700'],
+                                    'absent' => [__('Absent'), 'bg-rose-50 text-rose-700'],
                                 ];
                                 [$stLabel, $stClass] = $statusMap[$ev->Status] ?? ['—', 'bg-slate-100 text-slate-600'];
                             @endphp
                             <span class="shrink-0 rounded-full px-3 py-1 text-xs font-bold {{ $stClass }}">{{ $stLabel }}</span>
                         </div>
                     @empty
-                        <div class="px-5 py-10 text-center text-slate-500 text-sm">لا توجد سجلات حضور بعد.</div>
+                        <div class="px-5 py-10 text-center text-slate-500 text-sm">{{ __('No attendance records yet.') }}</div>
                     @endforelse
                 </article>
             </div>
@@ -337,12 +337,12 @@
             <div x-show="tab === 'custody'" x-cloak class="fade-in">
                 <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80 text-center sm:text-right sm:flex sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">طلبات العهدة</h2>
-                        <p class="text-sm text-slate-500 mt-1">لديك <span class="font-bold text-teal-700">{{ $custodyCount }}</span> طلب عهدة مسجّل.</p>
+                        <h2 class="text-lg font-bold text-slate-900">{{ __('Custody requests') }}</h2>
+                        <p class="text-sm text-slate-500 mt-1">{{ __('You have :count registered custody request(s).', ['count' => $custodyCount]) }}</p>
                     </div>
                     <a href="{{ route('custody_requests.my') }}"
                         class="mt-4 sm:mt-0 inline-flex items-center justify-center rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold px-5 py-3 text-sm transition">
-                        عرض طلباتي
+                        {{ __('View my requests') }}
                     </a>
                 </article>
             </div>
@@ -351,12 +351,12 @@
             <div x-show="tab === 'bookings'" x-cloak class="fade-in">
                 <article class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80 text-center sm:text-right sm:flex sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">الحجوزات</h2>
-                        <p class="text-sm text-slate-500 mt-1">لديك <span class="font-bold text-teal-700">{{ $bookingCount }}</span> حجز مكان مسجّل.</p>
+                        <h2 class="text-lg font-bold text-slate-900">{{ __('Bookings') }}</h2>
+                        <p class="text-sm text-slate-500 mt-1">{{ __('You have :count registered place booking(s).', ['count' => $bookingCount]) }}</p>
                     </div>
                     <a href="{{ route('place_bookings.my') }}"
                         class="mt-4 sm:mt-0 inline-flex items-center justify-center rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold px-5 py-3 text-sm transition">
-                        عرض حجوزاتي
+                        {{ __('View my bookings') }}
                     </a>
                 </article>
             </div>
@@ -368,8 +368,8 @@
                 style="background: linear-gradient(160deg, #0b5f59 0%, #0f766e 55%, #115e59 100%);">
                 <div class="p-5 text-center">
                     <img src="{{ asset('img/shamandora.png') }}" alt="" class="mx-auto h-14 w-14 object-contain drop-shadow mb-2 bg-white/10 rounded-full p-1">
-                    <div class="text-xs font-semibold tracking-wide text-teal-100/90 uppercase">هوية الكشاف</div>
-                    <div class="text-sm font-bold mt-1">الشمندورة البحرية</div>
+                    <div class="text-xs font-semibold tracking-wide text-teal-100/90 uppercase">{{ __('Scout identity') }}</div>
+                    <div class="text-sm font-bold mt-1">{{ __('Shamandora Sea Scouts') }}</div>
                 </div>
                 <div class="mx-5 mb-4 rounded-2xl bg-white p-4 text-center shadow-inner">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ $qrPayload }}"
@@ -379,11 +379,11 @@
                 </div>
                 <div class="px-5 pb-5 grid grid-cols-2 gap-3 text-center text-xs">
                     <div class="rounded-xl bg-white/10 px-2 py-2.5">
-                        <div class="text-teal-100/80">سنة الالتحاق</div>
+                        <div class="text-teal-100/80">{{ __('Joining year') }}</div>
                         <div class="font-bold mt-0.5">{{ $val($p->ScoutJoiningYear ?? null) }}</div>
                     </div>
                     <div class="rounded-xl bg-white/10 px-2 py-2.5">
-                        <div class="text-teal-100/80">القطاع</div>
+                        <div class="text-teal-100/80">{{ __('Sector') }}</div>
                         <div class="font-bold mt-0.5 truncate">{{ $val($p->QetaaName ?? null) }}</div>
                     </div>
                 </div>
@@ -396,8 +396,8 @@
                             <span class="text-xl font-bold text-teal-800">{{ $badgeName ? '1' : '0' }}</span>
                         </div>
                     </div>
-                    <div class="mt-3 text-xs font-bold text-slate-600">وسام / بطاقة</div>
-                    <div class="text-[11px] text-slate-400 mt-0.5 truncate px-1">{{ $val($badgeName, 'لا يوجد') }}</div>
+                    <div class="mt-3 text-xs font-bold text-slate-600">{{ __('Badge / card') }}</div>
+                    <div class="text-[11px] text-slate-400 mt-0.5 truncate px-1">{{ $val($badgeName, __('None')) }}</div>
                 </div>
                 <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 text-center">
                     <div class="mx-auto h-20 w-20 rounded-full p-[6px] {{ $attendanceRate >= 75 ? 'stat-ring' : 'stat-ring-danger' }}" style="--pct: {{ min(100, (float) $attendanceRate) }}">
@@ -405,7 +405,7 @@
                             <span class="text-lg font-bold {{ $attendanceRate >= 75 ? 'text-teal-800' : 'text-rose-600' }}">{{ $attendanceRate }}%</span>
                         </div>
                     </div>
-                    <div class="mt-3 text-xs font-bold text-slate-600">نسبة الحضور</div>
+                    <div class="mt-3 text-xs font-bold text-slate-600">{{ __('Attendance rate') }}</div>
                 </div>
             </div>
         </aside>

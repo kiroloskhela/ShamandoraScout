@@ -21,9 +21,7 @@
 
                 <div class="flex justify-center gap-3 mt-8">
                     <a href="{{ route('personexammark.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
-                        رجوع
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition">{{ __('Back') }}</a>
                     <button type="submit"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 transition">
                         تأكيد المسح

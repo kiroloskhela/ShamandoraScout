@@ -1,10 +1,10 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة قائمة انتظار الفعالية'])
+@extends('layouts.app', ['pageTitle' => __('Manage event waiting list')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
         <div class="bg-white rounded-lg shadow-lg p-8 w-full border-2 border-blue-300">
             <div class="mb-6 text-center">
-                <h2 class="text-xl font-bold text-gray-800">إدارة قائمة انتظار الفعالية</h2>
+                <h2 class="text-xl font-bold text-gray-800">{{ __('Manage event waiting list') }}</h2>
             </div>
 
             @if (session('success'))
@@ -24,15 +24,15 @@
             @endif
 
             <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-                <div><strong>الموسم:</strong> {{ $event->SeasonName }} ({{ $event->SeasonYear }})</div>
-                <div><strong>الفعالية:</strong> {{ $event->EventTypeName }} - {{ $event->EventName }}</div>
-                <div><strong>بداية الفعالية:</strong> {{ $event->EventStartDate }}</div>
-                <div><strong>نهاية الفعالية:</strong> {{ $event->EventEndDate }}</div>
+                <div><strong>{{ __('Season:') }}</strong> {{ $event->SeasonName }} ({{ $event->SeasonYear }})</div>
+                <div><strong>{{ __('Event:') }}</strong> {{ $event->EventTypeName }} - {{ $event->EventName }}</div>
+                <div><strong>{{ __('Event start:') }}</strong> {{ $event->EventStartDate }}</div>
+                <div><strong>{{ __('Event end:') }}</strong> {{ $event->EventEndDate }}</div>
             </div>
 
             <div class="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-gray-800">إضافة شخص إلى قائمة الانتظار</h3>
+                    <h3 class="text-lg font-bold text-gray-800">{{ __('Add person to waiting list') }}</h3>
                 </div>
 
                 <form method="POST" action="{{ route('eventWaitingList.store', $event->SeasonEventID) }}">
@@ -40,10 +40,10 @@
 
                     <div class="space-y-6">
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">بحث عن شخص مؤهل</label>
+                            <label class="block mb-2 text-sm text-gray-700">{{ __('Search for eligible person') }}</label>
                             <input type="text" id="person-search"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
-                                placeholder="ابحث بالاسم أو PersonID أو الموبايل">
+                                placeholder="{{ __('Search by name, PersonID, or mobile') }}">
                             <input type="hidden" name="person_id" id="person_id" value="{{ old('person_id') }}">
                             <div id="search-results"
                                 class="mt-2 border rounded-lg bg-white shadow hidden max-h-80 overflow-y-auto"></div>
@@ -51,75 +51,71 @@
 
                         <div id="selected-person-box"
                             class="hidden rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900">
-                            <div><strong>الاسم:</strong> <span id="selected-person-name"></span></div>
+                            <div><strong>{{ __('Name:') }}</strong> <span id="selected-person-name"></span></div>
                             <div><strong>PersonID:</strong> <span id="selected-person-id"></span></div>
-                            <div><strong>الموبايل:</strong> <span id="selected-person-mobile"></span></div>
-                            <div><strong>القطاع:</strong> <span id="selected-person-qetaa"></span></div>
+                            <div><strong>{{ __('Mobile:') }}</strong> <span id="selected-person-mobile"></span></div>
+                            <div><strong>{{ __('Sector:') }}</strong> <span id="selected-person-qetaa"></span></div>
                         </div>
 
                         <div class="flex justify-center gap-3">
                             <a href="{{ route('eventWaitingList.selector') }}"
-                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                                تغيير الفعالية
-                            </a>
+                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Change event') }}</a>
 
                             <button type="submit"
-                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">
-                                إضافة إلى قائمة الانتظار
-                            </button>
+                                class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">{{ __('Add to waiting list') }}</button>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <x-data-table :data="$waitingList" title="قائمة الانتظار" tableId="WaitingList" :columns="[
+            <x-data-table :data="$waitingList" title="{{ __('Waiting list') }}" tableId="WaitingList" :columns="[
                 [
                     'key' => 'PersonFullName',
-                    'label' => 'الاسم',
+                    'label' => __('Name'),
                     'type' => 'label',
                     'cssClass' => 'text-blue-600 font-bold text-sm',
                 ],
                 [
                     'key' => 'PersonID',
-                    'label' => 'رقم الهوية',
+                    'label' => __('ID number'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'PersonPersonalMobileNumber',
-                    'label' => 'الموبايل',
+                    'label' => __('Mobile'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'MotherMobileNumber',
-                    'label' =>'هاتف الام',
+                    'label' =>__('Mother phone'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'QetaaName',
-                    'label' => 'القطاع',
+                    'label' => __('Sector'),
                     'type' => 'label',
                     'filter' => true,
                     'cssClass' => 'text-sm text-gray-800 font-medium',
                 ],
                 [
                     'key' => 'ServentFullName',
-                    'label' => 'أضافه الخادم',
+                    'label' => __('Added by servant'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'CreatedAt',
-                    'label' => 'تاريخ الإضافة',
+                    'label' => __('Added at'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
             ]" :actions="[
                 [
                     'name' => 'delete',
-                    'label' => 'حذف',
+                    'label' => __('Delete'),
                     'route' => route('eventWaitingList.deletePage', ':id'),
                     'idField' => 'SeasonEventWaitingListID',
                     'cssClass' =>
@@ -165,7 +161,7 @@
 
                             if (!data.length) {
                                 resultsBox.innerHTML =
-                                    '<div class="p-3 text-sm text-gray-500">لا توجد نتائج</div>';
+                                    '<div class="p-3 text-sm text-gray-500">{{ __('No results') }}</div>';
                                 return;
                             }
 
@@ -178,8 +174,8 @@
                                     <div>
                                         <div class="font-bold">${person.PersonFullName}</div>
                                         <div class="text-xs mt-1">PersonID: ${person.PersonID}</div>
-                                        <div class="text-xs">الموبايل: ${person.PersonPersonalMobileNumber ?? '-'}</div>
-                                        <div class="text-xs">القطاع: ${person.QetaaNames ?? '-'}</div>
+                                        <div class="text-xs">${@json(__('Mobile:'))} ${person.PersonPersonalMobileNumber ?? '-'}</div>
+                                        <div class="text-xs">${@json(__('Sector:'))} ${person.QetaaNames ?? '-'}</div>
                                     </div>
                                 `;
 
@@ -202,7 +198,7 @@
                         })
                         .catch(() => {
                             resultsBox.innerHTML =
-                                '<div class="p-3 text-sm text-red-500">حدث خطأ أثناء البحث</div>';
+                                '<div class="p-3 text-sm text-red-500">{{ __('An error occurred while searching') }}</div>';
                             resultsBox.classList.remove('hidden');
                         });
                 }, 250);

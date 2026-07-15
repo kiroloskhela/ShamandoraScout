@@ -24,7 +24,7 @@
             :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('sana-marhala.edit', ':id'),
                     'idField' => 'SanaMarhalaID',
                     'cssClass' =>
@@ -32,7 +32,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('sana-marhala.delete', ':id'),
                     'idField' => 'SanaMarhalaID',
                     'cssClass' =>

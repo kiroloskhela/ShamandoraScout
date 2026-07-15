@@ -16,32 +16,32 @@
             ],
             [
                 'key' => 'FullName',
-                'label' => 'الاسم',
+                'label' => __('Name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'MobileNumber',
-                'label' => 'رقم الموبايل',
+                'label' => __('Mobile number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'RaqamQawmy',
-                'label' => 'الرقم القومي',
+                'label' => __('National ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'PersonFullName',
-                'label' => 'الشخص المرتبط',
+                'label' => __('Linked person'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-blue-700 font-medium',
             ],
         ]" :actions="[
             [
                 'name' => 'show',
-                'label' => 'عرض',
+                'label' => __('View'),
                 'route' => route('guests.show', ':id'),
                 'idField' => 'GuestID',
                 'cssClass' =>
@@ -49,7 +49,7 @@
             ],
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('guests.edit', ':id'),
                 'idField' => 'GuestID',
                 'cssClass' =>
@@ -57,7 +57,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('guests.delete', ':id'),
                 'idField' => 'GuestID',
                 'cssClass' =>

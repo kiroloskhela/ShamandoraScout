@@ -1,16 +1,16 @@
-@extends('layouts.app', ['pageTitle' => 'حملات واتساب'])
+@extends('layouts.app', ['pageTitle' => __('WhatsApp campaigns')])
 
 @section('content')
 <div class="container mx-auto px-4 py-8" dir="rtl">
     <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
-        <h1 class="text-2xl font-bold text-gray-800">حملات واتساب</h1>
+        <h1 class="text-2xl font-bold text-gray-800">{{ __('WhatsApp campaigns') }}</h1>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('whatsapp.campaigns.csv-template') }}"
-                class="bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold text-sm">تحميل قالب CSV</a>
+                class="bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold text-sm">{{ __('Download CSV template') }}</a>
             <a href="{{ route('whatsapp.campaigns.create-csv') }}"
-                class="bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold text-sm">حملة من CSV</a>
+                class="bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold text-sm">{{ __('Campaign from CSV') }}</a>
             <a href="{{ route('whatsapp.campaigns.create') }}"
-                class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">حملة من الدليل</a>
+                class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">{{ __('Campaign from directory') }}</a>
         </div>
     </div>
 
@@ -26,10 +26,10 @@
             <thead class="bg-gray-50 text-gray-600">
                 <tr>
                     <th class="px-4 py-3 text-right">#</th>
-                    <th class="px-4 py-3 text-right">الاسم</th>
-                    <th class="px-4 py-3 text-right">الحالة</th>
-                    <th class="px-4 py-3 text-right">المستلمون</th>
-                    <th class="px-4 py-3 text-right">أُنشئت</th>
+                    <th class="px-4 py-3 text-right">{{ __('Name') }}</th>
+                    <th class="px-4 py-3 text-right">{{ __('Status') }}</th>
+                    <th class="px-4 py-3 text-right">{{ __('Recipients') }}</th>
+                    <th class="px-4 py-3 text-right">{{ __('Created') }}</th>
                     <th class="px-4 py-3 text-right"></th>
                 </tr>
             </thead>
@@ -52,12 +52,12 @@
                         <td class="px-4 py-3">{{ $c->recipients_count }}</td>
                         <td class="px-4 py-3">{{ optional($c->created_at)->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('whatsapp.campaigns.show', $c) }}" class="text-emerald-700 font-semibold">عرض</a>
+                            <a href="{{ route('whatsapp.campaigns.show', $c) }}" class="text-emerald-700 font-semibold">{{ __('View') }}</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">لا توجد حملات بعد.</td>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">{{ __('No campaigns yet.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

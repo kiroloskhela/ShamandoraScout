@@ -20,9 +20,7 @@
 
                 <div class="flex justify-center">
                     <a href="{{ route('medicine.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
-                        رجوع
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ __('Back') }}</a>
                 </div>
             @else
                 <form method="POST" action="{{ route('medicine.destroy', $medicine->MedicineID) }}"
@@ -36,9 +34,7 @@
                     </button>
 
                     <a href="{{ route('medicine.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
-                        إلغاء
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ __('Cancel') }}</a>
                 </form>
             @endif
         </div>

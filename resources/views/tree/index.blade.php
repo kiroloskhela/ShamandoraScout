@@ -35,7 +35,7 @@
                 @endif
                 @if ($servedQetaas->count() > 1)
                     <label class="qt-select-wrap qt-select-wrap--strong">
-                        <span class="qt-select-wrap__label">القطاع</span>
+                        <span class="qt-select-wrap__label">{{ __('Sector') }}</span>
                         <select name="qetaa" class="qt-select" onchange="document.getElementById('season-form').submit()">
                             <option value="">كل القطاعات</option>
                             @foreach ($servedQetaas as $qetaaOption)
@@ -51,7 +51,7 @@
                     </label>
                 @endif
                 <label class="qt-select-wrap">
-                    <span class="qt-select-wrap__label">الموسم</span>
+                    <span class="qt-select-wrap__label">{{ __('Season') }}</span>
                     <select name="season" class="qt-select" onchange="document.getElementById('season-form').submit()">
                         @foreach ($seasons as $s)
                             <option value="{{ $s->SeasonID }}" {{ $s->SeasonID == $currentSeasonId ? 'selected' : '' }}>
@@ -263,13 +263,13 @@
                     <input type="hidden" id="m-group-type">
                     <input type="hidden" id="m-parent-id">
                     <label class="qt-field">
-                        <span class="qt-field__label">اسم المجموعة</span>
+                        <span class="qt-field__label">{{ __('Group name') }}</span>
                         <input type="text" id="m-group-name" class="qt-input" placeholder="أدخل الاسم…">
                     </label>
                 </div>
                 <div class="qt-modal__footer">
-                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-group')">إلغاء</button>
-                    <button class="qt-btn qt-btn--primary" onclick="submitGroup()">حفظ</button>
+                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-group')">{{ __('Cancel') }}</button>
+                    <button class="qt-btn qt-btn--primary" onclick="submitGroup()">{{ __('Save') }}</button>
                 </div>
             </div>
         </div>
@@ -307,8 +307,8 @@
                     <input type="hidden" id="m-person-id">
                 </div>
                 <div class="qt-modal__footer">
-                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-person')">إلغاء</button>
-                    <button class="qt-btn qt-btn--primary" onclick="submitPerson()">حفظ</button>
+                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-person')">{{ __('Cancel') }}</button>
+                    <button class="qt-btn qt-btn--primary" onclick="submitPerson()">{{ __('Save') }}</button>
                 </div>
             </div>
         </div>
@@ -335,8 +335,8 @@
                     </label>
                 </div>
                 <div class="qt-modal__footer">
-                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-rotba')">إلغاء</button>
-                    <button class="qt-btn qt-btn--primary" onclick="submitRotbaEdit()">حفظ</button>
+                    <button class="qt-btn qt-btn--ghost" onclick="closeModal('modal-rotba')">{{ __('Cancel') }}</button>
+                    <button class="qt-btn qt-btn--primary" onclick="submitRotbaEdit()">{{ __('Save') }}</button>
                 </div>
             </div>
         </div>

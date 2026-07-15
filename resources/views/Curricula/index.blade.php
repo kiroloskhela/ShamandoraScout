@@ -22,7 +22,7 @@
             ],
             [
                 'key' => 'MarhalaName',
-                'label' => 'المرحلة',
+                'label' => __('Stage'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -49,7 +49,7 @@
             ],
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('curricula.edit', ':id'),
                 'idField' => 'CurriculaID',
                 'cssClass' =>
@@ -57,7 +57,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('curricula.delete', ':id'),
                 'idField' => 'CurriculaID',
                 'cssClass' =>

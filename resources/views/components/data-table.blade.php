@@ -55,7 +55,7 @@
             <!-- Search -->
             <div x-show="searchable" class="order-3">
                 <div class="relative">
-                    <input type="text" x-model="searchTerm" @input.debounce.300ms="search()" placeholder="البحث..."
+                    <input type="text" x-model="searchTerm" @input.debounce.300ms="search()" placeholder="{{ __('Search...') }}"
                         class="w-full sm:w-64 pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
-                <span class="text-sm font-semibold text-emerald-700">فلتر</span>
+                <span class="text-sm font-semibold text-emerald-700">{{ __('Filter') }}</span>
 
                 <span x-show="hasActiveFilters()" x-text="Object.keys(activeFilters).length"
                     class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-emerald-600 rounded-full">
@@ -86,9 +86,7 @@
 
             <div class="flex items-center gap-3">
                 <span x-show="hasActiveFilters()" @click.stop="clearAllFilters()"
-                    class="text-xs text-red-500 hover:text-red-700 underline cursor-pointer">
-                    مسح الكل
-                </span>
+                    class="text-xs text-red-500 hover:text-red-700 underline cursor-pointer">{{ __('Clear all') }}</span>
 
                 <svg class="w-4 h-4 text-emerald-600 transition-transform duration-200" :class="{ 'rotate-180': open }"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +112,7 @@
                                     'border-emerald-400 ring-1 ring-emerald-300 bg-emerald-50 text-emerald-800 font-medium' :
                                     'border-gray-300 bg-white text-gray-700'"
                                 class="w-full text-sm border rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
-                                <option value="__all__">— الكل —</option>
+                                <option value="__all__">{{ __('— All —') }}</option>
                                 <template x-for="option in getDistinctValues(col.key)" :key="option">
                                     <option :value="option" x-text="option"></option>
                                 </template>
@@ -155,7 +153,7 @@
             <thead class="bg-gray-100">
                 <tr>
                     <template x-for="column in columns" :key="column.key">
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <div class="flex items-center justify-between">
                                 <span x-text="column.label"></span>
 
@@ -177,9 +175,7 @@
                     </template>
 
                     <th x-show="actions.length > 0"
-                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        الإجراءات
-                    </th>
+                        class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Actions') }}</th>
                 </tr>
             </thead>
 
@@ -243,8 +239,8 @@
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
             </path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد بيانات</h3>
-        <p class="mt-1 text-sm text-gray-500">لم يتم العثور على أي بيانات لعرضها.</p>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">{{ __('No data') }}</h3>
+        <p class="mt-1 text-sm text-gray-500">{{ __('No data found to display.') }}</p>
     </div>
 
     <!-- PAGINATION -->
@@ -252,13 +248,13 @@
         class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
         <div class="flex-1 flex flex-wrap justify-between items-center gap-3">
             <div class="text-sm text-gray-700">
-                عرض
-                <span class="font-medium" x-text="startRecord"></span>
-                إلى
-                <span class="font-medium" x-text="endRecord"></span>
-                من
-                <span class="font-medium" x-text="filteredData.length"></span>
-                نتيجة
+                {{ __('Showing') }}
+                <span class="font-medium mx-1" x-text="startRecord"></span>
+                {{ __('to') }}
+                <span class="font-medium mx-1" x-text="endRecord"></span>
+                {{ __('of') }}
+                <span class="font-medium mx-1" x-text="filteredData.length"></span>
+                {{ __('results') }}
             </div>
 
             <div class="flex items-center space-x-reverse space-x-2 flex-wrap gap-1">

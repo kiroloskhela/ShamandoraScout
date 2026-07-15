@@ -69,7 +69,7 @@
                     </div>
 
                     <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center">
-                        <div class="text-gray-500">المتبقي</div>
+                        <div class="text-gray-500">{{ __('Remaining') }}</div>
                         <div class="font-bold text-gray-800">{{ number_format(max(0, $remaining), 2) }}</div>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                     <div class="text-gray-700">
                         <span class="font-bold">الدفعة الحالية:</span>
                         <span class="font-bold text-blue-700">{{ $currentPaymentNo }}</span>
-                        <span class="text-gray-500">من</span>
+                        <span class="text-gray-500">{{ __('From') }}</span>
                         <span class="font-bold text-gray-800">{{ $maxPayments }}</span>
                     </div>
 
@@ -117,7 +117,7 @@
 
             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-800">
                 <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                    <div class="text-gray-500 mb-1">الاسم:</div>
+                    <div class="text-gray-500 mb-1">{{ __('Name:') }}</div>
                     <div class="font-bold">{{ $person->FullName }}</div>
                 </div>
 
@@ -132,7 +132,7 @@
                 </div>
 
                 <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                    <div class="text-gray-500 mb-1">الموبايل:</div>
+                    <div class="text-gray-500 mb-1">{{ __('Mobile:') }}</div>
                     <div class="font-bold">{{ $person->PersonPersonalMobileNumber ?? '-' }}</div>
                 </div>
 
@@ -162,11 +162,11 @@
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50 text-gray-700">
                             <tr>
-                                <th class="p-3 text-right">التاريخ</th>
-                                <th class="p-3 text-right">النوع</th>
-                                <th class="p-3 text-right">المبلغ</th>
-                                <th class="p-3 text-right">ملاحظات</th>
-                                <th class="p-3 text-right">إجراءات</th>
+                                <th class="p-3 text-right">{{ __('Date') }}</th>
+                                <th class="p-3 text-right">{{ __('Gender') }}</th>
+                                <th class="p-3 text-right">{{ __('Amount') }}</th>
+                                <th class="p-3 text-right">{{ __('Notes') }}</th>
+                                <th class="p-3 text-right">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
 
@@ -179,11 +179,11 @@
 
                                     <td class="p-3">
                                         @if ($t->TransactionType == 'payment')
-                                            <span class="text-blue-700 font-bold">دفع</span>
+                                            <span class="text-blue-700 font-bold">{{ __('Pay') }}</span>
                                         @elseif($t->TransactionType == 'refund')
                                             <span class="text-orange-700 font-bold">مرتجع</span>
                                         @else
-                                            <span class="text-gray-700 font-bold">تعديل</span>
+                                            <span class="text-gray-700 font-bold">{{ __('Edit') }}</span>
                                         @endif
                                     </td>
 
@@ -194,14 +194,10 @@
                                         @if ($t->TransactionType == 'payment')
                                             <div class="flex flex-wrap gap-2">
                                                 <a href="{{ route('transactions.edit', ['id' => $t->TransactionID, 'return' => url()->current()]) }}"
-                                                    class="inline-flex items-center px-3 py-1 rounded-lg bg-green-600 text-white text-xs hover:bg-green-700">
-                                                    تعديل
-                                                </a>
+                                                    class="inline-flex items-center px-3 py-1 rounded-lg bg-green-600 text-white text-xs hover:bg-green-700">{{ __('Edit') }}</a>
 
                                                 <a href="{{ route('transactions.delete', ['id' => $t->TransactionID, 'return' => url()->current()]) }}"
-                                                    class="inline-flex items-center px-3 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700">
-                                                    حذف
-                                                </a>
+                                                    class="inline-flex items-center px-3 py-1 rounded-lg bg-red-600 text-white text-xs hover:bg-red-700">{{ __('Delete') }}</a>
 
                                                 <a href="{{ route('transactions.refund.form', ['id' => $t->TransactionID, 'return' => url()->current()]) }}"
                                                     class="inline-flex items-center px-3 py-1 rounded-lg bg-orange-600 text-white text-xs hover:bg-orange-700">
@@ -321,14 +317,10 @@
                     <button type="submit" id="submitBtn"
                         class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition
                                @if ($isCancelled) opacity-60 cursor-not-allowed @endif"
-                        @if ($isCancelled) disabled @endif>
-                        حفظ
-                    </button>
+                        @if ($isCancelled) disabled @endif>{{ __('Save') }}</button>
 
                     <a href="{{ route('booking.choosePerson', $eventInfo->SeasonEventID) }}"
-                        class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                        رجوع
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
                 </div>
             </form>
         </div>

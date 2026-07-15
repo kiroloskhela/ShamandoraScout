@@ -1,10 +1,10 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل الخطة المالية'])
+@extends('layouts.app', ['pageTitle' => __('Edit finance plan')])
 
 @section('content')
     <div class="flex place-content-center">
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-5xl border-2 border-green-300" dir="rtl">
             <div class="mb-6 text-center">
-                <h2 class="text-xl font-bold text-gray-800">تعديل الخطة المالية</h2>
+                <h2 class="text-xl font-bold text-gray-800">{{ __('Edit finance plan') }}</h2>
             </div>
 
             @if ($errors->any())
@@ -18,10 +18,10 @@
             @endif
 
             <div class="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900">
-                <div><strong>الموسم:</strong> {{ $finance->SeasonName }} ({{ $finance->SeasonYear }})</div>
-                <div><strong>الفعالية:</strong> {{ $finance->EventName }}</div>
-                <div><strong>بداية الفعالية:</strong> {{ $finance->EventStartDate }}</div>
-                <div><strong>نهاية الفعالية:</strong> {{ $finance->EventEndDate }}</div>
+                <div><strong>{{ __('Season:') }}</strong> {{ $finance->SeasonName }} ({{ $finance->SeasonYear }})</div>
+                <div><strong>{{ __('Event:') }}</strong> {{ $finance->EventName }}</div>
+                <div><strong>{{ __('Event start:') }}</strong> {{ $finance->EventStartDate }}</div>
+                <div><strong>{{ __('Event end:') }}</strong> {{ $finance->EventEndDate }}</div>
             </div>
 
             <form method="POST" action="{{ route('finance.update', $finance->SeasonEventID) }}">
@@ -30,68 +30,57 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
-                            <label for="max_installments_number" class="block mb-2 text-sm text-gray-700">أقصى عدد
-                                أقساط</label>
+                            <label for="max_installments_number" class="block mb-2 text-sm text-gray-700">{{ __('Max installments') }}</label>
                             <input type="number" min="1" id="max_installments_number" name="max_installments_number"
                                 value="{{ old('max_installments_number', $finance->MaxInstallmentsNumber) }}"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
-                            <label for="minimum_deposit" class="block mb-2 text-sm text-gray-700">الحد الأدنى للمقدم</label>
+                            <label for="minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Minimum deposit') }}</label>
                             <input type="number" step="0.01" min="0" id="minimum_deposit" name="minimum_deposit"
                                 value="{{ old('minimum_deposit', $finance->MinimumDeposit) }}"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
-                            <label for="allow_below_minimum_deposit" class="block mb-2 text-sm text-gray-700">السماح بأقل من
-                                المقدم</label>
+                            <label for="allow_below_minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Allow below minimum deposit') }}</label>
                             <select id="allow_below_minimum_deposit" name="allow_below_minimum_deposit"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                                 <option value="1"
-                                    {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 1 ? 'selected' : '' }}>
-                                    نعم</option>
+                                    {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 <option value="0"
-                                    {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 0 ? 'selected' : '' }}>
-                                    لا</option>
+                                    {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
                             </select>
                         </div>
 
                         <div>
-                            <label for="have_shirt" class="block mb-2 text-sm text-gray-700">هل يوجد تيشيرت؟</label>
+                            <label for="have_shirt" class="block mb-2 text-sm text-gray-700">{{ __('Has a T-shirt?') }}</label>
                             <select id="have_shirt" name="have_shirt"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
-                                <option value="1" {{ old('have_shirt', $finance->HaveShirt) == 1 ? 'selected' : '' }}>
-                                    نعم</option>
-                                <option value="0" {{ old('have_shirt', $finance->HaveShirt) == 0 ? 'selected' : '' }}>
-                                    لا</option>
+                                <option value="1" {{ old('have_shirt', $finance->HaveShirt) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                <option value="0" {{ old('have_shirt', $finance->HaveShirt) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="border rounded-lg p-4 bg-gray-50">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-800">الفترات السعرية</h3>
+                            <h3 class="font-bold text-gray-800">{{ __('Price intervals') }}</h3>
                             <button type="button" id="add-interval-btn"
-                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">
-                                إضافة فترة سعرية
-                            </button>
+                                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">{{ __('Add price interval') }}</button>
                         </div>
 
                         <div id="intervals-container" class="space-y-4"></div>
 
                         <p class="text-xs text-gray-500 mt-4">
-                            ملاحظة: لو آخر فترة انتهت قبل بداية الفعالية، سيتم استكمال الأيام المتبقية تلقائيًا بنفس آخر
-                            سعر.
+                            {{ __('Note: if the last interval ends before the event starts, remaining days are filled automatically with the last price.') }}
                         </p>
                     </div>
 
                     <div class="flex justify-center">
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition">
-                            حفظ التعديلات
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition">{{ __('Save changes') }}</button>
                     </div>
                 </div>
             </form>
@@ -110,28 +99,26 @@
 
                 wrapper.innerHTML = `
             <div>
-                <label class="block mb-2 text-sm text-gray-700">من تاريخ</label>
+                <label class="block mb-2 text-sm text-gray-700">{{ __('From date') }}</label>
                 <input type="date" name="start_date[]" value="${startValue}"
                     class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div>
-                <label class="block mb-2 text-sm text-gray-700">إلى تاريخ</label>
+                <label class="block mb-2 text-sm text-gray-700">{{ __('To date') }}</label>
                 <input type="date" name="end_date[]" value="${endValue}"
                     class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div>
-                <label class="block mb-2 text-sm text-gray-700">السعر</label>
+                <label class="block mb-2 text-sm text-gray-700">{{ __('Price') }}</label>
                 <input type="number" step="0.01" min="0" name="price[]" value="${priceValue}"
                     class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div class="flex items-end">
                 <button type="button"
-                    class="remove-interval-btn w-full inline-flex items-center justify-center h-12 px-4 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">
-                    حذف الفترة
-                </button>
+                    class="remove-interval-btn w-full inline-flex items-center justify-center h-12 px-4 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">{{ __('Delete interval') }}</button>
             </div>
         `;
 

@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>كشافة الشمندورة - لوحة التحكم</title>
+    <title>{{ __('Shamandora Scout - Dashboard') }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
@@ -45,7 +45,7 @@
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">بيانات التحكم</h1>
+                    <h1 class="h3 mb-2 text-gray-800" style="font-family: 'Cairo', sans-serif;">{{ __('Control data') }}</h1>
 
                     <!-- DataTales Example -->
                     <div class="card shadow mb-4">
@@ -61,7 +61,7 @@
                             <div class="card-header py-3">
                                 <div class="col-sm-3 mb-3 mb-sm-0">
                                                 <input type="submit" class="btn-google btn-user btn-block" style="background-color: brown;" id="submit-button" value="حذف"></input>
-                                                <a href="{{ route('max-limits.index') }}" class="btn-google btn-user btn-block" style="background-color: rgb(24, 32, 156); text-align: center">رجوع</a>
+                                                <a href="{{ route('max-limits.index') }}" class="btn-google btn-user btn-block" style="background-color: rgb(24, 32, 156); text-align: center">{{ __('Back') }}</a>
                                 </div>
                             </div>
                         </form>

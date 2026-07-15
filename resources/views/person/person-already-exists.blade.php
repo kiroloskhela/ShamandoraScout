@@ -66,9 +66,7 @@
 
                     <div class="pt-6 mt-10 border-t border-slate-200 text-center">
                         <p class="text-xs text-slate-500">© 2024 Shamandora Scout</p>
-                        <p class="text-sm font-bold text-indigo-700 mt-1">
-                            مجموعة الشمندورة الكشفية
-                        </p>
+                        <p class="text-sm font-bold text-indigo-700 mt-1">{{ __('Shamandora Scout Group') }}</p>
                     </div>
 
                 </div>

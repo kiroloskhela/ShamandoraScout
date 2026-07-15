@@ -45,9 +45,7 @@
 
                     <a href="{{ $returnUrl ?? url()->previous() }}"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full
-                  bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                        إلغاء
-                    </a>
+                  bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Cancel') }}</a>
                 </div>
             </form>
 

@@ -24,7 +24,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('manteqa.edit', ':id'),
                 'idField' => 'ManteqaID',
                 'cssClass' =>
@@ -32,7 +32,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('manteqa.delete', ':id'),
                 'idField' => 'ManteqaID',
                 'cssClass' =>

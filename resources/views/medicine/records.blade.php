@@ -10,13 +10,13 @@
 
         <x-data-table :data="$records->toArray()" title="سجل صرف الأدوية" :header-buttons="[
             [
-                'label' => 'صرف دواء',
+                'label' => __('Dispense medicine'),
                 'route' => route('medicine.dispense'),
                 'cssClass' =>
                     'bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
             ],
             [
-                'label' => 'مخزون الأدوية',
+                'label' => __('Medicine stock'),
                 'route' => route('medicine.index'),
                 'cssClass' =>
                     'bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -30,20 +30,20 @@
             ],
             [
                 'key' => 'MedicineName',
-                'label' => 'الدواء',
+                'label' => __('Medicine'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'MedicineTypeLabel',
-                'label' => 'النوع',
+                'label' => __('Gender'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
                 'filter' => true,
             ],
             [
                 'key' => 'PersonName',
-                'label' => 'الشخص',
+                'label' => __('Person'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
@@ -62,7 +62,7 @@
             ],
             [
                 'key' => 'QuantityText',
-                'label' => 'الكمية',
+                'label' => __('Quantity'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
@@ -74,7 +74,7 @@
             ],
             [
                 'key' => 'Notes',
-                'label' => 'ملاحظات',
+                'label' => __('Notes'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700',
             ],

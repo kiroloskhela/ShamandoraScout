@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>كشافة الشمندورة - لوحة التحكم</title>
+    <title>{{ __('Shamandora Scout - Dashboard') }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -51,7 +51,7 @@
             <li class="nav-item active">
                 <a class="nav-link" href={{ url('/index') }}>
                     <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span style="font-family: 'Cairo', sans-serif; font-weight: lighter;">لوحة التحكم</span></a>
+                    <span style="font-family: 'Cairo', sans-serif; font-weight: lighter;">{{ __('Dashboard') }}</span></a>
             </li>
 
             <!-- Divider -->
@@ -111,7 +111,7 @@
                 </a>
                 <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">صفحات التسجيل والدخول</h6>
+                        <h6 class="collapse-header">{{ __('Login & registration pages') }}</h6>
                         <a class="collapse-item" href={{ url('/login') }}>تسجيل الدخول</a>
                         <a class="collapse-item" href={{ url('/register') }}>اضافة حساب جديد</a>
                         <a class="collapse-item" href={{ url('/forgot-password') }}>نسيت كلمة السر؟</a>
@@ -158,7 +158,7 @@
                     <form
                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light border-0 small" style="font-family: 'Cairo', sans-serif; direction: rtl;" placeholder="ابحث عن ...."
+                            <input type="text" class="form-control bg-light border-0 small" style="font-family: 'Cairo', sans-serif; direction: rtl;" placeholder="{{ __('Search...') }}"
                                 aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="button">
@@ -370,12 +370,12 @@
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th>الكود</th>
-                                            <th> الاسم</th>
+                                            <th>{{ __('Code') }}</th>
+                                            <th>{{ __('Name') }}</th>
                                             <th>المرحلة الدراسية</th>
-                                            <th>القطاع</th>
-                                            <th>الرقم القومي</th>
-                                            <th>رقم الموبايل</th>
+                                            <th>{{ __('Sector') }}</th>
+                                            <th>{{ __('National ID') }}</th>
+                                            <th>{{ __('Mobile number') }}</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -425,7 +425,7 @@
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
                                                                 white-space: nowrap;" 
-                                                    > موافقة</a>
+                                                    >{{ __('Approve') }}</a>
                                                 @else
                                                 <a
                                                 style="appearance: none;
@@ -449,7 +449,7 @@
                                                         touch-action: manipulation;
                                                         vertical-align: middle;
                                                         white-space: nowrap;" 
-                                                    > تمت الموافقة</a>
+                                                    >{{ __('Approved') }}</a>
                                                 @endif
                                                     <a href="{{ route('person.new-enrolments-delete', $person->PersonID) }}" 
                                                         style="appearance: none;
@@ -473,7 +473,7 @@
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
                                                                 white-space: nowrap;" 
-                                                    > رفض</a>
+                                                    >{{ __('Reject') }}</a>
 
                                                     <a href="{{ route('person.new-enrolments-show', $person->PersonID) }}"
                                                         style="appearance: none;
@@ -497,7 +497,7 @@
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
                                                                 white-space: nowrap;" 
-                                                    > عرض</a>
+                                                    >{{ __('View') }}</a>
                                             </td>
                                         </tr>
                                         @endforeach

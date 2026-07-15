@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>كشافة الشمندورة - لوحة التحكم</title>
+    <title>{{ __('Shamandora Scout - Dashboard') }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="../../../../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -173,13 +173,13 @@
                                             cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>الطلب</th>
-                                                    <th> الاسم</th>
-                                                    <th>المرحلة</th>
-                                                    <th>القطاع</th>
-                                                    <th>الرقم القومي</th>
-                                                    <th>رقم الموبايل</th>
-                                                    <th>هل أكمل الأسئلة؟</th>
+                                                    <th>{{ __('Request') }}</th>
+                                                    <th>{{ __('Name') }}</th>
+                                                    <th>{{ __('Stage') }}</th>
+                                                    <th>{{ __('Sector') }}</th>
+                                                    <th>{{ __('National ID') }}</th>
+                                                    <th>{{ __('Mobile number') }}</th>
+                                                    <th>{{ __('Completed questions?') }}</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -239,8 +239,7 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;">
-                                                                    موافقة</a>
+                                                                white-space: nowrap;">{{ __('Approve') }}</a>
                                                             @else
                                                                 <a
                                                                     style="appearance: none;
@@ -287,8 +286,7 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;">
-                                                                رفض</a>
+                                                                white-space: nowrap;">{{ __('Reject') }}</a>
 
                                                             <a href="{{ route('person.new-enrolments-show', $person->PersonID) }}"
                                                                 style="appearance: none;
@@ -311,8 +309,7 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;">
-                                                                عرض</a>
+                                                                white-space: nowrap;">{{ __('View') }}</a>
                                                             @if ($person->HasAnsweredQuestions == 'لا')
                                                                 <a href="{{ route('person.entry-questions-liveform', $person->PersonID) }}"
                                                                     style="appearance: none;

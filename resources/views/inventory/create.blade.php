@@ -22,7 +22,7 @@
 
                     <!-- Quantity -->
                     <div class="relative">
-                        <label for="item_quantity" class="block mb-2 text-sm text-gray-700">الكمية</label>
+                        <label for="item_quantity" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>
                         <input type="number" id="item_quantity" name="item_quantity"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none"
@@ -55,7 +55,7 @@
                     </div>
                     <!-- Location -->
                     <div class="relative">
-                        <label for="location" class="block mb-2 text-sm text-gray-700">الموقع</label>
+                        <label for="location" class="block mb-2 text-sm text-gray-700">{{ __('Location') }}</label>
                         <select id="location" name="location"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">

@@ -193,9 +193,7 @@
                             © Shamandora Scout
                         </p>
 
-                        <p class="mt-1 text-sm font-bold text-indigo-700">
-                            مجموعة الشمندورة الكشفية
-                        </p>
+                        <p class="mt-1 text-sm font-bold text-indigo-700">{{ __('Shamandora Scout Group') }}</p>
 
                     </div>
 

@@ -37,7 +37,7 @@
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">من تاريخ</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('From date') }}</label>
                         <input type="date" name="date_from" id="date_from"
                             value="{{ old('date_from', $requestRow->DateFrom) }}"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
@@ -45,7 +45,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">إلى تاريخ</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('To date') }}</label>
                         <input type="date" name="date_to" id="date_to"
                             value="{{ old('date_to', $requestRow->DateTo) }}"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
@@ -57,13 +57,13 @@
             {{-- Optional dropdowns --}}
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">معلومات إضافية (اختياري)</h2>
+                    <h2 class="text-lg font-bold text-gray-800">{{ __('Additional info (optional)') }}</h2>
                     <span class="text-xs text-gray-500">القطاع / نوع الفعالية</span>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">القطاع</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Sector') }}</label>
                         <select name="qetaa_id" id="qetaa_id"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                             <option value="">-- بدون --</option>
@@ -125,10 +125,10 @@
                         <thead class="bg-slate-50">
                             <tr class="text-sm text-slate-700">
                                 <th class="p-3 border-b">م</th>
-                                <th class="p-3 border-b">الصنف</th>
-                                <th class="p-3 border-b">الوحدة</th>
+                                <th class="p-3 border-b">{{ __('Item') }}</th>
+                                <th class="p-3 border-b">{{ __('Unit') }}</th>
                                 <th class="p-3 border-b">الكمية المطلوبة</th>
-                                <th class="p-3 border-b">حذف</th>
+                                <th class="p-3 border-b">{{ __('Delete') }}</th>
                             </tr>
                         </thead>
                         <tbody id="selectedItemsBody" class="text-sm text-slate-800"></tbody>
@@ -141,13 +141,13 @@
             {{-- Note --}}
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">ملاحظة (اختياري)</h2>
-                    <span class="text-xs text-gray-500">رسالة للإدارة</span>
+                    <h2 class="text-lg font-bold text-gray-800">{{ __('Note (optional)') }}</h2>
+                    <span class="text-xs text-gray-500">{{ __('Message to admin') }}</span>
                 </div>
 
                 <textarea name="user_note" id="user_note" rows="3"
                     class="w-full border rounded-lg p-3 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                    placeholder="اكتب أي ملاحظة...">{{ old('user_note', $requestRow->UserNote) }}</textarea>
+                    placeholder="{{ __('Write any note...') }}">{{ old('user_note', $requestRow->UserNote) }}</textarea>
             </div>
 
             {{-- Hidden items container --}}
@@ -163,9 +163,7 @@
 
                 <a href="{{ route('custody_requests.show', $requestRow->RequestID) }}"
                     class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
-                       bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200 mr-2">
-                    رجوع
-                </a>
+                       bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200 mr-2">{{ __('Back') }}</a>
             </div>
         </form>
 
@@ -243,9 +241,7 @@
                 <td class="p-3">
                     <button type="button"
                         class="px-3 py-2 text-xs rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition border border-red-200"
-                        data-remove="${idx}">
-                        حذف
-                    </button>
+                        data-remove="${idx}">{{ __('Delete') }}</button>
                 </td>
             `;
                     selectedBody.appendChild(tr);
@@ -299,7 +295,7 @@
 
                     if (!matches.length) {
                         searchResults.innerHTML =
-                            `<div class="p-3 text-sm text-gray-500">لا توجد نتائج</div>`;
+                            `<div class="p-3 text-sm text-gray-500">{{ __('No results') }}</div>`;
                         setResultsVisible(true);
                         return;
                     }
@@ -320,7 +316,7 @@
                         <div class="text-sm text-slate-800">${escapeHtml(item.ItemName)}</div>
                         <div class="text-xs text-gray-500">${escapeHtml(unit)}${available}</div>
                     </div>
-                    <div class="text-xs text-gray-400">إضافة</div>
+                    <div class="text-xs text-gray-400">{{ __('Add') }}</div>
                 `;
 
                         row.addEventListener('click', function() {

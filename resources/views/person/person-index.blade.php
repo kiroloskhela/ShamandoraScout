@@ -1,18 +1,18 @@
-@extends('layouts.app', ['pageTitle' => 'بيانات التحكم' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Control data') ?? ''])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
 
 
-        <x-data-table :data="$persons->items()" title="إدارة المستخدمين " :add-button="[
-            'label' => 'إضافة  مستخدم',
+        <x-data-table :data="$persons->items()" title="{{ __('Manage users') }}" :add-button="[
+            'label' => __('Add user'),
             'route' => route('person.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :header-buttons="[
             [
-                'label' => 'تحميل Excel',
+                'label' => __('Download Excel'),
                 'route' => route('export.scouts.excel', auth()->id()),
                 'cssClass' =>
                     'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -20,38 +20,38 @@
         ]" :columns="[
             [
                 'key' => 'PersonID',
-                'label' => 'رقم المستخدم',
+                'label' => __('User ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'full_name',
-                'label' => 'الاسم الكامل',
+                'label' => __('Full name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'PersonPersonalMobileNumber',
-                'label' => 'رقم الهاتف',
+                'label' => __('Phone number'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'المرحله',
+                'label' => __('Stage'),
                 'type' => 'label',
                 'filter' => true,
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'القطاع',
+                'label' => __('Sector'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'HasAnsweredQuestions',
-                'label' => 'تم الاجابه عن الاسئله',
+                'label' => __('Answered questions'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
@@ -59,7 +59,7 @@
             :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('person.edit', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -67,7 +67,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('person.delete', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
@@ -75,7 +75,7 @@
                 ],
                 [
                     'name' => 'show',
-                    'label' => 'عرض',
+                    'label' => __('View'),
                     'route' => route('person.show', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>

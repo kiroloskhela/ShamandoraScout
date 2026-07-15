@@ -1,10 +1,10 @@
-@extends('layouts.app', ['pageTitle' => 'حجز أدوية'])
+@extends('layouts.app', ['pageTitle' => __('Reserve medicine')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-amber-300">
             <div class="mb-6 text-center">
-                <h1 class="text-2xl font-bold text-gray-800">حجز أدوية</h1>
+                <h1 class="text-2xl font-bold text-gray-800">{{ __('Reserve medicine') }}</h1>
             </div>
 
             @if (session('status'))
@@ -28,10 +28,10 @@
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="md:col-span-2 relative">
-                        <label for="medicine_search" class="block mb-2 text-sm text-gray-700">الدواء</label>
+                        <label for="medicine_search" class="block mb-2 text-sm text-gray-700">{{ __('Medicine') }}</label>
                         <input type="text" id="medicine_search" autocomplete="off"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
-                            placeholder="اكتب اسم الدواء أو النوع أو المكان">
+                            placeholder="{{ __('Type medicine name, type, or place') }}">
                         <input type="hidden" id="medicine_id" name="medicine_id" value="{{ old('medicine_id') }}"
                             required>
                         <div id="medicine_results"
@@ -41,66 +41,64 @@
                     </div>
 
                     <div>
-                        <label for="location_id" class="block mb-2 text-sm text-gray-700">مكان الحجز</label>
+                        <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Lock location') }}</label>
                         <select id="location_id" name="location_id" required disabled
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none disabled:bg-slate-100">
-                            <option value="">-- اختر الدواء أولاً --</option>
+                            <option value="">{{ __('-- Choose medicine first --') }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="quantity" id="quantity_label" class="block mb-2 text-sm text-gray-700">الكمية</label>
+                        <label for="quantity" id="quantity_label" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>
                         <div class="flex rounded-lg border border-slate-200 overflow-hidden focus-within:border-amber-500">
                             <input type="number" id="quantity" name="quantity" min="1" step="1" required
                                 value="{{ old('quantity', 1) }}"
                                 class="w-full h-12 px-4 text-right text-slate-700 focus:outline-none">
                             <span id="quantity_unit"
-                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">وحدة</span>
+                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">{{ __('Unit') }}</span>
                         </div>
                     </div>
 
                     <div>
-                        <label for="starts_at" class="block mb-2 text-sm text-gray-700">تاريخ بداية الحجز</label>
+                        <label for="starts_at" class="block mb-2 text-sm text-gray-700">{{ __('Lock start date') }}</label>
                         <input type="date" id="starts_at" name="starts_at"
                             value="{{ old('starts_at', now()->toDateString()) }}" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
                     </div>
 
                     <div>
-                        <label for="ends_at" class="block mb-2 text-sm text-gray-700">تاريخ نهاية الحجز</label>
+                        <label for="ends_at" class="block mb-2 text-sm text-gray-700">{{ __('Lock end date') }}</label>
                         <input type="date" id="ends_at" name="ends_at"
                             value="{{ old('ends_at', now()->toDateString()) }}" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="lock_reason" class="block mb-2 text-sm text-gray-700">سبب الحجز</label>
+                        <label for="lock_reason" class="block mb-2 text-sm text-gray-700">{{ __('Lock reason') }}</label>
                         <input type="text" id="lock_reason" name="lock_reason"
                             value="{{ old('lock_reason', 'معسكر') }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
-                            placeholder="مثال: معسكر">
+                            placeholder="{{ __('Example: camp') }}">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="notes" class="block mb-2 text-sm text-gray-700">ملاحظات</label>
+                        <label for="notes" class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
                         <input type="text" id="notes" name="notes" value="{{ old('notes') }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
-                            placeholder="اختياري">
+                            placeholder="{{ __('Optional') }}">
                     </div>
                 </div>
 
                 <div class="mt-8 text-center">
                     <button type="submit"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-amber-50 text-amber-700 hover:bg-amber-100 transition">
-                        حجز الكمية
-                    </button>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-amber-50 text-amber-700 hover:bg-amber-100 transition">{{ __('Lock quantity') }}</button>
                 </div>
             </form>
         </div>
 
-        <x-data-table :data="$locks->toArray()" title="سجل حجز الأدوية" :header-buttons="[
+        <x-data-table :data="$locks->toArray()" title="{{ __('Medicine lock log') }}" :header-buttons="[
             [
-                'label' => 'مخزون الأدوية',
+                'label' => __('Medicine stock'),
                 'route' => route('medicine.index'),
                 'cssClass' =>
                     'bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -108,51 +106,51 @@
         ]" :columns="[
             [
                 'key' => 'MedicineName',
-                'label' => 'الدواء',
+                'label' => __('Medicine'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'LocationName',
-                'label' => 'المكان',
+                'label' => __('Place'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
                 'filter' => true,
             ],
             [
                 'key' => 'QuantityText',
-                'label' => 'الكمية',
+                'label' => __('Quantity'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800 font-bold',
             ],
             [
                 'key' => 'LockReason',
-                'label' => 'السبب',
+                'label' => __('Reason'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
             [
                 'key' => 'StartsAt',
-                'label' => 'من',
+                'label' => __('From'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
             [
                 'key' => 'EndsAt',
-                'label' => 'إلى',
+                'label' => __('To'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
             [
                 'key' => 'StatusLabel',
-                'label' => 'الحالة',
+                'label' => __('Status'),
                 'type' => 'badge',
                 'cssClass' => 'px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800',
                 'filter' => true,
             ],
             [
                 'key' => 'CreatorName',
-                'label' => 'تم بواسطة',
+                'label' => __('By'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
@@ -160,7 +158,7 @@
             :actions="[
                 [
                     'name' => 'release',
-                    'label' => 'فك الحجز',
+                    'label' => __('Release lock'),
                     'route' => route('medicine.locks.release', ':id'),
                     'idField' => 'MedicineStockLockID',
                     'method' => 'PATCH',
@@ -201,10 +199,10 @@
             function resetMedicineSelection() {
                 medicineIdInput.value = '';
                 medicineStatus.textContent = '';
-                quantityLabel.textContent = 'الكمية';
-                quantityUnit.textContent = 'وحدة';
+                quantityLabel.textContent = @json(__('Quantity'));
+                quantityUnit.textContent = @json(__('Unit'));
                 quantityInput.removeAttribute('max');
-                locationSelect.innerHTML = '<option value="">-- اختر الدواء أولاً --</option>';
+                locationSelect.innerHTML = '<option value="">{{ __('-- Choose medicine first --') }}</option>';
                 locationSelect.disabled = true;
             }
 
@@ -227,7 +225,7 @@
 
                 if (!filtered.length) {
                     medicineResults.innerHTML =
-                        '<div class="px-4 py-3 text-sm text-gray-500 text-center">لا يوجد نتائج</div>';
+                        '<div class="px-4 py-3 text-sm text-gray-500 text-center">{{ __('No results') }}</div>';
                     medicineResults.classList.remove('hidden');
                     return;
                 }
@@ -241,7 +239,7 @@
 
                     item.innerHTML = `
                         <div class="font-bold">${escapeHtml(medicine.MedicineName)}</div>
-                        <div class="text-xs mt-1">${escapeHtml(medicine.TypeLabel)} | متاح: ${escapeHtml(medicine.AvailableText)} | محجوز: ${escapeHtml(medicine.LockedText)}</div>
+                        <div class="text-xs mt-1">${escapeHtml(medicine.TypeLabel)} | ${@json(__('Available:'))} ${escapeHtml(medicine.AvailableText)} | ${@json(__('Locked:'))} ${escapeHtml(medicine.LockedText)}</div>
                         <div class="text-xs mt-1 text-slate-500">${escapeHtml(medicine.AvailableBreakdown)}</div>
                     `;
 
@@ -261,11 +259,11 @@
             function selectMedicine(medicine, selectedLocationId = null) {
                 medicineIdInput.value = medicine.MedicineID;
                 medicineSearch.value =
-                    `${medicine.MedicineName} - ${medicine.TypeLabel} - متاح ${medicine.AvailableText}`;
-                quantityLabel.textContent = `الكمية (${medicine.UnitLabel})`;
+                    `${medicine.MedicineName} - ${medicine.TypeLabel} - ${@json(__('Available'))} ${medicine.AvailableText}`;
+                quantityLabel.textContent = `${@json(__('Quantity'))} (${medicine.UnitLabel})`;
                 quantityUnit.textContent = medicine.UnitLabel;
                 medicineStatus.textContent =
-                    `المتاح: ${medicine.AvailableText} | المحجوز: ${medicine.LockedText} | ${medicine.AvailableBreakdown}`;
+                    `${@json(__('Available:'))} ${medicine.AvailableText} | ${@json(__('Locked:'))} ${medicine.LockedText} | ${medicine.AvailableBreakdown}`;
 
                 const locations = activeLocations(medicine);
                 locationSelect.innerHTML = '';
@@ -275,7 +273,7 @@
                     const option = document.createElement('option');
                     option.value = location.LocationID;
                     option.textContent =
-                        `${location.LocationName} - متاح ${location.AvailableAmount} ${medicine.UnitLabel} (محجوز ${location.LockedAmount})`;
+                        `${location.LocationName} - ${@json(__('Available'))} ${location.AvailableAmount} ${medicine.UnitLabel} (${@json(__('Locked'))} ${location.LockedAmount})`;
                     locationSelect.appendChild(option);
                 });
 

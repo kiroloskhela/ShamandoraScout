@@ -15,7 +15,7 @@
                 <div class="space-y-6">
                     <!-- Qetaa -->
                     <div>
-                        <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">القطاع الكشفي</label>
+                        <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">{{ __('Scout sector') }}</label>
                         <select id="qetaa_id" name="qetaa_id" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="" selected disabled>اختر القطاع الكشفي</option>
@@ -41,7 +41,7 @@
 
                     <!-- Question Text -->
                     <div>
-                        <label for="question_text" class="block mb-2 text-sm text-gray-700">نص السؤال</label>
+                        <label for="question_text" class="block mb-2 text-sm text-gray-700">{{ __('Question text') }}</label>
                         <textarea id="question_text" name="question_text" rows="3" required
                             class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             placeholder="ادخل نص السؤال المطلوب"></textarea>
@@ -86,9 +86,7 @@
                                             :name="'choice' + (idx + 1)" :placeholder="'اختيار رقم ' + (idx + 1)"
                                             x-model="choices[idx]" required>
                                         <button type="button" @click="removeChoice(idx)"
-                                            class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm">
-                                            إزالة
-                                        </button>
+                                            class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm">{{ __('Remove') }}</button>
                                     </div>
                                 </template>
                                 <div class="flex justify-end">

@@ -23,7 +23,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('blood.edit', ':id'),
                 'idField' => 'BloodTypeID',
                 'cssClass' =>
@@ -31,7 +31,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('blood.delete', ':id'),
                 'idField' => 'BloodTypeID',
                 'cssClass' =>

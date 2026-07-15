@@ -24,7 +24,7 @@
             :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('group-type.edit', ':id'),
                     'idField' => 'GroupTypeID',
                     'cssClass' =>
@@ -32,7 +32,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('group-type.delete', ':id'),
                     'idField' => 'GroupTypeID',
                     'cssClass' =>

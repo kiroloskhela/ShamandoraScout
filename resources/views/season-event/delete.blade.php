@@ -12,8 +12,8 @@
         </p>
 
         <ul class="mb-6 text-gray-700 text-right">
-            <li><strong>الموسم:</strong> {{ $season->SeasonName }} ({{ $season->SeasonYear }})</li>
-            <li><strong>الفعالية:</strong> {{ $event->EventName }} 
+            <li><strong>{{ __('Season:') }}</strong> {{ $season->SeasonName }} ({{ $season->SeasonYear }})</li>
+            <li><strong>{{ __('Event:') }}</strong> {{ $event->EventName }} 
                 ({{ \Carbon\Carbon::parse($event->EventStartDate)->format('Y-m-d') }} → 
                  {{ \Carbon\Carbon::parse($event->EventEndDate)->format('Y-m-d') }})
             </li>
@@ -27,9 +27,7 @@
                 نعم، احذف
             </button>
             <a href="{{ route('season-event.index') }}"
-                class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition">
-                إلغاء
-            </a>
+                class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition">{{ __('Cancel') }}</a>
         </form>
     </div>
 </div>

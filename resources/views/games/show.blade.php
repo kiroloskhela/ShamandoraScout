@@ -45,7 +45,7 @@
                 </div>
 
                 <div class="relative">
-                    <label class="block mb-2 text-sm text-gray-700">الفئة العمرية</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Age group') }}</label>
                     <div class="w-full min-h-12 px-4 py-3 border rounded-lg bg-gray-50 text-slate-700">
                         {{ $game->AgeGroup ?: 'لا يوجد' }}
                     </div>
@@ -75,9 +75,7 @@
 
                     <a href="{{ route('games.index') }}"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide 
-                               rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition">
-                        رجوع
-                    </a>
+                               rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition">{{ __('Back') }}</a>
                 </div>
 
             </div>

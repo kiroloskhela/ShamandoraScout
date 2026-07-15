@@ -1,24 +1,24 @@
-@extends('layouts.app', ['pageTitle' => 'طباعة عهدة'])
+@extends('layouts.app', ['pageTitle' => __('Print custody')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
         <div class="mb-8 text-center">
-            <h1 class="mb-2 text-3xl font-bold text-gray-800">طباعة عهدة</h1>
-            <p class="text-gray-600">اختر الموسم والفعالية، أضف الأصناف والكميات، ثم اطبع بشكل احترافي</p>
+            <h1 class="mb-2 text-3xl font-bold text-gray-800">{{ __('Print custody') }}</h1>
+            <p class="text-gray-600">{{ __('Choose season and event, add items and quantities, then print professionally') }}</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">١) الموسم والفعالية</h2>
-                <span class="text-xs text-gray-500">ابدأ من هنا</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('1) Season and event') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Start here') }}</span>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">اختر الموسم</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Choose season') }}</label>
                     <select id="season_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="">-- اختر الموسم --</option>
+                        <option value="">{{ __('-- Choose season --') }}</option>
                         @foreach ($seasons as $season)
                             <option value="{{ $season->SeasonID }}">
                                 {{ $season->SeasonName }} ({{ $season->SeasonYear }})
@@ -28,26 +28,26 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">اختر الفعالية</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Choose event') }}</label>
                     <select id="event_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
                         disabled>
-                        <option value="">-- اختر الفعالية --</option>
+                        <option value="">{{ __('-- Choose event --') }}</option>
                     </select>
-                    <p id="eventHelp" class="mt-2 text-xs text-gray-500">اختر الموسم أولاً لعرض الفعاليات</p>
+                    <p id="eventHelp" class="mt-2 text-xs text-gray-500">{{ __('Choose season first to show events') }}</p>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-green-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٢) إضافة الأصناف</h2>
-                <span class="text-xs text-gray-500">ابحث ثم اختر</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('2) Add items') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Search then select') }}</span>
             </div>
 
             <div class="relative">
-                <label class="block mb-2 text-sm text-gray-700">ابحث عن الصنف</label>
-                <input type="text" id="itemSearch" placeholder="اكتب اسم الصنف..."
+                <label class="block mb-2 text-sm text-gray-700">{{ __('Search for item') }}</label>
+                <input type="text" id="itemSearch" placeholder="{{ __('Type item name...') }}"
                     class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                     autocomplete="off">
 
@@ -55,14 +55,14 @@
                     class="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto hidden">
                 </div>
 
-                <p class="mt-2 text-xs text-gray-500">نصيحة: اكتب حرفين أو أكثر لنتائج أسرع</p>
+                <p class="mt-2 text-xs text-gray-500">{{ __('Tip: type two or more characters for faster results') }}</p>
             </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-yellow-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٣) الأصناف المختارة</h2>
-                <span id="itemsCount" class="text-xs text-gray-500">0 صنف</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('3) Selected items') }}</h2>
+                <span id="itemsCount" class="text-xs text-gray-500">{{ __('0 items') }}</span>
             </div>
 
             <div class="overflow-x-auto">
@@ -70,34 +70,32 @@
                     id="selectedItemsTable">
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
-                            <th class="p-3 border-b">م</th>
-                            <th class="p-3 border-b">الصنف</th>
-                            <th class="p-3 border-b">الوحدة</th>
-                            <th class="p-3 border-b">الكمية</th>
-                            <th class="p-3 border-b">حذف</th>
+                            <th class="p-3 border-b">{{ __('#') }}</th>
+                            <th class="p-3 border-b">{{ __('Item') }}</th>
+                            <th class="p-3 border-b">{{ __('Unit') }}</th>
+                            <th class="p-3 border-b">{{ __('Quantity') }}</th>
+                            <th class="p-3 border-b">{{ __('Delete') }}</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm text-slate-800"></tbody>
                 </table>
             </div>
 
-            <p id="emptyHint" class="mt-4 text-sm text-gray-500 text-center">
-                لم يتم اختيار أي صنف بعد.
-            </p>
+            <p id="emptyHint" class="mt-4 text-sm text-gray-500 text-center">{{ __('No item selected yet.') }}</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٤) بيانات التوقيع</h2>
-                <span class="text-xs text-gray-500">ستظهر في أسفل كل صفحة</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('4) Signature details') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Will appear at the bottom of each page') }}</span>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6">
                 <div class="md:col-span-2">
-                    <label for="qetaa" class="block mb-2 text-sm text-gray-700">اختر القطاع</label>
+                    <label for="qetaa" class="block mb-2 text-sm text-gray-700">{{ __('Choose sector') }}</label>
                     <select id="qetaa" name="qetaa"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="">-- اختر القطاع --</option>
+                        <option value="">{{ __('-- Choose sector --') }}</option>
                         @foreach ($qetaat as $qetaa)
                             <option value="{{ $qetaa->QetaaID }}">{{ $qetaa->QetaaName }}</option>
                         @endforeach
@@ -105,30 +103,26 @@
                 </div>
 
                 <div>
-                    <label for="muslim" class="block mb-2 text-sm text-gray-700">المُسَلِّم</label>
+                    <label for="muslim" class="block mb-2 text-sm text-gray-700">{{ __('Issuer') }}</label>
                     <input type="text" id="muslim" name="muslim"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                        placeholder="اكتب اسم المُسَلِّم">
+                        placeholder="{{ __('Enter issuer name') }}">
                 </div>
 
                 <div>
-                    <label for="mustalem" class="block mb-2 text-sm text-gray-700">المُستَلِم</label>
+                    <label for="mustalem" class="block mb-2 text-sm text-gray-700">{{ __('Recipient') }}</label>
                     <input type="text" id="mustalem" name="mustalem"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                        placeholder="اكتب اسم المُستَلِم">
+                        placeholder="{{ __('Enter recipient name') }}">
                 </div>
             </div>
         </div>
 
         <div class="text-center">
             <button type="button" id="generatePdf"
-                class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                تحميل / طباعة PDF
-            </button>
+                class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">{{ __('Download / print PDF') }}</button>
 
-            <p id="actionHint" class="mt-3 text-xs text-gray-500">
-                تأكد من اختيار فعالية وإضافة أصناف قبل الطباعة.
-            </p>
+            <p id="actionHint" class="mt-3 text-xs text-gray-500">{{ __('Make sure to choose an event and add items before printing.') }}</p>
         </div>
     </div>
 
@@ -189,8 +183,8 @@
                 searchResults.classList.toggle('hidden', !visible);
             }
 
-            function resetEventSelect(message = 'اختر الموسم أولاً لعرض الفعاليات') {
-                eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
+            function resetEventSelect(message = @json(__('Choose season first to show events'))) {
+                eventSelect.innerHTML = '<option value="">{{ __('-- Choose event --') }}</option>';
                 eventSelect.disabled = true;
                 eventHelp.textContent = message;
             }
@@ -206,7 +200,7 @@
             }
 
             function updateCounts() {
-                itemsCountEl.textContent = `${selectedItems.length} صنف`;
+                itemsCountEl.textContent = @json(__(':count item(s)')).replace(':count', selectedItems.length);
                 emptyHintEl.classList.toggle('hidden', selectedItems.length > 0);
             }
 
@@ -214,7 +208,7 @@
                 generatePdfBtn.disabled = loading;
                 generatePdfBtn.classList.toggle('opacity-60', loading);
                 generatePdfBtn.classList.toggle('cursor-not-allowed', loading);
-                generatePdfBtn.textContent = loading ? 'جاري تجهيز الطباعة...' : 'تحميل / طباعة PDF';
+                generatePdfBtn.textContent = loading ? @json(__('Preparing print...')) : @json(__('Download / print PDF'));
             }
 
             function renderSelectedItems() {
@@ -242,16 +236,14 @@
                                 data-idx="${index}"
                                 class="w-24 h-10 border rounded-lg text-center border-slate-200 focus:border-blue-500 focus:outline-none"
                             >
-                            <div class="text-[11px] text-gray-500 mt-1">حد أقصى: ${item.max}</div>
+                            <div class="text-[11px] text-gray-500 mt-1">${@json(__('Max:'))} ${item.max}</div>
                         </td>
                         <td class="p-3">
                             <button
                                 type="button"
                                 data-remove="${index}"
                                 class="px-3 py-2 text-xs rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
-                            >
-                                حذف
-                            </button>
+                            >{{ __('Delete') }}</button>
                         </td>
                     `;
 
@@ -285,7 +277,7 @@
             function addItem(item) {
                 const exists = selectedItems.find(selected => String(selected.id) === String(item.InventoryID));
                 if (exists) {
-                    setActionHint('هذا الصنف مضاف بالفعل.', 'red');
+                    setActionHint(@json(__('This item is already added.')), 'red');
                     return;
                 }
 
@@ -298,14 +290,14 @@
                 });
 
                 renderSelectedItems();
-                setActionHint('تمت إضافة الصنف بنجاح.', 'green');
+                setActionHint(@json(__('Item added successfully.')), 'green');
             }
 
             function renderSearchResults(items) {
                 searchResults.innerHTML = '';
 
                 if (!items.length) {
-                    searchResults.innerHTML = '<div class="p-3 text-sm text-gray-500">لا توجد نتائج</div>';
+                    searchResults.innerHTML = '<div class="p-3 text-sm text-gray-500">{{ __('No results') }}</div>';
                     setSearchResultsVisible(true);
                     return;
                 }
@@ -318,7 +310,7 @@
 
                     button.innerHTML = `
                         <div class="text-sm text-slate-800">${escapeHtml(item.ItemName)}</div>
-                        <div class="text-xs text-gray-500">الحد الأقصى: ${normalizeMaxQty(item.ItemQuantity)}</div>
+                        <div class="text-xs text-gray-500">${@json(__('Maximum:'))} ${normalizeMaxQty(item.ItemQuantity)}</div>
                     `;
 
                     button.addEventListener('click', function() {
@@ -343,9 +335,9 @@
                     return;
                 }
 
-                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+                eventSelect.innerHTML = '<option value="">{{ __('Loading...') }}</option>';
                 eventSelect.disabled = true;
-                eventHelp.textContent = 'جاري تحميل الفعاليات...';
+                eventHelp.textContent = @json(__('Loading events...'));
 
                 try {
                     const response = await fetch(`${eventsUrl}?seasonID=${encodeURIComponent(seasonId)}`, {
@@ -366,26 +358,26 @@
                     const events = Array.isArray(payload) ? payload : (Array.isArray(payload.data) ? payload
                         .data : []);
 
-                    eventSelect.innerHTML = '<option value="">-- اختر الفعالية --</option>';
+                    eventSelect.innerHTML = '<option value="">{{ __('-- Choose event --') }}</option>';
 
                     if (!events.length) {
                         eventSelect.disabled = true;
-                        eventHelp.textContent = 'لا توجد فعاليات لهذا الموسم';
+                        eventHelp.textContent = @json(__('No events for this season'));
                         return;
                     }
 
                     events.forEach(event => {
                         const option = document.createElement('option');
                         option.value = event.EventID ?? event.id ?? '';
-                        option.textContent = event.EventName ?? event.name ?? 'فعالية';
+                        option.textContent = event.EventName ?? event.name ?? @json(__('Event'));
                         eventSelect.appendChild(option);
                     });
 
                     eventSelect.disabled = false;
-                    eventHelp.textContent = 'تم تحميل الفعاليات بنجاح';
+                    eventHelp.textContent = @json(__('Events loaded successfully'));
                 } catch (error) {
                     if (currentRequest !== requestCounter) return;
-                    resetEventSelect('حدث خطأ أثناء تحميل الفعاليات');
+                    resetEventSelect(@json(__('Error loading events')));
                 }
             }
 
@@ -420,7 +412,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>طباعة عهدة - ${escapeHtml(eventName)}</title>
+    <title>${@json(__('Print custody'))} - ${escapeHtml(eventName)}</title>
     <style>
         @page {
             size: A4 portrait;
@@ -625,9 +617,9 @@
                                                                 </div>
 
                                                                 <div class="header-info">
-                                                                    <div class="header-team">الفريق: ${escapeHtml(qetaaName)}</div>
-                                                                    <div class="header-title">عهدة ${escapeHtml(eventName)}</div>
-                                                                    <div class="header-date">التاريخ: &nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;</div>
+                                                                    <div class="header-team">${@json(__('Team:'))} ${escapeHtml(qetaaName)}</div>
+                                                                    <div class="header-title">${@json(__('Custody'))} ${escapeHtml(eventName)}</div>
+                                                                    <div class="header-date">${@json(__('Date:'))} &nbsp;&nbsp;/&nbsp;&nbsp;/&nbsp;&nbsp;</div>
                                                                 </div>
                                                             </div>
 
@@ -636,10 +628,10 @@
                                                                     <table>
                                                                         <thead>
                                                                             <tr>
-                                                                                <th style="width: 10%;">م</th>
-                                                                                <th style="width: 50%;">الصنف</th>
-                                                                                <th style="width: 20%;">الكمية</th>
-                                                                                <th style="width: 20%;">الوحدة</th>
+                                                                                <th style="width: 10%;">${@json(__('#'))}</th>
+                                                                                <th style="width: 50%;">{{ __('Item') }}</th>
+                                                                                <th style="width: 20%;">{{ __('Quantity') }}</th>
+                                                                                <th style="width: 20%;">{{ __('Unit') }}</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -651,20 +643,20 @@
 
                                                          <div class="footer">
                                         <div class="signature-box right-box">
-                                            <div class="signature-title">المسلم</div>
+                                            <div class="signature-title">{{ __('Issuer') }}</div>
                                             <div><span class="signature-name">${escapeHtml(muslim)}</span></div>
-                                            <div>التوقيع: ....................................</div>
+                                            <div>${@json(__('Signature: ....................................'))}</div>
                                         </div>
 
                                         <div class="signature-box left-box">
-                                            <div class="signature-title">المستلم</div>
+                                            <div class="signature-title">{{ __('Recipient') }}</div>
                                             <div><span class="signature-name">${escapeHtml(mustalem)}</span></div>
-                                            <div>التوقيع: ....................................</div>
+                                            <div>${@json(__('Signature: ....................................'))}</div>
                                         </div>
                                     </div>
 
                                                             <div class="page-counter">
-                                                                صفحة ${pageIndex + 1} من ${pages.length}
+                                                                ${@json(__('Page :current of :total')).replace(':current', pageIndex + 1).replace(':total', pages.length)}
                                                             </div>
                                                         </div>
                                                     </section>
@@ -752,18 +744,18 @@
 
             generatePdfBtn.addEventListener('click', async function() {
                 if (!eventSelect.value) {
-                    setActionHint('من فضلك اختر الفعالية أولاً.', 'red');
-                    alert('من فضلك اختر الفعالية أولاً.');
+                    setActionHint(@json(__('Please choose the event first.')), 'red');
+                    alert(@json(__('Please choose the event first.')));
                     return;
                 }
 
                 if (selectedItems.length === 0) {
-                    setActionHint('من فضلك أضف صنف واحد على الأقل قبل الطباعة.', 'red');
-                    alert('من فضلك أضف صنف واحد على الأقل قبل الطباعة.');
+                    setActionHint(@json(__('Please add at least one item before printing.')), 'red');
+                    alert(@json(__('Please add at least one item before printing.')));
                     return;
                 }
 
-                const eventName = getSelectedText(eventSelect, 'الفعالية');
+                const eventName = getSelectedText(eventSelect, @json(__('Event')));
                 const qetaaName = getSelectedText(qetaaSelect, '...........');
                 const muslim = muslimInput.value.trim();
                 const mustalem = mustalemInput.value.trim();
@@ -779,13 +771,13 @@
 
                 try {
                     setPrintLoading(true);
-                    setActionHint('جاري تجهيز الطباعة...', 'green');
+                    setActionHint(@json(__('Preparing print...')), 'green');
                     await printHtml(html);
-                    setActionHint('تم تجهيز الطباعة بنجاح.', 'green');
+                    setActionHint(@json(__('Print prepared successfully.')), 'green');
                 } catch (error) {
                     console.error(error);
-                    setActionHint('حدث خطأ أثناء تجهيز الطباعة.', 'red');
-                    alert('حدث خطأ أثناء تجهيز الطباعة.');
+                    setActionHint(@json(__('An error occurred while preparing print.')), 'red');
+                    alert(@json(__('An error occurred while preparing print.')));
                 } finally {
                     setPrintLoading(false);
                 }

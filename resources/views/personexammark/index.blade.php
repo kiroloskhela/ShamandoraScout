@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'تسجيل درجات الامتحان'])
+@extends('layouts.app', ['pageTitle' => __('Record exam marks')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
@@ -8,8 +8,8 @@
             </div>
         @endif
 
-        <x-data-table :data="$marks" title="تسجيل درجات الامتحان" :add-button="[
-            'label' => 'تسجيل درجة جديدة',
+        <x-data-table :data="$marks" title="{{ __('Record exam marks') }}" :add-button="[
+            'label' => __('Record new mark'),
             'route' => route('personexammark.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -22,56 +22,56 @@
             ],
             [
                 'key' => 'PersonName',
-                'label' => 'المخدوم',
+                'label' => __('Served member'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'القطعة',
+                'label' => __('Sector'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'سنة المرحلة',
+                'label' => __('Stage year'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'TheoreticalMark',
-                'label' => 'نظري',
+                'label' => __('Theoretical'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'PracticalMark',
-                'label' => 'عملي',
+                'label' => __('Practical'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'ExamDate',
-                'label' => 'تاريخ الامتحان',
+                'label' => __('Exam date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'ServentName',
-                'label' => 'سجّلها',
+                'label' => __('Recorded by'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'Note',
-                'label' => 'ملاحظة',
+                'label' => __('Note'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('personexammark.edit', ':id'),
                 'idField' => 'ExamMarkID',
                 'cssClass' =>
@@ -79,7 +79,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('personexammark.delete', ':id'),
                 'idField' => 'ExamMarkID',
                 'cssClass' =>

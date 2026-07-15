@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة حدث/مناسبة'])
+@extends('layouts.app', ['pageTitle' => __('Add event/occasion')])
 
 @section('content')
     <div class="container-fluid">
@@ -6,9 +6,7 @@
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl border-2 border-blue-300" dir="rtl">
                 <!-- Title -->
                 <div class="mb-6 text-center">
-                    <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">
-                        اضافة حدث/مناسبة جديدة
-                    </h2>
+                    <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">{{ __('Add new event/occasion') }}</h2>
                 </div>
 
                 <!-- Errors -->
@@ -29,13 +27,11 @@
                         <!-- Season -->
                         <div>
                             <label for="season_id" class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                الموسم (اختياري)
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Season (optional)') }}</label>
                             <select name="season_id" id="season_id"
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
-                                <option value="">بدون ربط بموسم</option>
+                                <option value="">{{ __('Not linked to a season') }}</option>
                                 @isset($seasons)
                                     @foreach ($seasons as $season)
                                         <option value="{{ $season->SeasonID }}">
@@ -49,12 +45,11 @@
                         <!-- Event Type -->
                         <div>
                             <label for="event_type_id" class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">نوع الحدث أو المناسبة
-                                الكشفية</label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Scout event or occasion type') }}</label>
                             <select name="event_type_id" id="event_type_id" required
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
-                                <option value="" disabled selected>اختر نوع الحدث أو المناسبة الكشفية</option>
+                                <option value="" disabled selected>{{ __('Choose scout event type') }}</option>
                                 @foreach ($eventTypes as $eventType)
                                     <option value="{{ $eventType->EventTypeID }}">{{ $eventType->EventTypeName }}</option>
                                 @endforeach
@@ -64,13 +59,12 @@
                         <!-- Event Name -->
                         <div class="relative">
                             <input id="event_name" type="text" name="event_name"
-                                placeholder="ادخل اسم الحدث أو المناسبة (اختياري - سيتم تكوينه تلقائياً إذا تركته فارغاً)"
+                                placeholder="{{ __('Enter event or occasion name (optional — auto-generated if left empty)') }}"
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium" />
-                            <label for="event_name" class="sr-only">اسم الحدث</label>
+                            <label for="event_name" class="sr-only">{{ __('Event name') }}</label>
                             <p class="mt-2 text-xs text-slate-500" style="font-family: 'Cairo', sans-serif;">
-                                في حالة ترك الاسم فارغًا سيتم تكوينه تلقائيًا من:
-                                نوع الحدث + القطاع + تاريخ البداية + تاريخ النهاية
+                                {{ __('If the name is left empty it will be auto-generated from: event type + sector + start date + end date') }}
                             </p>
                             <div id="autoNamePreview"
                                 class="hidden mt-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800"
@@ -81,8 +75,7 @@
                         <!-- Qetaa Multi-Selection -->
                         <div>
                             <label class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">اختر القطاعات المربوطة بهذا
-                                الحدث</label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Choose sectors linked to this event') }}</label>
                             <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
                                 @foreach ($qetaat as $qetaa)
                                     <label
@@ -96,30 +89,25 @@
                                 @endforeach
                             </div>
                             <div id="qetaa-validation-error" class="hidden text-red-500 text-xs mt-1"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                يرجى اختيار قطاع واحد على الأقل
-                            </div>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Please choose at least one sector') }}</div>
                         </div>
 
                         <!-- Recurrence Toggle -->
                         <div class="flex items-center gap-3">
                             <input id="is_recursive" type="checkbox" name="is_recursive"
                                 class="h-4 w-4 border-slate-300 rounded text-blue-600 focus:ring-blue-500">
-                            <label for="is_recursive" class="text-sm text-gray-700">متكرر (اختيار أيام متعددة
-                                منفصلة)</label>
+                            <label for="is_recursive" class="text-sm text-gray-700">{{ __('Recurring (multiple separate days)') }}</label>
                         </div>
 
                         <!-- Date Range (single event) -->
                         <div id="singleRangeWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label for="event_start_date" class="block mb-2 text-sm text-gray-700">تاريخ بداية
-                                    الحدث</label>
+                                <label for="event_start_date" class="block mb-2 text-sm text-gray-700">{{ __('Event start date') }}</label>
                                 <input id="event_start_date" type="date" name="event_start_date"
                                     class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
                             </div>
                             <div>
-                                <label for="event_end_date" class="block mb-2 text-sm text-gray-700">تاريخ نهاية
-                                    الحدث</label>
+                                <label for="event_end_date" class="block mb-2 text-sm text-gray-700">{{ __('Event end date') }}</label>
                                 <input id="event_end_date" type="date" name="event_end_date"
                                     class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
                             </div>
@@ -128,28 +116,21 @@
                         <!-- Multiple Days (recurring events) -->
                         <div id="multiDatesWrap" class="hidden rounded-lg border border-slate-200 p-4">
                             <div class="flex items-center justify-between">
-                                <p class="text-sm text-slate-700">الأيام المختارة (لكل يوم سيتم إنشاء حدث منفصل يبدأ وينتهي
-                                    في نفس اليوم)</p>
+                                <p class="text-sm text-slate-700">{{ __('Selected days (for each day a separate event is created that starts and ends on the same day)') }}</p>
                                 <button type="button" id="addDateBtn"
-                                    class="h-10 px-4 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm">
-                                    + إضافة يوم
-                                </button>
+                                    class="h-10 px-4 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm">{{ __('+ Add day') }}</button>
                             </div>
 
                             <div id="datesList" class="mt-3 space-y-3"></div>
 
-                            <div id="multiDatesError" class="hidden text-red-600 text-xs mt-2">
-                                يرجى إضافة يوم واحد على الأقل عند اختيار "متكرر"
-                            </div>
+                            <div id="multiDatesError" class="hidden text-red-600 text-xs mt-2">{{ __('Please add at least one day when choosing "Recurring"') }}</div>
                         </div>
 
                         <!-- Submit -->
                         <div class="flex justify-center pt-6">
                             <button type="submit" id="submit-button"
                                 class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-bold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition"
-                                style="font-family: 'Cairo', sans-serif;">
-                                ادخال
-                            </button>
+                                style="font-family: 'Cairo', sans-serif;">{{ __('Enter') }}</button>
                         </div>
                     </div>
                 </form>
@@ -204,7 +185,7 @@
                     if (qetaaNames.length) parts.push(qetaaNames.join(' - '));
 
                     if (startDate && endDate) {
-                        parts.push(formatDateForName(startDate) + ' إلى ' + formatDateForName(endDate));
+                        parts.push(formatDateForName(startDate) + ' ' + @json(__('to')) + ' ' + formatDateForName(endDate));
                     } else if (startDate) {
                         parts.push(formatDateForName(startDate));
                     }
@@ -218,7 +199,7 @@
 
                     if (!manualName && generated) {
                         autoNamePreview.classList.remove('hidden');
-                        autoNamePreview.innerHTML = 'الاسم التلقائي المقترح: <strong>' + generated + '</strong>';
+                        autoNamePreview.innerHTML = @json(__('Suggested auto name:')) + ' <strong>' + generated + '</strong>';
                     } else {
                         autoNamePreview.classList.add('hidden');
                         autoNamePreview.innerHTML = '';
@@ -234,7 +215,7 @@
                     return getAllDateInputs().some(inp => inp !== current && inp.value === value);
                 }
 
-                function showDuplicateError(msg = 'هناك أيام مكررة. برجاء اختيار كل يوم مرة واحدة فقط.') {
+                function showDuplicateError(msg = @json(__('There are duplicate days. Please choose each day only once.'))) {
                     multiErr.textContent = msg;
                     multiErr.classList.remove('hidden');
                 }
@@ -245,7 +226,7 @@
 
                 function validateUniqueDatesOnChange(input) {
                     if (findDuplicate(input.value, input)) {
-                        showDuplicateError('هذا اليوم مكرر بالفعل. اختر يومًا مختلفًا.');
+                        showDuplicateError(@json(__('This day is already duplicated. Choose a different day.')));
                         input.value = '';
                         input.focus();
                         return false;
@@ -281,9 +262,7 @@
                             class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
                             required>
                         <button type="button"
-                                class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">
-                            إزالة
-                        </button>
+                                class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">{{ __('Remove') }}</button>
                     `;
                     datesList.appendChild(row);
 
@@ -314,13 +293,13 @@
                     const endDate = endDateInput.value;
 
                     if (!startDate) {
-                        alert('يرجى إدخال تاريخ البداية');
+                        alert(@json(__('Please enter the start date')));
                         startDateInput.focus();
                         return false;
                     }
 
                     if (!endDate) {
-                        const confirmSameDay = confirm('لم يتم اختيار تاريخ النهاية. هل تريد جعله نفس تاريخ البداية؟');
+                        const confirmSameDay = confirm(@json(__('End date not selected. Do you want to set it to the same as the start date?')));
                         if (!confirmSameDay) {
                             endDateInput.focus();
                             return false;
@@ -329,7 +308,7 @@
                     }
 
                     if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
-                        alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
+                        alert(@json(__('Event start date must be before the end date')));
                         return false;
                     }
 
@@ -343,7 +322,7 @@
                     const generated = buildAutoName();
 
                     if (!generated) {
-                        alert('لا يمكن تكوين اسم الحدث تلقائياً قبل اختيار نوع الحدث والقطاع والتاريخ');
+                        alert(@json(__('Cannot auto-generate event name before choosing event type, sector, and date')));
                         return false;
                     }
 
@@ -367,7 +346,7 @@
                     if (typeof $.fn.select2 === 'function') {
                         $('#event_type_id').select2({
                             theme: "classic",
-                            placeholder: "اختر نوع الحدث أو المناسبة الكشفية",
+                            placeholder: "{{ __('Choose scout event type') }}",
                             dir: "rtl"
                         });
                     }
@@ -391,7 +370,7 @@
                         if (!eventType || qetaaChecked === 0) {
                             e.preventDefault();
                             if (qetaaChecked === 0) qetaaErr.classList.remove('hidden');
-                            alert('يرجى ملء جميع الحقول المطلوبة');
+                            alert(@json(__('Please fill all required fields')));
                             return false;
                         }
 
@@ -406,7 +385,7 @@
                             if (inputs.length === 0) {
                                 e.preventDefault();
                                 multiErr.classList.remove('hidden');
-                                alert('يرجى إضافة يوم واحد على الأقل');
+                                alert(@json(__('Please add at least one day')));
                                 return false;
                             }
 
@@ -414,7 +393,7 @@
                                 if (!r.value) {
                                     e.preventDefault();
                                     multiErr.classList.remove('hidden');
-                                    alert('يرجى تعبئة جميع الأيام أو حذف الصفوف الفارغة');
+                                    alert(@json(__('Please fill all days or delete empty rows')));
                                     return false;
                                 }
                             }
@@ -422,7 +401,7 @@
                             if (hasAnyDuplicates()) {
                                 e.preventDefault();
                                 showDuplicateError();
-                                alert('لا يمكن تكرار نفس اليوم أكثر من مرة.');
+                                alert(@json(__('The same day cannot be repeated more than once.')));
                                 return false;
                             }
 
@@ -440,13 +419,13 @@
                                 const generated = [
                                     eventTypeName,
                                     qetaaNames.join(' - '),
-                                    firstDate && lastDate ? (firstDate + ' إلى ' + lastDate) :
+                                    firstDate && lastDate ? (firstDate + ' ' + @json(__('to')) + ' ' + lastDate) :
                                     firstDate
                                 ].filter(Boolean).join(' - ');
 
                                 if (!generated) {
                                     e.preventDefault();
-                                    alert('لا يمكن تكوين اسم الحدث تلقائياً');
+                                    alert(@json(__('Cannot auto-generate event name')));
                                     return false;
                                 }
 

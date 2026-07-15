@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => "اضافة شخص جديد"?? ''])
+@extends('layouts.app' , ['pageTitle' => __('Add new person')?? ''])
 
 
 @section('content')
@@ -50,10 +50,8 @@
                             <div class="col-lg-12">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;">
-                                            ادخال بيانات ملتحق جديد</h1>
-                                        <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;">
-                                            الجزء الأول: البيانات الشخصية</h2>
+                                        <h1 class="h4 text-gray-900 mb-4" style="font-family: 'Cairo', sans-serif;">{{ __('Enter new member data') }}</h1>
+                                        <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;">{{ __('Part 1: Personal information') }}</h2>
                                     </div>
                                     <div>
                                         <input type="text" class="form-control form-control-user" name="RequestPersonID"
@@ -66,7 +64,7 @@
                                             <input type="text" class="form-control form-control-user" name="first_name"
                                                 id="first_name"
                                                 style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الأول" onclick="validate('first_name')"
+                                                placeholder="{{ __('First name') }}" onclick="validate('first_name')"
                                                 onfocusout="validate('first_name')">
                                         </div>
 
@@ -74,7 +72,7 @@
                                             <input type="text" class="form-control form-control-user" name="second_name"
                                                 id="second_name"
                                                 style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثاني" onclick="validate('second_name')"
+                                                placeholder="{{ __('Second name') }}" onclick="validate('second_name')"
                                                 onfocusout="validate('second_name')">
                                         </div>
 
@@ -82,7 +80,7 @@
                                             <input type="text" class="form-control form-control-user" name="third_name"
                                                 id="third_name"
                                                 style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الثالث" onclick="validate('third_name')"
+                                                placeholder="{{ __('Third name') }}" onclick="validate('third_name')"
                                                 onfocusout="validate('third_name')">
                                         </div>
 
@@ -90,7 +88,7 @@
                                             <input type="text" class="form-control form-control-user" name="fourth_name"
                                                 id="fourth_name"
                                                 style="font-family: 'Cairo', sans-serif; font-size: medium"
-                                                placeholder="الاسم الرابع">
+                                                placeholder="{{ __('Fourth name') }}">
                                         </div>
                                     </div>
                                     <div class="form-group row text-center" dir="rtl">
@@ -104,9 +102,9 @@
                                                 style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
                                                 value="" disabled selected>اختر النوع</option>
                                             <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="Male">ذكر</option>
+                                                value="Male">{{ __('Male') }}</option>
                                             <option style="font-family: 'Cairo', sans-serif; color: black;"
-                                                value="Female">أنثى</option>
+                                                value="Female">{{ __('Female') }}</option>
                                         </select>
                                     </div>
                                     <div class="form-group text-center" dir="rtl">
@@ -125,7 +123,7 @@
                                             <input type="date" class="form-control form-control-user"
                                                 id="birthdate_input" name="birthdate_input"
                                                 style="margin-left: 5px;;font-family: 'Cairo', sans-serif; font-size: large"
-                                                placeholder="تاريخ الميلاد" onclick="validate('birthdate_input')"
+                                                placeholder="{{ __('Date of birth') }}" onclick="validate('birthdate_input')"
                                                 onfocusout="validate('birthdate_input')">
                                         </div>
 
@@ -189,7 +187,7 @@
                                             onfocusout="validate('blood_type_input')">
                                             <option
                                                 style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
-                                                value="" disabled selected>اختر فصيلة الدم</option>
+                                                value="" disabled selected>{{ __('Choose blood type') }}</option>
                                             @foreach($blood as $blood_element)
                                             <option style="font-family: 'Cairo', sans-serif; color: black;"
                                                 value="{{$blood_element->BloodTypeID}}">
@@ -267,10 +265,8 @@
                                         placeholder="هل الموبايل الأساسي عليه واتساب؟" id="has_whatsapp">
                                         <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
                                             value="" disabled selected>اختر نعم أم لا</option>
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="True">نعم
-                                        </option>
-                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="False">لا
-                                        </option>
+                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="True">{{ __('Yes') }}</option>
+                                        <option style="font-family: 'Cairo', sans-serif; color: black;" value="False">{{ __('No') }}</option>
                                     </select>
 
                                 </div>
@@ -328,7 +324,7 @@
                                 </div>
                                 <div class="form-group text-center" dir="rtl">
                                     <label class="text-center" for="nearest_landmark"
-                                        style="font-family: 'Cairo', sans-serif;">أقرب علامة مميزة</label>
+                                        style="font-family: 'Cairo', sans-serif;">{{ __('Nearest landmark') }}</label>
                                     <input dir="rtl" type="text" name="nearest_landmark" id="nearest_landmark"
                                         class="form-control form-control-user" id="nearest_landmark"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
@@ -432,7 +428,7 @@
 
                                 <div class="form-group text-center" dir="rtl">
                                     <label class="text-center" for="person_faculty"
-                                        style="font-family: 'Cairo', sans-serif;">اسم الكلية</label>
+                                        style="font-family: 'Cairo', sans-serif;">{{ __('Faculty name') }}</label>
                                     <select class="form-control" style="margin-top: 8px;" name="person_faculty"
                                         id="person_faculty" placeholder="اختار الكلية">
                                         <option style="font-family: 'Cairo', sans-serif; color: black; font-size: large"
@@ -528,7 +524,7 @@
                                         الرابع: البيانات الكشفية</h2>
                                 </div>
                                 <div class="form-group text-center" dir="rtl">
-                                    <label style="font-family: 'Cairo', sans-serif;">الرتبة الكشفية</label>
+                                    <label style="font-family: 'Cairo', sans-serif;">{{ __('Scout rank') }}</label>
                                     <br />
                                     <select class="form-control" style="margin-top: 8px;" name="rotba_kashfeyya_id"
                                         id="rotba_kashfeyya_id" onChange="" placeholder="اختار الرتبة الكشفية"
@@ -558,7 +554,7 @@
                                     </select>
                                 </div>
                                 <div class="form-group text-center" dir="rtl">
-                                    <label style="font-family: 'Cairo', sans-serif;">القطاع الكشفي</label>
+                                    <label style="font-family: 'Cairo', sans-serif;">{{ __('Scout sector') }}</label>
                                     <br />
                                     <select class="form-control" style="margin-top: 8px;" name="qetaa_id" id="qetaa_id"
                                         onChange="" placeholder="اختار القطاع" onclick="validate('qetaa_id')"

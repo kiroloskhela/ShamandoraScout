@@ -16,7 +16,7 @@
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'اسم القطاع',
+                'label' => __('Sector name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
                 'filter' => true,
@@ -38,7 +38,7 @@
             :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('max-limits.edit', ['id' => ':id', 'sana_id' => ':sana_id']),
                     'idField' => 'QetaaID',
                     'extraFields' => [
@@ -49,7 +49,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('max-limits.delete', ['id' => ':id', 'sana_id' => ':sana_id']),
                     'idField' => 'QetaaID',
                     'extraFields' => [
@@ -103,8 +103,7 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;">
-                تعديل</a>
+                                                                white-space: nowrap;">{{ __('Edit') }}</a>
 
             <a href="{{ route('max-limits.delete', ['id' => $marhala->QetaaID, 'sana_id' => $marhala->SanaMarhalaID]) }}"
                 style="appearance: none;
@@ -127,8 +126,7 @@
                                                                 -webkit-user-select: none;
                                                                 touch-action: manipulation;
                                                                 vertical-align: middle;
-                                                                white-space: nowrap;">
-                مسح</a>
+                                                                white-space: nowrap;">{{ __('Delete') }}</a>
         </td>
     </tr>
 @endforeach --}}

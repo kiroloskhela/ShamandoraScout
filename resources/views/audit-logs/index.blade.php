@@ -6,7 +6,7 @@
 
         <form method="GET" action="{{ route('audit-logs.index') }}" class="mb-6 grid grid-cols-1 md:grid-cols-5 gap-3 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
             <div>
-                <label class="block text-sm text-gray-600 mb-1">رقم الشخص</label>
+                <label class="block text-sm text-gray-600 mb-1">{{ __('Person ID') }}</label>
                 <input type="number" name="person_id" value="{{ request('person_id') }}"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
             </div>
@@ -20,17 +20,17 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm text-gray-600 mb-1">بحث</label>
+                <label class="block text-sm text-gray-600 mb-1">{{ __('Search') }}</label>
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="مسار / إجراء / اسم"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
             </div>
             <div>
-                <label class="block text-sm text-gray-600 mb-1">من</label>
+                <label class="block text-sm text-gray-600 mb-1">{{ __('From') }}</label>
                 <input type="date" name="from" value="{{ request('from') }}"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
             </div>
             <div>
-                <label class="block text-sm text-gray-600 mb-1">إلى</label>
+                <label class="block text-sm text-gray-600 mb-1">{{ __('To') }}</label>
                 <input type="date" name="to" value="{{ request('to') }}"
                     class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
             </div>
@@ -48,7 +48,7 @@
                         <th class="px-3 py-2 text-right">الوقت</th>
                         <th class="px-3 py-2 text-right">الفاعل</th>
                         <th class="px-3 py-2 text-right">الإجراء</th>
-                        <th class="px-3 py-2 text-right">الحالة</th>
+                        <th class="px-3 py-2 text-right">{{ __('Status') }}</th>
                         <th class="px-3 py-2 text-right">IP</th>
                     </tr>
                 </thead>
@@ -66,7 +66,7 @@
                                 <div class="text-xs text-gray-500 font-mono break-all">{{ $log->path }}</div>
                                 @if (!empty($log->request_payload))
                                     <details class="mt-1">
-                                        <summary class="cursor-pointer text-xs text-blue-700">البيانات</summary>
+                                        <summary class="cursor-pointer text-xs text-blue-700">{{ __('Data') }}</summary>
                                         <pre class="text-[11px] bg-gray-50 p-2 rounded mt-1 overflow-x-auto max-w-xl">{{ json_encode($log->request_payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</pre>
                                     </details>
                                 @endif

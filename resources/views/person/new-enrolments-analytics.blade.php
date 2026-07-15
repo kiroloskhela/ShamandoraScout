@@ -5,7 +5,7 @@
         <x-data-table :data="$analytics" title="تحليل الطلبات الجديدة" :columns="[
             [
                 'key' => 'QetaaName',
-                'label' => 'القطاع',
+                'label' => __('Sector'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],

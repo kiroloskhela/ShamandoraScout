@@ -1,13 +1,12 @@
-@extends('layouts.app', ['pageTitle' => 'التحكم في نموذج الالتحاق'])
+@extends('layouts.app', ['pageTitle' => __('Enrolment form control')])
 
 @section('content')
-<div class="max-w-2xl mx-auto" dir="rtl">
+@php($locale = app()->getLocale())
+<div class="max-w-2xl mx-auto" lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-slate-100">التحكم في نموذج الالتحاق</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-slate-100">{{ __('Enrolment form control') }}</h1>
         <p class="mt-2 text-sm text-gray-500 dark:text-slate-400">
-            عند الإغلاق، صفحة
-            <a href="{{ url('/liveform') }}" class="text-teal-700 underline" target="_blank" rel="noopener">/liveform</a>
-            تعرض رسالة «لا يوجد تسجيل حالياً» بدل النموذج.
+            {{ __('When closed, /liveform shows a closed message instead of the form.') }}
         </p>
     </div>
 
@@ -23,15 +22,15 @@
         @method('PUT')
 
         <div>
-            <span class="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">حالة التسجيل</span>
+            <span class="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-3">{{ __('Registration status') }}</span>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label class="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition
                     {{ $isOpen ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/30' : 'border-gray-200 dark:border-slate-700' }}">
                     <input type="radio" name="liveform_open" value="1" class="text-teal-700 focus:ring-teal-600"
                         {{ $isOpen ? 'checked' : '' }}>
                     <span>
-                        <span class="block font-bold text-teal-800 dark:text-teal-200">مفتوح</span>
-                        <span class="text-xs text-gray-500">يمكن تقديم طلبات التحاق جديدة</span>
+                        <span class="block font-bold text-teal-800 dark:text-teal-200">{{ __('Open') }}</span>
+                        <span class="text-xs text-gray-500">{{ __('New enrolment requests can be submitted') }}</span>
                     </span>
                 </label>
                 <label class="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition
@@ -39,8 +38,8 @@
                     <input type="radio" name="liveform_open" value="0" class="text-rose-600 focus:ring-rose-500"
                         {{ !$isOpen ? 'checked' : '' }}>
                     <span>
-                        <span class="block font-bold text-rose-800 dark:text-rose-200">مغلق</span>
-                        <span class="text-xs text-gray-500">عرض صفحة الإغلاق للزوار</span>
+                        <span class="block font-bold text-rose-800 dark:text-rose-200">{{ __('Closed') }}</span>
+                        <span class="text-xs text-gray-500">{{ __('Show closed page to visitors') }}</span>
                     </span>
                 </label>
             </div>
@@ -48,7 +47,7 @@
 
         <div>
             <label for="liveform_closed_message" class="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
-                رسالة الإغلاق
+                {{ __('Closed message') }}
             </label>
             <textarea id="liveform_closed_message" name="liveform_closed_message" rows="4" required
                 class="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 shadow-sm focus:border-teal-600 focus:ring-teal-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100">{{ old('liveform_closed_message', $closedMessage) }}</textarea>
@@ -58,16 +57,14 @@
         </div>
 
         @if ($updatedAt)
-            <p class="text-xs text-gray-400">آخر تحديث: {{ $updatedAt }}</p>
+            <p class="text-xs text-gray-400">{{ __('Last updated') }}: {{ $updatedAt }}</p>
         @endif
 
         <div class="flex items-center justify-between gap-3 pt-2">
             <a href="{{ url('/liveform') }}" target="_blank" rel="noopener"
-                class="text-sm font-medium text-teal-700 hover:underline">معاينة الصفحة العامة</a>
+                class="text-sm font-medium text-teal-700 hover:underline">{{ __('Preview public page') }}</a>
             <button type="submit"
-                class="inline-flex items-center rounded-xl bg-teal-700 px-6 py-3 text-sm font-bold text-white shadow hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-                حفظ
-            </button>
+                class="inline-flex items-center rounded-xl bg-teal-700 px-6 py-3 text-sm font-bold text-white shadow hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">{{ __('Save') }}</button>
         </div>
     </form>
 </div>

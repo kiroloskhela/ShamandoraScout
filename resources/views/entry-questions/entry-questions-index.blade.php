@@ -39,14 +39,14 @@
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'القطاع',
+                'label' => __('Sector'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
                 'filter' => true,
             ],
             [
                 'key' => 'QuestionText',
-                'label' => 'نص السؤال',
+                'label' => __('Question text'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
@@ -71,7 +71,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('entry-questions.edit', ':id'),
                 'idField' => 'QuestionID',
                 'cssClass' =>
@@ -79,7 +79,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('entry-questions.delete', ':id'),
                 'idField' => 'QuestionID',
                 'cssClass' =>

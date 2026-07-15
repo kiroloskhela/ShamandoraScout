@@ -15,10 +15,10 @@
                 <h3 class="text-sm font-semibold text-red-700 mb-3">معلومات الرابط المراد حذفه:</h3>
                 <div class="space-y-2">
                     <p class="text-sm text-gray-700">
-                        <strong>الموسم:</strong> {{ $seasonEvent->SeasonName }} ({{ $seasonEvent->SeasonYear }})
+                        <strong>{{ __('Season:') }}</strong> {{ $seasonEvent->SeasonName }} ({{ $seasonEvent->SeasonYear }})
                     </p>
                     <p class="text-sm text-gray-700">
-                        <strong>الفعالية:</strong> {{ $seasonEvent->EventName }}
+                        <strong>{{ __('Event:') }}</strong> {{ $seasonEvent->EventName }}
                     </p>
                     <p class="text-sm text-gray-700 break-all">
                         <strong>الرابط:</strong>
@@ -39,9 +39,7 @@
 
                 <div class="flex justify-between gap-4">
                     <a href="{{ route('media.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition flex-1">
-                        إلغاء
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 transition flex-1">{{ __('Cancel') }}</a>
                     <button type="submit"
                         class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-red-500 text-white hover:bg-red-600 transition flex-1">
                         حذف نهائياً

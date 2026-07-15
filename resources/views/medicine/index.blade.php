@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'مخزون الأدوية'])
+@extends('layouts.app', ['pageTitle' => __('Medicine stock')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
@@ -14,32 +14,32 @@
             </div>
         @endif
 
-        <x-data-table :data="$medicines->toArray()" title="مخزون الأدوية" :add-button="[
-            'label' => 'إضافة دواء',
+        <x-data-table :data="$medicines->toArray()" title="{{ __('Medicine stock') }}" :add-button="[
+            'label' => __('Add medicine'),
             'route' => route('medicine.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :header-buttons="[
             [
-                'label' => 'صرف دواء',
+                'label' => __('Dispense medicine'),
                 'route' => route('medicine.dispense'),
                 'cssClass' =>
                     'bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
             ],
             [
-                'label' => 'سجل الصرف',
+                'label' => __('Dispense log'),
                 'route' => route('medicine.records'),
                 'cssClass' =>
                     'bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
             ],
             [
-                'label' => 'حجز أدوية',
+                'label' => __('Reserve medicine'),
                 'route' => route('medicine.locks'),
                 'cssClass' =>
                     'bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
             ],
             [
-                'label' => 'أماكن الأدوية',
+                'label' => __('Medicine locations'),
                 'route' => route('medicine.locations'),
                 'cssClass' =>
                     'bg-cyan-700 hover:bg-cyan-800 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -47,62 +47,62 @@
         ]" :columns="[
             [
                 'key' => 'MedicineID',
-                'label' => 'رقم',
+                'label' => __('Number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'MedicineName',
-                'label' => 'اسم الدواء',
+                'label' => __('Medicine name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'TypeLabel',
-                'label' => 'النوع',
+                'label' => __('Gender'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
                 'filter' => true,
             ],
             [
                 'key' => 'ExpirationDate',
-                'label' => 'تاريخ الانتهاء',
+                'label' => __('Expiry date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
             [
                 'key' => 'AmountText',
-                'label' => 'إجمالي المخزون',
+                'label' => __('Total stock'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'AvailableText',
-                'label' => 'المتاح',
+                'label' => __('Available'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-emerald-700 font-bold',
             ],
             [
                 'key' => 'LockedText',
-                'label' => 'المحجوز',
+                'label' => __('Locked'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-amber-700 font-bold',
             ],
             [
                 'key' => 'LocationBreakdown',
-                'label' => 'التوزيع',
+                'label' => __('Distribution'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700',
             ],
             [
                 'key' => 'LockedBreakdown',
-                'label' => 'توزيع المحجوز',
+                'label' => __('Locked distribution'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-amber-700',
             ],
             [
                 'key' => 'StatusLabel',
-                'label' => 'الحالة',
+                'label' => __('Status'),
                 'type' => 'badge',
                 'cssClass' => 'px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800',
                 'filter' => true,
@@ -110,7 +110,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('medicine.edit', ':id'),
                 'idField' => 'MedicineID',
                 'cssClass' =>
@@ -118,7 +118,7 @@
             ],
             [
                 'name' => 'stock',
-                'label' => 'توزيع',
+                'label' => __('Distribute'),
                 'route' => route('medicine.stock', ':id'),
                 'idField' => 'MedicineID',
                 'cssClass' =>
@@ -126,7 +126,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('medicine.delete', ':id'),
                 'idField' => 'MedicineID',
                 'cssClass' =>

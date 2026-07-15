@@ -17,14 +17,14 @@
             ],
             [
                 'key' => 'FacultyName',
-                'label' => 'اسم الكلية',
+                'label' => __('Faculty name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('faculty.edit', ':id'),
                 'idField' => 'FacultyID',
                 'cssClass' =>
@@ -32,7 +32,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('faculty.delete', ':id'),
                 'idField' => 'FacultyID',
                 'cssClass' =>

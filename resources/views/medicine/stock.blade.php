@@ -57,8 +57,8 @@
                     <table class="w-full text-right border border-slate-200">
                         <thead class="bg-slate-50 text-sm text-slate-700">
                             <tr>
-                                <th class="p-3 border-b">المكان</th>
-                                <th class="p-3 border-b">الكمية</th>
+                                <th class="p-3 border-b">{{ __('Place') }}</th>
+                                <th class="p-3 border-b">{{ __('Quantity') }}</th>
                                 <th class="p-3 border-b">المحجوز</th>
                                 <th class="p-3 border-b">المتاح بعد الحجز</th>
                             </tr>
@@ -100,9 +100,7 @@
                         حفظ التوزيع
                     </button>
                     <a href="{{ route('medicine.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                        رجوع
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
                 </div>
             </form>
 

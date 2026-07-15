@@ -35,7 +35,7 @@
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between flex-wrap gap-4">
                 <div class="text-sm text-gray-700 flex items-center gap-2">
-                    <span class="font-bold">الحالة:</span>
+                    <span class="font-bold">{{ __('Status:') }}</span>
                     @if ($booking->Status === 'pending')
                         <span
                             class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
@@ -45,7 +45,7 @@
                             الموافقة</span>
                     @else
                         <span
-                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">مرفوض</span>
+                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
                     @endif
                 </div>
 
@@ -111,7 +111,7 @@
                             <select name="approved_place_id" id="approved_place_id"
                                 class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                                 required>
-                                <option value="" disabled>اختر المكان</option>
+                                <option value="" disabled>{{ __('Choose place') }}</option>
 
                                 @foreach ($places as $p)
                                     <option value="{{ $p->PlaceID }}"
@@ -125,7 +125,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">التاريخ</label>
+                            <label class="block mb-2 text-sm text-gray-700">{{ __('Date') }}</label>
                             <input type="date" name="approved_booking_date" id="approved_booking_date"
                                 value="{{ old('approved_booking_date', $booking->BookingDate) }}"
                                 class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
@@ -136,7 +136,7 @@
 
                     <div class="grid md:grid-cols-2 gap-6 mt-6">
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">من</label>
+                            <label class="block mb-2 text-sm text-gray-700">{{ __('From') }}</label>
                             <input type="time" name="approved_time_from" id="approved_time_from"
                                 value="{{ old('approved_time_from', $booking->TimeFrom) }}"
                                 class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
@@ -144,7 +144,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">إلى</label>
+                            <label class="block mb-2 text-sm text-gray-700">{{ __('To') }}</label>
                             <input type="time" name="approved_time_to" id="approved_time_to"
                                 value="{{ old('approved_time_to', $booking->TimeTo) }}"
                                 class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
@@ -181,13 +181,13 @@
                             </div>
 
                             <div class="p-3 rounded-lg bg-white border border-slate-200">
-                                <div class="text-xs text-slate-500 mb-1">من</div>
+                                <div class="text-xs text-slate-500 mb-1">{{ __('From') }}</div>
                                 <div class="font-semibold text-slate-900">
                                     {{ $booking->ApprovedTimeFrom ?? ($booking->TimeFrom ?? '—') }}</div>
                             </div>
 
                             <div class="p-3 rounded-lg bg-white border border-slate-200">
-                                <div class="text-xs text-slate-500 mb-1">إلى</div>
+                                <div class="text-xs text-slate-500 mb-1">{{ __('To') }}</div>
                                 <div class="font-semibold text-slate-900">
                                     {{ $booking->ApprovedTimeTo ?? ($booking->TimeTo ?? '—') }}</div>
                             </div>
@@ -221,9 +221,7 @@
                     <div class="mt-4 flex justify-center">
                         <button type="submit"
                             class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
-                                   bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">
-                            رفض
-                        </button>
+                                   bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">{{ __('Reject') }}</button>
                     </div>
                 </form>
             </div>

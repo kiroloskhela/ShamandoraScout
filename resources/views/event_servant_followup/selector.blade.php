@@ -16,7 +16,7 @@
 
             <div class="space-y-6">
                 <div>
-                    <label for="season_id" class="block mb-2 text-sm text-gray-700">اختر الموسم</label>
+                    <label for="season_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose season') }}</label>
                     <select id="season_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الموسم --</option>
@@ -29,7 +29,7 @@
                 </div>
 
                 <div>
-                    <label for="season_event_id" class="block mb-2 text-sm text-gray-700">اختر الفعالية</label>
+                    <label for="season_event_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose event') }}</label>
                     <select id="season_event_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الفعالية --</option>
@@ -58,7 +58,7 @@
 
                 if (!seasonId) return;
 
-                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+                eventSelect.innerHTML = '<option value="">{{ __('Loading...') }}</option>';
 
                 fetch(`{{ route('eventServantFollowup.getEventsWithPlan') }}?seasonID=${seasonId}`)
                     .then(res => res.json())
@@ -79,7 +79,7 @@
                         });
                     })
                     .catch(() => {
-                        eventSelect.innerHTML = '<option value="">خطأ في تحميل الفعاليات</option>';
+                        eventSelect.innerHTML = '<option value="">{{ __('Error loading events') }}</option>';
                     });
             });
 

@@ -87,9 +87,7 @@
 
                     <div class="flex items-center justify-center gap-3">
                         <a href="{{ route('group-person.index') }}"
-                            class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                            إلغاء
-                        </a>
+                            class="inline-flex items-center justify-center h-11 px-6 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">{{ __('Cancel') }}</a>
                         <button type="submit"
                             class="inline-flex items-center justify-center h-11 px-8 text-sm font-medium rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition">
                             حذف نهائي

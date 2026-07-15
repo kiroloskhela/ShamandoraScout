@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'لوحه التحكم' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Dashboard') ?? ''])
 
 
 
@@ -15,7 +15,7 @@
             <!-- All cards stacked under each other + zoom on hover -->
             <div class="grid grid-cols-1 gap-4">
 
-                <x-card-stat href="{{ route('person.index', ['id' => Auth::id()]) }}" title="عدد المخدومين الحالي"
+                <x-card-stat href="{{ route('person.index', ['id' => Auth::id()]) }}" title="{{ __('Current members count') }}"
                     :count="$personsCount ?? 0" color="blue">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,7 +27,7 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="#" title="الفعاليات" :count="collect($events ?? [])
+                <x-card-stat href="#" title="{{ __('Events') }}" :count="collect($events ?? [])
                     ->unique('EventID')
                     ->count()" color="emerald">
                     <x-slot:icon>
@@ -38,7 +38,7 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="{{ route('attendance.manage', ['id' => Auth::id()]) }}" title="حضور المخدومين"
+                <x-card-stat href="{{ route('attendance.manage', ['id' => Auth::id()]) }}" title="{{ __('Member attendance') }}"
                     color="indigo">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,7 +47,7 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="{{ route('custody_requests.my', ['id' => Auth::id()]) }}" title="طلبات حجز عهده"
+                <x-card-stat href="{{ route('custody_requests.my', ['id' => Auth::id()]) }}" title="{{ __('Custody booking requests') }}"
                     color="yellow">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="{{ route('place_bookings.my', ['id' => Auth::id()]) }}" title="طلبات حجز الأماكن"
+                <x-card-stat href="{{ route('place_bookings.my', ['id' => Auth::id()]) }}" title="{{ __('Place booking requests') }}"
                     color="pink">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@
                     </x-slot:icon>
                 </x-card-stat>
 
-                <x-card-stat href="profile" title="صفحتي الشخصية" color="rose">
+                <x-card-stat href="profile" title="{{ __('My profile') }}" color="rose">
                     <x-slot:icon>
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -13,7 +13,7 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Season Selection -->
                 <div class="relative">
-                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر الموسم</label>
+                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose season') }}</label>
                     <select id="season_id" name="season_id"
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الموسم --</option>
@@ -27,7 +27,7 @@
 
                 <!-- Event Selection -->
                 <div class="relative">
-                    <label for="event_id" class="block mb-2 text-sm font-semibold text-gray-700">اختر الفعالية</label>
+                    <label for="event_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose event') }}</label>
                     <select id="event_id" name="event_id" disabled
                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-400 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الفعالية --</option>
@@ -141,7 +141,7 @@
 
                 if (!seasonId) return;
 
-                eventSelect.innerHTML = '<option value="">جاري التحميل...</option>';
+                eventSelect.innerHTML = '<option value="">{{ __('Loading...') }}</option>';
                 fetch(`{{ route('media.getEventsForPages') }}?seasonID=${seasonId}`)
                     .then(res => res.json())
                     .then(events => {
@@ -162,7 +162,7 @@
                             eventSelect.innerHTML = '<option value="">لا توجد فعاليات</option>';
                         }
                     }).catch(() => eventSelect.innerHTML =
-                        '<option value="">خطأ في تحميل الفعاليات</option>');
+                        '<option value="">{{ __('Error loading events') }}</option>');
             });
 
             eventSelect.addEventListener('change', function() {

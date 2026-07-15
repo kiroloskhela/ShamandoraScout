@@ -14,13 +14,9 @@
             @csrf
             <div class="flex justify-between">
                 <a href="{{ route('season.index') }}"
-                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-                    إلغاء
-                </a>
+                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">{{ __('Cancel') }}</a>
                 <button type="submit"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-                    حذف
-                </button>
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">{{ __('Delete') }}</button>
             </div>
         </form>
     </div>

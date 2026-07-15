@@ -14,10 +14,10 @@
             @endif
 
             <div class="space-y-3 text-sm text-gray-700 mb-6">
-                <p><strong>الموسم:</strong> {{ $finance->SeasonName }} ({{ $finance->SeasonYear }})</p>
-                <p><strong>الفعالية:</strong> {{ $finance->EventName }}</p>
-                <p><strong>بداية الفعالية:</strong> {{ $finance->EventStartDate }}</p>
-                <p><strong>نهاية الفعالية:</strong> {{ $finance->EventEndDate }}</p>
+                <p><strong>{{ __('Season:') }}</strong> {{ $finance->SeasonName }} ({{ $finance->SeasonYear }})</p>
+                <p><strong>{{ __('Event:') }}</strong> {{ $finance->EventName }}</p>
+                <p><strong>{{ __('Event start:') }}</strong> {{ $finance->EventStartDate }}</p>
+                <p><strong>{{ __('Event end:') }}</strong> {{ $finance->EventEndDate }}</p>
             </div>
 
             <div class="mb-6 text-red-600 font-medium text-center">
@@ -28,9 +28,7 @@
                 @csrf
                 <div class="flex justify-center gap-3">
                     <a href="{{ route('finance.index') }}"
-                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                        رجوع
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
 
                     <button type="submit"
                         class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition">

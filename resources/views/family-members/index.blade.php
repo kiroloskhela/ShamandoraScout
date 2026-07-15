@@ -16,19 +16,19 @@
             ],
             [
                 'key' => 'FullName',
-                'label' => 'الاسم',
+                'label' => __('Name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'MobileNumber',
-                'label' => 'رقم الموبايل',
+                'label' => __('Mobile number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'RaqamQawmy',
-                'label' => 'الرقم القومي',
+                'label' => __('National ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
@@ -47,7 +47,7 @@
         ]" :actions="[
             [
                 'name' => 'show',
-                'label' => 'عرض',
+                'label' => __('View'),
                 'route' => route('family-members.show', ':id'),
                 'idField' => 'FamilyID',
                 'cssClass' =>
@@ -55,7 +55,7 @@
             ],
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('family-members.edit', ':id'),
                 'idField' => 'FamilyID',
                 'cssClass' =>
@@ -63,7 +63,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('family-members.delete', ':id'),
                 'idField' => 'FamilyID',
                 'cssClass' =>

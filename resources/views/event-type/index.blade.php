@@ -24,7 +24,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('event-type.edit', ':id'),
                 'idField' => 'EventTypeID',
                 'cssClass' =>
@@ -32,7 +32,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('event-type.delete', ':id'),
                 'idField' => 'EventTypeID',
                 'cssClass' =>

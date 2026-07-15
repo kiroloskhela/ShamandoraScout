@@ -108,7 +108,7 @@
 
                             <!-- Code -->
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الكود</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Code') }}</label>
                                 <input type="text" readonly value="{{ $person->ShamandoraCode }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
@@ -122,32 +122,32 @@
 
                             <!-- Sector -->
                             <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">القطاع</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Sector') }}</label>
                                 <input type="text" readonly value="{{ $person->QetaaName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <!-- Names -->
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الأول</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('First name') }}</label>
                                 <input type="text" readonly value="{{ $person->FirstName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثاني</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Second name') }}</label>
                                 <input type="text" readonly value="{{ $person->SecondName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الثالث</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Third name') }}</label>
                                 <input type="text" readonly value="{{ $person->ThirdName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
                             <div class="md:col-span-3">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">الاسم الرابع</label>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Fourth name') }}</label>
                                 <input type="text" readonly value="{{ $person->FourthName }}"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
@@ -213,8 +213,8 @@
                                                     id="q_{{ $question->QuestionID }}"
                                                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                                     <option value="" disabled selected>اختر نعم أم لا</option>
-                                                    <option value="نعم">نعم</option>
-                                                    <option value="لا">لا</option>
+                                                    <option value="نعم">{{ __('Yes') }}</option>
+                                                    <option value="لا">{{ __('No') }}</option>
                                                 </select>
                                             @endif
 
@@ -222,7 +222,7 @@
                                             @if ($question->IsRequired == 1)
                                                 <p class="mt-2 text-xs text-slate-500">هذا السؤال مطلوب</p>
                                             @else
-                                                <p class="mt-2 text-xs text-slate-500">اختياري</p>
+                                                <p class="mt-2 text-xs text-slate-500">{{ __('Optional') }}</p>
                                             @endif
                                         </div>
                                     </div>

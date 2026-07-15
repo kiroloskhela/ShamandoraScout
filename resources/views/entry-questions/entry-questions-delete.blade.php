@@ -21,7 +21,7 @@
                     </div>
 
                     <div class="px-4 py-3 grid grid-cols-4 gap-4">
-                        <dt class="text-sm text-slate-500 col-span-1">القطاع</dt>
+                        <dt class="text-sm text-slate-500 col-span-1">{{ __('Sector') }}</dt>
                         <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QetaaName }}</dd>
                     </div>
 
@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="px-4 py-3 grid grid-cols-4 gap-4">
-                        <dt class="text-sm text-slate-500 col-span-1">نص السؤال</dt>
+                        <dt class="text-sm text-slate-500 col-span-1">{{ __('Question text') }}</dt>
                         <dd class="text-sm text-slate-800 col-span-3">{{ $entryQuestions->QuestionText }}</dd>
                     </div>
 
@@ -77,9 +77,7 @@
                 </form>
 
                 <a href="{{ route('entry-questions.index') }}"
-                    class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium">
-                    إلغاء
-                </a>
+                    class="inline-flex items-center justify-center h-11 px-6 rounded-full bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium">{{ __('Cancel') }}</a>
             </div>
 
         </div>

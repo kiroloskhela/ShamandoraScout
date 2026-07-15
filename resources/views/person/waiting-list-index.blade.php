@@ -1,61 +1,61 @@
-@extends('layouts.app', ['pageTitle' => 'قائمة الانتظار'])
+@extends('layouts.app', ['pageTitle' => __('Waiting list')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons" title="قائمة الانتظار" tableId="WaitingListTable" :columns="[
+        <x-data-table :data="$persons" title="{{ __('Waiting list') }}" tableId="WaitingListTable" :columns="[
             [
                 'key' => 'PersonID',
-                'label' => 'الطلب',
+                'label' => __('Request'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'CreatedAt',
-                'label' => 'تاريخ التقديم',
+                'label' => __('Submitted at'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700 font-medium whitespace-nowrap',
             ],
             [
                 'key' => 'FullName',
-                'label' => 'الاسم',
+                'label' => __('Name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'المرحلة',
+                'label' => __('Stage'),
                 'type' => 'label',
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'QetaaName',
-                'label' => 'القطاع',
+                'label' => __('Sector'),
                 'type' => 'label',
                 'filter' => true,
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
                 'key' => 'RaqamQawmy',
-                'label' => 'الرقم القومي',
+                'label' => __('National ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'PersonPersonalMobileNumber',
-                'label' => 'رقم الموبايل',
+                'label' => __('Mobile number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'HasAnsweredQuestions',
-                'label' => 'هل أكمل الأسئلة؟',
+                'label' => __('Completed questions?'),
                 'type' => 'text',
                 'cssClass' => 'text-sm font-semibold',
             ],
         ]" :actions="[
             [
                 'name' => 'migrate',
-                'label' => 'نقل للتسجيل',
+                'label' => __('Move to enrolment'),
                 'route' => route('person.waiting-list-migrate', ':id'),
                 'idField' => 'PersonID',
                 'cssClass' =>
@@ -63,7 +63,7 @@
             ],
             [
                 'name' => 'show',
-                'label' => 'عرض',
+                'label' => __('View'),
                 'route' => route('person.waiting-list-show', ':id'),
                 'idField' => 'PersonID',
                 'cssClass' =>
@@ -71,7 +71,7 @@
             ],
             [
                 'name' => 'decline',
-                'label' => 'رفض',
+                'label' => __('Reject'),
                 'route' => route('person.waiting-list-decline', ':id'),
                 'idField' => 'PersonID',
                 'cssClass' =>

@@ -7,10 +7,10 @@
             <thead>
                 <tr>
                     <th class="px-4 py-2 border-b text-center">رقم المستخدم</th>
-                    <th class="px-4 py-2 border-b text-center">الاسم الكامل</th>
-                    <th class="px-4 py-2 border-b text-center">كود الشمندورة</th>
+                    <th class="px-4 py-2 border-b text-center">{{ __('Full name') }}</th>
+                    <th class="px-4 py-2 border-b text-center">{{ __('Shamandora code') }}</th>
                     <!-- Password column removed for security -->
-                    <th class="px-4 py-2 border-b text-center">إجراءات</th>
+                    <th class="px-4 py-2 border-b text-center">{{ __('Actions') }}</th>
                 </tr>
             </thead>
             <tbody>

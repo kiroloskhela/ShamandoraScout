@@ -1,35 +1,35 @@
-@extends('layouts.app', ['pageTitle' => 'الألعاب'])
+@extends('layouts.app', ['pageTitle' => __('Games')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$games->toArray()" title="إدارة الألعاب" :add-button="[
-            'label' => 'إضافة لعبة جديدة',
+        <x-data-table :data="$games->toArray()" title="{{ __('Manage games') }}" :add-button="[
+            'label' => __('Add new game'),
             'route' => route('games.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'GameID',
-                'label' => 'رقم اللعبة',
+                'label' => __('Game ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'Title',
-                'label' => 'اسم اللعبة',
+                'label' => __('Game name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'AgeGroup',
-                'label' => 'الفئة العمرية',
+                'label' => __('Age group'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700',
             ],
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('games.edit', ':id'),
                 'idField' => 'GameID',
                 'cssClass' =>
@@ -37,7 +37,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('games.delete', ':id'),
                 'idField' => 'GameID',
                 'cssClass' =>
@@ -45,7 +45,7 @@
             ],
             [
                 'name' => 'show',
-                'label' => 'عرض',
+                'label' => __('View'),
                 'route' => route('games.show', ':id'),
                 'idField' => 'GameID',
                 'cssClass' =>

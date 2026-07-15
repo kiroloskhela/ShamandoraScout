@@ -13,11 +13,11 @@
                 <div class="space-y-6">
                     <!-- المجموعة الكشفية -->
                     <div class="relative">
-                        <label for="group_id" class="block mb-2 text-sm text-gray-700">اختر المجموعة الكشفية</label>
+                        <label for="group_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose scout group') }}</label>
                         <select name="group_id" id="group_id" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
-                            <option value="" disabled selected>اختر المجموعة الكشفية</option>
+                            <option value="" disabled selected>{{ __('Choose scout group') }}</option>
                             @foreach ($groups as $group)
                                 <option value="{{ $group->GroupID }}">{{ $group->GroupInfo }}</option>
                             @endforeach

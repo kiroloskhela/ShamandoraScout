@@ -46,9 +46,9 @@
                     <thead class="bg-slate-50 text-sm text-slate-700">
                         <tr>
                             <th class="p-3 border-b">اسم المكان</th>
-                            <th class="p-3 border-b">الحالة</th>
-                            <th class="p-3 border-b">تعديل</th>
-                            <th class="p-3 border-b">حذف</th>
+                            <th class="p-3 border-b">{{ __('Status') }}</th>
+                            <th class="p-3 border-b">{{ __('Edit') }}</th>
+                            <th class="p-3 border-b">{{ __('Delete') }}</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm text-slate-800">
@@ -82,9 +82,7 @@
                                             </span>
                                         @else
                                             <button type="submit"
-                                                class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
-                                                حفظ
-                                            </button>
+                                                class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">{{ __('Save') }}</button>
                                         @endif
                                     </td>
                                 </form>
@@ -100,9 +98,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
-                                                class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium rounded-full bg-red-50 text-red-700 hover:bg-red-100 transition">
-                                                حذف
-                                            </button>
+                                                class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium rounded-full bg-red-50 text-red-700 hover:bg-red-100 transition">{{ __('Delete') }}</button>
                                         </form>
                                     @endif
                                 </td>
@@ -114,9 +110,7 @@
 
             <div class="mt-6 text-center">
                 <a href="{{ route('medicine.index') }}"
-                    class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                    رجوع
-                </a>
+                    class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
             </div>
         </div>
     </div>

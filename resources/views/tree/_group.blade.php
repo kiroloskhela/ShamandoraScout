@@ -82,7 +82,7 @@
                                             <path d="M11 6v4M13 8h-4" />
                                         </svg>
                                     </button>
-                                    <button class="qt-icon-btn qt-icon-btn--danger" title="حذف"
+                                    <button class="qt-icon-btn qt-icon-btn--danger" title="{{ __('Delete') }}"
                                         onclick="deleteGroup({{ $child->GroupID }})">
                                         <svg viewBox="0 0 12 14" fill="none" stroke="currentColor"
                                             stroke-width="1.8">
@@ -132,7 +132,7 @@
                                                         <path d="M2 3l1 1 2-2M2 8l1 1 2-2M2 13l1 1 2-2" />
                                                     </svg>
                                                 </button>
-                                                <button class="qt-icon-btn qt-icon-btn--danger" title="إزالة"
+                                                <button class="qt-icon-btn qt-icon-btn--danger" title="{{ __('Remove') }}"
                                                     onclick="removePerson({{ $person->PersonID }}, {{ $child->GroupID }})">
                                                     <svg viewBox="0 0 12 14" fill="none" stroke="currentColor"
                                                         stroke-width="1.8">
@@ -186,7 +186,7 @@
                                     <path d="M2 3l1 1 2-2M2 8l1 1 2-2M2 13l1 1 2-2" />
                                 </svg>
                             </button>
-                            <button class="qt-icon-btn qt-icon-btn--danger" title="إزالة"
+                            <button class="qt-icon-btn qt-icon-btn--danger" title="{{ __('Remove') }}"
                                 onclick="removePerson({{ $person->PersonID }}, {{ $group->GroupID }})">
                                 <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8">
                                     <path d="M1 3h10M4 3V2h4v1M2 3l1 9h6l1-9" />

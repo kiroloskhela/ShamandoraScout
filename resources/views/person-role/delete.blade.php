@@ -31,9 +31,7 @@
                 </button>
 
                 <a href="{{ route('person-role.index') }}"
-                    class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-medium tracking-wide transition duration-300 rounded-full focus-visible:outline-none whitespace-nowrap bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:bg-gray-200 focus:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none">
-                    رجوع
-                </a>
+                    class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-medium tracking-wide transition duration-300 rounded-full focus-visible:outline-none whitespace-nowrap bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600 focus:bg-gray-200 focus:text-gray-700 disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400 disabled:shadow-none">{{ __('Back') }}</a>
             </div>
         </form>
     </div>

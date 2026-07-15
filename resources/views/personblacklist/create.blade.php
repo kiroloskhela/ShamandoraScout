@@ -42,10 +42,10 @@
                     </div>
 
                     <div class="relative">
-                        <label for="note" class="block mb-2 text-sm text-gray-700">ملاحظة</label>
+                        <label for="note" class="block mb-2 text-sm text-gray-700">{{ __('Note') }}</label>
                         <textarea id="note" name="note" rows="4"
                             class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
-                            placeholder="اكتب الملاحظة هنا">{{ old('note') }}</textarea>
+                            placeholder="{{ __('Write the note here') }}">{{ old('note') }}</textarea>
                     </div>
 
                     <div class="flex justify-center">

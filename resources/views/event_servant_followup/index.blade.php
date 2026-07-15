@@ -7,12 +7,12 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                    <span class="font-semibold text-gray-700">الموسم:</span>
+                    <span class="font-semibold text-gray-700">{{ __('Season:') }}</span>
                     <span class="text-gray-900">{{ $event->SeasonName }} ({{ $event->SeasonYear }})</span>
                 </div>
 
                 <div>
-                    <span class="font-semibold text-gray-700">الفعالية:</span>
+                    <span class="font-semibold text-gray-700">{{ __('Event:') }}</span>
                     <span class="text-gray-900">{{ $event->EventTypeName }} - {{ $event->EventName }}</span>
                 </div>
 
@@ -32,19 +32,19 @@
             <x-data-table :data="$booked" title="المحجوزين" :columns="[
                 [
                     'key' => 'ShamandoraCode',
-                    'label' => 'الكود',
+                    'label' => __('Code'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-700 font-medium',
                 ],
                 [
                     'key' => 'PersonFullName',
-                    'label' => 'الاسم',
+                    'label' => __('Name'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'QetaaName',
-                    'label' => 'القطاع',
+                    'label' => __('Sector'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
@@ -68,7 +68,7 @@
                 ],
                 [
                     'key' => 'RemainingAmount',
-                    'label' => 'المتبقي',
+                    'label' => __('Remaining'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-red-700 font-medium',
                 ],
@@ -77,22 +77,22 @@
         </div>
 
         <div>
-            <x-data-table :data="$waitingList" title="قائمة الانتظار" :columns="[
+            <x-data-table :data="$waitingList" title="{{ __('Waiting list') }}" :columns="[
                 [
                     'key' => 'ShamandoraCode',
-                    'label' => 'الكود',
+                    'label' => __('Code'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-700 font-medium',
                 ],
                 [
                     'key' => 'PersonFullName',
-                    'label' => 'الاسم',
+                    'label' => __('Name'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'QetaaName',
-                    'label' => 'القطاع',
+                    'label' => __('Sector'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],

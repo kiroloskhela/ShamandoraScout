@@ -50,14 +50,14 @@
                     </div>
 
                     <div>
-                        <label for="amount" id="amount_label" class="block mb-2 text-sm text-gray-700">الكمية</label>
+                        <label for="amount" id="amount_label" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>
                         <div class="flex rounded-lg border border-slate-200 overflow-hidden focus-within:border-blue-500">
                             <input type="number" min="0" step="1" id="amount" name="amount" required
                                 value="{{ old('amount', 0) }}"
                                 class="w-full h-12 px-4 text-right text-slate-600 focus:outline-none"
                                 placeholder="0">
                             <span id="amount_unit"
-                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">وحدة</span>
+                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">{{ __('Unit') }}</span>
                         </div>
                     </div>
 
@@ -76,22 +76,18 @@
                     </div>
 
                     <div>
-                        <label for="notes" class="block mb-2 text-sm text-gray-700">ملاحظات</label>
+                        <label for="notes" class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
                         <textarea id="notes" name="notes" rows="3"
                             class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
-                            placeholder="اختياري">{{ old('notes') }}</textarea>
+                            placeholder="{{ __('Optional') }}">{{ old('notes') }}</textarea>
                     </div>
 
                     <div class="flex justify-center gap-3">
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
-                            إضافة
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">{{ __('Add') }}</button>
 
                         <a href="{{ route('medicine.index') }}"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                            رجوع
-                        </a>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
                     </div>
                 </div>
             </form>

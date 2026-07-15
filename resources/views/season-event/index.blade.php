@@ -23,7 +23,7 @@
             ],
             [
                 'key' => 'SeasonYear',
-                'label' => 'السنة',
+                'label' => __('Year'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
                 'filter' => true,
@@ -56,7 +56,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('season-event.edit', ':id'),
                 'idField' => 'SeasonEventID',
                 'cssClass' =>
@@ -64,7 +64,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('season-event.delete', ':id'),
                 'idField' => 'SeasonEventID',
                 'cssClass' =>

@@ -29,9 +29,7 @@
             </button>
 
             <a href="{{ route('inventory.index') }}"
-                class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
-                إلغاء
-            </a>
+                class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition">{{ __('Cancel') }}</a>
         </form>
     </div>
 </div>

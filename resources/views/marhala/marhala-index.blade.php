@@ -23,7 +23,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('marhala.edit', ':id'),
                 'idField' => 'MarhalaID',
                 'cssClass' =>
@@ -31,7 +31,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('marhala.delete', ':id'),
                 'idField' => 'MarhalaID',
                 'cssClass' =>

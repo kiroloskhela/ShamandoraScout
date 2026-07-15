@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+@php($locale = app()->getLocale())
+<html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>كشافة الشمندورة | إدخال بيانات</title>
+    <title>{{ __('Shamandora Scout | Enter data') }}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,12 +29,12 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
 
     <style>
         body {
-            font-family: 'Tajawal', sans-serif;
+            font-family: {{ $locale === 'ar' ? "'Tajawal'" : "'Source Sans 3'" }}, sans-serif;
         }
 
         .sea-bg {
@@ -76,8 +77,8 @@
         }
 
         select option {
-            text-align: right;
-            direction: rtl;
+            text-align: {{ $locale === 'ar' ? 'right' : 'left' }};
+            direction: {{ $locale === 'ar' ? 'rtl' : 'ltr' }};
         }
 
         [x-cloak] {
@@ -101,27 +102,20 @@
 
             <div class="px-6 md:px-10 py-8 border-b border-teal-100 bg-gradient-to-b from-teal-50/80 to-white">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="الشمندورة"
+                    <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora') }}"
                         class="h-20 w-20 object-contain drop-shadow-md" />
                     <div>
-                        <h1 class="text-2xl md:text-3xl font-extrabold text-brand-900">
-                            طلب التحاق جديد
-                        </h1>
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-brand-900">{{ __('New enrolment application') }}</h1>
                         <p class="text-slate-600 mt-2 text-sm md:text-base">
-                            الحقول المطلوبة عليها علامة <span class="font-bold text-rose-600">*</span>
+                            {{ __('Required fields are marked') }} <span class="font-bold text-rose-600">*</span>
                         </p>
                     </div>
                 </div>
 
                 <!-- Horizontal stepper (RTL) -->
-                <nav class="mt-8" aria-label="خطوات التسجيل">
+                <nav class="mt-8" aria-label="{{ __('Registration steps') }}">
                     <ol class="flex items-center justify-between gap-1 sm:gap-2">
-                        <template x-for="(label, i) in [
-                            'البيانات الشخصية',
-                            'بيانات ولي الأمر',
-                            'البيانات الدراسية',
-                            'المراجعة'
-                        ]" :key="i">
+                        <template x-for="(label, i) in {{ json_encode([__('Personal information'), __('Guardian information'), __('Educational information'), __('Review')], JSON_UNESCAPED_UNICODE) }}" :key="i">
                             <li class="flex-1 flex flex-col items-center gap-2 min-w-0">
                                 <div class="flex items-center w-full">
                                     <div class="hidden sm:block flex-1 h-0.5 rounded"
@@ -158,94 +152,87 @@
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">البيانات الشخصية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">أدخل بيانات الملتحق الأساسية والصورة الشخصية.</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Personal information') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Enter the applicant\'s basic details and personal photo.') }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        الاسم الأول <span class="text-rose-600">*</span>
-                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('First name') }}<span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="first_name" name="first_name" type="text" lang="ar"
                                         dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="الاسم الأول">
-                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                        placeholder="{{ __('First name') }}">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        الاسم الثاني <span class="text-rose-600">*</span>
-                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Second name') }}<span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="second_name" name="second_name" type="text" lang="ar"
                                         dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="الاسم الثاني">
-                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                        placeholder="{{ __('Second name') }}">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        الاسم الثالث <span class="text-rose-600">*</span>
-                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Third name') }}<span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="third_name" name="third_name" type="text" lang="ar"
                                         dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="الاسم الثالث">
-                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                        placeholder="{{ __('Third name') }}">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
                                 </div>
 
                                 <div class="md:col-span-3">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        الاسم الرابع
-                                        <span class="text-xs text-slate-500">(بالعربي)</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Fourth name') }}<span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input id="fourth_name" name="fourth_name" type="text" lang="ar" dir="rtl"
                                         pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="اختياري">
-                                    <p class="error hidden mt-1 text-sm text-rose-600">يرجى إدخال أحرف عربية فقط</p>
+                                        placeholder="{{ __('Optional') }}">
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        نوع الملتحق <span class="text-rose-600">*</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Applicant gender') }}<span class="text-rose-600">*</span>
                                     </label>
                                     <select required id="gender" name="gender" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
                                         @if ($gender == 'Male')
-                                            <option value="Male" selected>ذكر</option>
-                                            <option value="Female">أنثى</option>
+                                            <option value="Male" selected>{{ __('Male') }}</option>
+                                            <option value="Female">{{ __('Female') }}</option>
                                         @else
-                                            <option value="Female" selected>أنثى</option>
-                                            <option value="Male">ذكر</option>
+                                            <option value="Female" selected>{{ __('Female') }}</option>
+                                            <option value="Male">{{ __('Male') }}</option>
                                         @endif
                                     </select>
-                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">البريد الإلكتروني</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Email') }}</label>
                                     <input id="email_input" name="email_input" type="email" dir="ltr"
                                         class="field-email w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="example@email.com">
-                                    <p class="error-email hidden mt-1 text-sm text-rose-600">البريد الإلكتروني غير صحيح</p>
+                                    <p class="error-email hidden mt-1 text-sm text-rose-600">{{ __('Invalid email address') }}</p>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        تاريخ الميلاد <span class="text-rose-600">*</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Date of birth') }}<span class="text-rose-600">*</span>
                                     </label>
                                     <input required id="birthdate_input" name="birthdate_input" type="date"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">سنة الالتحاق</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Joining year') }}</label>
                                     <select id="joining_year_input" name="joining_year_input" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
                                         @for ($year = date('Y'); $year >= 2000; $year--)
                                             <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
@@ -257,64 +244,63 @@
 
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        الرقم القومي (14 رقم) <span class="text-rose-600">*</span>
+                                        {{ __('National ID (14 digits)') }} <span class="text-rose-600">*</span>
                                     </label>
                                     <input required id="input_raqam_qawmy" name="input_raqam_qawmy" inputmode="numeric"
                                         pattern="\d{14}" maxlength="14" type="text"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="أدخل 14 رقم">
+                                        placeholder="{{ __('Enter 14 digits') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600" data-error="nid">
-                                        الرقم القومي يجب أن يكون 14 رقم و ان يكون صحيح
+                                        {{ __('National ID must be 14 valid digits') }}
                                     </p>
                                 </div>
 
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        موبايل الملتحق (11 رقم) <span class="text-rose-600">*</span>
+                                        {{ __('Applicant mobile (11 digits)') }} <span class="text-rose-600">*</span>
                                     </label>
                                     <input required id="personal_phone_number" name="personal_phone_number"
                                         inputmode="numeric" pattern="\d{11}" maxlength="11" type="text"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                        placeholder="مثال: 01xxxxxxxxx">
+                                        placeholder="{{ __('Example: 01xxxxxxxxx') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600" data-error="phone">
-                                        رقم الموبايل يجب أن يكون 11 رقم
+                                        {{ __('Mobile number must be 11 digits') }}
                                     </p>
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">رابط Facebook (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Facebook link (if any)') }}</label>
                                     <input id="inputFacebookLink" name="inputFacebookLink" type="url"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="https://facebook.com/...">
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">رابط Instagram (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Instagram link (if any)') }}</label>
                                     <input id="inputInstagramLink" name="inputInstagramLink" type="url"
                                         class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="https://instagram.com/...">
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        فصيلة الدم <span class="text-rose-600">*</span>
-                                        <span class="text-xs text-slate-500 font-normal ms-2">اختر "غير محدد" عند عدم التأكد</span>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Blood type') }}<span class="text-rose-600">*</span>
+                                        <span class="text-xs text-slate-500 font-normal ms-2">{{ __('Choose "Unspecified" if unsure') }}</span>
                                     </label>
                                     <select required id="blood_type_input" name="blood_type_input" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                        <option value="" disabled selected>اختر فصيلة الدم</option>
+                                        <option value="" disabled selected>{{ __('Choose blood type') }}</option>
                                         @foreach ($blood as $blood_element)
                                             <option value="{{ $blood_element->BloodTypeID }}">
                                                 {{ $blood_element->BloodTypeName }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                 </div>
 
                                 <!-- Profile image -->
                                 <div class="md:col-span-12">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        صورة شخصية
-                                        <span class="text-xs text-slate-500 font-normal ms-2">JPG/PNG/WebP - حد أقصى 5 ميجا</span>
+                                        {{ __('Personal photo') }}
+                                        <span class="text-xs text-slate-500 font-normal ms-2">{{ __('JPG/PNG/WebP - max 5 MB') }}</span>
                                     </label>
                                     <div class="rounded-2xl border border-teal-100 bg-teal-50/40 p-4" data-upload>
                                         <div class="flex items-center gap-4">
@@ -335,15 +321,15 @@
                                                 <div class="flex flex-col gap-2">
                                                     <button type="button" data-pick
                                                         class="inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-2 text-white font-bold hover:bg-brand-800 w-fit">
-                                                        اختيار ملف
+                                                        {{ __('Choose file') }}
                                                     </button>
-                                                    <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+                                                    <p class="text-xs text-slate-600" data-filename>{{ __('No file selected') }}</p>
                                                     <p class="error-photo hidden mt-1 text-sm text-rose-600"
                                                         data-error="profile_image">
-                                                        الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                        {{ __('Image must be JPG/PNG/WebP and under 5 MB') }}
                                                     </p>
                                                 </div>
-                                                <p class="mt-2 text-xs text-slate-500">يفضل صورة واضحة للوجه بخلفية بيضاء</p>
+                                                <p class="mt-2 text-xs text-slate-500">{{ __('Prefer a clear face photo with a white background') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -353,52 +339,52 @@
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">قسم الحساسية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">اكتب الحساسية إن وُجدت (افصل بين العناصر بفاصلة).</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Allergy section') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Write allergies if any (separate items with a comma).') }}</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">حساسية من طعام (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Food allergy (if any)') }}</label>
                                     <select id="allergy_food_select" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                        <option value="" selected>لا يوجد / اختر...</option>
-                                        <option value="بقوليات (فول)">بقوليات (فول)</option>
-                                        <option value="لبن">لبن</option>
-                                        <option value="سمك">سمك</option>
-                                        <option value="فراولة">فراولة</option>
-                                        <option value="أخرى">أخرى</option>
+                                        <option value="" selected>{{ __('None / choose...') }}</option>
+                                        <option value="بقوليات (فول)">{{ __('Legumes (fava beans)') }}</option>
+                                        <option value="لبن">{{ __('Milk') }}</option>
+                                        <option value="سمك">{{ __('Fish') }}</option>
+                                        <option value="فراولة">{{ __('Strawberries') }}</option>
+                                        <option value="أخرى">{{ __('Other') }}</option>
                                     </select>
                                     <div id="allergy_food_other_wrap" class="hidden mt-3">
-                                        <label class="block text-sm font-bold text-slate-700 mb-1">اكتب نوع الاكل</label>
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Write the food type') }}</label>
                                         <input id="allergy_food_other" type="text" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                            placeholder="مثال: موز">
-                                        <p class="mt-2 text-xs text-slate-500">سيتم حفظه ضمن حساسية الطعام.</p>
+                                            placeholder="{{ __('Example: banana') }}">
+                                        <p class="mt-2 text-xs text-slate-500">{{ __('It will be saved under food allergy.') }}</p>
                                     </div>
                                     <input type="hidden" id="allergy_food" name="allergy_food" value="">
                                 </div>
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">حساسية من دواء (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Medicine allergy (if any)') }}</label>
                                     <input id="allergy_medicine" name="allergy_medicine" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: بنسلين">
-                                    <p class="mt-2 text-xs text-slate-500">يمكنك كتابة أكثر من دواء مفصول بفاصلة.</p>
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Example: penicillin') }}">
+                                    <p class="mt-2 text-xs text-slate-500">{{ __('You can write more than one medicine separated by a comma.') }}</p>
                                 </div>
                             </div>
                         </section>
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">قسم التاريخ المرضي</h2>
-                                <p class="text-slate-500 mt-1 text-sm">اختياري — يساعدنا في الحالات الطارئة.</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Medical history section') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Optional — helps us in emergencies.') }}</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">أمراض مزمنة / تشخيص (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Chronic diseases / diagnosis (if any)') }}</label>
                                     <input id="medical_diseases" name="medical_diseases" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: ربو، سكر، ضغط">
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Example: asthma, diabetes, blood pressure') }}">
                                 </div>
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">الأدوية الحالية (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Current medications (if any)') }}</label>
                                     <input id="medical_medications" name="medical_medications" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="مثال: بخاخ، أنسولين">
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Example: inhaler, insulin') }}">
                                 </div>
                                 <div class="md:col-span-12">
                                     <div class="rounded-2xl bg-teal-50/50 border border-teal-100 p-4">
@@ -408,16 +394,16 @@
                                                     <input id="has_emergency_case" name="has_emergency_case"
                                                         type="checkbox" value="1"
                                                         class="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-600">
-                                                    هل يوجد حالات طوارئ سابقة؟
+                                                    {{ __('Any previous emergency cases?') }}
                                                 </label>
-                                                <p class="text-xs text-slate-500 mt-1">مثل: حساسية شديدة، إغماء، دخول مستشفى…</p>
+                                                <p class="text-xs text-slate-500 mt-1">{{ __('e.g.: severe allergy, fainting, hospital admission…') }}</p>
                                             </div>
                                             <div class="w-full md:w-2/3">
                                                 <input id="emergency_details" name="emergency_details" type="text"
                                                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="اكتب تفاصيل الحالة (إذا نعم)">
+                                                    placeholder="{{ __('Write case details (if yes)') }}">
                                                 <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-600">
-                                                    من فضلك اكتب تفاصيل الحالة لأنك اخترت "نعم"
+                                                    {{ __('Please write case details because you chose "Yes"') }}
                                                 </p>
                                             </div>
                                         </div>
@@ -429,7 +415,7 @@
                         <div class="mt-8 flex justify-end">
                             <button type="button" data-next-step="1"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                التالي ←
+                                {{ __('Next') }} ←
                             </button>
                         </div>
                     </div>
@@ -439,116 +425,112 @@
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">بيانات ولي الأمر</h2>
-                                <p class="text-slate-500 mt-1 text-sm">أرقام التواصل والعنوان.</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Guardian information') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Contact numbers and address.') }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">موبايل الأب (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Father mobile (if any)') }}</label>
                                     <input id="father_phone_number" name="father_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
                                 </div>
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">موبايل الأم (إن وُجد) <span class="text-rose-600">*</span></label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Mother mobile (if any)') }} <span class="text-rose-600">*</span></label>
                                     <input id="mother_phone_number" name="mother_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
                                 </div>
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">هاتف أرضي (إن وُجد)</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Landline (if any)') }}</label>
                                     <input id="home_phone_number" name="home_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
                                 </div>
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">هل رقم الموبايل الأساسي عليه Whatsapp؟</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Does the primary mobile number have WhatsApp?') }}</label>
                                     <select id="has_whatsapp" name="has_whatsapp" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                        <option value="" disabled selected>اختر نعم أم لا</option>
-                                        <option value="True">نعم</option>
-                                        <option value="False">لا</option>
+                                        <option value="" disabled selected>{{ __('Choose yes or no') }}</option>
+                                        <option value="True">{{ __('Yes') }}</option>
+                                        <option value="False">{{ __('No') }}</option>
                                     </select>
                                 </div>
 
                                 <div class="md:col-span-12 mt-2">
                                     <div class="rounded-2xl bg-teal-50/40 border border-teal-100 p-4">
                                         <div class="flex items-center justify-between mb-3">
-                                            <h3 class="font-bold text-brand-900">العنوان</h3>
+                                            <h3 class="font-bold text-brand-900">{{ __('Address') }}</h3>
                                         </div>
                                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                             <div class="md:col-span-4">
                                                 <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    رقم العمارة <span class="text-rose-600">*</span>
+                                                    {{ __('Building number') }} <span class="text-rose-600">*</span>
                                                 </label>
                                                 <input required id="building_number" name="building_number"
                                                     type="text" inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="رقم العمارة">
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                    placeholder="{{ __('Building number') }}">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-4">
-                                                <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    رقم الدور <span class="text-rose-600">*</span>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Floor number') }}<span class="text-rose-600">*</span>
                                                 </label>
                                                 <input required id="floor_number" name="floor_number" type="text"
                                                     inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="رقم الدور">
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                    placeholder="{{ __('Floor number') }}">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-4">
-                                                <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    رقم الشقة <span class="text-rose-600">*</span>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Apartment number') }}<span class="text-rose-600">*</span>
                                                 </label>
                                                 <input required id="appartment_number" name="appartment_number"
                                                     type="text" inputmode="numeric" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="رقم الشقة">
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                    placeholder="{{ __('Apartment number') }}">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-6">
                                                 <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    اسم الشارع <span class="text-rose-600">*</span>
+                                                    {{ __('Street name') }} <span class="text-rose-600">*</span>
                                                 </label>
                                                 <input required id="sub_street_name" name="sub_street_name"
                                                     type="text" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="اسم الشارع">
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                    placeholder="{{ __('Street name') }}">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-6">
                                                 <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    اسم أقرب شارع رئيسي <span class="text-rose-600">*</span>
+                                                    {{ __('Nearest main street name') }} <span class="text-rose-600">*</span>
                                                 </label>
                                                 <input required id="main_street_name" name="main_street_name"
                                                     type="text" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="أقرب شارع رئيسي">
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                    placeholder="{{ __('Nearest main street') }}">
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-12">
-                                                <label class="block text-sm font-bold text-slate-700 mb-1">أقرب علامة مميزة</label>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Nearest landmark') }}</label>
                                                 <input id="nearest_landmark" name="nearest_landmark" type="text"
-                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="اختياري">
+                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
                                             </div>
                                             <div class="md:col-span-6">
-                                                <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    المنطقة <span class="text-rose-600">*</span>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Area') }}<span class="text-rose-600">*</span>
                                                 </label>
                                                 <select required id="manteqa_id" name="manteqa_id" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                                    <option value="" disabled selected>اختر المنطقة السكنية</option>
+                                                    <option value="" disabled selected>{{ __('Choose residential area') }}</option>
                                                     @foreach ($manateq as $manteqa)
                                                         <option value="{{ $manteqa->ManteqaID }}">
                                                             {{ $manteqa->ManteqaName }}</option>
                                                     @endforeach
                                                 </select>
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                             <div class="md:col-span-6">
-                                                <label class="block text-sm font-bold text-slate-700 mb-1">
-                                                    الحي <span class="text-rose-600">*</span>
+                                                <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('District') }}<span class="text-rose-600">*</span>
                                                 </label>
                                                 <select required id="district_id" name="district_id" class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                                    <option value="" disabled selected>اختر الحي</option>
+                                                    <option value="" disabled selected>{{ __('Choose district') }}</option>
                                                     @foreach ($districts as $district)
                                                         <option value="{{ $district->DistrictID }}">
                                                             {{ $district->DistrictName }}</option>
                                                     @endforeach
                                                 </select>
-                                                <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                                <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -559,11 +541,11 @@
                         <div class="mt-8 flex justify-between gap-3">
                             <button type="button" @click="step = 1"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                → السابق
+                                → {{ __('Previous') }}
                             </button>
                             <button type="button" data-next-step="2"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                التالي ←
+                                {{ __('Next') }} ←
                             </button>
                         </div>
                     </div>
@@ -573,26 +555,26 @@
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">البيانات الدراسية</h2>
-                                <p class="text-slate-500 mt-1 text-sm">البيانات التعليمية والكنسية والكشفية.</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Educational information') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Educational, church, and scout information.') }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-12">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">السنة والمرحلة الدراسية</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Academic year & stage') }}</label>
                                     <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="sana_marhala_id" id="sana_marhala_id">
                                         <option value="{{ $sana_marhala_id }}" selected>{{ $sana_marhala_name }}</option>
                                     </select>
                                 </div>
                                 <div class="md:col-span-8">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">اسم المدرسة</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('School name') }}</label>
                                     <input id="person_school" name="person_school" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل اسم المدرسة">
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Enter school name') }}">
                                 </div>
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">سنة التخرج من المدرسة</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('School graduation year') }}</label>
                                     <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="school_grad_year" id="school_grad_year">
-                                        <option value="" disabled selected>اختر سنة التخرج من المدرسة</option>
+                                        <option value="" disabled selected>{{ __('Choose school graduation year') }}</option>
                                         @for ($i = 1970; $i <= 2050; $i++)
                                             <option value="{{ $i }}">{{ $i }}</option>
                                         @endfor
@@ -601,18 +583,18 @@
 
                                 @if ($sana_marhala_id > 14)
                                     <div class="md:col-span-6">
-                                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الكلية</label>
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Faculty name') }}</label>
                                         <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="person_faculty" id="person_faculty">
-                                            <option value="" disabled selected>اختر الكلية</option>
+                                            <option value="" disabled selected>{{ __('Choose faculty') }}</option>
                                             @foreach ($faculties as $faculty)
                                                 <option value="{{ $faculty->FacultyID }}">{{ $faculty->FacultyName }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="md:col-span-6">
-                                        <label class="block text-sm font-bold text-slate-700 mb-1">اسم الجامعة</label>
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('University name') }}</label>
                                         <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="person_university" id="person_university">
-                                            <option value="" disabled selected>اختر الجامعة</option>
+                                            <option value="" disabled selected>{{ __('Choose university') }}</option>
                                             @foreach ($universities as $university)
                                                 <option value="{{ $university->UniversityID }}">
                                                     {{ $university->UniversityName }}</option>
@@ -620,9 +602,9 @@
                                         </select>
                                     </div>
                                     <div class="md:col-span-6">
-                                        <label class="block text-sm font-bold text-slate-700 mb-1">سنة التخرج من الجامعة</label>
+                                        <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('University graduation year') }}</label>
                                         <select class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="university_grad_year" id="university_grad_year">
-                                            <option value="" disabled selected>اختر سنة التخرج من الجامعة</option>
+                                            <option value="" disabled selected>{{ __('Choose university graduation year') }}</option>
                                             @for ($i = 1970; $i <= 2050; $i++)
                                                 <option value="{{ $i }}">{{ $i }}</option>
                                             @endfor
@@ -631,20 +613,20 @@
                                 @endif
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">الأب الروحي / أب الاعتراف</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Spiritual father / confession father') }}</label>
                                     <input id="spiritual_father" name="spiritual_father" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل الاسم">
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Enter the name') }}">
                                 </div>
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">كنيسة الأب الروحي / أب الاعتراف</label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __("Spiritual father's church / confession father's church") }}</label>
                                     <input id="spiritual_father_church" name="spiritual_father_church" type="text"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="أدخل الكنيسة">
+                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Enter the church') }}">
                                 </div>
 
                                 <div class="md:col-span-12">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">
-                                        صورة الزي الرسمي
-                                        <span class="text-xs text-slate-500 font-normal ms-2">اختياري - JPG/PNG/WebP - حد أقصى 5 ميجا</span>
+                                        {{ __('Official uniform photo') }}
+                                        <span class="text-xs text-slate-500 font-normal ms-2">{{ __('Optional - JPG/PNG/WebP - max 5 MB') }}</span>
                                     </label>
                                     <div class="rounded-2xl border border-teal-100 bg-teal-50/40 p-4" data-upload>
                                         <div class="flex items-center gap-4">
@@ -665,25 +647,25 @@
                                                 <div class="flex flex-col gap-2">
                                                     <button type="button" data-pick
                                                         class="inline-flex items-center justify-center rounded-xl bg-brand-700 px-4 py-2 text-white font-bold hover:bg-brand-800 w-fit">
-                                                        اختيار ملف
+                                                        {{ __('Choose file') }}
                                                     </button>
-                                                    <p class="text-xs text-slate-600" data-filename>لم يتم اختيار ملف</p>
+                                                    <p class="text-xs text-slate-600" data-filename>{{ __('No file selected') }}</p>
                                                     <p class="error-photo hidden mt-1 text-sm text-rose-600"
                                                         data-error="scout_uniform_image">
-                                                        الصورة يجب أن تكون بصيغة JPG/PNG/WebP وبحجم أقل من 5 ميجا
+                                                        {{ __('Image must be JPG/PNG/WebP and under 5 MB') }}
                                                     </p>
                                                 </div>
-                                                <p class="mt-2 text-xs text-slate-500">اختياري — صورة كاملة بالزي الكشفي إن أمكن</p>
+                                                <p class="mt-2 text-xs text-slate-500">{{ __('Optional — full-body scout uniform photo if possible') }}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="md:col-span-12">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">القطاع الكشفي <span class="text-rose-600">*</span></label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Scout sector') }}<span class="text-rose-600">*</span></label>
                                     <select class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" name="qetaa_id" id="qetaa_id" required>
                                         <option value="" disabled {{ empty($qetaa_id) ? 'selected' : '' }}>
-                                            اختر القطاع الكشفي
+                                            {{ __('Choose scout sector') }}
                                         </option>
                                         @foreach ($available_qetaat as $qetaa)
                                             <option value="{{ $qetaa['QetaaID'] }}"
@@ -692,7 +674,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <p class="error hidden mt-1 text-sm text-rose-600">هذا الحقل مطلوب</p>
+                                    <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
                                     <label name="qetaa_name" id="qetaa_name" value="{{ $qetaa_name }}" hidden></label>
                                 </div>
                             </div>
@@ -701,11 +683,11 @@
                         <div class="mt-8 flex justify-between gap-3">
                             <button type="button" @click="step = 2"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                → السابق
+                                → {{ __('Previous') }}
                             </button>
                             <button type="button" data-next-step="3"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-8 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                المراجعة ←
+                                {{ __('Review') }} ←
                             </button>
                         </div>
                     </div>
@@ -715,56 +697,55 @@
 
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6">
                             <div class="mb-5">
-                                <h2 class="text-xl font-bold text-brand-900">المراجعة</h2>
-                                <p class="text-slate-500 mt-1 text-sm">راجع البيانات قبل الإرسال، ثم اضغط استمرار للانتقال إلى الأسئلة.</p>
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Review') }}</h2>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Review the data before submitting, then press Continue to go to the questions.') }}</p>
                             </div>
 
                             <div id="reviewSummary" class="space-y-3 text-sm">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">الاسم الكامل</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Full name') }}</div>
                                         <div class="font-bold text-slate-900" data-review="full_name">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">النوع</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Gender') }}</div>
                                         <div class="font-bold text-slate-900" data-review="gender">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">تاريخ الميلاد</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Date of birth') }}</div>
                                         <div class="font-bold text-slate-900" data-review="birthdate">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">فصيلة الدم</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Blood type') }}</div>
                                         <div class="font-bold text-slate-900" data-review="blood">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">موبايل الملتحق</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Applicant mobile') }}</div>
                                         <div class="font-bold text-slate-900" data-review="phone" dir="ltr">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">الرقم القومي</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('National ID') }}</div>
                                         <div class="font-bold text-slate-900" data-review="nid" dir="ltr">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3 sm:col-span-2">
-                                        <div class="text-xs text-slate-500 mb-1">العنوان</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Address') }}</div>
                                         <div class="font-bold text-slate-900" data-review="address">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">المدرسة</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('School') }}</div>
                                         <div class="font-bold text-slate-900" data-review="school">—</div>
                                     </div>
                                     <div class="rounded-xl bg-teal-50/60 border border-teal-100 px-4 py-3">
-                                        <div class="text-xs text-slate-500 mb-1">القطاع الكشفي</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('Scout sector') }}</div>
                                         <div class="font-bold text-slate-900" data-review="qetaa">—</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="mt-6 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
-                                <div class="font-bold mb-1">تنبيه مهم</div>
+                                <div class="font-bold mb-1">{{ __('Important notice') }}</div>
                                 <div class="text-sm leading-relaxed">
-                                    برجاء التأكد من البيانات مرة أخرى قبل ضغط "استمرار".
-                                    سيتم الانتقال إلى باقي الأسئلة الخاصة بالقطاع بعد الضغط.
+                                    {{ __('Please double-check the data before pressing "Continue". You will move to the remaining sector questions after pressing.') }}
                                 </div>
                             </div>
                         </section>
@@ -772,11 +753,11 @@
                         <div class="mt-8 flex justify-between gap-3">
                             <button type="button" @click="step = 3"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                                → السابق
+                                → {{ __('Previous') }}
                             </button>
                             <button id="submitBtn" type="submit"
                                 class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-10 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
-                                <span>استمرار</span>
+                                <span>{{ __('Continue') }}</span>
                                 <span>←</span>
                             </button>
                         </div>
@@ -787,7 +768,7 @@
         </div>
 
         <p class="mt-8 text-center text-xs text-slate-500">
-            © {{ date('Y') }} مجموعة الشمندورة الكشفية البحرية — الإسكندرية
+            © {{ date('Y') }} {{ __('Sea Shamandora Scout Group — Alexandria') }}
         </p>
     </div>
 
@@ -796,6 +777,21 @@
         const form = document.getElementById('regForm2');
         const submitBtn = document.getElementById('submitBtn');
         const wizardRoot = document.getElementById('wizardRoot');
+
+        const i18n = {
+            imageType: @json(__('Image must be JPG, PNG, or WebP')),
+            compressing: @json(__('Compressing image... (current size :size)')),
+            compressFail: @json(__('Could not compress image under 5 MB. Current size: :size. Please choose a smaller image.')),
+            processError: @json(__('An error occurred while processing the image. Please choose another image.')),
+            stillLarge: @json(__('Image is still larger than 5 MB (:size). Please choose a smaller image.')),
+            waitPhotos: @json(__('Please wait until photo processing finishes.')),
+            male: @json(__('Male')),
+            female: @json(__('Female')),
+            bldg: @json(__('Bldg.')),
+            fl: @json(__('Fl.')),
+            apt: @json(__('Apt.')),
+            near: @json(__('Near')),
+        };
 
         const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
         const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -1067,9 +1063,9 @@
         })();
 
         function formatFileSize(bytes) {
-            if (!bytes) return '0 بايت';
+            if (!bytes) return @json(__('0 bytes'));
             const k = 1024;
-            const sizes = ['بايت', 'كيلو بايت', 'ميجا بايت'];
+            const sizes = [@json(__('B')), @json(__('KB')), @json(__('MB'))];
             const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
             return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
         }
@@ -1127,7 +1123,7 @@
             }
 
             if (placeholder) placeholder.classList.remove('hidden');
-            if (filename) filename.textContent = 'لم يتم اختيار ملف';
+            if (filename) filename.textContent = @json(__('No file selected'));
 
             updateSubmitState();
         }
@@ -1154,7 +1150,7 @@
             const placeholder = root.querySelector('[data-placeholder]');
             const filename = root.querySelector('[data-filename]');
 
-            if (filename) filename.textContent = file ? file.name : 'لم يتم اختيار ملف';
+            if (filename) filename.textContent = file ? file.name : @json(__('No file selected'));
 
             if (!file) {
                 if (img) {
@@ -1279,7 +1275,7 @@
             processedFiles.delete(key);
 
             if (!ALLOWED_IMAGE_TYPES.includes(originalFile.type)) {
-                showPhotoError(root, 'الصورة يجب أن تكون بصيغة JPG أو PNG أو WebP');
+                showPhotoError(root, i18n.imageType);
                 input.value = '';
                 resetPhotoUI(root);
                 validateAll();
@@ -1292,12 +1288,12 @@
                 let finalFile = originalFile;
 
                 if (originalFile.size > MAX_IMAGE_BYTES) {
-                    showPhotoError(root, `جارٍ ضغط الصورة... (الحجم الحالي ${formatFileSize(originalFile.size)})`);
+                    showPhotoError(root, i18n.compressing.replace(':size', formatFileSize(originalFile.size)));
 
                     const result = await compressToUnder5MB(originalFile, MAX_IMAGE_BYTES);
                     if (!result.ok) {
                         showPhotoError(root,
-                            `لم نتمكن من ضغط الصورة لأقل من 5 ميجا. الحجم الحالي: ${formatFileSize(originalFile.size)}. برجاء اختيار صورة أصغر.`
+                            i18n.compressFail.replace(':size', formatFileSize(originalFile.size))
                         );
                         input.value = '';
                         resetPhotoUI(root);
@@ -1313,7 +1309,7 @@
                 setPhotoPreview(root, finalFile);
             } catch (error) {
                 console.error(error);
-                showPhotoError(root, 'حدث خطأ أثناء معالجة الصورة. برجاء اختيار صورة أخرى.');
+                showPhotoError(root, i18n.processError);
                 input.value = '';
                 resetPhotoUI(root);
             } finally {
@@ -1333,14 +1329,14 @@
                 if (!file) return;
 
                 if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-                    showPhotoError(root, 'الصورة يجب أن تكون بصيغة JPG أو PNG أو WebP');
+                    showPhotoError(root, i18n.imageType);
                     ok = false;
                     return;
                 }
 
                 if (file.size > MAX_IMAGE_BYTES) {
                     showPhotoError(root,
-                        `حجم الصورة ما زال أكبر من 5 ميجا (${formatFileSize(file.size)}). برجاء اختيار صورة أصغر.`
+                        i18n.stillLarge.replace(':size', formatFileSize(file.size))
                     );
                     ok = false;
                 }
@@ -1426,7 +1422,7 @@
                 .join(' ');
 
             const genderSel = document.getElementById('gender');
-            const genderText = selectText(genderSel) || (genderSel?.value === 'Male' ? 'ذكر' : genderSel?.value === 'Female' ? 'أنثى' : '');
+            const genderText = selectText(genderSel) || (genderSel?.value === 'Male' ? i18n.male : genderSel?.value === 'Female' ? i18n.female : '');
 
             const building = document.getElementById('building_number')?.value || '';
             const floor = document.getElementById('floor_number')?.value || '';
@@ -1436,11 +1432,11 @@
             const manteqa = selectText(document.getElementById('manteqa_id'));
             const district = selectText(document.getElementById('district_id'));
             const addressParts = [
-                building && `عمارة ${building}`,
-                floor && `دور ${floor}`,
-                apt && `شقة ${apt}`,
+                building && `${i18n.bldg} ${building}`,
+                floor && `${i18n.fl} ${floor}`,
+                apt && `${i18n.apt} ${apt}`,
                 street,
-                mainStreet && `قرب ${mainStreet}`,
+                mainStreet && `${i18n.near} ${mainStreet}`,
                 manteqa,
                 district
             ].filter(Boolean);
@@ -1516,7 +1512,7 @@
 
             if (isAnyFileProcessing()) {
                 ok = false;
-                alert('برجاء الانتظار حتى ينتهي تجهيز الصور.');
+                alert(i18n.waitPhotos);
             }
 
             if (!validateFilesBeforeSubmit()) ok = false;

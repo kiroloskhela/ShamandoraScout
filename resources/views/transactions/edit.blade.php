@@ -17,7 +17,7 @@
                 <input type="hidden" name="return" value="{{ $returnUrl ?? url()->previous() }}">
                 <div class="space-y-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">المبلغ</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Amount') }}</label>
                         <input type="number" step="0.01" name="amount" value="{{ $trx->Amount }}" required
                             class="w-full h-12 px-4 border rounded-xl text-right border-slate-200 text-slate-600
                                   focus:border-green-500 focus:outline-none">
@@ -34,15 +34,11 @@
                     <div class="flex justify-center gap-4">
                         <button type="submit"
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full
-                                   bg-green-600 text-white hover:bg-green-700 transition">
-                            حفظ
-                        </button>
+                                   bg-green-600 text-white hover:bg-green-700 transition">{{ __('Save') }}</button>
 
                         <a href="{{ $returnUrl ?? url()->previous() }}"
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full
-                              bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
-                            إلغاء
-                        </a>
+                              bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Cancel') }}</a>
                     </div>
                 </div>
             </form>

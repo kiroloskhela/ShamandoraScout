@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل حدث/مناسبة'])
+@extends('layouts.app', ['pageTitle' => __('Edit event/occasion')])
 
 @section('content')
     <div class="container-fluid">
@@ -6,9 +6,7 @@
         <div class="flex place-content-center mb-8">
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl border-2 border-emerald-300" dir="rtl">
                 <div class="mb-6 text-center">
-                    <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">
-                        تعديل حدث/مناسبة
-                    </h2>
+                    <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">{{ __('Edit event/occasion') }}</h2>
                 </div>
 
                 @if ($errors->any())
@@ -30,13 +28,11 @@
                         <!-- Season -->
                         <div class="relative">
                             <label for="season_id" class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                الموسم (اختياري)
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Season (optional)') }}</label>
                             <select name="season_id" id="season_id"
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-500 focus:border-emerald-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
-                                <option value="">بدون ربط بموسم</option>
+                                <option value="">{{ __('Not linked to a season') }}</option>
                                 @foreach ($seasons as $season)
                                     <option value="{{ $season->SeasonID }}"
                                         @if (($selectedSeasonId ?? null) == $season->SeasonID) selected @endif>
@@ -49,13 +45,11 @@
                         <!-- Event Type -->
                         <div class="relative">
                             <label for="event_type_id" class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                نوع الحدث أو المناسبة الكشفية
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Scout event or occasion type') }}</label>
                             <select name="event_type_id" id="event_type_id" required
                                 class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-500 focus:border-emerald-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
-                                <option value="" disabled>اختر نوع الحدث أو المناسبة الكشفية</option>
+                                <option value="" disabled>{{ __('Choose scout event type') }}</option>
                                 @foreach ($eventTypes as $eventType)
                                     <option value="{{ $eventType->EventTypeID }}"
                                         @if ($eventType->EventTypeID == $event->EventTypeID) selected @endif>
@@ -69,14 +63,12 @@
                         <div class="relative">
                             <input id="event_name" type="text" name="event_name"
                                 value="{{ old('event_name', $event->EventName) }}"
-                                placeholder="ادخل اسم الحدث أو المناسبة (اختياري)"
+                                placeholder="{{ __('Enter event or occasion name (optional)') }}"
                                 class="relative w-full h-12 px-4 text-sm border rounded-lg outline-none border-slate-200 text-slate-500 focus:border-emerald-500 focus:outline-none text-right"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium" />
                             <label for="event_name"
                                 class="cursor-text absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 bg-white"
-                                style="font-family: 'Cairo', sans-serif;">
-                                اسم الحدث أو المناسبة الكشفية (اختياري)
-                            </label>
+                                style="font-family: 'Cairo', sans-serif;">{{ __('Scout event or occasion name (optional)') }}</label>
 
                             <div id="autoNamePreview"
                                 class="hidden mt-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-800"
@@ -87,9 +79,7 @@
                         <!-- Qetaa -->
                         <div class="relative">
                             <label class="block mb-2 text-sm font-medium text-slate-700"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                اختر القطاعات المربوطة بهذا الحدث
-                            </label>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Choose sectors linked to this event') }}</label>
 
                             <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
                                 @foreach ($qetaat as $qetaa)
@@ -109,9 +99,7 @@
                             </div>
 
                             <div id="qetaa-validation-error" class="hidden text-red-500 text-xs mt-1"
-                                style="font-family: 'Cairo', sans-serif; text-align: right;">
-                                يرجى اختيار قطاع واحد على الأقل
-                            </div>
+                                style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Please choose at least one sector') }}</div>
                         </div>
 
                         <!-- Dates -->
@@ -123,9 +111,7 @@
                                     style="font-family: 'Cairo', sans-serif; font-size: medium" />
                                 <label for="event_start_date"
                                     class="cursor-text absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 bg-white"
-                                    style="font-family: 'Cairo', sans-serif;">
-                                    تاريخ بداية الحدث
-                                </label>
+                                    style="font-family: 'Cairo', sans-serif;">{{ __('Event start date') }}</label>
                             </div>
 
                             <div class="relative">
@@ -135,9 +121,7 @@
                                     style="font-family: 'Cairo', sans-serif; font-size: medium" />
                                 <label for="event_end_date"
                                     class="cursor-text absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 bg-white"
-                                    style="font-family: 'Cairo', sans-serif;">
-                                    تاريخ نهاية الحدث
-                                </label>
+                                    style="font-family: 'Cairo', sans-serif;">{{ __('Event end date') }}</label>
                             </div>
                         </div>
 
@@ -145,9 +129,7 @@
                         <div class="flex justify-center pt-6">
                             <button type="submit" id="submit-button"
                                 class="inline-flex items-center justify-center h-12 gap-2 px-8 text-sm font-medium tracking-wide transition duration-300 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
-                                style="font-family: 'Cairo', sans-serif; font-weight: bold;">
-                                تحديث
-                            </button>
+                                style="font-family: 'Cairo', sans-serif; font-weight: bold;">{{ __('Update') }}</button>
                         </div>
                     </div>
                 </form>
@@ -185,7 +167,7 @@
                     const parts = [];
                     if (eventTypeName) parts.push(eventTypeName);
                     if (qetaaNames.length) parts.push(qetaaNames.join(' - '));
-                    if (startDate && endDate) parts.push(startDate + ' إلى ' + endDate);
+                    if (startDate && endDate) parts.push(startDate + ' ' + @json(__('to')) + ' ' + endDate);
                     else if (startDate) parts.push(startDate);
 
                     return parts.join(' - ').trim();
@@ -197,7 +179,7 @@
 
                     if (!manualName && generated) {
                         autoNamePreview.classList.remove('hidden');
-                        autoNamePreview.innerHTML = 'الاسم التلقائي المقترح: <strong>' + generated + '</strong>';
+                        autoNamePreview.innerHTML = @json(__('Suggested auto name:')) + ' <strong>' + generated + '</strong>';
                     } else {
                         autoNamePreview.classList.add('hidden');
                         autoNamePreview.innerHTML = '';
@@ -206,13 +188,13 @@
 
                 $('#event_type_id').select2({
                     theme: "classic",
-                    placeholder: "اختر نوع الحدث أو المناسبة الكشفية",
+                    placeholder: "{{ __('Choose scout event type') }}",
                     dir: "rtl"
                 });
 
                 $('#season_id').select2({
                     theme: "classic",
-                    placeholder: "اختر الموسم",
+                    placeholder: "{{ __('Choose season') }}",
                     dir: "rtl",
                     allowClear: true
                 });
@@ -232,13 +214,13 @@
                             $('#qetaa-validation-error').removeClass('hidden');
                         }
 
-                        alert('يرجى ملء جميع الحقول المطلوبة');
+                        alert(@json(__('Please fill all required fields')));
                         return false;
                     }
 
                     if (!endDate) {
                         const confirmSameDay = confirm(
-                            'لم يتم اختيار تاريخ النهاية. هل تريد جعله نفس تاريخ البداية؟');
+                            @json(__('End date not selected. Do you want to set it to the same as the start date?')));
                         if (!confirmSameDay) {
                             $('#event_end_date').focus();
                             e.preventDefault();
@@ -251,7 +233,7 @@
 
                     if (new Date(startDate) > new Date(endDate)) {
                         e.preventDefault();
-                        alert('تاريخ بداية الحدث يجب أن يكون قبل تاريخ النهاية');
+                        alert(@json(__('Event start date must be before the end date')));
                         return false;
                     }
 
@@ -261,7 +243,7 @@
 
                         if (!generated) {
                             e.preventDefault();
-                            alert('لا يمكن تكوين اسم الحدث تلقائياً قبل اختيار نوع الحدث والقطاع والتاريخ');
+                            alert(@json(__('Cannot auto-generate event name before choosing event type, sector, and date')));
                             return false;
                         }
 

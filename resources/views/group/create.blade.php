@@ -45,7 +45,7 @@
 
                     <!-- Group Name -->
                     <div class="relative">
-                        <label for="group_name" class="block mb-2 text-sm text-gray-700">اسم المجموعة</label>
+                        <label for="group_name" class="block mb-2 text-sm text-gray-700">{{ __('Group name') }}</label>
                         <input type="text" id="group_name" name="group_name" required
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
                                    focus:border-blue-500 focus:outline-none"

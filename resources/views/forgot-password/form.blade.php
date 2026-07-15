@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+@php($locale = app()->getLocale())
+<html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نسيت كلمة المرور</title>
+    <title>{{ __('Forgot password') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
 
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: {{ $locale === 'ar' ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
         }
 
         .input-field {
@@ -40,7 +41,7 @@
             <!-- Form -->
             <div class="order-2 lg:order-1">
                 <div class="bg-white rounded-lg p-8 lg:p-12 shadow-lg border border-gray-100">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">استرجاع كلمة المرور</h2>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">{{ __('Reset password') }}</h2>
 
                     {{-- Alerts --}}
                     @if (session('success'))
@@ -68,15 +69,15 @@
 
                         <!-- Phone -->
                         <div>
-                            <label class="block text-gray-700 text-sm font-medium mb-2">رقم الهاتف</label>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">{{ __('Phone number') }}</label>
                             <input type="text" name="phone" value="{{ old('phone') }}"
                                 class="input-field w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-gray-500"
-                                placeholder="أدخل رقم الهاتف" required>
+                                placeholder="{{ __('Enter phone number') }}" required>
                         </div>
 
                         <!-- DOB -->
                         <div>
-                            <label class="block text-gray-700 text-sm font-medium mb-2">تاريخ الميلاد</label>
+                            <label class="block text-gray-700 text-sm font-medium mb-2">{{ __('Date of birth') }}</label>
                             <input type="date" name="dob" value="{{ old('dob') }}"
                                 class="input-field w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:border-gray-500"
                                 required>
@@ -85,7 +86,7 @@
                         <!-- Submit -->
                         <button type="submit"
                             class="login-btn w-full py-3 px-6 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg focus:outline-none cursor-pointer">
-                            إرسال كلمة مرور مؤقتة
+                            {{ __('Send temporary password') }}
                         </button>
                     </form>
 
@@ -93,9 +94,9 @@
                     @if (session('need_raqam_qawmy'))
                         <div id="rq-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                             <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">تأكيد الهوية</h3>
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ __('Confirm identity') }}</h3>
                                 <p class="text-sm text-gray-600 mb-4">
-                                    {{ session('info') ?? 'برجاء إدخال الرقم القومي لإتمام التحقق.' }}
+                                    {{ session('info') ?? __('Please enter your national ID to complete verification.') }}
                                 </p>
 
                                 <form method="POST" action="{{ route('forgot-password.handle') }}" class="space-y-4">
@@ -105,22 +106,20 @@
                                     <input type="hidden" name="dob" value="{{ old('dob') }}">
 
                                     <div>
-                                        <label class="block text-gray-700 text-sm font-medium mb-2">الرقم القومي</label>
+                                        <label class="block text-gray-700 text-sm font-medium mb-2">{{ __('National ID') }}</label>
                                         <input type="text" name="raqam_qawmy" pattern="\d{14}" maxlength="14"
                                             class="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-500"
-                                            placeholder="أدخل الرقم القومي (14 رقم)" required>
-                                        <p class="mt-1 text-xs text-gray-500">أدخل 14 رقمًا بدون مسافات.</p>
+                                            placeholder="{{ __('Enter national ID (14 digits)') }}" required>
+                                        <p class="mt-1 text-xs text-gray-500">{{ __('Enter 14 digits with no spaces.') }}</p>
                                     </div>
 
                                     <div class="flex gap-3">
                                         <button type="submit"
                                             class="flex-1 py-3 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg">
-                                            تأكيد
+                                            {{ __('Confirm') }}
                                         </button>
                                         <button type="button" onclick="closeRaqamModal()"
-                                            class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg">
-                                            إلغاء
-                                        </button>
+                                            class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg">{{ __('Cancel') }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -139,7 +138,7 @@
                     <div class="text-center mt-6">
                         <a href="{{ route('login-auth') }}"
                             class="text-gray-600 hover:text-gray-800 text-sm hover:underline transition-all duration-300">
-                            العودة لتسجيل الدخول
+                            {{ __('Back to login') }}
                         </a>
                     </div>
                 </div>
@@ -150,14 +149,14 @@
                 <div class="mb-8">
                     <div
                         class="w-40 h-40 bg-gray-100 rounded-full flex items-center justify-center shadow-md border border-gray-200">
-                        <img src="{{ asset('img/shamandora.png') }}" alt="الشعار">
+                        <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Logo') }}">
                     </div>
                 </div>
                 <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center text-gray-800">
-                    مجموعة الشمندورة الكشافة
+                    {{ __('Shamandora Scout Group') }}
                 </h1>
                 <p class="text-lg lg:text-xl text-center text-gray-600 max-w-md">
-                    منارة للقيادة والتوجيه في رحلة الكشافة
+                    {{ __('A beacon of leadership and guidance on the scout journey') }}
                 </p>
             </div>
 

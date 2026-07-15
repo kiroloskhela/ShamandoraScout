@@ -558,14 +558,14 @@
 
                         ${props.season ? `
                                             <div class="sc-event-detail">
-                                                <div class="sc-event-label">الموسم</div>
+                                                <div class="sc-event-label">{{ __('Season') }}</div>
                                                 <div class="sc-event-value">${props.season}</div>
                                             </div>
                                         ` : ''}
 
                         ${props.year ? `
                                             <div class="sc-event-detail">
-                                                <div class="sc-event-label">السنة</div>
+                                                <div class="sc-event-label">{{ __('Year') }}</div>
                                                 <div class="sc-event-value">${props.year}</div>
                                             </div>
                                         ` : ''}

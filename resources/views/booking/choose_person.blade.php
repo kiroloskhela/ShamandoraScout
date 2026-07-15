@@ -21,7 +21,7 @@
             </div>
 
             <div class="text-center mt-6">
-                <a href="{{ route('booking.create') }}" class="text-sm text-gray-500 hover:text-gray-700">رجوع</a>
+                <a href="{{ route('booking.create') }}" class="text-sm text-gray-500 hover:text-gray-700">{{ __('Back') }}</a>
             </div>
 
         </div>
@@ -48,7 +48,7 @@
                         results.classList.remove('hidden');
                         if (!data.length) {
                             results.innerHTML =
-                                `<div class="p-4 text-sm text-gray-500">لا يوجد نتائج</div>`;
+                                `<div class="p-4 text-sm text-gray-500">{{ __('No results') }}</div>`;
                             return;
                         }
 

@@ -22,23 +22,21 @@
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">الشخص</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Person') }}</label>
                         <input type="text" value="{{ $black->PersonName }} - ({{ $black->PersonID }})" readonly
                             class="w-full h-12 px-4 border rounded-lg bg-gray-50 text-right border-slate-200 text-slate-600 focus:outline-none">
                     </div>
 
                     <div>
-                        <label for="note" class="block mb-2 text-sm text-gray-700">الملاحظة</label>
+                        <label for="note" class="block mb-2 text-sm text-gray-700">{{ __('Note') }}</label>
                         <textarea id="note" name="note" rows="4"
                             class="w-full px-4 py-3 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none"
-                            placeholder="اكتب الملاحظة هنا">{{ old('note', $black->Note) }}</textarea>
+                            placeholder="{{ __('Write the note here') }}">{{ old('note', $black->Note) }}</textarea>
                     </div>
 
                     <div class="flex justify-center">
                         <button type="submit"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition">
-                            تعديل
-                        </button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700 transition">{{ __('Edit') }}</button>
                     </div>
                 </div>
             </form>

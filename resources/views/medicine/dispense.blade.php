@@ -1,10 +1,10 @@
-@extends('layouts.app', ['pageTitle' => 'صرف دواء'])
+@extends('layouts.app', ['pageTitle' => __('Dispense medicine')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
         <div class="bg-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto border-2 border-emerald-300">
             <div class="mb-6 text-center">
-                <h1 class="text-2xl font-bold text-gray-800">صرف دواء</h1>
+                <h1 class="text-2xl font-bold text-gray-800">{{ __('Dispense medicine') }}</h1>
             </div>
 
             @if ($errors->any())
@@ -22,10 +22,10 @@
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="md:col-span-2 relative">
-                        <label for="medicine_search" class="block mb-2 text-sm text-gray-700">الدواء</label>
+                        <label for="medicine_search" class="block mb-2 text-sm text-gray-700">{{ __('Medicine') }}</label>
                         <input type="text" id="medicine_search" autocomplete="off"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
-                            placeholder="اكتب اسم الدواء أو النوع أو المكان">
+                            placeholder="{{ __('Type medicine name, type, or place') }}">
                         <input type="hidden" id="medicine_id" name="medicine_id" value="{{ old('medicine_id') }}"
                             required>
 
@@ -37,29 +37,29 @@
                     </div>
 
                     <div>
-                        <label for="location_id" class="block mb-2 text-sm text-gray-700">مكان الدواء</label>
+                        <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Medicine place') }}</label>
                         <select id="location_id" name="location_id" required disabled
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none disabled:bg-slate-100">
-                            <option value="">-- اختر الدواء أولاً --</option>
+                            <option value="">{{ __('-- Choose medicine first --') }}</option>
                         </select>
                     </div>
 
                     <div>
-                        <label for="quantity" id="quantity_label" class="block mb-2 text-sm text-gray-700">الكمية</label>
+                        <label for="quantity" id="quantity_label" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>
                         <div class="flex rounded-lg border border-slate-200 overflow-hidden focus-within:border-emerald-500">
                             <input type="number" id="quantity" name="quantity" min="1" step="1" required
                                 value="{{ old('quantity', 1) }}"
                                 class="w-full h-12 px-4 text-right text-slate-700 focus:outline-none">
                             <span id="quantity_unit"
-                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">وحدة</span>
+                                class="inline-flex items-center px-4 bg-slate-50 text-sm text-slate-600 border-r border-slate-200">{{ __('Unit') }}</span>
                         </div>
                     </div>
 
                     <div class="md:col-span-2 relative">
-                        <label for="person_search" class="block mb-2 text-sm text-gray-700">الشخص</label>
+                        <label for="person_search" class="block mb-2 text-sm text-gray-700">{{ __('Person') }}</label>
                         <input type="text" id="person_search" autocomplete="off"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
-                            placeholder="اكتب الاسم أو الكود أو رقم الموبايل">
+                            placeholder="{{ __('Type name, code, or mobile number') }}">
                         <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}" required>
 
                         <div id="person_results"
@@ -68,23 +68,19 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="notes" class="block mb-2 text-sm text-gray-700">ملاحظات</label>
+                        <label for="notes" class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
                         <input type="text" id="notes" name="notes" value="{{ old('notes') }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
-                            placeholder="اختياري">
+                            placeholder="{{ __('Optional') }}">
                     </div>
                 </div>
 
                 <div class="flex justify-center gap-3 mt-8">
                     <button type="submit"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
-                        تسجيل الصرف
-                    </button>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">{{ __('Record dispense') }}</button>
 
                     <a href="{{ route('medicine.records') }}"
-                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                        السجل
-                    </a>
+                        class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">{{ __('Log') }}</a>
                 </div>
             </form>
         </div>
@@ -130,16 +126,16 @@
             }
 
             function medicineLabel(medicine) {
-                return `${medicine.MedicineName} - ${medicine.TypeLabel} - متاح ${medicine.AvailableText}`;
+                return `${medicine.MedicineName} - ${medicine.TypeLabel} - ${@json(__('Available'))} ${medicine.AvailableText}`;
             }
 
             function resetMedicineSelection() {
                 medicineIdInput.value = '';
                 medicineStatus.textContent = '';
-                quantityLabel.textContent = 'الكمية';
-                quantityUnit.textContent = 'وحدة';
+                quantityLabel.textContent = @json(__('Quantity'));
+                quantityUnit.textContent = @json(__('Unit'));
                 quantityInput.removeAttribute('max');
-                locationSelect.innerHTML = '<option value="">-- اختر الدواء أولاً --</option>';
+                locationSelect.innerHTML = '<option value="">{{ __('-- Choose medicine first --') }}</option>';
                 locationSelect.disabled = true;
             }
 
@@ -162,7 +158,7 @@
 
                 if (!filtered.length) {
                     medicineResults.innerHTML =
-                        '<div class="px-4 py-3 text-sm text-gray-500 text-center">لا يوجد نتائج</div>';
+                        '<div class="px-4 py-3 text-sm text-gray-500 text-center">{{ __('No results') }}</div>';
                     show(medicineResults);
                     return;
                 }
@@ -176,7 +172,7 @@
 
                     item.innerHTML = `
                         <div class="font-bold">${escapeHtml(medicine.MedicineName)}</div>
-                        <div class="text-xs mt-1">${escapeHtml(medicine.TypeLabel)} | متاح: ${escapeHtml(medicine.AvailableText)} | محجوز: ${escapeHtml(medicine.LockedText)}</div>
+                        <div class="text-xs mt-1">${escapeHtml(medicine.TypeLabel)} | ${@json(__('Available:'))} ${escapeHtml(medicine.AvailableText)} | ${@json(__('Locked:'))} ${escapeHtml(medicine.LockedText)}</div>
                         <div class="text-xs mt-1 text-slate-500">${escapeHtml(medicine.AvailableBreakdown)}</div>
                     `;
 
@@ -196,17 +192,17 @@
             function selectMedicine(medicine, selectedLocationId = null) {
                 medicineIdInput.value = medicine.MedicineID;
                 medicineSearch.value = medicineLabel(medicine);
-                quantityLabel.textContent = `الكمية (${medicine.UnitLabel})`;
+                quantityLabel.textContent = `${@json(__('Quantity'))} (${medicine.UnitLabel})`;
                 quantityUnit.textContent = medicine.UnitLabel;
                 medicineStatus.textContent =
-                    `المتاح: ${medicine.AvailableText} | المحجوز: ${medicine.LockedText} | تاريخ الانتهاء: ${medicine.ExpirationDate} | الحالة: ${medicine.StatusLabel}`;
+                    `${@json(__('Available:'))} ${medicine.AvailableText} | ${@json(__('Locked:'))} ${medicine.LockedText} | ${@json(__('Expiry date:'))} ${medicine.ExpirationDate} | ${@json(__('Status:'))} ${medicine.StatusLabel}`;
 
                 const locations = activeLocations(medicine);
                 locationSelect.innerHTML = '';
                 locationSelect.disabled = locations.length === 0;
 
                 if (!locations.length) {
-                    locationSelect.innerHTML = '<option value="">لا يوجد مكان به كمية متاحة</option>';
+                    locationSelect.innerHTML = '<option value="">{{ __('No location has available quantity') }}</option>';
                     quantityInput.removeAttribute('max');
                     return;
                 }
@@ -215,7 +211,7 @@
                     const option = document.createElement('option');
                     option.value = location.LocationID;
                     option.textContent =
-                        `${location.LocationName} - متاح ${location.AvailableAmount} ${medicine.UnitLabel} (محجوز ${location.LockedAmount})`;
+                        `${location.LocationName} - ${@json(__('Available'))} ${location.AvailableAmount} ${medicine.UnitLabel} (${@json(__('Locked'))} ${location.LockedAmount})`;
                     locationSelect.appendChild(option);
                 });
 
@@ -289,7 +285,7 @@
 
                             if (!Array.isArray(persons) || !persons.length) {
                                 personResults.innerHTML =
-                                    '<div class="px-4 py-3 text-sm text-gray-500 text-center">لا يوجد نتائج</div>';
+                                    '<div class="px-4 py-3 text-sm text-gray-500 text-center">{{ __('No results') }}</div>';
                                 show(personResults);
                                 return;
                             }
@@ -302,7 +298,7 @@
                                 const personName = person.PersonName ?? '';
                                 const personId = person.PersonID ?? '';
                                 const code = person.ShamandoraCode ?? '';
-                                const phone = person.PersonPersonalMobileNumber ?? 'بدون رقم';
+                                const phone = person.PersonPersonalMobileNumber ?? @json(__('No number'));
                                 const label = `${personName} - (${personId}) - ${code} - ${phone}`;
 
                                 item.textContent = label;
@@ -321,7 +317,7 @@
                         .catch((error) => {
                             console.error('Error fetching persons:', error);
                             personResults.innerHTML =
-                                '<div class="px-4 py-3 text-sm text-red-500 text-center">خطأ في تحميل الأشخاص</div>';
+                                '<div class="px-4 py-3 text-sm text-red-500 text-center">{{ __('Error loading people') }}</div>';
                             show(personResults);
                         });
                 }, 300);

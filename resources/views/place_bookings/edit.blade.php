@@ -37,11 +37,11 @@
 
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">الموقع</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Location') }}</label>
                         <select name="location_id" id="location_id"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                             required>
-                            <option value="" disabled>اختر الموقع</option>
+                            <option value="" disabled>{{ __('Choose location') }}</option>
                             @foreach ($locations as $l)
                                 <option value="{{ $l->LocationID }}"
                                     {{ (string) old('location_id', $booking->LocationID) === (string) $l->LocationID ? 'selected' : '' }}>
@@ -53,11 +53,11 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">المكان</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Place') }}</label>
                         <select name="place_id" id="place_id"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                             required>
-                            <option value="" disabled>اختر المكان</option>
+                            <option value="" disabled>{{ __('Choose place') }}</option>
                             {{-- will be filled by JS --}}
                         </select>
                         <p class="mt-2 text-xs text-gray-500">سيتم تحميل الأماكن تلقائيًا بعد اختيار الموقع.</p>
@@ -68,13 +68,13 @@
             {{-- Optional dropdown --}}
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">معلومات إضافية (اختياري)</h2>
-                    <span class="text-xs text-gray-500">القطاع</span>
+                    <h2 class="text-lg font-bold text-gray-800">{{ __('Additional info (optional)') }}</h2>
+                    <span class="text-xs text-gray-500">{{ __('Sector') }}</span>
                 </div>
 
                 <div class="grid md:grid-cols-1 gap-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">القطاع</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Sector') }}</label>
                         <select name="qetaa_id" id="qetaa_id"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                             <option value="">-- بدون --</option>
@@ -98,7 +98,7 @@
 
                 <div class="grid md:grid-cols-3 gap-6 items-end">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">التاريخ</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('Date') }}</label>
                         <input type="date" name="booking_date" id="booking_date"
                             value="{{ old('booking_date', $booking->BookingDate) }}"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none"
@@ -106,7 +106,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">من</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('From') }}</label>
                         <input type="time" name="time_from" id="time_from"
                             value="{{ old('time_from', $booking->TimeFrom) }}"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none"
@@ -114,7 +114,7 @@
                     </div>
 
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">إلى</label>
+                        <label class="block mb-2 text-sm text-gray-700">{{ __('To') }}</label>
                         <input type="time" name="time_to" id="time_to" value="{{ old('time_to', $booking->TimeTo) }}"
                             class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-yellow-500 focus:outline-none"
                             required>
@@ -129,13 +129,13 @@
             {{-- Note --}}
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-bold text-gray-800">ملاحظة (اختياري)</h2>
-                    <span class="text-xs text-gray-500">رسالة للإدارة</span>
+                    <h2 class="text-lg font-bold text-gray-800">{{ __('Note (optional)') }}</h2>
+                    <span class="text-xs text-gray-500">{{ __('Message to admin') }}</span>
                 </div>
 
                 <textarea name="user_note" id="user_note" rows="3"
                     class="w-full border rounded-lg p-3 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none"
-                    placeholder="اكتب أي ملاحظة...">{{ old('user_note', $booking->UserNote) }}</textarea>
+                    placeholder="{{ __('Write any note...') }}">{{ old('user_note', $booking->UserNote) }}</textarea>
             </div>
 
             {{-- Actions --}}
@@ -148,9 +148,7 @@
 
                 <a href="{{ route('place_bookings.show', $booking->BookingID) }}"
                     class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
-                       bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200 mr-2">
-                    رجوع
-                </a>
+                       bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200 mr-2">{{ __('Back') }}</a>
             </div>
         </form>
 
@@ -165,14 +163,14 @@
             const ajaxBase = `{{ url('/ajax/places') }}`;
 
             async function loadPlaces(locationId, selectedPlaceId = null) {
-                placeSelect.innerHTML = '<option value="" selected disabled>جاري التحميل...</option>';
+                placeSelect.innerHTML = '<option value="" selected disabled>{{ __('Loading...') }}</option>';
                 placeSelect.setAttribute('disabled', 'disabled');
 
                 try {
                     const res = await fetch(`${ajaxBase}/${locationId}`);
                     const data = await res.json();
 
-                    placeSelect.innerHTML = '<option value="" disabled>اختر المكان</option>';
+                    placeSelect.innerHTML = '<option value="" disabled>{{ __('Choose place') }}</option>';
 
                     if (!Array.isArray(data) || data.length === 0) {
                         placeSelect.innerHTML =

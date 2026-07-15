@@ -22,7 +22,7 @@
             ],
             [
                 'key' => 'ItemQuantity',
-                'label' => 'الكمية',
+                'label' => __('Quantity'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
@@ -40,14 +40,14 @@
             ],
             [
                 'key' => 'Location',
-                'label' => 'الموقع',
+                'label' => __('Location'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('inventory.edit', ':id'),
                 'idField' => 'InventoryID',
                 'cssClass' =>
@@ -55,7 +55,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('inventory.delete', ':id'),
                 'idField' => 'InventoryID',
                 'cssClass' =>

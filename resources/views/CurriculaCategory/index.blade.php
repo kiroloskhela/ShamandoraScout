@@ -24,7 +24,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('CurriculaCategory.edit', ':id'),
                 'idField' => 'CurriculaCategoryID',
                 'cssClass' =>
@@ -32,7 +32,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('CurriculaCategory.delete', ':id'),
                 'idField' => 'CurriculaCategoryID',
                 'cssClass' =>

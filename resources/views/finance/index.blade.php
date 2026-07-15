@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة الخطط المالية للفعاليات'])
+@extends('layouts.app', ['pageTitle' => __('Manage event finance plans')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
@@ -14,8 +14,8 @@
             </div>
         @endif
 
-        <x-data-table :data="$finance" tableId="AddingFinance" title="إدارة الخطط المالية للفعاليات" :add-button="[
-            'label' => 'إضافة خطة مالية',
+        <x-data-table :data="$finance" tableId="AddingFinance" title="{{ __('Manage event finance plans') }}" :add-button="[
+            'label' => __('Add finance plan'),
             'route' => route('finance.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -23,68 +23,68 @@
             :columns="[
                 [
                     'key' => 'SeasonName',
-                    'label' => 'الموسم',
+                    'label' => __('Season'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'SeasonYear',
-                    'label' => 'السنة',
+                    'label' => __('Year'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'EventDisplayName',
-                    'label' => 'الفعالية',
+                    'label' => __('Event'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'EventStartDate',
-                    'label' => 'بداية الفعالية',
+                    'label' => __('Event start'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'EventEndDate',
-                    'label' => 'نهاية الفعالية',
+                    'label' => __('Event end'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'MaxInstallmentsNumber',
-                    'label' => 'أقصى عدد أقساط',
+                    'label' => __('Max installments'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'MinimumDeposit',
-                    'label' => 'أقل مقدم',
+                    'label' => __('Minimum deposit'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'AllowBelowMinimumDepositText',
-                    'label' => 'يسمح بأقل من المقدم',
+                    'label' => __('Allow below minimum deposit'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 font-medium',
                 ],
                 [
                     'key' => 'IntervalsCount',
-                    'label' => 'عدد الفترات',
+                    'label' => __('Intervals count'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'CanEditDeleteText',
-                    'label' => 'قابل للتعديل/الحذف',
+                    'label' => __('Editable/deletable'),
                     'type' => 'text',
                     'cssClass' => 'text-sm font-medium',
                 ],
             ]" :actions="[
                 [
                     'name' => 'edit',
-                    'label' => 'تعديل',
+                    'label' => __('Edit'),
                     'route' => route('finance.edit', ':id'),
                     'idField' => 'SeasonEventID',
                     'cssClass' =>
@@ -92,7 +92,7 @@
                 ],
                 [
                     'name' => 'delete',
-                    'label' => 'مسح',
+                    'label' => __('Delete'),
                     'route' => route('finance.delete', ':id'),
                     'idField' => 'SeasonEventID',
                     'cssClass' =>

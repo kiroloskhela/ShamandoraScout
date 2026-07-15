@@ -30,9 +30,7 @@
                         value="{{ old('season_year', $season->SeasonYear) }}"
                         class="peer w-full h-12 px-4 text-sm placeholder-transparent transition-all border rounded-lg text-right border-slate-200 text-slate-500 focus:border-green-500 focus:outline-none" />
                     <label for="season_year"
-                        class="cursor-text peer-focus:cursor-default peer-autofill:-top-2 absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 transition-all before:absolute before:top-0 before:right-0 before:z-[-1] before:block before:h-full before:w-full before:bg-white before:transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-required:after:text-blue-500 peer-required:after:content-['\00a0*'] peer-invalid:text-blue-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-invalid:peer-focus:text-blue-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400 peer-disabled:before:bg-transparent">
-                          السنة
-                    </label>
+                        class="cursor-text peer-focus:cursor-default peer-autofill:-top-2 absolute right-2 -top-2 z-[1] px-2 text-xs text-slate-400 transition-all before:absolute before:top-0 before:right-0 before:z-[-1] before:block before:h-full before:w-full before:bg-white before:transition-all peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm peer-required:after:text-blue-500 peer-required:after:content-['\00a0*'] peer-invalid:text-blue-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-500 peer-invalid:peer-focus:text-blue-500 peer-disabled:cursor-not-allowed peer-disabled:text-slate-400 peer-disabled:before:bg-transparent">{{ __('Year') }}</label>
                 </div>
 
                 <!-- Submit -->

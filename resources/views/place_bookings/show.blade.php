@@ -24,7 +24,7 @@
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-slate-200">
             <div class="flex items-center justify-between flex-wrap gap-3">
                 <div class="flex items-center gap-2">
-                    <span class="font-bold text-gray-700">الحالة:</span>
+                    <span class="font-bold text-gray-700">{{ __('Status:') }}</span>
                     @if ($booking->Status === 'pending')
                         <span
                             class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
@@ -34,30 +34,24 @@
                             الموافقة</span>
                     @else
                         <span
-                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">مرفوض</span>
+                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
                     @endif
                 </div>
 
                 <div class="flex items-center gap-2">
                     <a href="{{ route('place_bookings.my') }}"
-                        class="px-4 py-2 text-xs rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200">
-                        رجوع
-                    </a>
+                        class="px-4 py-2 text-xs rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 transition border border-gray-200">{{ __('Back') }}</a>
 
                     @if ($booking->Status === 'pending')
                         <a href="{{ route('place_bookings.edit', $booking->BookingID) }}"
-                            class="px-4 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                            تعديل
-                        </a>
+                            class="px-4 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">{{ __('Edit') }}</a>
 
                         <form method="POST" action="{{ route('place_bookings.destroy', $booking->BookingID) }}"
                             onsubmit="return confirm('هل أنت متأكد من حذف الطلب؟');">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
-                                class="px-4 py-2 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">
-                                حذف
-                            </button>
+                                class="px-4 py-2 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">{{ __('Delete') }}</button>
                         </form>
                     @endif
                 </div>
@@ -106,13 +100,13 @@
                                     </div>
 
                                     <div class="p-3 rounded-lg bg-white border border-slate-200">
-                                        <div class="text-xs text-slate-500 mb-1">من</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('From') }}</div>
                                         <div class="font-semibold text-slate-900">{{ $booking->ApprovedTimeFrom ?? '—' }}
                                         </div>
                                     </div>
 
                                     <div class="p-3 rounded-lg bg-white border border-slate-200">
-                                        <div class="text-xs text-slate-500 mb-1">إلى</div>
+                                        <div class="text-xs text-slate-500 mb-1">{{ __('To') }}</div>
                                         <div class="font-semibold text-slate-900">{{ $booking->ApprovedTimeTo ?? '—' }}
                                         </div>
                                     </div>

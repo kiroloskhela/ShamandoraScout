@@ -24,7 +24,7 @@
 
             <form method="GET" action="{{ route('qetaa.auxiliary') }}" class="aux-filters">
                 <label class="aux-select">
-                    <span>القطاع</span>
+                    <span>{{ __('Sector') }}</span>
                     <select name="qetaa" onchange="this.form.submit()">
                         @if ($servedQetaas->count() !== 1)
                             <option value="">اختر القطاع</option>

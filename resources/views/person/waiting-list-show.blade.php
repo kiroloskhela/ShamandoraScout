@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'بيانات المنتظر'])
+@extends('layouts.app', ['pageTitle' => __('Waiting person details')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
@@ -11,7 +11,7 @@
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
-                العودة إلى قائمة الانتظار
+                {{ __('Back to waiting list') }}
             </a>
         </div>
 
@@ -31,9 +31,7 @@
                             {{ trim(($person->FirstName ?? '') . ' ' . ($person->SecondName ?? '') . ' ' . ($person->ThirdName ?? '') . ' ' . ($person->FourthName ?? '')) }}
                         </h1>
                         <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            قائمة الانتظار
-                        </span>
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{{ __('Waiting list') }}</span>
                     </div>
                     <p class="text-sm text-gray-500">
                         {{ $person->QetaaName ?? '—' }} &bull; {{ $person->SanaMarhalaName ?? '—' }}
@@ -46,20 +44,18 @@
                 {{-- Action Buttons --}}
                 <div class="flex flex-wrap gap-2 shrink-0">
                     <form method="POST" action="{{ route('person.waiting-list-migrate', $person->PersonID) }}"
-                        onsubmit="return confirm('هل أنت متأكد من نقل هذا الشخص إلى قائمة التسجيل؟')">
+                        onsubmit="return confirm(__('Are you sure you want to move this person to the enrolment list?'))">
                         @csrf
                         <button type="submit"
-                            class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">
-                            نقل للتسجيل
-                        </button>
+                            class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">{{ __('Move to enrolment') }}</button>
                     </form>
                     <form method="POST" action="{{ route('person.waiting-list-decline', $person->PersonID) }}"
-                        onsubmit="return confirm('هل أنت متأكد من رفض وحذف هذا الطلب نهائياً؟')">
+                        onsubmit="return confirm(__('Are you sure you want to permanently reject and delete this request?'))">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors">
-                            رفض الطلب
+                            {{ __('Reject request') }}
                         </button>
                     </form>
                 </div>
@@ -72,45 +68,43 @@
             {{-- Personal Info --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>
-                    البيانات الشخصية
-                </h2>
+                    <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>{{ __('Personal information') }}</h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الاسم الأول</dt>
+                        <dt class="text-gray-500">{{ __('First name') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->FirstName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الاسم الثاني</dt>
+                        <dt class="text-gray-500">{{ __('Second name') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SecondName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الاسم الثالث</dt>
+                        <dt class="text-gray-500">{{ __('Third name') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->ThirdName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الاسم الرابع</dt>
+                        <dt class="text-gray-500">{{ __('Fourth name') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->FourthName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الجنس</dt>
+                        <dt class="text-gray-500">{{ __('Gender') }}</dt>
                         <dd class="font-medium text-gray-900">
-                            {{ $person->Gender === 'Male' ? 'ذكر' : ($person->Gender === 'Female' ? 'أنثى' : '—') }}</dd>
+                            {{ $person->Gender === 'Male' ? __('Male') : ($person->Gender === 'Female' ? __('Female') : '—') }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">تاريخ الميلاد</dt>
+                        <dt class="text-gray-500">{{ __('Date of birth') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->DateOfBirth ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الرقم القومي</dt>
+                        <dt class="text-gray-500">{{ __('National ID') }}</dt>
                         <dd class="font-mono font-medium text-gray-900">{{ $person->RaqamQawmy ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">سنة الانضمام الكشفي</dt>
+                        <dt class="text-gray-500">{{ __('Scout joining year') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->ScoutJoiningYear ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">فصيلة الدم</dt>
+                        <dt class="text-gray-500">{{ __('Blood type') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->BloodTypeName ?? '—' }}</dd>
                     </div>
                 </dl>
@@ -120,52 +114,52 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <span class="w-1 h-5 bg-green-500 rounded-full inline-block"></span>
-                    بيانات التواصل
+                    {{ __('Contact details') }}
                 </h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">موبايل شخصي</dt>
+                        <dt class="text-gray-500">{{ __('Personal mobile') }}</dt>
                         <dd class="font-mono font-medium text-gray-900">{{ $person->PersonPersonalMobileNumber ?? '—' }}
                         </dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">موبايل الأب</dt>
+                        <dt class="text-gray-500">{{ __('Father mobile') }}</dt>
                         <dd class="font-mono font-medium text-gray-900">{{ $person->FatherMobileNumber ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">موبايل الأم</dt>
+                        <dt class="text-gray-500">{{ __('Mother mobile') }}</dt>
                         <dd class="font-mono font-medium text-gray-900">{{ $person->MotherMobileNumber ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">تليفون المنزل</dt>
+                        <dt class="text-gray-500">{{ __('Home phone') }}</dt>
                         <dd class="font-mono font-medium text-gray-900">{{ $person->HomePhoneNumber ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">واتساب؟</dt>
+                        <dt class="text-gray-500">{{ __('WhatsApp?') }}</dt>
                         <dd class="font-medium text-gray-900">
-                            {{ $person->IsOPersonalPhoneNumberHavingWhatsapp ? 'نعم' : 'لا' }}</dd>
+                            {{ $person->IsOPersonalPhoneNumberHavingWhatsapp ? __('Yes') : __('No') }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">البريد الإلكتروني</dt>
+                        <dt class="text-gray-500">{{ __('Email') }}</dt>
                         <dd class="font-medium text-gray-900 break-all">{{ $person->PersonalEmail ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">فيسبوك</dt>
+                        <dt class="text-gray-500">{{ __('Facebook') }}</dt>
                         <dd class="font-medium text-gray-900 break-all">
                             @if ($person->FacebookProfileURL ?? false)
                                 <a href="{{ $person->FacebookProfileURL }}" target="_blank"
-                                    class="text-blue-600 hover:underline">رابط الصفحة</a>
+                                    class="text-blue-600 hover:underline">{{ __('Page link') }}</a>
                             @else
                                 —
                             @endif
                         </dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">إنستجرام</dt>
+                        <dt class="text-gray-500">{{ __('Instagram') }}</dt>
                         <dd class="font-medium text-gray-900 break-all">
                             @if ($person->InstagramProfileURL ?? false)
                                 <a href="{{ $person->InstagramProfileURL }}" target="_blank"
-                                    class="text-pink-600 hover:underline">رابط الصفحة</a>
+                                    class="text-pink-600 hover:underline">{{ __('Page link') }}</a>
                             @else
                                 —
                             @endif
@@ -177,35 +171,33 @@
             {{-- Address --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                    <span class="w-1 h-5 bg-purple-500 rounded-full inline-block"></span>
-                    العنوان
-                </h2>
+                    <span class="w-1 h-5 bg-purple-500 rounded-full inline-block"></span>{{ __('Address') }}</h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">المنطقة</dt>
+                        <dt class="text-gray-500">{{ __('Area') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->ManteqaName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الحي</dt>
+                        <dt class="text-gray-500">{{ __('District') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->DistrictName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الشارع الرئيسي</dt>
+                        <dt class="text-gray-500">{{ __('Main street') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->MainStreetName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الشارع الفرعي</dt>
+                        <dt class="text-gray-500">{{ __('Side street') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SubStreetName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">المبنى / الدور / الشقة</dt>
+                        <dt class="text-gray-500">{{ __('Building / floor / apartment') }}</dt>
                         <dd class="font-medium text-gray-900">
                             {{ $person->BuildingNumber ?? '—' }} / {{ $person->FloorNumber ?? '—' }} /
                             {{ $person->AppartmentNumber ?? '—' }}
                         </dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">أقرب معلم</dt>
+                        <dt class="text-gray-500">{{ __('Nearest landmark') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->NearestLandmark ?? '—' }}</dd>
                     </div>
                 </dl>
@@ -215,35 +207,35 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <span class="w-1 h-5 bg-orange-400 rounded-full inline-block"></span>
-                    التعليم والأب الروحي
+                    {{ __('Education and spiritual father') }}
                 </h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">المدرسة</dt>
+                        <dt class="text-gray-500">{{ __('School') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SchoolName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">سنة تخرج المدرسة</dt>
+                        <dt class="text-gray-500">{{ __('School graduation year') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SchoolGraduationYear ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الكلية</dt>
+                        <dt class="text-gray-500">{{ __('Faculty') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->FacultyName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الجامعة</dt>
+                        <dt class="text-gray-500">{{ __('University') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->UniversityName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">سنة تخرج الجامعة</dt>
+                        <dt class="text-gray-500">{{ __('University graduation year') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->UniversityGraduationYear ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">الأب الروحي</dt>
+                        <dt class="text-gray-500">{{ __('Spiritual father') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SpiritualFatherName ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">كنيسة الأب الروحي</dt>
+                        <dt class="text-gray-500">{{ __('Spiritual father church') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->SpiritualFatherChurchName ?? '—' }}</dd>
                     </div>
                 </dl>
@@ -253,32 +245,32 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <span class="w-1 h-5 bg-red-400 rounded-full inline-block"></span>
-                    البيانات الطبية
+                    {{ __('Medical data') }}
                 </h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">حساسية طعام</dt>
+                        <dt class="text-gray-500">{{ __('Food allergy') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->AllergyFood ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">حساسية دواء</dt>
+                        <dt class="text-gray-500">{{ __('Medicine allergy') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->AllergyMedicine ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">أمراض</dt>
+                        <dt class="text-gray-500">{{ __('Diseases') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->MedicalDiseases ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">أدوية</dt>
+                        <dt class="text-gray-500">{{ __('Medications') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->MedicalMedications ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">حالة طوارئ؟</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->HasEmergencyCase ? 'نعم' : 'لا' }}</dd>
+                        <dt class="text-gray-500">{{ __('Emergency case?') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ $person->HasEmergencyCase ? __('Yes') : __('No') }}</dd>
                     </div>
                     @if ($person->HasEmergencyCase)
                         <div class="flex justify-between text-sm">
-                            <dt class="text-gray-500">تفاصيل الطوارئ</dt>
+                            <dt class="text-gray-500">{{ __('Emergency details') }}</dt>
                             <dd class="font-medium text-gray-900">{{ $person->EmergencyDetails ?? '—' }}</dd>
                         </div>
                     @endif
@@ -290,7 +282,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
                     <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
                         <span class="w-1 h-5 bg-indigo-500 rounded-full inline-block"></span>
-                        أسئلة القبول
+                        {{ __('Admission questions') }}
                     </h2>
                     <dl class="space-y-4">
                         @foreach ($questions as $q)

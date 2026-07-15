@@ -1,48 +1,48 @@
-@extends('layouts.app', ['pageTitle' => ' المناسبات'])
+@extends('layouts.app', ['pageTitle' => __('Occasions')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$events" title="إدارة المناسبات" :add-button="[
-            'label' => 'إضافة مناسبة جديدة',
+        <x-data-table :data="$events" title="{{ __('Manage occasions') }}" :add-button="[
+            'label' => __('Add new occasion'),
             'route' => route('event.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'EventID',
-                'label' => 'رقم المناسبة',
+                'label' => __('Occasion ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'EventTypeName',
-                'label' => 'نوع المناسبة',
+                'label' => __('Occasion type'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
                 'filter' => true,
             ],
             [
                 'key' => 'EventName',
-                'label' => 'اسم المناسبة',
+                'label' => __('Occasion name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'EventStartDate',
-                'label' => 'تاريخ بدء المناسبة',
+                'label' => __('Occasion start date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'EventEndDate',
-                'label' => 'تاريخ انتهاء المناسبة',
+                'label' => __('Occasion end date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'EventQetaat',
-                'label' => 'القطاعات',
+                'label' => __('Sectors'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
                 'filter' => true,
@@ -50,7 +50,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('event.edit', ':id'),
                 'idField' => 'EventID',
                 'cssClass' =>
@@ -58,7 +58,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('event.delete', ':id'),
                 'idField' => 'EventID',
                 'cssClass' =>

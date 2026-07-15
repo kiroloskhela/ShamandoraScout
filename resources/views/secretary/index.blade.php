@@ -31,7 +31,7 @@
             ],
             [
                 'name' => 'edit',
-                'label' => 'تعديل',
+                'label' => __('Edit'),
                 'route' => route('secretary.edit', ':id'),
                 'idField' => 'DocumentID',
                 'cssClass' =>
@@ -39,7 +39,7 @@
             ],
             [
                 'name' => 'delete',
-                'label' => 'مسح',
+                'label' => __('Delete'),
                 'route' => route('secretary.delete', ':id'),
                 'idField' => 'DocumentID',
                 'cssClass' =>

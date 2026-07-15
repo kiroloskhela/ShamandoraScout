@@ -77,9 +77,7 @@
                         </button>
                         <a href="{{ route('secretary.index') }}"
                             class="inline-flex items-center justify-center h-12 px-6 text-sm font-medium tracking-wide
-                              rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition">
-                            رجوع
-                        </a>
+                              rounded-full bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition">{{ __('Back') }}</a>
                     </div>
                 </div>
             </form>
