@@ -1,21 +1,21 @@
-# Role / ability matrix (Wave 4 — Package F, phase 1)
+# Role / ability matrix (Wave 4–5 — Policies)
 
-Web `checkAuth` middleware is unchanged. This matrix covers API Gates/Policies only.
+Web `checkAuth` middleware is unchanged. This matrix covers API Gates/Policies.
 
 | Ability | Mechanism | Who may pass |
 |---------|-----------|--------------|
-| `games.view` | Gate | Any authenticated user |
-| `games.create` | Gate | Any authenticated user |
-| `games.update` | Gate | Any authenticated user |
-| `games.delete` | Gate | Any authenticated user |
-| `view` / `update` on `User` | `PersonPolicy` | Own `PersonID`, or `SuperAdmin` / `AdminQetaa` via `$user->role()` |
+| `viewAny` / `create` on `Game` | `GamePolicy` | Any authenticated user |
+| `view` / `update` / `delete` on `Game` | `GamePolicy` | Any authenticated user |
+| `games.*` Gates | Delegate to `GamePolicy` / auth | Any authenticated user |
+| `view` / `update` on `User` | `PersonPolicy` | Own `PersonID`, or `SuperAdmin` / `AdminQetaa` |
 
 ## Controllers wired
 
-- `GamesApiController`: `authorize('games.*')` on index/show/store/update/destroy
-- `PersonApiController`: `authorize('view', $user)` on profile/calendar (self-only IDOR still applies via `AuthenticatedPersonId`)
+- `GamesApiController`: Eloquent `Game` + `$this->authorize(...)` on CRUD
+- `PersonApiController` profile/calendar: authorize **target** `User` from route `{id}` (self or elevated). Non-elevated requesting another id → **403** (no silent remapping to self)
 
-## Follow-ups (later phases)
+## Done in phase 2
 
-- Bind `GamePolicy` to a real Game model when Games moves off `DB::table`
-- Expand Person API so elevated roles can view others without IDOR override
+- Eloquent `App\Models\Game` (`Games` / `GameID`)
+- `GamePolicy` registered in `AuthServiceProvider`
+- Person API elevated view without opening IDOR to everyone

@@ -168,9 +168,19 @@ public function showPersons(Request $request, PersonApiQueryService $query)
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        $this->authorize('view', $authUser);
+        $requestedId = (int) $id;
+        if ($requestedId <= 0) {
+            $requestedId = AuthenticatedPersonId::from($request);
+        }
 
-        $id = AuthenticatedPersonId::from($request);
+        $target = User::query()->find($requestedId);
+        if (!$target) {
+            return response()->json(['message' => 'Person not found.'], 404);
+        }
+
+        $this->authorize('view', $target);
+
+        $id = $requestedId;
 
         $person = DB::table('PersonInformation')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
@@ -276,9 +286,19 @@ public function ShowCalendar(Request $request, $id)
         return response()->json(['message' => 'Unauthenticated.'], 401);
     }
 
-    $this->authorize('view', $authUser);
+    $requestedId = (int) $id;
+    if ($requestedId <= 0) {
+        $requestedId = AuthenticatedPersonId::from($request);
+    }
 
-    $id = AuthenticatedPersonId::from($request);
+    $target = User::query()->find($requestedId);
+    if (!$target) {
+        return response()->json(['message' => 'Person not found.'], 404);
+    }
+
+    $this->authorize('view', $target);
+
+    $id = $requestedId;
 
     $events = DB::select("
             SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear

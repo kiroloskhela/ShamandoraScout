@@ -3,43 +3,21 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Game;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class GamesApiController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers
-    |--------------------------------------------------------------------------
-    |
-    | Games write endpoints are available to any authenticated Sanctum user
-    | (any role). Route group already enforces auth:sanctum + token.expiry.
-    */
-
-    private function findGame(int $id)
-    {
-        return DB::table('Games')
-            ->where('GameID', $id)
-            ->first();
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | CRUD
-    |--------------------------------------------------------------------------
-    */
-
     /**
      * GET /api/games
      */
     public function index(Request $request)
     {
-        $this->authorize('games.view');
+        $this->authorize('viewAny', Game::class);
 
         $search = trim((string) $request->query('search', ''));
 
-        $query = DB::table('Games');
+        $query = Game::query();
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
@@ -54,9 +32,7 @@ class GamesApiController extends Controller
             });
         }
 
-        $games = $query
-            ->orderBy('GameID', 'desc')
-            ->get();
+        $games = $query->orderByDesc('GameID')->get();
 
         return response()->json([
             'ok' => true,
@@ -69,9 +45,7 @@ class GamesApiController extends Controller
      */
     public function show($id)
     {
-        $this->authorize('games.view');
-
-        $game = $this->findGame((int) $id);
+        $game = Game::query()->find((int) $id);
 
         if (!$game) {
             return response()->json([
@@ -79,6 +53,8 @@ class GamesApiController extends Controller
                 'message' => 'Game not found',
             ], 404);
         }
+
+        $this->authorize('view', $game);
 
         return response()->json([
             'ok' => true,
@@ -91,7 +67,7 @@ class GamesApiController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('games.create');
+        $this->authorize('create', Game::class);
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -104,8 +80,7 @@ class GamesApiController extends Controller
             'reference_link' => 'nullable|string|max:1000',
         ]);
 
-        // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
-        $gameId = (int) DB::table('Games')->insertGetId([
+        $game = Game::query()->create([
             'Title' => $data['title'],
             'GameDescription' => $data['description'] ?? null,
             'Rules' => $data['rules'] ?? null,
@@ -114,9 +89,7 @@ class GamesApiController extends Controller
             'Target' => $data['target'] ?? null,
             'RequireCustody' => $data['require_custody'] ?? null,
             'ReferenceLink' => $data['reference_link'] ?? null,
-        ], 'GameID');
-
-        $game = $this->findGame($gameId);
+        ]);
 
         return response()->json([
             'ok' => true,
@@ -130,9 +103,7 @@ class GamesApiController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->authorize('games.update');
-
-        $game = $this->findGame((int) $id);
+        $game = Game::query()->find((int) $id);
 
         if (!$game) {
             return response()->json([
@@ -140,6 +111,8 @@ class GamesApiController extends Controller
                 'message' => 'Game not found',
             ], 404);
         }
+
+        $this->authorize('update', $game);
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -152,25 +125,21 @@ class GamesApiController extends Controller
             'reference_link' => 'nullable|string|max:1000',
         ]);
 
-        DB::table('Games')
-            ->where('GameID', (int) $id)
-            ->update([
-                'Title' => $data['title'],
-                'GameDescription' => $data['description'] ?? null,
-                'Rules' => $data['rules'] ?? null,
-                'PointSystem' => $data['point_system'] ?? null,
-                'AgeGroup' => $data['age_group'] ?? null,
-                'Target' => $data['target'] ?? null,
-                'RequireCustody' => $data['require_custody'] ?? null,
-                'ReferenceLink' => $data['reference_link'] ?? null,
-            ]);
-
-        $updatedGame = $this->findGame((int) $id);
+        $game->update([
+            'Title' => $data['title'],
+            'GameDescription' => $data['description'] ?? null,
+            'Rules' => $data['rules'] ?? null,
+            'PointSystem' => $data['point_system'] ?? null,
+            'AgeGroup' => $data['age_group'] ?? null,
+            'Target' => $data['target'] ?? null,
+            'RequireCustody' => $data['require_custody'] ?? null,
+            'ReferenceLink' => $data['reference_link'] ?? null,
+        ]);
 
         return response()->json([
             'ok' => true,
             'message' => 'Game updated successfully',
-            'game' => $updatedGame,
+            'game' => $game->fresh(),
         ]);
     }
 
@@ -179,9 +148,7 @@ class GamesApiController extends Controller
      */
     public function destroy($id)
     {
-        $this->authorize('games.delete');
-
-        $game = $this->findGame((int) $id);
+        $game = Game::query()->find((int) $id);
 
         if (!$game) {
             return response()->json([
@@ -190,9 +157,8 @@ class GamesApiController extends Controller
             ], 404);
         }
 
-        DB::table('Games')
-            ->where('GameID', (int) $id)
-            ->delete();
+        $this->authorize('delete', $game);
+        $game->delete();
 
         return response()->json([
             'ok' => true,

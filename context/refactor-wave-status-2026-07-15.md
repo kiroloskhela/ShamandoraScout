@@ -16,9 +16,9 @@
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | VPS `laravel-queue.service` via deploy | **In progress** (`deploy/laravel-queue.service` + deploy.yml) |
-| 2 | Waiting-list → NewUsers `PersonID != id` | **Fixed** (remint on promote + reverse path; `enrolment:repair-person-ids`) |
-| 3 | Policies phase 2 (Games model + Person API) | Pending |
+| 1 | VPS `laravel-queue.service` via deploy | **Done** |
+| 2 | Waiting-list → NewUsers `PersonID != id` | **Done** |
+| 3 | Policies phase 2 (Games model + Person API) | **Done** |
 | 4 | Wave 5 — Sentry | Pending |
 | 5 | Wave 5 — Redis | Pending |
 | 6 | Dead SB Admin views / route cleanup | Pending |

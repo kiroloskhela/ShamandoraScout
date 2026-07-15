@@ -2,12 +2,13 @@
 
 namespace App\Policies;
 
+use App\Models\Game;
 use App\Models\User;
 
 /**
- * Games API authorization (phase 1).
- * Matches current Games API: any authenticated Sanctum user may manage games.
- * Prefer Gate abilities (games.*) until a Game Eloquent model exists.
+ * Games API authorization.
+ * Phase 2: bound to Eloquent Game; any authenticated Sanctum user may manage games
+ * (same product rule as phase 1 Gates).
  */
 class GamePolicy
 {
@@ -16,7 +17,7 @@ class GamePolicy
         return true;
     }
 
-    public function view(User $user): bool
+    public function view(User $user, Game $game): bool
     {
         return true;
     }
@@ -26,12 +27,12 @@ class GamePolicy
         return true;
     }
 
-    public function update(User $user): bool
+    public function update(User $user, Game $game): bool
     {
         return true;
     }
 
-    public function delete(User $user): bool
+    public function delete(User $user, Game $game): bool
     {
         return true;
     }
