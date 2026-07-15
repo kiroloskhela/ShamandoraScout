@@ -1,17 +1,23 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="bg-gray-50">
+@php
+    $locale = app()->getLocale();
+    $isRtl = $locale === 'ar';
+    $dir = $isRtl ? 'rtl' : 'ltr';
+@endphp
+<html lang="{{ $locale }}" dir="{{ $dir }}" class="bg-gray-50">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'الشمندوره البحريه | Shamandora Scout')</title>
-    <meta name="description" content="@yield('meta_description', 'الموقع الرسمي للشمندوره البحريه. متابعة الأنشطة والفعاليات والتسجيل والأخبار الخاصة بالكشافة.')">
+    <title>@yield('title', __('Shamandora Scout'))</title>
+    <meta name="description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
     <meta name="keywords"
         content="الشمندوره البحريه, Shamandora Scout, scouts, sea scout, shamandora, الكشافة, الكشفية البحرية">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Shamandora Scout">
+    <meta name="color-scheme" content="dark light">
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Favicon / Logo in browser tab and Google icon --}}
@@ -20,18 +26,34 @@
 
     {{-- Open Graph for Facebook / WhatsApp / social preview --}}
     <meta property="og:type" content="website">
-    <meta property="og:title" content="@yield('title', 'الشمندوره البحريه | Shamandora Scout')">
-    <meta property="og:description" content="@yield('meta_description', 'الموقع الرسمي للشمندوره البحريه. متابعة الأنشطة والفعاليات والتسجيل والأخبار الخاصة بالكشافة.')">
+    <meta property="og:title" content="@yield('title', __('Shamandora Scout'))">
+    <meta property="og:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:image" content="{{ asset('img/shamandora.png') }}">
     <meta property="og:site_name" content="Shamandora Scout">
 
     {{-- Twitter / X preview --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', 'الشمندوره البحريه | Shamandora Scout')">
-    <meta name="twitter:description" content="@yield('meta_description', 'الموقع الرسمي للشمندوره البحريه. متابعة الأنشطة والفعاليات والتسجيل والأخبار الخاصة بالكشافة.')">
+    <meta name="twitter:title" content="@yield('title', __('Shamandora Scout'))">
+    <meta name="twitter:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
     <meta name="twitter:image" content="{{ asset('img/shamandora.png') }}">
 
+    {{-- Prevent theme flash before CSS loads --}}
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('theme');
+                var preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var dark = stored === 'dark' || (stored === null && preferDark);
+                if (stored === null) {
+                    // Default to dark for the new UI direction
+                    dark = true;
+                }
+                if (dark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            } catch (e) {}
+        })();
+    </script>
 
     {{-- Google Organization structured data for logo --}}
     <script type="application/ld+json">
@@ -50,28 +72,23 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: {{ $isRtl ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
         }
 
         @keyframes shamandora-spin {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
     </style>
 
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 ">
+<body class="bg-gray-50 dark:bg-slate-950">
     <!-- Main Layout Container -->
     <div class="flex flex-col h-screen">
         <!-- Main Wrapper -->
@@ -81,10 +98,11 @@
 
             <!-- Sidebar Navigation -->
             <aside id="sidebar"
-                class="fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] bg-white border-l border-gray-200 shadow-xl transform translate-x-full transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:h-screen">
+                data-dir="{{ $dir }}"
+                class="fixed inset-y-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 shadow-xl transition-transform duration-300 flex flex-col overflow-hidden lg:translate-x-0 lg:static lg:shadow-none lg:w-72 lg:sticky lg:top-0 lg:h-screen {{ $isRtl ? 'right-0 border-l translate-x-full' : 'left-0 border-r -translate-x-full' }}">
                 <!-- Mobile Header -->
-                <div class="flex items-center justify-between p-4 border-b border-gray-200 lg:hidden shrink-0">
-                    <h2 class="text-lg font-semibold text-gray-800">القائمة</h2>
+                <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800 lg:hidden shrink-0">
+                    <h2 class="text-lg font-semibold text-gray-800">{{ __('Menu') }}</h2>
                     <button id="closeSidebar"
                         class="p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,7 +158,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">ثوابت النظام</span>
+                                    <span class="font-medium">{{ __('System constants') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -148,45 +166,45 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('rotab.index') }}">الرتب الكشفية</a>
+                                        href="{{ route('rotab.index') }}">{{ __('Scout ranks') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('blood.index') }}">فصائل الدم</a>
+                                        href="{{ route('blood.index') }}">{{ __('Blood types') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('marhala.index') }}">المراحل الدراسية</a>
+                                        href="{{ route('marhala.index') }}">{{ __('Academic stages') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('qetaa.index') }}">القطاعات الكشفية</a>
+                                        href="{{ route('qetaa.index') }}">{{ __('Scout sectors') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('sana-marhala.index') }}">السنوات والمراحل الدراسية</a>
+                                        href="{{ route('sana-marhala.index') }}">{{ __('Years & academic stages') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('entry-questions.index') }}">أسئلة فورم ادخال بيانات</a>
+                                        href="{{ route('entry-questions.index') }}">{{ __('Entry form questions') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('district.index') }}">الأحياء السكنية</a>
+                                        href="{{ route('district.index') }}">{{ __('Residential districts') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('manteqa.index') }}">المناطق السكنية</a>
+                                        href="{{ route('manteqa.index') }}">{{ __('Residential areas') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('faculty.index') }}">الكليات</a>
+                                        href="{{ route('faculty.index') }}">{{ __('Faculties') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('university.index') }}">الجامعات</a>
+                                        href="{{ route('university.index') }}">{{ __('Universities') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('role.index') }}">الأدوار والمهام</a>
+                                        href="{{ route('role.index') }}">{{ __('Roles & duties') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('person-role.index') }}">ربط الأدوار والمهام</a>
+                                        href="{{ route('person-role.index') }}">{{ __('Link roles & duties') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('group-type.index') }}">أنواع المجموعات</a>
+                                        href="{{ route('group-type.index') }}">{{ __('Group types') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('group.index') }}">ربط المجموعات</a>
+                                        href="{{ route('group.index') }}">{{ __('Link groups') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('event-type.index') }}">أنواع الأحداث والمناسبات</a>
+                                        href="{{ route('event-type.index') }}">{{ __('Event types') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('event.index') }}">الأحداث والمناسبات الكشفية</a>
+                                        href="{{ route('event.index') }}">{{ __('Scout events') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('group-person.index') }}">ربط الأشخاص بالمجموعات</a>
+                                        href="{{ route('group-person.index') }}">{{ __('Link people to groups') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('season.index') }}">إدارة المواسم</a>
+                                        href="{{ route('season.index') }}">{{ __('Manage seasons') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('season-event.index') }}">ربط موسم بفعالية</a>
+                                        href="{{ route('season-event.index') }}">{{ __('Link season to event') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -199,7 +217,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">الاتحاقات</span>
+                                    <span class="font-medium">{{ __('Enrolments') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -207,28 +225,27 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
 
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/liveform') }}">فورم التسجيل LIVE</a>
+                                        href="{{ url('/liveform') }}">{{ __('LIVE registration form') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/new-enrolments') }}">مراجعة طلبات الالتحاق</a>
+                                        href="{{ url('/new-enrolments') }}">{{ __('Review enrolment requests') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/persons/waiting-list') }}">مراجعة قائمة الانتظار</a>
+                                        href="{{ url('/persons/waiting-list') }}">{{ __('Review waiting list') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/max-limits') }}">الحد الأقصى للطلبات</a>
+                                        href="{{ url('/max-limits') }}">{{ __('Max request limits') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/entry-questions') }}">التحكم في أسئلة القطاعات</a>
+                                        href="{{ url('/entry-questions') }}">{{ __('Sector questions control') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ url('/new-enrolments/analytics') }}">احصائيات طلبات الالتحاق</a>
+                                        href="{{ url('/new-enrolments/analytics') }}">{{ __('Enrolment analytics') }}</a>
 
                                     @if ($isSuperAdmin)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ url('/new-enrolments/migrations') }}">تحويل الطلبات إلى النظام
-                                            الرئيسي</a>
+                                            href="{{ url('/new-enrolments/migrations') }}">{{ __('Migrate requests to main system') }}</a>
 
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ url('/person/change-qetaa') }}">تغيير قطاع الشخص</a>
+                                            href="{{ url('/person/change-qetaa') }}">{{ __('Change person sector') }}</a>
                                     @endif
                                 </div>
                             </div>
@@ -245,7 +262,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">تسجيلات</span>
+                                    <span class="font-medium">{{ __('Registrations') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -253,14 +270,14 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('guests.index') }}">إدارة الضيوف</a>
+                                        href="{{ route('guests.index') }}">{{ __('Manage guests') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('family-members.index') }}">إدارة الأسرة</a>
+                                        href="{{ route('family-members.index') }}">{{ __('Manage family') }}</a>
                                     @if ($isSuperAdmin)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('person-tree.index') }}">شجرة الأشخاص</a>
+                                            href="{{ route('person-tree.index') }}">{{ __('People tree') }}</a>
                                     @endif
                                 </div>
                             </div>
@@ -275,7 +292,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">بيانات الفريق</span>
+                                <span class="font-medium">{{ __('Team data') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -283,11 +300,11 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('qetaa.tree') }}">هيكل الفريق</a>
+                                    href="{{ route('qetaa.tree') }}">{{ __('Team structure') }}</a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('qetaa.auxiliary') }}">عرض الطلائع</a>
+                                    href="{{ route('qetaa.auxiliary') }}">{{ __('View patrols') }}</a>
                             </div>
                         </div>
                     </div>
@@ -300,7 +317,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الميديا</span>
+                                <span class="font-medium">{{ __('Media') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -308,13 +325,13 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 @if ($isSuperAdmin || $isMedia)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('media.index') }}">اضافه صور</a>
+                                        href="{{ route('media.index') }}">{{ __('Add photos') }}</a>
                                 @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('media.pages') }}">عرض صور</a>
+                                    href="{{ route('media.pages') }}">{{ __('View photos') }}</a>
                             </div>
                         </div>
                     </div>
@@ -325,7 +342,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الألعاب</span>
+                                <span class="font-medium">{{ __('Games') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -333,10 +350,10 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
 
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('games.index') }}">إدارة الألعاب</a>
+                                    href="{{ route('games.index') }}">{{ __('Manage games') }}</a>
                             </div>
                         </div>
                     </div>
@@ -348,7 +365,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">الماليه</span>
+                                    <span class="font-medium">{{ __('Finance') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -356,17 +373,14 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                     @if ($isSuperAdmin || $isFinance)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('finance.index') }}">إدارة الماليه</a>
+                                            href="{{ route('finance.index') }}">{{ __('Manage finance') }}</a>
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('eventBookingFinance.selector') }}">إدارة الحجوزات
-                                            المالية</a>
+                                            href="{{ route('eventBookingFinance.selector') }}">{{ __('Manage booking finance') }}</a>
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('eventWaitingList.selector') }}">قائمة انتظار الحجوزات
-                                            المالية</a>
-                                        </a>
+                                            href="{{ route('eventWaitingList.selector') }}">{{ __('Booking finance waiting list') }}</a>
                                     @endif
 
                                 </div>
@@ -380,7 +394,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">المناهج</span>
+                                <span class="font-medium">{{ __('Curricula') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -388,11 +402,11 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('CurriculaCategory.index') }}">اضافه اقسام</a>
+                                    href="{{ route('CurriculaCategory.index') }}">{{ __('Add categories') }}</a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('curricula.index') }}">اضافه محاضرة</a>
+                                    href="{{ route('curricula.index') }}">{{ __('Add lecture') }}</a>
                             </div>
                         </div>
                     </div>
@@ -403,7 +417,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">السيكرتارية</span>
+                                <span class="font-medium">{{ __('Secretariat') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -411,23 +425,23 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 @if ($isSuperAdmin || $isSecretary || $isAdminSecretary)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('secretary.index') }}">إضافة محضر اجتماع</a>
+                                        href="{{ route('secretary.index') }}">{{ __('Add meeting minutes') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('locations.index') }}">إضافة موقع</a>
+                                        href="{{ route('locations.index') }}">{{ __('Add location') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('place.index') }}">إضافة نوع مكان</a>
+                                        href="{{ route('place.index') }}">{{ __('Add place type') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('admin.place_bookings.index') }}">إدارة طلبات حجز الأماكن</a>
+                                        href="{{ route('admin.place_bookings.index') }}">{{ __('Manage place booking requests') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('event.index') }}">الأحداث والمناسبات الكشفية</a>
+                                        href="{{ route('event.index') }}">{{ __('Scout events') }}</a>
                                 @endif
 
                                 {{-- Always visible to any logged-in user --}}
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('place_bookings.my') }}">طلبات حجز الأماكن</a>
+                                    href="{{ route('place_bookings.my') }}">{{ __('My place booking requests') }}</a>
                             </div>
                         </div>
                     </div>
@@ -439,7 +453,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">العهده</span>
+                                <span class="font-medium">{{ __('Inventory') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -447,17 +461,17 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 @if ($isSuperAdmin || $isInventory || $isAdminInventory)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('inventory.index') }}">العُهده</a>
+                                        href="{{ route('inventory.index') }}">{{ __('Custody items') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('inventory-issue.index') }}">طباعه عهده</a>
+                                        href="{{ route('inventory-issue.index') }}">{{ __('Print custody') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('admin.custody_requests.index') }}">متابعة عهدة</a>
+                                        href="{{ route('admin.custody_requests.index') }}">{{ __('Follow up custody') }}</a>
                                 @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('custody_requests.my') }}">طلب عهده</a>
+                                    href="{{ route('custody_requests.my') }}">{{ __('Request custody') }}</a>
                             </div>
                         </div>
                     </div>
@@ -469,7 +483,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">اسعافات</span>
+                                    <span class="font-medium">{{ __('First aid') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -477,18 +491,18 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
 
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('medicine.index') }}">مخزون الأدوية</a>
+                                        href="{{ route('medicine.index') }}">{{ __('Medicine stock') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('medicine.dispense') }}">صرف دواء</a>
+                                        href="{{ route('medicine.dispense') }}">{{ __('Dispense medicine') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('medicine.records') }}">سجل صرف الأدوية</a>
+                                        href="{{ route('medicine.records') }}">{{ __('Medicine dispense log') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('medicine.locks') }}">حجز أدوية</a>
+                                        href="{{ route('medicine.locks') }}">{{ __('Reserve medicine') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('medicine.locations') }}">أماكن الأدوية</a>
+                                        href="{{ route('medicine.locations') }}">{{ __('Medicine locations') }}</a>
 
                                 </div>
                             </div>
@@ -501,7 +515,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">بيانات المخدومين</span>
+                                <span class="font-medium">{{ __('Members data') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -509,27 +523,26 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 @if ($isSuperAdmin)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('person.ShowPersons') }}">بيانات كل المخدومين</a>
+                                        href="{{ route('person.ShowPersons') }}">{{ __('All members data') }}</a>
                                 @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('person.index', ['id' => Auth::user()->id]) }}">
-                                    بيانات المخدومين
+                                    {{ __('Members data') }}
                                 </a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('attendance.manage') }}">حضور و انصراف المخدومين</a>
+                                    href="{{ route('attendance.manage') }}">{{ __('Attendance') }}</a>
                                 @if ($isSuperAdmin || $isAdminQetaa)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('personspecialcase.index') }}">الحالات الخاصة للمخدومين</a>
+                                        href="{{ route('personspecialcase.index') }}">{{ __('Special cases') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('personblacklist.index') }}">القائمة السوداء</a>
+                                        href="{{ route('personblacklist.index') }}">{{ __('Blacklist') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('personexammark.index') }}">تسجيل درجات الامتحان</a>
+                                        href="{{ route('personexammark.index') }}">{{ __('Exam marks') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('eventServantFollowup.selector') }}">متابعة حجوزات
-                                        المخدومين</a>
+                                        href="{{ route('eventServantFollowup.selector') }}">{{ __('Follow up member bookings') }}</a>
                                 @endif
                             </div>
                         </div>
@@ -542,7 +555,7 @@
                                 <button @click="open = !open"
                                     class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                    <span class="font-medium">إدارة كلمات المرور</span>
+                                    <span class="font-medium">{{ __('Password management') }}</span>
                                     <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -550,15 +563,15 @@
                                     </svg>
                                 </button>
 
-                                <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('admin.passwords') }}">عرض و تعديل كلمات المرور</a>
+                                        href="{{ route('admin.passwords') }}">{{ __('View & edit passwords') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('audit-logs.index') }}">سجل التدقيق</a>
+                                        href="{{ route('audit-logs.index') }}">{{ __('Audit log') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('whatsapp.status') }}">واتساب</a>
+                                        href="{{ route('whatsapp.status') }}">{{ __('WhatsApp') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('whatsapp.campaigns.index') }}">حملات واتساب</a>
+                                        href="{{ route('whatsapp.campaigns.index') }}">{{ __('WhatsApp campaigns') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -570,7 +583,7 @@
                             <button @click="open = !open"
                                 class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                 :class="{ 'bg-emerald-50 text-emerald-600': open }">
-                                <span class="font-medium">الملف الشخصي</span>
+                                <span class="font-medium">{{ __('Profile') }}</span>
                                 <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -578,9 +591,9 @@
                                 </svg>
                             </button>
 
-                            <div x-show="open" x-transition class="mt-2 pr-4 space-y-1">
+                            <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('profile.show') }}">عرض الملف الشخصي</a>
+                                    href="{{ route('profile.show') }}">{{ __('View profile') }}</a>
                             </div>
                         </div>
                     </div>
@@ -600,7 +613,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                             </svg>
-                            <span class="font-medium">تسجيل الخروج</span>
+                            <span class="font-medium">{{ __('Log out') }}</span>
                         </button>
                     </form>
                 </div>
@@ -609,13 +622,14 @@
             <!-- Main Content Area -->
             <main class="flex-1 flex flex-col min-w-0 w-full">
                 <!-- Header Bar -->
-                <header class="bg-white shadow-sm border-b border-gray-200 px-4 py-3 sticky top-0 z-10"
+                <header class="bg-white dark:bg-slate-900 shadow-sm border-b border-gray-200 dark:border-slate-800 px-4 py-3 sticky top-0 z-10"
                     style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
 
-                    <!-- Right: Mobile menu button / Page title -->
+                    <!-- Start: Mobile menu button / Page title -->
                     <div class="flex items-center gap-3 justify-start">
                         <button id="sidebarToggle" type="button"
-                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden">
+                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg lg:hidden"
+                            aria-label="{{ __('Menu') }}">
                             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 6h16M4 12h16M4 18h16" />
@@ -627,7 +641,7 @@
                         @endif
                     </div>
 
-                    <!-- Center: Logo always locked in center -->
+                    <!-- Center: Logo -->
                     <div class="flex items-center justify-center">
                         <a href="{{ url('/') }}">
                             <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
@@ -635,17 +649,49 @@
                         </a>
                     </div>
 
-                    <!-- Left: Logout button -->
-                    <div class="flex items-center justify-end">
+                    <!-- End: theme + language + logout -->
+                    <div class="flex items-center justify-end gap-1 sm:gap-2">
+                        <button type="button" id="themeToggle"
+                            class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                            title="{{ __('Dark') }} / {{ __('Light') }}" aria-label="{{ __('Dark') }}">
+                            <svg id="iconSun" class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M12 3v2.25M12 18.75V21m9-9h-2.25M5.25 12H3m15.364 6.364l-1.591-1.591M7.227 7.227 5.636 5.636m12.728 0-1.591 1.591M7.227 16.773l-1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                            </svg>
+                            <svg id="iconMoon" class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                            </svg>
+                        </button>
+
+                        <div class="relative" x-data="{ open: false }">
+                            <button type="button" @click="open = !open"
+                                class="px-2.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-100"
+                                aria-label="{{ __('Language') }}">
+                                {{ $locale === 'ar' ? 'ع' : 'EN' }}
+                            </button>
+                            <div x-show="open" @click.outside="open = false" x-cloak
+                                class="absolute {{ $isRtl ? 'left-0' : 'right-0' }} mt-1 w-36 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-20">
+                                <a href="{{ route('locale.switch', 'ar') }}"
+                                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-emerald-50 {{ $locale === 'ar' ? 'font-bold text-emerald-600' : '' }}">
+                                    {{ __('Arabic') }}
+                                </a>
+                                <a href="{{ route('locale.switch', 'en') }}"
+                                    class="block px-3 py-2 text-sm text-gray-700 hover:bg-emerald-50 {{ $locale === 'en' ? 'font-bold text-emerald-600' : '' }}">
+                                    {{ __('English') }}
+                                </a>
+                            </div>
+                        </div>
+
                         <form method="POST" action="{{ route('logout') }}" class="hidden lg:block">
                             @csrf
                             <button type="submit"
-                                class="flex items-center gap-2 px-4 py-2 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                                class="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                         d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                                 </svg>
-                                <span class="font-medium">تسجيل الخروج</span>
+                                <span class="font-medium hidden xl:inline">{{ __('Log out') }}</span>
                             </button>
                         </form>
                     </div>
@@ -663,8 +709,8 @@
         </div>
 
         <!-- Footer -->
-        <footer class="bg-white shadow-sm border-t border-gray-200 px-4 py-3 text-center">
-            <p class="text-sm text-gray-600"> جميع الحقوق محفوظة . شماندورة الكشافة ٢٠٢٥</p>
+        <footer class="bg-white dark:bg-slate-900 shadow-sm border-t border-gray-200 dark:border-slate-800 px-4 py-3 text-center">
+            <p class="text-sm text-gray-600">{{ __('All rights reserved. Shamandora Scout.') }}</p>
         </footer>
 
     </div>
@@ -696,7 +742,7 @@
             </div>
 
             {{-- Label --}}
-            <p class="text-sm text-gray-500" style="font-family: 'Cairo', sans-serif;">جاري التحميل ...</p>
+            <p class="text-sm text-gray-500">{{ __('Loading...') }}</p>
         </div>
     </div>
 
@@ -708,6 +754,8 @@
         const closeSidebar = document.getElementById('closeSidebar');
         const overlay = document.getElementById('sidebarOverlay');
         const pageLoadingOverlay = document.getElementById('pageLoadingOverlay');
+        const isRtl = (sidebar?.dataset.dir || 'rtl') === 'rtl';
+        const closedClass = isRtl ? 'translate-x-full' : '-translate-x-full';
 
         let loadingTimer = null;
 
@@ -731,17 +779,17 @@
             hideLoading();
             loadingTimer = setTimeout(() => {
                 showLoading();
-            }, 120); // avoid flashing on fast nav
+            }, 120);
         };
 
         function openSidebar() {
-            sidebar.classList.remove('translate-x-full');
+            sidebar.classList.remove(closedClass);
             overlay.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
 
         function closeSidebarFunc() {
-            sidebar.classList.add('translate-x-full');
+            sidebar.classList.add(closedClass);
             overlay.classList.add('hidden');
             document.body.style.overflow = '';
         }
@@ -750,7 +798,15 @@
         closeSidebar?.addEventListener('click', closeSidebarFunc);
         overlay?.addEventListener('click', closeSidebarFunc);
 
-        // Always clear stale loader when page is ready or restored from Back/Forward
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const root = document.documentElement;
+            const nextDark = !root.classList.contains('dark');
+            root.classList.toggle('dark', nextDark);
+            try {
+                localStorage.setItem('theme', nextDark ? 'dark' : 'light');
+            } catch (e) {}
+        });
+
         document.addEventListener('DOMContentLoaded', hideLoading);
         window.addEventListener('load', hideLoading);
         window.addEventListener('pageshow', hideLoading);
@@ -775,9 +831,7 @@
                     return;
                 }
 
-                // don't show loader for same-page navigation
                 if (url.href === window.location.href) return;
-
                 showLoadingDelayed();
             });
         });

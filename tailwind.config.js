@@ -2,6 +2,7 @@ import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './resources/views/**/*.blade.php',
     './resources/**/*.js',
@@ -10,17 +11,17 @@ export default {
   safelist: [
     {
       pattern: /(bg|text|border)-(blue|emerald|green|red)-(50|100|200|300|400|500|600|700)/,
-      variants: ['hover', 'focus', 'disabled', 'peer-focus'],
+      variants: ['hover', 'focus', 'disabled', 'peer-focus', 'dark'],
     },
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Cairo', 'sans-serif'],
+        sans: ['Cairo', 'Source Sans 3', 'sans-serif'],
         serif: ['Cairo', 'serif'],
-        mono: ['Cairo', 'monospace'],
-        display: ['Cairo', 'sans-serif'],
-        body: ['Cairo', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'monospace'],
+        display: ['Cairo', 'Source Sans 3', 'sans-serif'],
+        body: ['Cairo', 'Source Sans 3', 'sans-serif'],
       },
     },
   },

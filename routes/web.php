@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\LocaleController;
+
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
@@ -111,6 +113,10 @@ use App\Http\Controllers\ExportController;
 | Auth (Login / Register / Forgot Password)
 |--------------------------------------------------------------------------
 */
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])
+    ->whereIn('locale', ['ar', 'en'])
+    ->name('locale.switch');
+
 Route::get('/login-auth', [LoginController::class, 'show'])->name('login-auth');
 Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1')->name('login');
 
