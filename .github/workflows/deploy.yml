@@ -70,8 +70,10 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
 
             echo "==> Frontend build"
-            npm ci --omit=dev || npm install
+            # Vite lives in devDependencies — install full deps to build, then prune.
+            npm install
             npm run build
+            npm prune --omit=dev || true
 
             echo "==> Migrate"
             php artisan migrate --force --no-interaction
