@@ -2,122 +2,124 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Person\PersonProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class PersonProfileController extends Controller
 {
-    /**
-     * Show profile page (display user data + phone + image)
-     */
     public function show()
     {
         $user = Auth::user();
+        $personId = (int) $user->PersonID;
 
-        // Phone
-        $phone = DB::table('PersonPhoneNumbers')
-            ->where('PersonID', $user->PersonID)
-            ->value('PersonPersonalMobileNumber');
+        $person = $this->loadPerson($personId);
+        $attendance = $this->loadAttendance($personId);
+        $custodyCount = DB::table('CustodyRequests')->where('PersonID', $personId)->count();
+        $bookingCount = DB::table('PlaceBookings')->where('PersonID', $personId)->count();
 
-        // Image row (may be null)
-        $personImage = DB::table('PersonImages')
-            ->where('PersonID', $user->PersonID)
-            ->first();
-
-        return view('profile', compact('user', 'phone', 'personImage'));
+        return view('profile', [
+            'user' => $user,
+            'person' => $person,
+            'attendance' => $attendance,
+            'custodyCount' => $custodyCount,
+            'bookingCount' => $bookingCount,
+        ]);
     }
 
-    /**
-     * Show edit page (profile edit UI)
-     * We'll pass the same data so edit page can show current phone + image too.
-     */
     public function edit()
     {
         $user = Auth::user();
+        $personId = (int) $user->PersonID;
 
-        $phone = DB::table('PersonPhoneNumbers')
-            ->where('PersonID', $user->PersonID)
-            ->value('PersonPersonalMobileNumber');
-
-        $personImage = DB::table('PersonImages')
-            ->where('PersonID', $user->PersonID)
-            ->first();
-
-        return view('profile-edit', compact('user', 'phone', 'personImage'));
+        return view('profile-edit', [
+            'user' => $user,
+            'person' => $this->loadPerson($personId),
+            'blood' => DB::table('BloodType')->orderBy('BloodTypeName')->get(),
+            'rotab' => DB::table('RotbaInformation')->orderBy('RotbaName')->get(),
+            'betakat' => DB::table('EgazetBetakatTaqaddom')->orderBy('EgazetBetakatTaqaddomName')->get(),
+            'seneen_marahel' => DB::table('SanaMarhala')->orderBy('SanaMarhalaName')->get(),
+            'manateq' => DB::table('Manteqa')->orderBy('ManteqaName')->get(),
+            'districts' => DB::table('Districts')->orderBy('DistrictName')->get(),
+            'faculties' => DB::table('Faculty')->orderBy('FacultyName')->get(),
+            'universities' => DB::table('University')->orderBy('UniversityName')->get(),
+        ]);
     }
 
-    /**
-     * Update profile data + phone + photo
-     */
-    public function update(Request $request)
+    public function update(Request $request, PersonProfileService $profiles)
     {
         $user = Auth::user();
+        $personId = (int) $user->PersonID;
 
-        $validated = $request->validate([
-            'FirstName' => 'required|string|max:255',
-            'SecondName' => 'required|string|max:255',
-            'ThirdName' => 'required|string|max:255',
-            'FourthName' => 'required|string|max:255',
-            'ScoutJoiningYear' => 'required|integer',
-            'PersonPersonalMobileNumber' => 'required|string|max:50',
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:255',
+            'second_name' => 'required|string|max:255',
+            'third_name' => 'nullable|string|max:255',
+            'fourth_name' => 'nullable|string|max:255',
+            'gender' => 'nullable|in:Male,Female',
+            'birthdate_input' => 'nullable|date',
+            'joining_year_input' => 'nullable|integer|min:1950|max:2100',
+            'blood_type_input' => 'nullable|integer',
+            'email_input' => 'nullable|email|max:255',
+            'inputFacebookLink' => 'nullable|max:1000',
+            'inputInstagramLink' => 'nullable|max:1000',
 
-            // photo
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:5000',
+            'personal_phone_number' => 'nullable|digits_between:11,11',
+            'father_phone_number' => 'nullable|digits_between:11,11',
+            'mother_phone_number' => 'nullable|digits_between:11,11',
+            'home_phone_number' => 'nullable|string|max:50',
+            'has_whatsapp' => 'nullable|in:0,1',
+
+            'building_number' => 'nullable|string|max:255',
+            'floor_number' => 'nullable|string|max:255',
+            'appartment_number' => 'nullable|string|max:255',
+            'main_street_name' => 'nullable|string|max:255',
+            'sub_street_name' => 'nullable|string|max:255',
+            'nearest_landmark' => 'nullable|string|max:1000',
+            'manteqa_id' => 'nullable|integer',
+            'district_id' => 'nullable|integer',
+
+            'sana_marhala_id' => 'nullable|integer',
+            'person_job' => 'nullable|string|max:255',
+            'person_job_place' => 'nullable|string|max:255',
+            'school_name' => 'nullable|string|max:255',
+            'school_grad_year' => 'nullable|string|max:50',
+            'person_faculty' => 'nullable|integer',
+            'person_university' => 'nullable|integer',
+            'university_grad_year' => 'nullable|string|max:50',
+            'spiritual_father' => 'nullable|string|max:255',
+            'spiritual_father_church' => 'nullable|string|max:255',
+
+            'rotba_kashfeyya_id' => 'nullable|integer',
+            'betaka_id' => 'nullable|integer',
+
+            'personal_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
+            'scout_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
         ]);
 
-        // 1) Update PersonInformation
-        DB::table('PersonInformation')
-            ->where('PersonID', $user->PersonID)
-            ->update([
-                'FirstName' => $validated['FirstName'],
-                'SecondName' => $validated['SecondName'],
-                'ThirdName' => $validated['ThirdName'],
-                'FourthName' => $validated['FourthName'],
-                'ScoutJoiningYear' => $validated['ScoutJoiningYear'],
-            ]);
-
-        // 2) Update phone (insert if missing)
-        DB::table('PersonPhoneNumbers')->updateOrInsert(
-            ['PersonID' => $user->PersonID],
-            ['PersonPersonalMobileNumber' => $validated['PersonPersonalMobileNumber']]
-        );
-
-        // 3) Update photo (delete old if exists, then store new)
-        if ($request->hasFile('profile_image')) {
-
-            // get old image to delete (if any)
-            $old = DB::table('PersonImages')
-                ->where('PersonID', $user->PersonID)
-                ->first();
-
-            if ($old && !empty($old->PersonSystemImagePath)) {
-                Storage::disk('public')->delete($old->PersonSystemImagePath);
-            }
-
-            $imagePath = $request->file('profile_image')->store('person_images', 'public');
-
-            DB::table('PersonImages')->updateOrInsert(
-                ['PersonID' => $user->PersonID],
-                [
-                    'PersonSystemImagePath' => $imagePath,
-                    // keep thumbnail fields as null for now unless you generate thumbnails
-                    'PersonSystemImageThumbnailPath' => $old->PersonSystemImageThumbnailPath ?? null,
-                    'ScoutOfficialUniformImagePath' => $old->ScoutOfficialUniformImagePath ?? null,
-                    'ScoutOfficialUniformImageThumbnailPath' => $old->ScoutOfficialUniformImageThumbnailPath ?? null,
-                ]
-            );
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        return Redirect::route('profile.show')->with('success', 'Profile updated successfully.');
+        // Explicitly strip identity fields — ShamandoraCode & RaqamQawmy stay locked.
+        $data = collect($request->all())
+            ->except(['input_raqam_qawmy', 'RaqamQawmy', 'ShamandoraCode', 'PersonID'])
+            ->all();
+
+        $profiles->updateProfile(
+            $personId,
+            $data,
+            $request->file('personal_image'),
+            $request->file('scout_image'),
+        );
+
+        return Redirect::route('profile.show')->with('success', 'تم تحديث الملف الشخصي بنجاح.');
     }
 
-    /**
-     * Change password only
-     */
     public function updatePassword(Request $request)
     {
         $request->validate([
@@ -126,13 +128,121 @@ class PersonProfileController extends Controller
 
         $user = Auth::user();
 
-        // IMPORTANT:
-        // Use $user->PersonID (same key used across your tables)
         DB::table('PersonSystemPassword')->updateOrInsert(
             ['PersonID' => $user->PersonID],
             ['Password' => Hash::make($request->input('password'))]
         );
 
-        return Redirect::route('profile.show')->with('success', 'Password updated successfully.');
+        return Redirect::route('profile.show')->with('success', 'تم تحديث كلمة المرور بنجاح.');
+    }
+
+    private function loadPerson(int $personId): ?object
+    {
+        return DB::table('PersonInformation')
+            ->leftJoin('PersonImages', 'PersonImages.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
+            ->leftJoin('PersonEgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('EgazetBetakatTaqaddom', 'PersonEgazetBetakatTaqaddom.EgazetBetakatTaqaddomID', '=', 'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID')
+            ->leftJoin('PersonJob', 'PersonInformation.PersonID', '=', 'PersonJob.PersonID')
+            ->leftJoin('PersonLearningInformation', 'PersonLearningInformation.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('Faculty', 'PersonLearningInformation.FacultyID', '=', 'Faculty.FacultyID')
+            ->leftJoin('University', 'PersonLearningInformation.UniversityID', '=', 'University.UniversityID')
+            ->leftJoin('PersonPhoneNumbers', 'PersonPhoneNumbers.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('PersonQetaa', 'PersonQetaa.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'PersonQetaa.QetaaID')
+            ->leftJoin('PersonRotbaKashfeyya', 'PersonRotbaKashfeyya.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('RotbaInformation', 'PersonRotbaKashfeyya.RotbaID', '=', 'RotbaInformation.RotbaID')
+            ->leftJoin('PersonSanaMarhala', 'PersonSanaMarhala.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'PersonSanaMarhala.SanaMarhalaID')
+            ->leftJoin('PersonSpiritualFatherInformation', 'PersonSpiritualFatherInformation.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('PersonalPhysicalAddress', 'PersonalPhysicalAddress.PersonID', '=', 'PersonInformation.PersonID')
+            ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'PersonalPhysicalAddress.ManteqaID')
+            ->leftJoin('Districts', 'Districts.DistrictID', '=', 'PersonalPhysicalAddress.DistrictID')
+            ->where('PersonInformation.PersonID', $personId)
+            ->select(
+                'PersonInformation.*',
+                'PersonImages.PersonSystemImagePath as PersonalImagePath',
+                'PersonImages.ScoutOfficialUniformImagePath as ScoutImagePath',
+                'BloodType.BloodTypeName',
+                'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomID',
+                'EgazetBetakatTaqaddom.EgazetBetakatTaqaddomName',
+                'PersonJob.JobName',
+                'PersonJob.WorkPlace',
+                'PersonLearningInformation.SchoolName',
+                'PersonLearningInformation.SchoolGraduationYear',
+                'PersonLearningInformation.FacultyID',
+                'PersonLearningInformation.UniversityID',
+                'PersonLearningInformation.ActualFacultyGraduationYear',
+                'Faculty.FacultyName',
+                'University.UniversityName',
+                'PersonPhoneNumbers.PersonPersonalMobileNumber',
+                'PersonPhoneNumbers.FatherMobileNumber',
+                'PersonPhoneNumbers.MotherMobileNumber',
+                'PersonPhoneNumbers.HomePhoneNumber',
+                'PersonPhoneNumbers.IsOPersonalPhoneNumberHavingWhatsapp',
+                'Qetaa.QetaaName',
+                'RotbaInformation.RotbaID',
+                'RotbaInformation.RotbaName',
+                'SanaMarhala.SanaMarhalaID',
+                'SanaMarhala.SanaMarhalaName',
+                'PersonSpiritualFatherInformation.SpiritualFatherName',
+                'PersonSpiritualFatherInformation.SpiritualFatherChurchName',
+                'PersonalPhysicalAddress.BuildingNumber',
+                'PersonalPhysicalAddress.FloorNumber',
+                'PersonalPhysicalAddress.AppartmentNumber',
+                'PersonalPhysicalAddress.MainStreetName',
+                'PersonalPhysicalAddress.SubStreetName',
+                'PersonalPhysicalAddress.NearestLandmark',
+                'PersonalPhysicalAddress.ManteqaID',
+                'PersonalPhysicalAddress.DistrictID',
+                'Manteqa.ManteqaName',
+                'Districts.DistrictName'
+            )
+            ->first();
+    }
+
+    /**
+     * @return array{events: \Illuminate\Support\Collection, summary: array{total: int, present: int, absent: int, excused: int, rate: float|int}}
+     */
+    private function loadAttendance(int $personId): array
+    {
+        $events = DB::table('PersonQetaa as pq')
+            ->join('EventQetaa as eq', 'eq.QetaaID', '=', 'pq.QetaaID')
+            ->join('SeasonEvent as se', 'se.EventID', '=', 'eq.EventID')
+            ->join('Event as e', 'e.EventID', '=', 'se.EventID')
+            ->join('Season as s', 's.SeasonID', '=', 'se.SeasonID')
+            ->leftJoin('Attendance as a', function ($join) {
+                $join->on('a.SeasonEventID', '=', 'se.SeasonEventID')
+                    ->on('a.ServedID', '=', 'pq.PersonID');
+            })
+            ->where('pq.PersonID', $personId)
+            ->select(
+                'se.SeasonEventID',
+                'e.EventName',
+                'e.EventStartDate',
+                's.SeasonName',
+                's.SeasonYear',
+                DB::raw("COALESCE(a.AttendanceStatus, 'absent') AS Status"),
+                'a.Excuse'
+            )
+            ->orderByDesc('e.EventStartDate')
+            ->limit(20)
+            ->get();
+
+        $total = $events->count();
+        $present = $events->where('Status', 'present')->count();
+        $absent = $events->where('Status', 'absent')->count();
+        $excused = $events->where('Status', 'excused')->count();
+
+        return [
+            'events' => $events,
+            'summary' => [
+                'total' => $total,
+                'present' => $present,
+                'absent' => $absent,
+                'excused' => $excused,
+                'rate' => $total ? round($present / $total * 100, 1) : 0,
+            ],
+        ];
     }
 }

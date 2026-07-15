@@ -58,23 +58,32 @@ class PersonProfileService
                 $scoutOfficialUniformImagePath = $scoutImage->store('persons/scout', 'public');
             }
 
+            $personUpdate = [
+                'FirstName' => $data['first_name'] ?? null,
+                'SecondName' => $data['second_name'] ?? null,
+                'ThirdName' => $data['third_name'] ?? null,
+                'FourthName' => $data['fourth_name'] ?? null,
+                'Gender' => $data['gender'] ?? null,
+                'DateOfBirth' => $data['birthdate_input'] ?? null,
+                'ScoutJoiningYear' => $data['joining_year_input'] ?? null,
+                'BloodTypeID' => $data['blood_type_input'] ?? null,
+                'FacebookProfileURL' => $data['inputFacebookLink'] ?? null,
+                'InstagramProfileURL' => $data['inputInstagramLink'] ?? null,
+                'PersonalEmail' => $data['email_input'] ?? null,
+            ];
+
+            // National ID is locked on self-profile; only update when explicitly provided.
+            if (array_key_exists('input_raqam_qawmy', $data)) {
+                $personUpdate['RaqamQawmy'] = $data['input_raqam_qawmy'];
+            }
+
+            if (array_key_exists('RequestPersonID', $data)) {
+                $personUpdate['RequestPersonID'] = $data['RequestPersonID'];
+            }
+
             DB::table('PersonInformation')
                 ->where('PersonID', $personId)
-                ->update([
-                    'FirstName' => $data['first_name'] ?? null,
-                    'SecondName' => $data['second_name'] ?? null,
-                    'ThirdName' => $data['third_name'] ?? null,
-                    'FourthName' => $data['fourth_name'] ?? null,
-                    'Gender' => $data['gender'] ?? null,
-                    'DateOfBirth' => $data['birthdate_input'] ?? null,
-                    'RaqamQawmy' => $data['input_raqam_qawmy'] ?? null,
-                    'ScoutJoiningYear' => $data['joining_year_input'] ?? null,
-                    'BloodTypeID' => $data['blood_type_input'] ?? null,
-                    'FacebookProfileURL' => $data['inputFacebookLink'] ?? null,
-                    'InstagramProfileURL' => $data['inputInstagramLink'] ?? null,
-                    'PersonalEmail' => $data['email_input'] ?? null,
-                    'RequestPersonID' => $data['RequestPersonID'] ?? null,
-                ]);
+                ->update($personUpdate);
 
             $this->upsertFiltered('PersonPhoneNumbers', $personId, [
                 'PersonPersonalMobileNumber' => $data['personal_phone_number'] ?? null,
