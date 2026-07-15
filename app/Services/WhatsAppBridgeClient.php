@@ -13,16 +13,29 @@ class WhatsAppBridgeClient
 {
     public function normalizeEgNumber(string $input): string
     {
-        $digits = preg_replace('/\D+/', '', $input ?? '');
+        $digits = preg_replace('/\D+/', '', $input ?? '') ?? '';
 
         if ($digits === '') {
             return '+2';
         }
 
-        if (str_starts_with($digits, '20')) {
+        // Already has Egypt country code: 20XXXXXXXXXX
+        if (str_starts_with($digits, '20') && strlen($digits) >= 12) {
             return '+' . $digits;
         }
 
+        // Local with leading 0: 01XXXXXXXXX → +201XXXXXXXXX
+        if (str_starts_with($digits, '0') && strlen($digits) === 11) {
+            return '+2' . $digits;
+        }
+
+        // Local without leading 0: 1XXXXXXXXX (10 digits) → +201XXXXXXXXX
+        // Example: 1000485402 → +201000485402
+        if (strlen($digits) === 10 && str_starts_with($digits, '1')) {
+            return '+20' . $digits;
+        }
+
+        // Legacy fallback (keeps older 01… / short forms working via +2 prefix)
         return '+2' . $digits;
     }
 

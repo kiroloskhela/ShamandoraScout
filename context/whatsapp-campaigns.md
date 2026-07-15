@@ -1,4 +1,4 @@
-# WhatsApp campaigns (Phase 1)
+# WhatsApp campaigns (Phase 1 + CSV)
 
 SuperAdmin bulk messaging via the existing Baileys bridge (`WhatsAppBridgeClient`).
 
@@ -8,12 +8,20 @@ SuperAdmin bulk messaging via the existing Baileys bridge (`WhatsAppBridgeClient
 |--------|------|------|
 | GET | `/whatsapp/campaigns` | `whatsapp.campaigns.index` |
 | GET | `/whatsapp/campaigns/create` | `whatsapp.campaigns.create` |
+| GET | `/whatsapp/campaigns/create-csv` | `whatsapp.campaigns.create-csv` |
+| GET | `/whatsapp/campaigns/csv-template` | `whatsapp.campaigns.csv-template` |
+| POST | `/whatsapp/campaigns/csv` | `whatsapp.campaigns.store-csv` |
 | POST | `/whatsapp/campaigns` | `whatsapp.campaigns.store` |
 | GET | `/whatsapp/campaigns/{id}` | `whatsapp.campaigns.show` |
 | POST | `/whatsapp/campaigns/{id}/confirm` | `whatsapp.campaigns.confirm` |
 | POST | `/whatsapp/campaigns/{id}/pause\|resume\|cancel` | actions |
 
 Auth: `checkAuth:SuperAdmin` only.
+
+## Two create modes
+
+1. **Directory campaign** — pick people from the DB, one template with `{name}`.
+2. **CSV campaign** — upload `Phone Number,Message`; each row gets its own message. Phones are normalized to Egypt `+20…` (e.g. `1000485402` → `+201000485402`). Max 2000 rows. Pause / resume / cancel work the same as directory campaigns.
 
 ## Env
 
@@ -33,11 +41,11 @@ A `queue:work` process must be running for paced sends.
 - Delay between messages: 8–15 seconds (random)
 - Max messages/hour: 60
 - High-count confirm threshold: 100 recipients
-- Personalization: `{name}` = FirstName + SecondName + ThirdName
+- Personalization (directory mode): `{name}` = FirstName + SecondName + ThirdName
 - Consent: `PersonPhoneNumbers.WhatsAppConsent` default `1`; `DoNotContact` default `0`
-- Blacklisted people and DNC / no-consent are excluded
+- Blacklisted people and DNC / no-consent are excluded (directory mode)
 
-## Out of scope (Phase 1)
+## Out of scope
 
 - Scheduled start / allowed hours
 - Delivered / read receipts (Baileys send ack only)
@@ -48,3 +56,5 @@ A `queue:work` process must be running for paced sends.
 ```bash
 php artisan migrate
 ```
+
+Includes `2026_07_15_500001_whatsapp_campaign_recipients_csv_support` (nullable `person_id`, unique per campaign phone).

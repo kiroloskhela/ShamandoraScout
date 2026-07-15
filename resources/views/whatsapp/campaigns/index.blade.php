@@ -4,8 +4,14 @@
 <div class="container mx-auto px-4 py-8" dir="rtl">
     <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <h1 class="text-2xl font-bold text-gray-800">حملات واتساب</h1>
-        <a href="{{ route('whatsapp.campaigns.create') }}"
-            class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">حملة جديدة</a>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ route('whatsapp.campaigns.csv-template') }}"
+                class="bg-white border border-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold text-sm">تحميل قالب CSV</a>
+            <a href="{{ route('whatsapp.campaigns.create-csv') }}"
+                class="bg-teal-700 text-white px-4 py-2 rounded-lg font-semibold text-sm">حملة من CSV</a>
+            <a href="{{ route('whatsapp.campaigns.create') }}"
+                class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm">حملة من الدليل</a>
+        </div>
     </div>
 
     @if (session('success'))

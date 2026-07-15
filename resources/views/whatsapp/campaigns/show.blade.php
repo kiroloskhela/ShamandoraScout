@@ -10,7 +10,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('whatsapp.campaigns.index') }}" class="px-3 py-2 border rounded-lg text-sm">رجوع</a>
-            @if ($campaign->isEditable())
+            @if ($campaign->isEditable() && !str_starts_with((string) $campaign->message_template, '[CSV]'))
                 <a href="{{ route('whatsapp.campaigns.edit', $campaign) }}" class="px-3 py-2 border rounded-lg text-sm">تعديل</a>
             @endif
         </div>
@@ -93,7 +93,7 @@
             <tbody>
                 @foreach ($campaign->recipients as $r)
                     <tr class="border-t align-top">
-                        <td class="px-3 py-2">{{ $r->person_id }}</td>
+                        <td class="px-3 py-2">{{ $r->person_id ?: '—' }}</td>
                         <td class="px-3 py-2 font-mono text-xs">{{ $r->phone }}</td>
                         <td class="px-3 py-2 max-w-xs"><div class="line-clamp-3 whitespace-pre-wrap">{{ $r->personalized_message }}</div></td>
                         <td class="px-3 py-2">{{ $r->status }}</td>

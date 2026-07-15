@@ -115,7 +115,7 @@ class WhatsAppCampaignTest extends TestCase
         Schema::create('whatsapp_campaign_recipients', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('campaign_id');
-            $table->unsignedInteger('person_id');
+            $table->unsignedInteger('person_id')->nullable();
             $table->string('phone', 32);
             $table->text('personalized_message')->nullable();
             $table->string('status', 32)->default('pending');
@@ -126,7 +126,7 @@ class WhatsAppCampaignTest extends TestCase
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
-            $table->unique(['campaign_id', 'person_id']);
+            $table->unique(['campaign_id', 'phone']);
         });
     }
 
@@ -290,5 +290,57 @@ class WhatsAppCampaignTest extends TestCase
         $recipient->refresh();
         $this->assertSame(WhatsAppCampaignRecipient::STATUS_SENT, $recipient->status);
         $this->assertSame('abc', $recipient->whatsapp_message_id);
+    }
+
+    public function test_csv_template_download_and_upload_creates_draft_with_per_number_messages(): void
+    {
+        Queue::fake();
+        $admin = $this->createSuperAdmin();
+
+        $this->actingAs($admin)
+            ->get(route('whatsapp.campaigns.csv-template'))
+            ->assertOk()
+            ->assertHeader('content-disposition');
+
+        $csv = "Phone Number,Message\n"
+            . "1000485402,Hello first person\n"
+            . "01012345678,Hello second person\n";
+
+        $path = sys_get_temp_dir() . '/wa-csv-' . uniqid() . '.csv';
+        file_put_contents($path, $csv);
+
+        $response = $this->actingAs($admin)->post(route('whatsapp.campaigns.store-csv'), [
+            'name' => 'CSV Campaign',
+            'csv_file' => new \Illuminate\Http\UploadedFile($path, 'campaign.csv', 'text/csv', null, true),
+            'min_delay_seconds' => 5,
+            'max_delay_seconds' => 10,
+            'max_messages_per_hour' => 40,
+        ]);
+
+        @unlink($path);
+
+        $campaign = WhatsAppCampaign::query()->where('name', 'CSV Campaign')->first();
+        $this->assertNotNull($campaign);
+        $response->assertRedirect(route('whatsapp.campaigns.show', $campaign));
+        $this->assertSame('draft', $campaign->status);
+        $this->assertSame(2, $campaign->recipients()->count());
+
+        $phones = $campaign->recipients()->orderBy('id')->pluck('phone')->all();
+        $this->assertSame(['+201000485402', '+201012345678'], $phones);
+
+        $messages = $campaign->recipients()->orderBy('id')->pluck('personalized_message')->all();
+        $this->assertSame(['Hello first person', 'Hello second person'], $messages);
+        $this->assertTrue($campaign->recipients()->whereNull('person_id')->count() === 2);
+
+        $this->actingAs($admin)->post(route('whatsapp.campaigns.confirm', $campaign));
+        Queue::assertPushed(SendWhatsAppCampaignMessage::class);
+    }
+
+    public function test_normalize_eg_number_adds_country_code_for_10_digit_local(): void
+    {
+        $bridge = app(\App\Services\WhatsAppBridgeClient::class);
+        $this->assertSame('+201000485402', $bridge->normalizeEgNumber('1000485402'));
+        $this->assertSame('+201012345678', $bridge->normalizeEgNumber('01012345678'));
+        $this->assertSame('+201000485402', $bridge->normalizeEgNumber('+201000485402'));
     }
 }

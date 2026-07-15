@@ -92,8 +92,13 @@ class WhatsAppStatusControllerTest extends TestCase
 
     public function test_status_page_shows_connected_when_health_ok(): void
     {
+        config([
+            'services.whatsapp.bridge_base_url' => 'http://127.0.0.1:3010',
+            'services.whatsapp.bridge_url' => 'http://127.0.0.1:3010/send',
+        ]);
+
         Http::fake([
-            'http://127.0.0.1:3000/health' => Http::response(['ok' => true, 'connected' => true], 200),
+            'http://127.0.0.1:3010/health' => Http::response(['ok' => true, 'connected' => true], 200),
         ]);
 
         $user = $this->createSuperAdmin();

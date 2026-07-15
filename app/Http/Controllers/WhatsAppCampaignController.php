@@ -34,6 +34,53 @@ class WhatsAppCampaignController extends Controller
         ]);
     }
 
+    public function createCsv()
+    {
+        return view('whatsapp.campaigns.create-csv', [
+            'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,
+        ]);
+    }
+
+    public function downloadCsvTemplate()
+    {
+        $filename = 'whatsapp-campaign-template.csv';
+
+        return response()->streamDownload(function () {
+            $out = fopen('php://output', 'wb');
+            // UTF-8 BOM for Excel
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Phone Number', 'Message']);
+            fputcsv($out, ['1000485402', 'مرحباً، هذه رسالة تجريبية للرقم الأول']);
+            fputcsv($out, ['01012345678', 'Hello — custom message for the second number']);
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function storeCsv(Request $request, WhatsAppCampaignService $campaigns)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:180'],
+            'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+            'min_delay_seconds' => ['nullable', 'integer', 'min:1', 'max:600'],
+            'max_delay_seconds' => ['nullable', 'integer', 'min:1', 'max:600'],
+            'max_messages_per_hour' => ['nullable', 'integer', 'min:1', 'max:500'],
+        ]);
+
+        try {
+            $path = $request->file('csv_file')->getRealPath();
+            $rows = $campaigns->parseCsvFile((string) $path);
+            $campaign = $campaigns->createDraftFromCsvRows($data, $rows, (int) auth()->id());
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+
+        return redirect()
+            ->route('whatsapp.campaigns.show', $campaign)
+            ->with('success', 'تم إنشاء مسودة من CSV (' . $campaign->recipients()->count() . ' رقم). راجع ثم أكّد الإرسال.');
+    }
+
     public function store(Request $request, WhatsAppCampaignService $campaigns)
     {
         $data = $this->validated($request);

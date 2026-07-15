@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('whatsapp_campaign_recipients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('campaign_id')->constrained('whatsapp_campaigns')->cascadeOnDelete();
-            $table->unsignedInteger('person_id')->index();
+            $table->unsignedInteger('person_id')->nullable()->index();
             $table->string('phone', 32);
             $table->text('personalized_message')->nullable();
             $table->string('status', 32)->default('pending')->index();
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->timestamp('sent_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['campaign_id', 'person_id'], 'uq_wa_campaign_person');
+            $table->unique(['campaign_id', 'phone'], 'uq_wa_campaign_phone');
         });
     }
 

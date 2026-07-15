@@ -17,6 +17,7 @@ class WhatsAppCampaignService
         private readonly MessagePersonalizer $personalizer,
         private readonly CampaignRecipientQuery $query,
         private readonly WhatsAppBridgeClient $bridge,
+        private readonly CampaignCsvImporter $csvImporter,
     ) {
     }
 
@@ -53,6 +54,74 @@ class WhatsAppCampaignService
         $this->syncRecipients($campaign, $data);
 
         return $campaign->fresh(['recipients']);
+    }
+
+    /**
+     * Create a draft campaign from CSV rows: each phone gets its own message.
+     *
+     * @param  array{
+     *   name: string,
+     *   min_delay_seconds?: int,
+     *   max_delay_seconds?: int,
+     *   max_messages_per_hour?: int,
+     * }  $meta
+     * @param  list<array{phone: string, message: string, row?: int}>  $rows
+     */
+    public function createDraftFromCsvRows(array $meta, array $rows, int $createdBy): WhatsAppCampaign
+    {
+        if ($rows === []) {
+            throw new RuntimeException('لا توجد أرقام في الملف.');
+        }
+
+        $minDelay = max(1, (int) ($meta['min_delay_seconds'] ?? 8));
+        $maxDelay = max($minDelay, (int) ($meta['max_delay_seconds'] ?? 15));
+
+        return DB::transaction(function () use ($meta, $rows, $createdBy, $minDelay, $maxDelay) {
+            $campaign = WhatsAppCampaign::create([
+                'name' => trim((string) $meta['name']),
+                'message_template' => '[CSV] لكل رقم رسالة مخصصة',
+                'status' => WhatsAppCampaign::STATUS_DRAFT,
+                'missing_variable_behavior' => 'fallback',
+                'fallback_name' => null,
+                'min_delay_seconds' => $minDelay,
+                'max_delay_seconds' => $maxDelay,
+                'max_messages_per_hour' => max(1, (int) ($meta['max_messages_per_hour'] ?? 60)),
+                'created_by' => $createdBy,
+            ]);
+
+            foreach ($rows as $row) {
+                $phone = (string) $row['phone'];
+                $message = (string) $row['message'];
+                $digitLen = strlen(preg_replace('/\D+/', '', $phone) ?? '');
+
+                $status = WhatsAppCampaignRecipient::STATUS_PENDING;
+                $error = null;
+                if ($phone === '+2' || $digitLen < 12 || trim($message) === '') {
+                    $status = WhatsAppCampaignRecipient::STATUS_SKIPPED;
+                    $error = 'Skipped: invalid phone or empty message';
+                }
+
+                WhatsAppCampaignRecipient::create([
+                    'campaign_id' => $campaign->id,
+                    'person_id' => null,
+                    'phone' => $phone,
+                    'personalized_message' => $message,
+                    'status' => $status,
+                    'error_message' => $error,
+                    'error_kind' => $status === WhatsAppCampaignRecipient::STATUS_SKIPPED ? 'permanent' : null,
+                ]);
+            }
+
+            return $campaign->fresh(['recipients']);
+        });
+    }
+
+    /**
+     * @return list<array{phone: string, message: string, row: int}>
+     */
+    public function parseCsvFile(string $absolutePath): array
+    {
+        return $this->csvImporter->parseUploadedFile($absolutePath);
     }
 
     /**

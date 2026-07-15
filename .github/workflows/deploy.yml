@@ -54,17 +54,45 @@ jobs:
           timeout: 60s
           command_timeout: 30m
           script: |
-            set -e
+            set -euo pipefail
+            export COMPOSER_ALLOW_SUPERUSER=1
+            export PAGER=cat
+            export GIT_PAGER=cat
+
             cd /var/www/shamandora
-            git fetch --all
+
+            echo "==> Fetch & reset to origin/main"
+            git fetch --all --prune
             git reset --hard origin/main
-            composer install --no-dev --optimize-autoloader
-            npm install
+            git clean -fd -e .env -e storage/ -e node_modules/ -e vendor/ -e whatsapp-bridge/auth_info* -e whatsapp-bridge/node_modules/
+
+            echo "==> Composer"
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            echo "==> Frontend build"
+            npm ci --omit=dev || npm install
             npm run build
+
+            echo "==> Migrate"
+            php artisan migrate --force --no-interaction
+
+            echo "==> Cache"
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            echo "==> Permissions & services"
             chown -R www-data:www-data /var/www/shamandora
             systemctl restart php8.3-fpm
             systemctl reload nginx
+
+            # Restart queue worker if managed by systemd (ignore if absent)
+            systemctl try-restart laravel-queue.service 2>/dev/null || true
+            # Or pm2 queue if present
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 restart shamandora-queue 2>/dev/null || true
+            fi
+
+            echo "==> Deployed $(git rev-parse --short HEAD)"
+            git log -1 --oneline

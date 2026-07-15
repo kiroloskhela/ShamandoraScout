@@ -246,6 +246,9 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     // WhatsApp campaigns (bulk messaging)
     Route::get('/whatsapp/campaigns', [WhatsAppCampaignController::class, 'index'])->name('whatsapp.campaigns.index');
     Route::get('/whatsapp/campaigns/create', [WhatsAppCampaignController::class, 'create'])->name('whatsapp.campaigns.create');
+    Route::get('/whatsapp/campaigns/create-csv', [WhatsAppCampaignController::class, 'createCsv'])->name('whatsapp.campaigns.create-csv');
+    Route::get('/whatsapp/campaigns/csv-template', [WhatsAppCampaignController::class, 'downloadCsvTemplate'])->name('whatsapp.campaigns.csv-template');
+    Route::post('/whatsapp/campaigns/csv', [WhatsAppCampaignController::class, 'storeCsv'])->name('whatsapp.campaigns.store-csv');
     Route::post('/whatsapp/campaigns', [WhatsAppCampaignController::class, 'store'])->name('whatsapp.campaigns.store');
     Route::get('/whatsapp/campaigns/contacts/search', [WhatsAppCampaignController::class, 'searchContacts'])->name('whatsapp.campaigns.contacts.search');
     Route::post('/whatsapp/campaigns/preview', [WhatsAppCampaignController::class, 'preview'])->name('whatsapp.campaigns.preview');
