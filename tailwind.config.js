@@ -10,8 +10,8 @@ export default {
   ],
   safelist: [
     {
-      pattern: /(bg|text|border)-(blue|emerald|green|red|cyan|slate|gray|amber|rose)-(50|100|200|300|400|500|600|700|800)/,
-      variants: ['hover', 'focus', 'disabled', 'peer-focus', 'dark'],
+      pattern: /(bg|text|border)-(blue|emerald|green|red|cyan|slate|gray)-(50|100|200|300|400|500|600|700)/,
+      variants: ['hover', 'focus', 'disabled', 'peer-focus'],
     },
   ],
   theme: {
