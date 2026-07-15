@@ -83,6 +83,7 @@ use App\Http\Controllers\BookingController;
 
 use App\Http\Controllers\PersonBlackListController;
 use App\Http\Controllers\PersonSpecialCaseController;
+use App\Http\Controllers\PersonExamMarkController;
 use App\Http\Controllers\SeasonEventBookingFinanceController;
 
 use App\Http\Controllers\NotificationController;
@@ -488,7 +489,16 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::post('/personspecialcase/destroy/{id}', [PersonSpecialCaseController::class, 'destroy'])->name('personspecialcase.destroy');
     Route::get('/personspecialcase/search-persons', [PersonSpecialCaseController::class, 'searchPersons'])->name('personspecialcase.searchPersons');
 
-   
+    // Exam marks
+    Route::get('/personexammark', [PersonExamMarkController::class, 'index'])->name('personexammark.index');
+    Route::get('/personexammark/create', [PersonExamMarkController::class, 'create'])->name('personexammark.create');
+    Route::post('/personexammark/insert', [PersonExamMarkController::class, 'insert'])->name('personexammark.insert');
+    Route::get('/personexammark/edit/{id}', [PersonExamMarkController::class, 'edit'])->name('personexammark.edit');
+    Route::post('/personexammark/updates/{id}', [PersonExamMarkController::class, 'updates'])->name('personexammark.updates');
+    Route::get('/personexammark/delete/{id}', [PersonExamMarkController::class, 'deletes'])->name('personexammark.delete');
+    Route::post('/personexammark/destroy/{id}', [PersonExamMarkController::class, 'destroy'])->name('personexammark.destroy');
+    Route::get('/personexammark/search-persons', [PersonExamMarkController::class, 'searchPersons'])->name('personexammark.searchPersons');
+
         // Season Event Servant Followup
     Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
     Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');

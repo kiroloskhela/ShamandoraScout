@@ -526,6 +526,8 @@
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('personblacklist.index') }}">القائمة السوداء</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('personexammark.index') }}">تسجيل درجات الامتحان</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('eventServantFollowup.selector') }}">متابعة حجوزات
                                         المخدومين</a>
                                 @endif
