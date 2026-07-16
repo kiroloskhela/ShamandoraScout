@@ -2,6 +2,8 @@
 
 namespace App\Domain\Medicine;
 
+use App\Models\MedicineInventory;
+use App\Models\MedicineLocation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -152,20 +154,20 @@ class MedicineInventoryService
 
     public function stockLocationId(): int
     {
-        $locationId = DB::table('MedicineLocations')
+        $existingId = MedicineLocation::query()
             ->where('LocationName', self::STOCK_LOCATION_NAME)
             ->value('LocationID');
 
-        if ($locationId) {
-            return (int) $locationId;
+        if ($existingId) {
+            return (int) $existingId;
         }
 
-        return (int) DB::table('MedicineLocations')->insertGetId([
+        $location = MedicineLocation::query()->create([
             'LocationName' => self::STOCK_LOCATION_NAME,
             'IsActive' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
+
+        return (int) $location->LocationID;
     }
 
     public function isStockLocation($location): bool
@@ -179,7 +181,7 @@ class MedicineInventoryService
             ->where('MedicineID', $medicineId)
             ->sum('Amount');
 
-        DB::table('MedicineInventory')
+        MedicineInventory::query()
             ->where('MedicineID', $medicineId)
             ->update([
                 'Amount' => $total,

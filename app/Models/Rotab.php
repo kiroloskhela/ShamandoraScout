@@ -40,12 +40,5 @@ class Rotab extends Model
      *
      * @var array
      */
-    protected $fillable = array('rotba_id', 'rotba_name');
-    
-    /**
-     * The attributes that aren't mass assignable
-     *
-     * @var array
-     */
-    protected $guarded = array();
+    protected $fillable = ['RotbaID', 'RotbaName'];
 }

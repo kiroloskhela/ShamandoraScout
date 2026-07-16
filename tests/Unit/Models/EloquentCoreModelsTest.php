@@ -3,9 +3,14 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Group;
+use App\Models\MedicineDispenseRecord;
+use App\Models\MedicineInventory;
+use App\Models\MedicineLocation;
+use App\Models\MedicineStock;
 use App\Models\NewUserEnrolment;
 use App\Models\Person;
 use App\Models\PersonGroup;
+use App\Models\PersonPhoneNumber;
 use App\Models\PersonQetaa;
 use App\Models\PersonRole;
 use App\Models\PersonSanaMarhala;
@@ -132,6 +137,41 @@ class EloquentCoreModelsTest extends TestCase
         $this->assertSame('PersonID', $model->getKeyName());
         $this->assertFalse($model->usesTimestamps());
         $this->assertTrue(method_exists($model, 'roles'));
+
+        $doc = (new \ReflectionClass(Person::class))->getDocComment() ?: '';
+        $this->assertStringContainsString('@deprecated', $doc);
+        $this->assertStringContainsString('User', $doc);
+    }
+
+    public function test_medicine_models_map_to_laravel_medicine_tables(): void
+    {
+        $inventory = new MedicineInventory();
+        $this->assertSame('MedicineInventory', $inventory->getTable());
+        $this->assertSame('MedicineID', $inventory->getKeyName());
+        $this->assertNotEmpty($inventory->getFillable());
+        $this->assertContains('MedicineName', $inventory->getFillable());
+
+        $location = new MedicineLocation();
+        $this->assertSame('MedicineLocations', $location->getTable());
+        $this->assertSame('LocationID', $location->getKeyName());
+
+        $stock = new MedicineStock();
+        $this->assertSame('MedicineStock', $stock->getTable());
+        $this->assertSame('MedicineStockID', $stock->getKeyName());
+
+        $dispense = new MedicineDispenseRecord();
+        $this->assertSame('MedicineDispenseRecords', $dispense->getTable());
+        $this->assertSame('MedicineDispenseID', $dispense->getKeyName());
+    }
+
+    public function test_person_phone_number_satellite_model(): void
+    {
+        $model = new PersonPhoneNumber();
+
+        $this->assertSame('PersonPhoneNumbers', $model->getTable());
+        $this->assertSame('PersonID', $model->getKeyName());
+        $this->assertFalse($model->getIncrementing());
+        $this->assertFalse($model->usesTimestamps());
     }
 
     public function test_user_declares_org_and_role_relation_methods(): void

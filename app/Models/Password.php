@@ -2,33 +2,25 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Roles;
-use App\Models\User;
-use App\Models\Person;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Password extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'PersonID',
-        'Password'
-    ];
-   protected $hidden = ['Password']; 
-    protected $primaryKey = 'PersonID';
     protected $table = 'PersonSystemPassword';
+    protected $primaryKey = 'PersonID';
+    public $incrementing = false;
     public $timestamps = false;
 
+    protected $fillable = [
+        'PersonID',
+        'Password',
+    ];
 
+    protected $hidden = ['Password'];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'PersonID', 'PersonID');
+    }
 }
