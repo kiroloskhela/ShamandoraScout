@@ -134,21 +134,16 @@
                 <nav class="flex-1 min-h-0 overflow-y-auto overscroll-contain py-4">
 
                     @php
-                        $auth = Auth::check();
-                        $user = $auth ? Auth::user() : null;
-
-                        // IMPORTANT: use exists() not get()->contains() to avoid issues and extra queries
-                        $isSuperAdmin = $auth && $user->role()->where('RoleName', 'SuperAdmin')->exists();
-                        $isSecretary = $auth && $user->role()->where('RoleName', 'Secretary')->exists();
-                        $isMedia = $auth && $user->role()->where('RoleName', 'Media')->exists();
-                        $isInventory = $auth && $user->role()->where('RoleName', 'Inventory')->exists();
-                        $isFinance = $auth && $user->role()->where('RoleName', 'Finance')->exists();
-                        $isAdminQetaa = $auth && $user->role()->where('RoleName', 'AdminQetaa')->exists();
-                        $isAdminSecretary = $auth && $user->role()->where('RoleName', 'AdminSecretary')->exists();
-                        $isAdminInventory = $auth && $user->role()->where('RoleName', 'AdminInventory')->exists();
-                        $isAdminFinance = $auth && $user->role()->where('RoleName', 'AdminFinance')->exists();
-                        $isAdminFirstAid = $auth && $user->role()->where('RoleName', 'AdminFirstAid')->exists();
-
+                        $isSuperAdmin = $isSuperAdmin ?? false;
+                        $isSecretary = $isSecretary ?? false;
+                        $isMedia = $isMedia ?? false;
+                        $isInventory = $isInventory ?? false;
+                        $isFinance = $isFinance ?? false;
+                        $isAdminQetaa = $isAdminQetaa ?? false;
+                        $isAdminSecretary = $isAdminSecretary ?? false;
+                        $isAdminInventory = $isAdminInventory ?? false;
+                        $isAdminFinance = $isAdminFinance ?? false;
+                        $isAdminFirstAid = $isAdminFirstAid ?? false;
                     @endphp
 
                     {{-- ===================== SuperAdmin: System Constants ===================== --}}

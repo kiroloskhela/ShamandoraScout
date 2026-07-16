@@ -17,6 +17,8 @@ class AuditLogMiddlewareTest extends TestCase
         parent::setUp();
 
         Schema::dropIfExists('audit_logs');
+        Schema::dropIfExists('PersonRole');
+        Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonInformation');
 
         Schema::create('PersonInformation', function (Blueprint $table) {
@@ -25,6 +27,16 @@ class AuditLogMiddlewareTest extends TestCase
             $table->string('FirstName')->nullable();
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
+        });
+
+        Schema::create('Roles', function (Blueprint $table) {
+            $table->increments('RoleID');
+            $table->string('RoleName')->nullable();
+        });
+
+        Schema::create('PersonRole', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('RoleID');
         });
 
         Schema::create('audit_logs', function (Blueprint $table) {

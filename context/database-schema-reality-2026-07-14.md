@@ -1,5 +1,13 @@
 # Database Schema Reality Check (schema.sql)
 
+## 2026-07-16 — Package 4 SoT refresh
+
+Wave 2 Packages A-E migrations are now the source of truth for hardened constraints and indexes, including identity uniques, enrolment keys, role/person-role keys, org tree indexes, person satellite constraints, medicine tables, and housekeeping cleanup. `schema.sql` remains a useful historical dump, but it may lag post-migration production and should not be treated as the only source of truth after these packages.
+
+Current Eloquent model coverage is about **21 models** in `app/Models`. New or refactored Eloquent usage should target only tables that are covered by the hardened migrations or otherwise verified to have reliable primary keys, uniqueness, and supporting indexes.
+
+---
+
 ## 2026-07-14 — Confirmed before any remediation steps
 
 **Source of truth:** `schema.sql` (96 tables).  
