@@ -649,7 +649,9 @@
                     <div class="flex items-center justify-center">
                         <a href="{{ url('/') }}">
                             <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
-                                class="h-14 w-auto sm:h-14 lg:h-20">
+                                class="h-14 w-auto sm:h-14 lg:h-20 dark:hidden">
+                            <img src="{{ asset('img/shamandora-dark.png') }}" alt="Logo"
+                                class="h-14 w-auto sm:h-14 lg:h-20 hidden dark:block">
                         </a>
                     </div>
 
@@ -740,7 +742,9 @@
                 <div class="relative z-10 rounded-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-[0_0_32px_rgba(16,185,129,0.15)] flex items-center justify-center overflow-hidden"
                     style="width: 128px; height: 128px;">
                     <img src="{{ asset('img/shamandora.png') }}" alt="شماندورة"
-                        style="width: 108px; height: 108px; object-fit: contain;">
+                        class="dark:hidden" style="width: 108px; height: 108px; object-fit: contain;">
+                    <img src="{{ asset('img/shamandora-dark.png') }}" alt="شماندورة"
+                        class="hidden dark:block" style="width: 108px; height: 108px; object-fit: contain;">
                 </div>
             </div>
 

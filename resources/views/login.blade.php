@@ -24,10 +24,10 @@
         tailwind.config = { darkMode: 'class' }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
 
         body {
-            font-family: {{ $isRtl ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
+            font-family: 'Cairo', sans-serif;
         }
 
         html.dark body {
@@ -193,7 +193,9 @@
                     <div
                         class="w-40 h-40 bg-gray-100 dark:bg-slate-900 rounded-full flex items-center justify-center shadow-md dark:shadow-[0_0_40px_rgba(16,185,129,0.2)] border border-gray-200 dark:border-emerald-500/30 overflow-hidden ring-4 ring-transparent dark:ring-emerald-500/10">
                         <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora Scout') }}"
-                            class="w-full h-full object-contain">
+                            class="w-full h-full object-contain dark:hidden">
+                        <img src="{{ asset('img/shamandora-dark.png') }}" alt="{{ __('Shamandora Scout') }}"
+                            class="w-full h-full object-contain hidden dark:block">
                     </div>
                 </div>
 
