@@ -112,11 +112,9 @@
             class="p-2 rounded-lg border border-teal-200 bg-white/90 text-teal-800 dark:border-slate-600 dark:bg-slate-900/90 dark:text-teal-300 shadow-sm"
             aria-label="{{ __('Dark') }}">◐</button>
     </div>
-    @php($isResumeMode = ! empty($is_resume_mode ?? false))
-    @php($resumeSubmitUrl = $resume_submit_url ?? route('person.entry-questions-submit-liveform'))
     @php($existingAnswers = $existingAnswers ?? [])
     @php($existingAnswers = $existingAnswers instanceof \Illuminate\Support\Collection ? $existingAnswers->toArray() : $existingAnswers)
-    @php($requestNumber = $isResumeMode && ! empty($person->PersonID) ? $person->PersonID : __('Request number will be created after final confirmation'))
+    @php($requestNumber = __('Request number will be created after final confirmation'))
 
     <div class="max-w-4xl mx-auto px-4">
         <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
@@ -139,13 +137,9 @@
 
             <div class="p-6 md:p-10">
                 <form id="regForm" method="POST"
-                    action="{{ $isResumeMode ? $resumeSubmitUrl : route('person.entry-questions-submit-liveform') }}"
+                    action="{{ route('person.entry-questions-submit-liveform') }}"
                     novalidate>
                     @csrf
-
-                    @if ($isResumeMode)
-                        <input type="hidden" name="person_id" id="person_id" value="{{ $person->PersonID }}">
-                    @endif
 
                     <input type="hidden" name="qetaa_id" id="qetaa_id" value="{{ $person->QetaaID }}">
 
@@ -160,15 +154,6 @@
                                 {{ __('Info') }}
                             </span>
                         </div>
-
-                        @if ($isResumeMode)
-                            <div class="mb-5 rounded-2xl bg-amber-50 border border-amber-200 p-4 text-amber-900">
-                                <div class="font-bold mb-1">{{ __('Completing a previous request') }}</div>
-                                <div class="text-sm leading-relaxed">
-                                    {{ __('This page is for completing the remaining questions for this request.') }}
-                                </div>
-                            </div>
-                        @endif
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-6">
@@ -311,7 +296,7 @@
                     <div class="flex justify-end">
                         <button type="submit" id="submit-button"
                             class="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-700 px-10 py-3.5 font-bold text-white shadow-md shadow-teal-900/10 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-brand-600 transition">
-                            <span>{{ $isResumeMode ? __('Save and complete request') : __('Confirm') }}</span>
+                            <span>{{ __('Confirm') }}</span>
                             <span>✓</span>
                         </button>
                     </div>

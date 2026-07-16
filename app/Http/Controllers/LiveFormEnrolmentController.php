@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
 use App\Domain\Enrolment\LiveFormCapacityService;
 use App\Domain\Enrolment\LiveFormSubmitService;
 
@@ -399,8 +398,6 @@ public function getLiveformQuestions()
     'questions' => $questions,
     'person' => $person,
     'existingAnswers' => [],
-    'is_resume_mode' => false,
-    'resume_submit_url' => route('person.entry-questions-submit-liveform'),
 ]);
 }
 
@@ -696,111 +693,6 @@ private function finalizeTempLiveformFile(?string $path): ?string
 private function allocateNewEnrolmentRecord(string $table, array $data): int
 {
     return $this->submissions->allocateNewEnrolmentRecord($table, $data);
-}
-
-/**
- * Public resume URL with a temporary signature (for WhatsApp/email links).
- */
-public static function signedResumeUrl(int $personId, int $days = 14): string
-{
-    return URL::temporarySignedRoute(
-        'person.liveform-resume-questions',
-        now()->addDays($days),
-        ['id' => $personId]
-    );
-}
-
-public function resumeLegacyLiveformQuestions($id)
-{
-    $person = DB::table('NewUsersInformation')
-        ->where('PersonID', $id)
-        ->first();
-
-    if (!$person) {
-        abort(404);
-    }
-
-    $questions = DB::table('MarhalaEntryQuestions')
-        ->where('QetaaID', $person->QetaaID)
-        ->where('NotToBeShown', 0)
-        ->get();
-
-    $existingAnswers = DB::table('NewUsersPersonEntryQuestions')
-        ->where('PersonID', $id)
-        ->pluck('Answer', 'QuestionID');
-
-    $isAdminResume = request()->routeIs('person.new-enrolments-resume-questions');
-
-    return view('person.person-questions-liveform', [
-        'person' => $person,
-        'questions' => $questions,
-        'existingAnswers' => $existingAnswers,
-        'is_resume_mode' => true,
-        'resume_submit_url' => $isAdminResume
-            ? route('person.new-enrolments-resume-questions-submit', $id)
-            : URL::temporarySignedRoute(
-                'person.liveform-resume-questions-submit',
-                now()->addHours(6),
-                ['id' => $id]
-            ),
-    ]);
-}
-
-public function submitLegacyLiveformQuestions(Request $request, $id, \App\Domain\Enrolment\LiveFormLegacyService $legacy)
-{
-    $person = DB::table('NewUsersInformation')
-        ->where('PersonID', $id)
-        ->first();
-
-    if (!$person) {
-        abort(404);
-    }
-
-    $questions = DB::table('MarhalaEntryQuestions')
-        ->where('QetaaID', $person->QetaaID)
-        ->where('NotToBeShown', 0)
-        ->get();
-
-    foreach ($questions as $question) {
-        $answer = $request->input($question->QuestionID);
-
-        if ($question->IsRequired && ($answer === null || $answer === '')) {
-            return view('person.entry-error-repeat-trial');
-        }
-    }
-
-    DB::beginTransaction();
-
-    try {
-        $shouldWait = $this->capacity->shouldUseWaitingList((int) $person->QetaaID, (int) $person->SanaMarhalaID);
-
-        $answers = [];
-        foreach ($questions as $question) {
-            $answers[$question->QuestionID] = $request->input($question->QuestionID);
-        }
-
-        if ($shouldWait) {
-            $legacy->moveToWaitingList($person, $questions, $answers);
-            DB::commit();
-
-            return view('person.liveform-waiting-list');
-        }
-
-        $legacy->upsertAnswers((int) $id, $questions, $answers);
-        DB::commit();
-
-        return view('person.liveform-finalize');
-    } catch (\Throwable $e) {
-        DB::rollBack();
-
-        Log::error('submitLegacyLiveformQuestions failed', [
-            'message' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-
-        return view('person.entry-error');
-    }
 }
 
 }

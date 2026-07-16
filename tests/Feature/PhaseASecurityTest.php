@@ -7,11 +7,10 @@ use App\Policies\PersonPolicy;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 /**
- * Phase A security regressions: password scrubbing, signed liveform resume,
+ * Phase A security regressions: password scrubbing, retired liveform resume,
  * Games write fail-closed, AdminQetaa PersonPolicy scope, attendance allow-list.
  */
 class PhaseASecurityTest extends TestCase
@@ -30,9 +29,6 @@ class PhaseASecurityTest extends TestCase
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonSystemPassword');
-        Schema::dropIfExists('NewUsersInformation');
-        Schema::dropIfExists('MarhalaEntryQuestions');
-        Schema::dropIfExists('NewUsersPersonEntryQuestions');
         Schema::dropIfExists('Games');
         Schema::dropIfExists('PersonInformation');
 
@@ -61,29 +57,6 @@ class PhaseASecurityTest extends TestCase
             $table->increments('PersonQetaaID');
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('QetaaID');
-        });
-
-        Schema::create('NewUsersInformation', function (Blueprint $table) {
-            $table->increments('id');
-            $table->unsignedInteger('PersonID');
-            $table->unsignedInteger('QetaaID')->nullable();
-            $table->unsignedInteger('SanaMarhalaID')->nullable();
-            $table->string('FirstName')->nullable();
-        });
-
-        Schema::create('MarhalaEntryQuestions', function (Blueprint $table) {
-            $table->increments('QuestionID');
-            $table->unsignedInteger('QetaaID')->nullable();
-            $table->string('QuestionText')->nullable();
-            $table->boolean('NotToBeShown')->default(0);
-            $table->boolean('IsRequired')->default(0);
-        });
-
-        Schema::create('NewUsersPersonEntryQuestions', function (Blueprint $table) {
-            $table->increments('id');
-            $table->unsignedInteger('PersonID');
-            $table->unsignedInteger('QuestionID');
-            $table->text('Answer')->nullable();
         });
 
         Schema::create('Games', function (Blueprint $table) {
@@ -186,34 +159,10 @@ class PhaseASecurityTest extends TestCase
         $this->assertStringNotContainsString('$person->Password', $source);
     }
 
-    public function test_unsigned_liveform_resume_is_rejected(): void
+    public function test_liveform_resume_route_is_gone(): void
     {
-        DB::table('NewUsersInformation')->insert([
-            'PersonID' => 42,
-            'QetaaID' => 1,
-            'SanaMarhalaID' => 1,
-            'FirstName' => 'Applicant',
-        ]);
-
-        $this->get('/liveform/resume/42')->assertStatus(403);
-    }
-
-    public function test_signed_liveform_resume_is_accepted(): void
-    {
-        DB::table('NewUsersInformation')->insert([
-            'PersonID' => 43,
-            'QetaaID' => 1,
-            'SanaMarhalaID' => 1,
-            'FirstName' => 'Applicant',
-        ]);
-
-        $url = URL::temporarySignedRoute(
-            'person.liveform-resume-questions',
-            now()->addHour(),
-            ['id' => 43]
-        );
-
-        $this->get($url)->assertOk();
+        $this->get('/liveform/resume/42')->assertStatus(410);
+        $this->post('/liveform/resume/42')->assertStatus(410);
     }
 
     public function test_non_superadmin_cannot_create_game_via_api(): void

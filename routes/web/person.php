@@ -6,7 +6,6 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FamilyMembersController;
 use App\Http\Controllers\GroupPersonController;
 use App\Http\Controllers\GuestsController;
-use App\Http\Controllers\LiveFormEnrolmentController;
 use App\Http\Controllers\LiveFormMaxLimitsController;
 use App\Http\Controllers\MarhalaEntryQuestionsController;
 use App\Http\Controllers\NewEnrolmentAdminController;
@@ -128,12 +127,6 @@ Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminControlle
 
     Route::get('/new-enrolments/edit/{id}', [NewEnrolmentAdminController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
     Route::put('/new-enrolments/update/{id}', [NewEnrolmentAdminController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
-
-    // Admin resume of incomplete liveform questions (auth-gated; public uses signed URLs).
-    Route::get('/new-enrolments/{id}/questions', [LiveFormEnrolmentController::class, 'resumeLegacyLiveformQuestions'])
-        ->name('person.new-enrolments-resume-questions');
-    Route::post('/new-enrolments/{id}/questions', [LiveFormEnrolmentController::class, 'submitLegacyLiveformQuestions'])
-        ->name('person.new-enrolments-resume-questions-submit');
 
 
       // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
