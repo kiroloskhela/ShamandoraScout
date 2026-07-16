@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreGameRequest;
+use App\Http\Resources\GameResource;
 use App\Models\Game;
 use Illuminate\Http\Request;
 
@@ -22,13 +24,13 @@ class GamesApiController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('Title', 'like', "%{$search}%")
-                  ->orWhere('GameDescription', 'like', "%{$search}%")
-                  ->orWhere('Rules', 'like', "%{$search}%")
-                  ->orWhere('PointSystem', 'like', "%{$search}%")
-                  ->orWhere('AgeGroup', 'like', "%{$search}%")
-                  ->orWhere('Target', 'like', "%{$search}%")
-                  ->orWhere('ReferenceLink', 'like', "%{$search}%")
-                  ->orWhereRaw('CAST(GameID AS CHAR) LIKE ?', ["%{$search}%"]);
+                    ->orWhere('GameDescription', 'like', "%{$search}%")
+                    ->orWhere('Rules', 'like', "%{$search}%")
+                    ->orWhere('PointSystem', 'like', "%{$search}%")
+                    ->orWhere('AgeGroup', 'like', "%{$search}%")
+                    ->orWhere('Target', 'like', "%{$search}%")
+                    ->orWhere('ReferenceLink', 'like', "%{$search}%")
+                    ->orWhereRaw('CAST(GameID AS CHAR) LIKE ?', ["%{$search}%"]);
             });
         }
 
@@ -36,7 +38,7 @@ class GamesApiController extends Controller
 
         return response()->json([
             'ok' => true,
-            'games' => $games,
+            'games' => GameResource::collection($games)->resolve(),
         ]);
     }
 
@@ -47,7 +49,7 @@ class GamesApiController extends Controller
     {
         $game = Game::query()->find((int) $id);
 
-        if (!$game) {
+        if (! $game) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Game not found',
@@ -58,27 +60,18 @@ class GamesApiController extends Controller
 
         return response()->json([
             'ok' => true,
-            'game' => $game,
+            'game' => (new GameResource($game))->resolve(),
         ]);
     }
 
     /**
      * POST /api/games
      */
-    public function store(Request $request)
+    public function store(StoreGameRequest $request)
     {
         $this->authorize('create', Game::class);
 
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'rules' => 'nullable|string',
-            'point_system' => 'nullable|string|max:255',
-            'age_group' => 'nullable|string|max:255',
-            'target' => 'nullable|string|max:255',
-            'require_custody' => 'nullable',
-            'reference_link' => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
 
         $game = Game::query()->create([
             'Title' => $data['title'],
@@ -94,18 +87,18 @@ class GamesApiController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Game created successfully',
-            'game' => $game,
+            'game' => (new GameResource($game))->resolve(),
         ], 201);
     }
 
     /**
      * PUT /api/games/{id}
      */
-    public function update(Request $request, $id)
+    public function update(StoreGameRequest $request, $id)
     {
         $game = Game::query()->find((int) $id);
 
-        if (!$game) {
+        if (! $game) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Game not found',
@@ -114,16 +107,7 @@ class GamesApiController extends Controller
 
         $this->authorize('update', $game);
 
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'rules' => 'nullable|string',
-            'point_system' => 'nullable|string|max:255',
-            'age_group' => 'nullable|string|max:255',
-            'target' => 'nullable|string|max:255',
-            'require_custody' => 'nullable',
-            'reference_link' => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
 
         $game->update([
             'Title' => $data['title'],
@@ -139,7 +123,7 @@ class GamesApiController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Game updated successfully',
-            'game' => $game->fresh(),
+            'game' => (new GameResource($game->fresh()))->resolve(),
         ]);
     }
 
@@ -150,7 +134,7 @@ class GamesApiController extends Controller
     {
         $game = Game::query()->find((int) $id);
 
-        if (!$game) {
+        if (! $game) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Game not found',

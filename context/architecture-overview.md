@@ -52,7 +52,9 @@ It is **not** a React/SPA product. The primary UI is **server-rendered Blade** w
 | Controllers | **84** files, **~15,513** lines total |
 | Largest controllers | `SeasonEventBookingFinanceController` 1,479; `LiveFormEnrolmentController` 779; `QetaaTreeController` 677 |
 | Eloquent models | **21** |
-| Services | **3** (`BrevoService`, `FcmService`, `WhatsAppBridgeClient`) |
+| Domain services | `CustodyRequestService`, `PlaceBookingService`, `PersonSpecialCaseService` (+ app services: Brevo, FCM, WhatsApp) |
+| API Resources | `PersonResource`, `AttendancePersonResource`, `GameResource` |
+| Form Requests | Growing allowlist (`StoreGameRequest`, `StoreAttendanceSaveRequest`, …) |
 | Jobs / Events / Listeners | **3** / **0** / **0** |
 | Migrations | **27** (core schema lives in `schema.sql`) |
 | Blade views | **252** |
@@ -77,6 +79,14 @@ It is **not** a React/SPA product. The primary UI is **server-rendered Blade** w
 - Passwords live in `PersonSystemPassword`.
 - Web authorization is **role-string middleware**, not Policies/Gates.
 - API tokens often issued with ability `['*']`.
+
+### Phase D (arch / quality) — current state
+
+- Domain services own custody, place booking, and special-case creates (API + web special-case insert).
+- API list/show payloads for persons, attendance persons, and games go through JsonResources (envelope `{ ok, … }` preserved).
+- Form Requests for games store/update and attendance save.
+- Legacy tables without AUTO_INCREMENT still use `ManualPrimaryKey::next()` — do not blindly ALTER `GroupTable` / `PersonRole` without resequencing.
+- Pint CI allowlist covers Domain, Requests, Resources, Policies, and a growing set of cleaned controllers/models.
 
 ### What is already done well (preserve these)
 

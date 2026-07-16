@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreAttendanceSaveRequest;
+use App\Http\Resources\AttendancePersonResource;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Attendance API — mobile-facing endpoints.
@@ -37,7 +40,7 @@ class AttendanceApiController extends Controller
     public function events(Request $request)
     {
         $authPersonId = $this->resolveAuthPersonId();
-        if (!$authPersonId) {
+        if (! $authPersonId) {
             return $this->unauthorized();
         }
 
@@ -55,7 +58,7 @@ class AttendanceApiController extends Controller
             }
 
             $rows = DB::table('SeasonEvent as se')
-                ->join('Event as e',  'e.EventID',  '=', 'se.EventID')
+                ->join('Event as e', 'e.EventID', '=', 'se.EventID')
                 ->join('Season as s', 's.SeasonID', '=', 'se.SeasonID')
                 ->whereExists(fn ($q) => $this->scopeToMyGroups($q, $myGroups))
                 ->select(
@@ -71,10 +74,10 @@ class AttendanceApiController extends Controller
             foreach ($rows as $r) {
                 $sid = $r->SeasonID;
                 $bySeason[$sid] ??= [
-                    'SeasonID'   => $r->SeasonID,
+                    'SeasonID' => $r->SeasonID,
                     'SeasonName' => $r->SeasonName,
                     'SeasonYear' => $r->SeasonYear,
-                    'events'     => [],
+                    'events' => [],
                 ];
                 $bySeason[$sid]['events'][] = $this->formatEvent($r);
             }
@@ -150,22 +153,17 @@ class AttendanceApiController extends Controller
     //    { ok: true, message: "Attendance saved", count: 3,
     //      saved: [ { PersonID, Status, Excuse } ] }
     // =========================================================================
-    public function save(Request $request)
+    public function save(StoreAttendanceSaveRequest $request)
     {
         $authPersonId = $this->resolveAuthPersonId();
-        if (!$authPersonId) {
+        if (! $authPersonId) {
             return $this->unauthorized();
         }
 
-        $data = $request->validate([
-            'SeasonEventID'              => 'required|integer|exists:SeasonEvent,SeasonEventID',
-            'attendance'                 => 'required|array',
-            'attendance.*.status'        => 'required|in:present,absent,excused',
-            'attendance.*.excuse'        => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
 
         $seasonEventId = (int) $data['SeasonEventID'];
-        $serventId     = $authPersonId;
+        $serventId = $authPersonId;
 
         // Authorisation: which Qetaas can this servant record for this event?
         $allowedQetaas = $this->allowedQetaas($serventId, $seasonEventId);
@@ -181,14 +179,14 @@ class AttendanceApiController extends Controller
             ->flip()           // use as a set for O(1) lookup
             ->toArray();
 
-        $rows   = [];
-        $saved  = [];
+        $rows = [];
+        $saved = [];
 
         foreach ((array) $data['attendance'] as $personId => $entry) {
             $personId = (int) $personId;
 
             // Silently skip any PersonID the servant has no authority over
-            if (!isset($allowedPersonIds[$personId])) {
+            if (! isset($allowedPersonIds[$personId])) {
                 continue;
             }
 
@@ -196,21 +194,21 @@ class AttendanceApiController extends Controller
             $excuse = ($status === 'excused') ? ($entry['excuse'] ?? null) : null;
 
             $rows[] = [
-                'SeasonEventID'    => $seasonEventId,
-                'ServedID'         => $personId,
-                'ServentID'        => $serventId,
+                'SeasonEventID' => $seasonEventId,
+                'ServedID' => $personId,
+                'ServentID' => $serventId,
                 'AttendanceStatus' => $status,
-                'Excuse'           => $excuse,
+                'Excuse' => $excuse,
             ];
 
             $saved[] = [
                 'PersonID' => $personId,
-                'Status'   => $status,
-                'Excuse'   => $excuse,
+                'Status' => $status,
+                'Excuse' => $excuse,
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             // Safe concurrent upsert — identical to the web controller strategy.
             // Each (SeasonEventID, ServedID) pair is an independent atomic operation;
             // rows owned by other servants are never touched.
@@ -222,10 +220,10 @@ class AttendanceApiController extends Controller
         }
 
         return response()->json([
-            'ok'      => true,
+            'ok' => true,
             'message' => 'Attendance saved',
-            'count'   => count($saved),
-            'saved'   => $saved,
+            'count' => count($saved),
+            'saved' => $saved,
         ]);
     }
 
@@ -237,6 +235,7 @@ class AttendanceApiController extends Controller
     private function resolveAuthPersonId(): ?int
     {
         $id = optional(Auth::user())->PersonID ?? Auth::id();
+
         return $id ? (int) $id : null;
     }
 
@@ -260,7 +259,7 @@ class AttendanceApiController extends Controller
             ->where('SeasonEventID', $seasonEventId)
             ->value('EventID');
 
-        if (!$eventId) {
+        if (! $eventId) {
             return [];
         }
 
@@ -286,7 +285,7 @@ class AttendanceApiController extends Controller
     private function buildPersonsResponse(int $seasonEventId)
     {
         $authPersonId = $this->resolveAuthPersonId();
-        if (!$authPersonId) {
+        if (! $authPersonId) {
             return $this->unauthorized();
         }
 
@@ -296,11 +295,11 @@ class AttendanceApiController extends Controller
         }
 
         $persons = DB::table('PersonQetaa as pq')
-            ->join('PersonInformation as p',      'p.PersonID',       '=', 'pq.PersonID')
-            ->leftJoin('PersonPhoneNumbers as ph', 'ph.PersonID',      '=', 'p.PersonID')
-            ->leftJoin('PersonSanaMarhala as psm', 'psm.PersonID',     '=', 'p.PersonID')
-            ->leftJoin('SanaMarhala as sm',        'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
-            ->leftJoin('Qetaa as q',               'q.QetaaID',        '=', 'pq.QetaaID')
+            ->join('PersonInformation as p', 'p.PersonID', '=', 'pq.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ph', 'ph.PersonID', '=', 'p.PersonID')
+            ->leftJoin('PersonSanaMarhala as psm', 'psm.PersonID', '=', 'p.PersonID')
+            ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'psm.SanaMarhalaID')
+            ->leftJoin('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
             ->whereIn('pq.QetaaID', $allowedQetaas)
             ->groupBy(
                 'p.PersonID', 'p.FirstName', 'p.SecondName',
@@ -324,26 +323,30 @@ class AttendanceApiController extends Controller
 
         $rows = $persons->map(function ($p) use ($attendanceMap) {
             $record = $attendanceMap->get($p->PersonID);
+
             return [
-                'PersonID'        => (int) $p->PersonID,
-                'PersonName'      => trim("{$p->FirstName} {$p->SecondName} {$p->ThirdName} {$p->FourthName}"),
-                'PhoneNumber'     => $p->PhoneNumber,
-                'QetaaName'       => $p->QetaaName,
+                'PersonID' => (int) $p->PersonID,
+                'PersonName' => trim("{$p->FirstName} {$p->SecondName} {$p->ThirdName} {$p->FourthName}"),
+                'PhoneNumber' => $p->PhoneNumber,
+                'QetaaName' => $p->QetaaName,
                 'SanaMarhalaName' => $p->SanaMarhalaName,
                 // Default to 'absent' when no record exists — identical to web controller
-                'Status'          => $record?->AttendanceStatus ?? 'absent',
-                'Excuse'          => $record?->Excuse ?? null,
+                'Status' => $record?->AttendanceStatus ?? 'absent',
+                'Excuse' => $record?->Excuse ?? null,
             ];
         });
 
-        return response()->json(['ok' => true, 'persons' => $rows]);
+        return response()->json([
+            'ok' => true,
+            'persons' => AttendancePersonResource::collection($rows)->resolve(),
+        ]);
     }
 
     /**
      * Reusable whereExists closure that filters SeasonEvents to only those
      * reachable through the servant's GroupIDs.
      */
-    private function scopeToMyGroups(\Illuminate\Database\Query\Builder $q, array $myGroups): void
+    private function scopeToMyGroups(Builder $q, array $myGroups): void
     {
         $q->select(DB::raw(1))
             ->from('EventQetaa as eq')
@@ -356,11 +359,11 @@ class AttendanceApiController extends Controller
     private function formatEvent(object $r): array
     {
         return [
-            'SeasonEventID'  => $r->SeasonEventID,
-            'EventID'        => $r->EventID,
-            'EventName'      => $r->EventName,
+            'SeasonEventID' => $r->SeasonEventID,
+            'EventID' => $r->EventID,
+            'EventName' => $r->EventName,
             'EventStartDate' => $r->EventStartDate,
-            'EventEndDate'   => $r->EventEndDate,
+            'EventEndDate' => $r->EventEndDate,
         ];
     }
 

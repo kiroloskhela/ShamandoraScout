@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\SpecialCase\PersonSpecialCaseService;
+use App\Support\LikeSearch;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PersonSpecialCaseController extends Controller
@@ -65,7 +66,7 @@ class PersonSpecialCaseController extends Controller
      */
     private function allowedPersonIdsSql()
     {
-        return "
+        return '
             SELECT DISTINCT
                 pi.PersonID
             FROM PersonInformation pi
@@ -87,7 +88,7 @@ class PersonSpecialCaseController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
-        ";
+        ';
     }
 
     private function allowedPersonExists($personId, $userId = null)
@@ -172,7 +173,7 @@ class PersonSpecialCaseController extends Controller
             ORDER BY psc.SpecialCaseID DESC
         ", [$userId]);
 
-        return view("personspecialcase.index", ['cases' => $cases]);
+        return view('personspecialcase.index', ['cases' => $cases]);
     }
 
     public function create(Request $request)
@@ -184,10 +185,10 @@ class PersonSpecialCaseController extends Controller
             ORDER BY ShamandoraCode ASC
         ", [$userId]);
 
-        return view("personspecialcase.create", ['persons' => $persons]);
+        return view('personspecialcase.create', ['persons' => $persons]);
     }
 
-    public function insert(Request $request)
+    public function insert(Request $request, PersonSpecialCaseService $specialCases)
     {
         $request->validate([
             'person_id' => 'required|integer',
@@ -196,7 +197,7 @@ class PersonSpecialCaseController extends Controller
 
         $userId = Auth::id();
 
-        if (!$this->allowedPersonExists($request->person_id, $userId)) {
+        if (! $this->allowedPersonExists($request->person_id, $userId)) {
             return redirect()->back()->with('status', 'هذا الشخص غير متاح لك');
         }
 
@@ -209,12 +210,11 @@ class PersonSpecialCaseController extends Controller
             return redirect()->back()->with('status', 'تمت إضافة هذا الشخص بالفعل اليوم');
         }
 
-        DB::table('PersonSpecialCase')->insert([
-            'PersonID'  => $request->person_id,
-            'ServentID' => $userId,
-            'CaseDate'  => now(),
-            'Note'      => $request->note,
-        ]);
+        $specialCases->create(
+            (int) $request->person_id,
+            (int) $userId,
+            $request->note
+        );
 
         return redirect()->route('personspecialcase.index')
             ->with('status', 'تم إضافة الحالة الخاصة بنجاح');
@@ -224,13 +224,13 @@ class PersonSpecialCaseController extends Controller
     {
         $case = $this->getAllowedCase($id);
 
-        if (!$case) {
+        if (! $case) {
             abort(403, 'غير مسموح لك بالوصول لهذه الحالة');
         }
 
-        return view("personspecialcase.edit", [
+        return view('personspecialcase.edit', [
             'case' => $case,
-            'title' => 'تعديل حالة خاصة'
+            'title' => 'تعديل حالة خاصة',
         ]);
     }
 
@@ -242,14 +242,14 @@ class PersonSpecialCaseController extends Controller
 
         $case = $this->getAllowedCase($id);
 
-        if (!$case) {
+        if (! $case) {
             abort(403, 'غير مسموح لك بتعديل هذه الحالة');
         }
 
         DB::table('PersonSpecialCase')
             ->where('SpecialCaseID', $id)
             ->update([
-                'Note' => $request->note
+                'Note' => $request->note,
             ]);
 
         return redirect()->route('personspecialcase.index')
@@ -260,13 +260,13 @@ class PersonSpecialCaseController extends Controller
     {
         $case = $this->getAllowedCase($id);
 
-        if (!$case) {
+        if (! $case) {
             abort(403, 'غير مسموح لك بحذف هذه الحالة');
         }
 
-        return view("personspecialcase.delete", [
+        return view('personspecialcase.delete', [
             'case' => $case,
-            'title' => 'حذف حالة خاصة'
+            'title' => 'حذف حالة خاصة',
         ]);
     }
 
@@ -274,7 +274,7 @@ class PersonSpecialCaseController extends Controller
     {
         $case = $this->getAllowedCase($id);
 
-        if (!$case) {
+        if (! $case) {
             abort(403, 'غير مسموح لك بحذف هذه الحالة');
         }
 
@@ -289,14 +289,14 @@ class PersonSpecialCaseController extends Controller
     public function searchPersons(Request $request)
     {
         $userId = Auth::id();
-        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
+        $term = LikeSearch::fromRequest($request, ['search', 'q']);
 
         try {
             $bindings = [$userId];
             $whereSql = '1=1';
             if ($term !== null) {
-                $fragment = \App\Support\LikeSearch::sqlOr(
-                    \App\Support\LikeSearch::allowedPeopleColumns(),
+                $fragment = LikeSearch::sqlOr(
+                    LikeSearch::allowedPeopleColumns(),
                     $term
                 );
                 $whereSql = $fragment['sql'];
@@ -322,7 +322,7 @@ class PersonSpecialCaseController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Search failed'
+                'message' => 'Search failed',
             ], 500);
         }
     }

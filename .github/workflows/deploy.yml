@@ -55,13 +55,17 @@ jobs:
           app/Http/Resources
           app/Http/Controllers/HealthController.php
           app/Http/Controllers/LookupTableController.php
+          app/Http/Controllers/API/GamesApiController.php
+          app/Http/Controllers/API/AttendanceApiController.php
           app/Http/Middleware/ShareAuthRoleFlags.php
           app/Console/Commands/ReportFailedJobs.php
+          app/Support/ManualPrimaryKey.php
           app/Models/MedicineInventory.php
           app/Models/MedicineLocation.php
           app/Models/MedicineStock.php
           app/Models/MedicineDispenseRecord.php
           app/Models/PersonPhoneNumber.php
+          app/Models/Game.php
           app/Policies
           app/Providers/AuthServiceProvider.php
 
