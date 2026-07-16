@@ -18,8 +18,7 @@ class WhatsAppCampaignService
         private readonly CampaignRecipientQuery $query,
         private readonly WhatsAppBridgeClient $bridge,
         private readonly CampaignCsvImporter $csvImporter,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{
@@ -129,7 +128,7 @@ class WhatsAppCampaignService
      */
     public function updateDraft(WhatsAppCampaign $campaign, array $data): WhatsAppCampaign
     {
-        if (!$campaign->isEditable()) {
+        if (! $campaign->isEditable()) {
             throw new RuntimeException('Only draft campaigns can be edited.');
         }
 
@@ -160,9 +159,9 @@ class WhatsAppCampaignService
     {
         $people = collect();
 
-        if (!empty($data['select_all_filters']) && is_array($data['select_all_filters'])) {
+        if (! empty($data['select_all_filters']) && is_array($data['select_all_filters'])) {
             $people = $this->query->search($data['select_all_filters'], 2000);
-        } elseif (!empty($data['person_ids']) && is_array($data['person_ids'])) {
+        } elseif (! empty($data['person_ids']) && is_array($data['person_ids'])) {
             $people = $this->query->search([
                 'person_ids' => $data['person_ids'],
                 'exclude_blocked' => true,
@@ -198,7 +197,7 @@ class WhatsAppCampaignService
                 $error = null;
                 if ($result['skipped']) {
                     $status = WhatsAppCampaignRecipient::STATUS_SKIPPED;
-                    $error = 'Skipped: missing personalization variables (' . implode(',', $result['missing']) . ')';
+                    $error = 'Skipped: missing personalization variables ('.implode(',', $result['missing']).')';
                 } elseif ($phone === '+2' || strlen(preg_replace('/\D+/', '', $phone)) < 11) {
                     $status = WhatsAppCampaignRecipient::STATUS_SKIPPED;
                     $error = 'Skipped: invalid phone number';
@@ -253,7 +252,7 @@ class WhatsAppCampaignService
 
     public function confirmAndStart(WhatsAppCampaign $campaign, bool $acknowledgeHighCount = false): WhatsAppCampaign
     {
-        if (!$campaign->canStart()) {
+        if (! $campaign->canStart()) {
             throw new RuntimeException('Campaign cannot be started.');
         }
 
@@ -265,9 +264,9 @@ class WhatsAppCampaignService
             throw new RuntimeException('No pending recipients to send.');
         }
 
-        if ($sendable > self::HIGH_COUNT_THRESHOLD && !$acknowledgeHighCount) {
+        if ($sendable > self::HIGH_COUNT_THRESHOLD && ! $acknowledgeHighCount) {
             throw new RuntimeException(
-                'Recipient count exceeds ' . self::HIGH_COUNT_THRESHOLD . '. Confirm with acknowledge_high_count=1.'
+                'Recipient count exceeds '.self::HIGH_COUNT_THRESHOLD.'. Confirm with acknowledge_high_count=1.'
             );
         }
 
@@ -282,6 +281,7 @@ class WhatsAppCampaignService
                         'empty',
                         null
                     );
+
                     // Re-check stored message for unresolved braces
                     return (bool) preg_match('/\{[a-zA-Z_]+\}/', (string) $r->personalized_message);
                 });
@@ -308,7 +308,7 @@ class WhatsAppCampaignService
 
     public function pause(WhatsAppCampaign $campaign): WhatsAppCampaign
     {
-        if (!$campaign->canPause()) {
+        if (! $campaign->canPause()) {
             throw new RuntimeException('Campaign cannot be paused.');
         }
         $campaign->update(['status' => WhatsAppCampaign::STATUS_PAUSED]);
@@ -318,7 +318,7 @@ class WhatsAppCampaignService
 
     public function resume(WhatsAppCampaign $campaign): WhatsAppCampaign
     {
-        if (!$campaign->canResume()) {
+        if (! $campaign->canResume()) {
             throw new RuntimeException('Campaign cannot be resumed.');
         }
         $campaign->update(['status' => WhatsAppCampaign::STATUS_RUNNING]);
@@ -329,7 +329,7 @@ class WhatsAppCampaignService
 
     public function cancel(WhatsAppCampaign $campaign): WhatsAppCampaign
     {
-        if (!$campaign->canCancel()) {
+        if (! $campaign->canCancel()) {
             throw new RuntimeException('Campaign cannot be cancelled.');
         }
 
@@ -384,7 +384,7 @@ class WhatsAppCampaignService
             ->orderBy('id')
             ->first();
 
-        if (!$next) {
+        if (! $next) {
             $campaign->update([
                 'status' => WhatsAppCampaign::STATUS_COMPLETED,
                 'completed_at' => now(),

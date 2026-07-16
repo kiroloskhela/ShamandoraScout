@@ -48,6 +48,17 @@ class LookupCrudTest extends TestCase
         });
     }
 
+    public function test_lookup_store_requires_display_name(): void
+    {
+        $admin = $this->createSuperAdmin();
+
+        $this->actingAs($admin)
+            ->from(route('blood.create'))
+            ->post(route('blood.insert'), ['blood_name' => ''])
+            ->assertRedirect(route('blood.create'))
+            ->assertSessionHasErrors('blood_name');
+    }
+
     public function test_super_admin_can_create_update_and_delete_blood_type_lookup(): void
     {
         $admin = $this->createSuperAdmin();

@@ -49,7 +49,7 @@ class SeasonEventBookingService
     public function isEligibleByQetaa(int $seasonEventId, int $personId): bool
     {
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventId)->first();
-        if (!$event) {
+        if (! $event) {
             return false;
         }
 
@@ -82,7 +82,7 @@ class SeasonEventBookingService
     public function createBooking(int $seasonEventId, array $payload, int $serventId): array
     {
         $plan = $this->getFinancePlan($seasonEventId);
-        if (!$plan || !$this->getEventInfo($seasonEventId)) {
+        if (! $plan || ! $this->getEventInfo($seasonEventId)) {
             return ['ok' => false, 'field' => 'general', 'message' => 'الفعالية أو الخطة المالية غير موجودة.'];
         }
 
@@ -120,7 +120,7 @@ class SeasonEventBookingService
             if ($this->isBlacklisted($personID)) {
                 return ['ok' => false, 'field' => 'person_id', 'message' => 'هذا الشخص موجود في القائمة السوداء ولا يمكنه الحجز.'];
             }
-            if (!$this->isEligibleByQetaa($seasonEventId, $personID)) {
+            if (! $this->isEligibleByQetaa($seasonEventId, $personID)) {
                 return ['ok' => false, 'field' => 'person_id', 'message' => 'هذا الشخص غير مؤهل لهذه الفعالية.'];
             }
         }
@@ -144,12 +144,12 @@ class SeasonEventBookingService
             ->orderBy('StartDate')
             ->first();
 
-        if (!$priceRow) {
+        if (! $priceRow) {
             return ['ok' => false, 'field' => 'first_payment_date', 'message' => 'لا يوجد سعر صالح في هذا التاريخ.'];
         }
 
         $isPermanentSpecial = $bookingType === 'PERSON' ? $this->isSpecialCase($personID) : false;
-        $specialCaseType = !empty($payload['is_not_able_to_pay_all'])
+        $specialCaseType = ! empty($payload['is_not_able_to_pay_all'])
             ? ($payload['special_case_type'] ?? 'NONE')
             : 'NONE';
 
@@ -171,7 +171,7 @@ class SeasonEventBookingService
 
         $isSpecialBehavior = $isPermanentSpecial || $specialCaseType === 'AKHOH_RAB';
 
-        if (!$isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
+        if (! $isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
             return ['ok' => false, 'field' => 'first_payment_amount', 'message' => 'لا يمكن أن تكون أول دفعة أقل من الحد الأدنى للمقدم.'];
         }
 
@@ -244,7 +244,7 @@ class SeasonEventBookingService
                 DB::table('SeasonEventParticipantFinanceReceipt')
                     ->where('ReceiptID', $receiptID)
                     ->update([
-                        'ReceiptNumber' => 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID,
+                        'ReceiptNumber' => 'REC-'.now()->format('i-H-d-m-y').'-'.$receiptID,
                     ]);
 
                 return $paymentID;

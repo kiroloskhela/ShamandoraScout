@@ -52,7 +52,7 @@ class MessagePersonalizer
         // Any leftover {token} counts as unresolved
         if (preg_match_all('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', $message, $m)) {
             foreach ($m[1] as $token) {
-                if (!in_array($token, self::availableVariables(), true) && !in_array($token, $missing, true)) {
+                if (! in_array($token, self::availableVariables(), true) && ! in_array($token, $missing, true)) {
                     $missing[] = $token;
                 }
             }
@@ -74,7 +74,7 @@ class MessagePersonalizer
      */
     public function resolveName(array $person): string
     {
-        if (!empty($person['name'])) {
+        if (! empty($person['name'])) {
             return trim((string) $person['name']);
         }
 

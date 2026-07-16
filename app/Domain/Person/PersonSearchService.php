@@ -24,7 +24,7 @@ class PersonSearchService
 
         if ($term !== null) {
             $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), $term);
-            $searchSql = ' WHERE ' . $fragment['sql'];
+            $searchSql = ' WHERE '.$fragment['sql'];
             $bindings = $fragment['bindings'];
         }
 
@@ -74,7 +74,7 @@ class PersonSearchService
 
         if ($term !== null) {
             $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), $term);
-            $searchSql = ' AND ' . $fragment['sql'];
+            $searchSql = ' AND '.$fragment['sql'];
             $bindings = array_merge($bindings, $fragment['bindings']);
         }
 
@@ -135,7 +135,7 @@ class PersonSearchService
         }
 
         $nameColumns = ['pi.FirstName', 'pi.SecondName', 'pi.ThirdName', 'pi.FourthName'];
-        $likePrefix = $term . '%';
+        $likePrefix = $term.'%';
 
         $results = DB::table('PersonInformation as pi')
             ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
@@ -172,7 +172,7 @@ class PersonSearchService
                 'pq.QetaaID',
                 'qt.QetaaName'
             )
-            ->orderByRaw("
+            ->orderByRaw('
                 CASE
                     WHEN pi.FirstName   LIKE ? THEN 1
                     WHEN pi.SecondName  LIKE ? THEN 2
@@ -180,7 +180,7 @@ class PersonSearchService
                     WHEN pi.RaqamQawmy  LIKE ? THEN 4
                     ELSE 5
                 END
-            ", [$likePrefix, $likePrefix, $likePrefix, $likePrefix])
+            ', [$likePrefix, $likePrefix, $likePrefix, $likePrefix])
             ->limit($limit)
             ->get();
 

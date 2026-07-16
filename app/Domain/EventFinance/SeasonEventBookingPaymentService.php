@@ -10,8 +10,7 @@ class SeasonEventBookingPaymentService
 {
     public function __construct(
         private readonly SeasonEventBookingService $bookings,
-    ) {
-    }
+    ) {}
 
     public function shouldBypassLastInstallmentCompletion(?int $personId, ?string $specialCaseType): bool
     {
@@ -30,7 +29,7 @@ class SeasonEventBookingPaymentService
             isset($booking->PersonID) ? (int) $booking->PersonID : null,
             $booking->SpecialCaseType ?? null,
         );
-        $forceFullLastInstallment = $isLastInstallment && !$isSpecialBehavior;
+        $forceFullLastInstallment = $isLastInstallment && ! $isSpecialBehavior;
         $amount = $forceFullLastInstallment ? (float) $booking->RemainingAmount : $requestedAmount;
 
         return [
@@ -39,7 +38,7 @@ class SeasonEventBookingPaymentService
             'force_full_last_installment' => $forceFullLastInstallment,
             'amount' => $amount,
             'notes' => $forceFullLastInstallment
-                ? trim(($notes ? $notes . ' | ' : '') . 'آخر قسط - تم تحصيل كامل المتبقي تلقائيًا')
+                ? trim(($notes ? $notes.' | ' : '').'آخر قسط - تم تحصيل كامل المتبقي تلقائيًا')
                 : $notes,
         ];
     }
@@ -102,10 +101,10 @@ class SeasonEventBookingPaymentService
             'amount_paid' => $deductionAmount,
             'remaining_amount' => 0.0,
             'is_refunded' => 1,
-            'notes' => 'استرداد مع خصم جزء | المدفوع: ' . number_format($amountPaid, 2) .
-                ' | المخصوم: ' . number_format($deductionAmount, 2) .
-                ' | المسترد: ' . number_format($refundAmount, 2) .
-                ($notes ? ' | ' . $notes : ''),
+            'notes' => 'استرداد مع خصم جزء | المدفوع: '.number_format($amountPaid, 2).
+                ' | المخصوم: '.number_format($deductionAmount, 2).
+                ' | المسترد: '.number_format($refundAmount, 2).
+                ($notes ? ' | '.$notes : ''),
         ];
     }
 
@@ -144,7 +143,7 @@ class SeasonEventBookingPaymentService
                 ->where('PaymentID', $paymentId)
                 ->update([
                     'Amount' => $newAmount,
-                    'Notes' => trim(($existingNotes ? $existingNotes . ' | ' : '') . 'تم تعديل مبلغ آخر دفعة'),
+                    'Notes' => trim(($existingNotes ? $existingNotes.' | ' : '').'تم تعديل مبلغ آخر دفعة'),
                 ]);
 
             $totals = $this->totalsAfterPaymentEdit($finalRequiredAmount, $otherPaymentsTotal, $newAmount);
@@ -229,7 +228,7 @@ class SeasonEventBookingPaymentService
         DB::table('SeasonEventParticipantFinanceReceipt')
             ->where('ReceiptID', $receiptId)
             ->update([
-                'ReceiptNumber' => 'REC-' . $issuedAt->format('i-H-d-m-y') . '-' . $receiptId,
+                'ReceiptNumber' => 'REC-'.$issuedAt->format('i-H-d-m-y').'-'.$receiptId,
             ]);
     }
 }

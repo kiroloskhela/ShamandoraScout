@@ -71,13 +71,13 @@ class GroupTreeService
         $current = $groupId;
         $seen = [];
 
-        while ($current && !isset($seen[$current])) {
+        while ($current && ! isset($seen[$current])) {
             $seen[$current] = true;
             $row = $this->byId[$current] ?? null;
-            if (!$row) {
+            if (! $row) {
                 break;
             }
-            $parts[] = trim(($row->GroupTypeName ?? '') . ' ' . ($row->GroupName ?? ''));
+            $parts[] = trim(($row->GroupTypeName ?? '').' '.($row->GroupName ?? ''));
             $parent = (int) $row->IncludedUnderGroupID;
             if ($parent === 0) {
                 break;

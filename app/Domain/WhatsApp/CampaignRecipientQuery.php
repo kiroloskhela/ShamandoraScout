@@ -32,33 +32,33 @@ class CampaignRecipientQuery
 
         $hasConsentCols = Schema::hasColumn('PersonPhoneNumbers', 'WhatsAppConsent');
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), (string) $filters['q']);
-            $wheres[] = '(' . $fragment['sql'] . ')';
+            $wheres[] = '('.$fragment['sql'].')';
             $bindings = array_merge($bindings, $fragment['bindings']);
         }
 
-        if (!empty($filters['gender'])) {
+        if (! empty($filters['gender'])) {
             $wheres[] = 'pi.Gender = ?';
             $bindings[] = $filters['gender'];
         }
 
-        if (!empty($filters['qetaa_id'])) {
+        if (! empty($filters['qetaa_id'])) {
             $wheres[] = 'EXISTS (SELECT 1 FROM PersonQetaa pq2 WHERE pq2.PersonID = pi.PersonID AND pq2.QetaaID = ?)';
             $bindings[] = (int) $filters['qetaa_id'];
         }
 
-        if (!empty($filters['group_id'])) {
+        if (! empty($filters['group_id'])) {
             $wheres[] = 'EXISTS (SELECT 1 FROM PersonGroup pg2 WHERE pg2.PersonID = pi.PersonID AND pg2.GroupID = ?)';
             $bindings[] = (int) $filters['group_id'];
         }
 
-        if (!empty($filters['manteqa_id'])) {
+        if (! empty($filters['manteqa_id'])) {
             $wheres[] = 'EXISTS (SELECT 1 FROM PersonalPhysicalAddress addr WHERE addr.PersonID = pi.PersonID AND addr.ManteqaID = ?)';
             $bindings[] = (int) $filters['manteqa_id'];
         }
 
-        if (!empty($filters['district_id'])) {
+        if (! empty($filters['district_id'])) {
             $wheres[] = 'EXISTS (SELECT 1 FROM PersonalPhysicalAddress addr2 WHERE addr2.PersonID = pi.PersonID AND addr2.DistrictID = ?)';
             $bindings[] = (int) $filters['district_id'];
         }
@@ -71,7 +71,7 @@ class CampaignRecipientQuery
             }
         }
 
-        if (!empty($filters['person_ids']) && is_array($filters['person_ids'])) {
+        if (! empty($filters['person_ids']) && is_array($filters['person_ids'])) {
             $ids = array_values(array_filter(array_map('intval', $filters['person_ids'])));
             if ($ids !== []) {
                 $placeholders = implode(',', array_fill(0, count($ids), '?'));

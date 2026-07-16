@@ -65,9 +65,9 @@ class MedicineInventoryService
         $medicine->Amount = $total;
         $medicine->LockedAmount = $locked;
         $medicine->AvailableAmount = $available;
-        $medicine->AmountText = $total . ' ' . $medicine->UnitLabel;
-        $medicine->AvailableText = $available . ' ' . $medicine->UnitLabel;
-        $medicine->LockedText = $locked . ' ' . $medicine->UnitLabel;
+        $medicine->AmountText = $total.' '.$medicine->UnitLabel;
+        $medicine->AvailableText = $available.' '.$medicine->UnitLabel;
+        $medicine->LockedText = $locked.' '.$medicine->UnitLabel;
         $medicine->LocationBreakdown = $this->locationBreakdown($locations, 'Amount', $medicine->UnitLabel);
         $medicine->AvailableBreakdown = $this->locationBreakdown($locations, 'AvailableAmount', $medicine->UnitLabel);
         $medicine->LockedBreakdown = $this->locationBreakdown($locations, 'LockedAmount', $medicine->UnitLabel);
@@ -98,6 +98,7 @@ class MedicineInventoryService
                 if ($includeAllActive) {
                     $query->where('ml.IsActive', true)
                         ->orWhereNotNull('ms.MedicineStockID');
+
                     return;
                 }
 
@@ -245,7 +246,7 @@ class MedicineInventoryService
     {
         $parts = $locations
             ->filter(fn ($location) => (int) $location->{$field} > 0)
-            ->map(fn ($location) => $location->LocationName . ': ' . $location->{$field} . ' ' . $unit)
+            ->map(fn ($location) => $location->LocationName.': '.$location->{$field}.' '.$unit)
             ->values();
 
         return $parts->isEmpty() ? '-' : $parts->implode(' | ');
@@ -309,7 +310,7 @@ class MedicineInventoryService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$medicine) {
+            if (! $medicine) {
                 throw ValidationException::withMessages(['medicine_id' => 'الدواء غير موجود.']);
             }
 
@@ -323,7 +324,7 @@ class MedicineInventoryService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$stock) {
+            if (! $stock) {
                 throw ValidationException::withMessages(['location_id' => 'هذا الدواء غير موجود في المكان المختار.']);
             }
 
@@ -368,7 +369,7 @@ class MedicineInventoryService
             ->where('MedicineID', $medicineId)
             ->first();
 
-        if (!$medicine) {
+        if (! $medicine) {
             throw ValidationException::withMessages(['amounts' => 'الدواء غير موجود.']);
         }
 
@@ -393,7 +394,7 @@ class MedicineInventoryService
                         ->value('LocationName');
 
                     throw ValidationException::withMessages([
-                        'amounts.' . $locationId => "لا يمكن جعل كمية {$locationName} أقل من المحجوز حالياً ({$locked}).",
+                        'amounts.'.$locationId => "لا يمكن جعل كمية {$locationName} أقل من المحجوز حالياً ({$locked}).",
                     ]);
                 }
 
@@ -418,7 +419,7 @@ class MedicineInventoryService
             ->where('MedicineID', $medicineId)
             ->first();
 
-        if (!$medicine) {
+        if (! $medicine) {
             return 'الدواء غير موجود.';
         }
 
@@ -434,7 +435,7 @@ class MedicineInventoryService
             ->pluck('ml.LocationName');
 
         if ($blockedLocations->isNotEmpty()) {
-            return 'لا يمكن عمل Restock لأن هناك حجز نشط أو مستقبلي في: ' . $blockedLocations->implode('، ') . '. فك الحجز أولاً.';
+            return 'لا يمكن عمل Restock لأن هناك حجز نشط أو مستقبلي في: '.$blockedLocations->implode('، ').'. فك الحجز أولاً.';
         }
 
         DB::transaction(function () use ($medicineId, $medicine, $stockLocationId) {

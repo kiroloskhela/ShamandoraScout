@@ -2,11 +2,11 @@
 
 namespace App\Domain\Person;
 
+use App\Support\ShamandoraCode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use App\Support\ShamandoraCode;
 
 /**
  * Multi-table person profile updates (directory edit form).
@@ -25,7 +25,7 @@ class PersonProfileService
             [$raqamQawmy, $excludePersonId]
         );
 
-        return (($row->counts ?? 0) > 0);
+        return ($row->counts ?? 0) > 0;
     }
 
     /**
@@ -80,7 +80,7 @@ class PersonProfileService
                 'ActualFacultyGraduationYear' => $data['university_grad_year'] ?? null,
             ]);
 
-            if (!empty($data['rotba_kashfeyya_id'])) {
+            if (! empty($data['rotba_kashfeyya_id'])) {
                 DB::table('PersonRotbaKashfeyya')->insert([
                     'PersonID' => $personId,
                     'RotbaID' => $data['rotba_kashfeyya_id'],
@@ -92,7 +92,7 @@ class PersonProfileService
                 'QetaaID' => $data['qetaa_id'] ?? null,
             ]);
 
-            if (!empty($data['betaka_id'])) {
+            if (! empty($data['betaka_id'])) {
                 DB::table('PersonEgazetBetakatTaqaddom')->insert([
                     'PersonID' => $personId,
                     'EgazetBetakatTaqaddomID' => $data['betaka_id'],
@@ -253,6 +253,7 @@ class PersonProfileService
                             ->where('PersonID', $personId)
                             ->where('QuestionID', $questionId)
                             ->delete();
+
                         continue;
                     }
 

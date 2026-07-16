@@ -5,6 +5,7 @@ namespace App\Domain\Enrolment;
 use App\Support\NewEnrolmentIdentity;
 use App\Support\ShamandoraCode;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Liveform final submit: capacity decision, PersonID allocation, and question inserts.
@@ -15,8 +16,7 @@ class LiveFormSubmitService
 {
     public function __construct(
         private LiveFormCapacityService $capacity,
-    ) {
-    }
+    ) {}
 
     /**
      * Insert a new-enrolment row into $table and return the PersonID assigned to it.
@@ -32,7 +32,7 @@ class LiveFormSubmitService
         // varchar(10) — use a 10-char placeholder until the real SH- code is set.
         $data['PersonID'] = 0;
         $data['ShamandoraCode'] = bin2hex(random_bytes(5));
-        if (\Illuminate\Support\Facades\Schema::hasColumn($table, 'CreatedAt')) {
+        if (Schema::hasColumn($table, 'CreatedAt')) {
             $data['CreatedAt'] = $data['CreatedAt'] ?? now();
         } else {
             unset($data['CreatedAt']);

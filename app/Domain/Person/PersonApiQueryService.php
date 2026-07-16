@@ -45,6 +45,7 @@ class PersonApiQueryService
                 $person->full_name = trim(
                     "{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}"
                 );
+
                 return $person;
             });
     }

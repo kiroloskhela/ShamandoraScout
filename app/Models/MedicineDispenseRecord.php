@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MedicineDispenseRecord extends Model
 {
     protected $table = 'MedicineDispenseRecords';
+
     protected $primaryKey = 'MedicineDispenseID';
 
     protected $fillable = [

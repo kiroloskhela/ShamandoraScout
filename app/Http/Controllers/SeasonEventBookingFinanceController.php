@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\EventFinance\SeasonEventBookingPaymentService;
+use App\Domain\EventFinance\SeasonEventBookingService;
+use App\Http\Requests\StoreBookingInstallmentRequest;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use App\Domain\EventFinance\SeasonEventBookingService;
-use App\Domain\EventFinance\SeasonEventBookingPaymentService;
 
 class SeasonEventBookingFinanceController extends Controller
 {
@@ -618,7 +619,7 @@ return view('event_booking_finance.create_installment', compact(
     'previousPayments'
 ));
 }
-public function storeInstallment(Request $request, $bookingID)
+public function storeInstallment(StoreBookingInstallmentRequest $request, $bookingID)
 {
     $booking = $this->getBookingDetails($bookingID);
     if (!$booking) {
@@ -636,18 +637,6 @@ public function storeInstallment(Request $request, $bookingID)
     }
 
     $paymentsCount = $this->getPaymentsCount($bookingID);
-
-    $validator = Validator::make($request->all(), [
-        'amount' => 'required|numeric',
-        'notes' => 'nullable|string|max:500'
-    ], [
-        'amount.required' => 'يجب إدخال مبلغ الدفعة.',
-        'amount.min' => 'يجب أن يكون مبلغ الدفعة أكبر من صفر.'
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()->withErrors($validator)->withInput();
-    }
 
     $remaining = (float) $booking->RemainingAmount;
     $installment = $this->payments->calculateInstallment(

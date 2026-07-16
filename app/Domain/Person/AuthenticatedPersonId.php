@@ -12,7 +12,7 @@ class AuthenticatedPersonId
     public static function from(Request $request): int
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return 0;
         }
 

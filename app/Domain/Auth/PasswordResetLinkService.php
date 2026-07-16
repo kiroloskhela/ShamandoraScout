@@ -20,8 +20,7 @@ class PasswordResetLinkService
 {
     public function __construct(
         private readonly int $expireMinutes = 60
-    ) {
-    }
+    ) {}
 
     /**
      * Token table key for a person: real email when present, else synthetic.
@@ -33,7 +32,7 @@ class PasswordResetLinkService
             return $email;
         }
 
-        return 'person-' . $personId . '@password-reset.local';
+        return 'person-'.$personId.'@password-reset.local';
     }
 
     /**
@@ -57,7 +56,7 @@ class PasswordResetLinkService
             ]
         );
 
-        return url('/reset-password/' . urlencode($plainToken)) . '?' . http_build_query([
+        return url('/reset-password/'.urlencode($plainToken)).'?'.http_build_query([
             'email' => $email,
         ]);
     }
@@ -72,14 +71,14 @@ class PasswordResetLinkService
         $email = strtolower(trim($email));
         $row = DB::table('password_reset_tokens')->where('email', $email)->first();
 
-        if (!$row || !Hash::check($plainToken, $row->token)) {
+        if (! $row || ! Hash::check($plainToken, $row->token)) {
             return false;
         }
 
         $createdAt = $row->created_at ? Carbon::parse($row->created_at) : null;
 
         return $createdAt !== null
-            && !$createdAt->copy()->addMinutes($this->expireMinutes)->isPast();
+            && ! $createdAt->copy()->addMinutes($this->expireMinutes)->isPast();
     }
 
     public function consumeToken(string $email): void

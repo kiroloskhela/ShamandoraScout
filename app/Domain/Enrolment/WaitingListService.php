@@ -13,8 +13,7 @@ class WaitingListService
 {
     public function __construct(
         private readonly LiveFormSubmitService $submit,
-    ) {
-    }
+    ) {}
 
     /**
      * Promote a waiting-list person into NewUsersInformation (and their questions).
@@ -32,7 +31,7 @@ class WaitingListService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$person) {
+            if (! $person) {
                 throw new RuntimeException('الشخص غير موجود في قائمة الانتظار');
             }
 
@@ -77,7 +76,7 @@ class WaitingListService
                 ->where('PersonID', $personId)
                 ->first();
 
-            if (!$person) {
+            if (! $person) {
                 throw new RuntimeException('الشخص غير موجود في قائمة الانتظار');
             }
 
@@ -112,6 +111,7 @@ class WaitingListService
 
             if ($collision) {
                 $skipped++;
+
                 continue;
             }
 

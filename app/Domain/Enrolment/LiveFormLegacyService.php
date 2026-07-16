@@ -11,8 +11,7 @@ class LiveFormLegacyService
 {
     public function __construct(
         private readonly LiveFormSubmitService $submit,
-    ) {
-    }
+    ) {}
 
     /**
      * Copy NewUsers row + answers into waiting-list tables and delete from main.

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LookupStoreRequest;
+use App\Http\Requests\LookupUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -27,7 +29,7 @@ class LookupTableController extends Controller
         return view($config['views']['create'], $this->viewData($config, 'create'));
     }
 
-    public function insert(Request $request)
+    public function insert(LookupStoreRequest $request)
     {
         $config = $this->lookupConfig();
 
@@ -51,7 +53,7 @@ class LookupTableController extends Controller
         ]));
     }
 
-    public function updates(Request $request, $id)
+    public function updates(LookupUpdateRequest $request, $id)
     {
         $config = $this->lookupConfig();
 
@@ -87,7 +89,7 @@ class LookupTableController extends Controller
     {
         $lookups = config('lookups');
 
-        if (!isset($lookups[$this->lookupKey])) {
+        if (! isset($lookups[$this->lookupKey])) {
             throw new InvalidArgumentException("Unknown lookup table [{$this->lookupKey}].");
         }
 
@@ -113,7 +115,7 @@ class LookupTableController extends Controller
             ->where($config['primary_key'], $id)
             ->first();
 
-        if (!$record) {
+        if (! $record) {
             abort(404);
         }
 
@@ -131,10 +133,10 @@ class LookupTableController extends Controller
 
     protected function redirectWithMessage(array $config, string $action, ?Request $request = null)
     {
-        $redirect = redirect()->route($config['route'] . '.index');
+        $redirect = redirect()->route($config['route'].'.index');
         $message = $config['messages'][$action] ?? null;
 
-        if (!$message) {
+        if (! $message) {
             return $redirect;
         }
 

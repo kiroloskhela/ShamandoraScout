@@ -2,6 +2,7 @@
 
 namespace App\Domain\Enrolment;
 
+use App\Support\ShamandoraCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -51,7 +52,7 @@ class MigrateEnrolmentService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$person) {
+            if (! $person) {
                 return 0;
             }
 
@@ -77,7 +78,7 @@ class MigrateEnrolmentService
                 'RequestPersonID' => 0,
             ], 'PersonID');
 
-            $shamandoraCode = \App\Support\ShamandoraCode::fromPersonId($thisPersonID);
+            $shamandoraCode = ShamandoraCode::fromPersonId($thisPersonID);
             DB::table('PersonInformation')->where('PersonID', $thisPersonID)->update([
                 'ShamandoraCode' => $shamandoraCode,
             ]);
@@ -206,7 +207,7 @@ class MigrateEnrolmentService
         if ($value === '') {
             return [];
         }
-        $value = str_replace(["\r\n", "\n", "،", ";"], ",", $value);
+        $value = str_replace(["\r\n", "\n", '،', ';'], ',', $value);
         $parts = array_filter(array_map('trim', explode(',', $value)), fn ($x) => $x !== '');
 
         return array_values(array_unique($parts));

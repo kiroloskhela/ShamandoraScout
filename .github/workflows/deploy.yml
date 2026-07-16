@@ -35,6 +35,19 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Pint style check (Domain + Requests + new controllers)
+        run: >
+          ./vendor/bin/pint --test
+          app/Domain
+          app/Http/Requests
+          app/Http/Controllers/LookupTableController.php
+          app/Http/Middleware/ShareAuthRoleFlags.php
+          app/Models/MedicineInventory.php
+          app/Models/MedicineLocation.php
+          app/Models/MedicineStock.php
+          app/Models/MedicineDispenseRecord.php
+          app/Models/PersonPhoneNumber.php
+
       - name: Run test suite
         run: ./vendor/bin/phpunit
 

@@ -11,8 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PersonPhoneNumber extends Model
 {
     protected $table = 'PersonPhoneNumbers';
+
     protected $primaryKey = 'PersonID';
+
     public $incrementing = false;
+
     public $timestamps = false;
 
     protected $fillable = [

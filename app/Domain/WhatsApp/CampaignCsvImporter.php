@@ -21,15 +21,14 @@ class CampaignCsvImporter
 
     public function __construct(
         private readonly WhatsAppBridgeClient $bridge,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<array{phone: string, message: string, row: int}>
      */
     public function parseUploadedFile(string $absolutePath): array
     {
-        if (!is_readable($absolutePath)) {
+        if (! is_readable($absolutePath)) {
             throw new RuntimeException('تعذر قراءة ملف CSV.');
         }
 
@@ -128,7 +127,7 @@ class CampaignCsvImporter
                 ];
 
                 if (count($rows) > self::MAX_ROWS) {
-                    throw new RuntimeException('الحد الأقصى ' . self::MAX_ROWS . ' رقم في الملف الواحد.');
+                    throw new RuntimeException('الحد الأقصى '.self::MAX_ROWS.' رقم في الملف الواحد.');
                 }
             }
 
