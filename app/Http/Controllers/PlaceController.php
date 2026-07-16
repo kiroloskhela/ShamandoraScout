@@ -38,12 +38,7 @@ class PlaceController extends Controller
             return redirect()->back()->with('status', 'الموقع غير موجود');
         }
 
-        // Manual ID (same style)
-        $last = DB::table('Place')->orderBy('PlaceID', 'desc')->first();
-        $thisID = ($last == null) ? 1 : ($last->PlaceID + 1);
-
         DB::table('Place')->insert([
-            'PlaceID'    => $thisID,
             'PlaceName'  => $request->place_name,
             'LocationID' => $request->location_id
         ]);

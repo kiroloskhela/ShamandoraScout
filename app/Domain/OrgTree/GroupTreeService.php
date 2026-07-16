@@ -91,11 +91,7 @@ class GroupTreeService
     public function createGroup(string $name, int $typeId, int $parentGroupId, int $qetaaId): int
     {
         return (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
-            $lastGroup = DB::table('GroupTable')->orderBy('GroupID', 'desc')->first();
-            $newId = $lastGroup ? ((int) $lastGroup->GroupID + 1) : 1;
-
-            DB::table('GroupTable')->insert([
-                'GroupID' => $newId,
+            $newId = DB::table('GroupTable')->insertGetId([
                 'GroupTypeID' => $typeId,
                 'IncludedUnderGroupID' => $parentGroupId,
                 'GroupName' => $name,

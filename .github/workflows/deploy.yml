@@ -21,6 +21,12 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, sqlite3, pdo_sqlite
           coverage: none
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
@@ -32,28 +38,83 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
-      - name: Install dependencies
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Pint style check (Domain + Requests + new controllers)
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build frontend (Vite)
+        run: npm run build
+
+      - name: Pint style check (Domain + Requests + Resources + Policies)
         run: >
           ./vendor/bin/pint --test
           app/Domain
           app/Http/Requests
+          app/Http/Resources
+          app/Http/Controllers/HealthController.php
           app/Http/Controllers/LookupTableController.php
           app/Http/Middleware/ShareAuthRoleFlags.php
+          app/Console/Commands/ReportFailedJobs.php
           app/Models/MedicineInventory.php
           app/Models/MedicineLocation.php
           app/Models/MedicineStock.php
           app/Models/MedicineDispenseRecord.php
           app/Models/PersonPhoneNumber.php
+          app/Policies
+          app/Providers/AuthServiceProvider.php
 
-      - name: Run test suite
+      - name: Run test suite (sqlite)
         run: ./vendor/bin/phpunit
+
+  test-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: shamandora_ci
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, dom, fileinfo, mysql, pdo_mysql
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Full suite stays on sqlite; MySQL job covers hot Domain + security paths.
+      - name: Run MySQL smoke suite
+        run: >
+          ./vendor/bin/phpunit -c phpunit.mysql.xml
+          tests/Feature/HealthEndpointTest.php
+          tests/Feature/HotPathSmokeTest.php
+          tests/Feature/PhaseASecurityTest.php
+          tests/Feature/LookupCrudTest.php
+          tests/Unit/CustodyRequestServiceTest.php
+          tests/Unit/PlaceBookingServiceTest.php
+          tests/Unit/PersonSpecialCaseServiceTest.php
+          tests/Unit/SeasonEventBookingPaymentServiceTest.php
+          tests/Unit/LiveFormCapacityServiceTest.php
+
 
   deploy:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, test-mysql]
     # Only deploy on pushes to main, never on pull requests.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -76,8 +137,11 @@ jobs:
 
             echo "==> Fetch & reset to origin/main"
             git fetch --all --prune
+            PREV_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
             git reset --hard origin/main
             git clean -fd -e .env -e storage/ -e node_modules/ -e vendor/ -e whatsapp-bridge/auth_info* -e whatsapp-bridge/node_modules/
+            DEPLOY_SHA="$(git rev-parse HEAD)"
+            echo "Previous: ${PREV_SHA:-none} → Deployed: ${DEPLOY_SHA}"
 
             echo "==> Composer"
             composer install --no-dev --optimize-autoloader --no-interaction
@@ -90,6 +154,20 @@ jobs:
 
             echo "==> Migrate"
             php artisan migrate --force --no-interaction
+
+            echo "==> Sentry release + log channel hints in .env"
+            if [ -f .env ]; then
+              if grep -q '^SENTRY_RELEASE=' .env; then
+                sed -i "s|^SENTRY_RELEASE=.*|SENTRY_RELEASE=${DEPLOY_SHA}|" .env
+              else
+                printf '\nSENTRY_RELEASE=%s\n' "${DEPLOY_SHA}" >> .env
+              fi
+              if grep -q '^LOG_CHANNEL=' .env; then
+                sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=daily|' .env
+              else
+                printf '\nLOG_CHANNEL=daily\n' >> .env
+              fi
+            fi
 
             echo "==> Cache"
             php artisan optimize:clear
@@ -126,5 +204,5 @@ jobs:
               pm2 restart shamandora-queue 2>/dev/null || true
             fi
 
-            echo "==> Deployed $(git rev-parse --short HEAD)"
+            echo "==> Deployed $(git rev-parse --short HEAD) (rollback tip: git reset --hard ${PREV_SHA:-unknown})"
             git log -1 --oneline

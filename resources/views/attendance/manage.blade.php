@@ -4,24 +4,24 @@
     <div class="container mx-auto px-4 py-8" dir="rtl">
 
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ __('Record attendance') }}</h1>
-            <p class="text-gray-600">{{ __('Choose the season and authorized event, then record individual attendance') }}</p>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">{{ __('Record attendance') }}</h1>
+            <p class="text-gray-600 dark:text-slate-300">{{ __('Choose the season and authorized event, then record individual attendance') }}</p>
         </div>
 
         @if (session('success'))
-            <div class="mb-6 p-4 rounded-lg bg-green-100 text-green-800 text-center font-semibold shadow">
+            <div class="mb-6 p-4 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-center font-semibold shadow dark:border dark:border-slate-700">
                 {{ session('success') }}
             </div>
         @endif
 
         {{-- Season / Event Selection --}}
         <form method="GET" action="{{ route('attendance.manage') }}"
-            class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
+            class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 mb-8 border-2 border-blue-300 dark:border-slate-700">
             <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose season') }}</label>
+                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose season') }}</label>
                     <select id="season_id" name="season_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
                         onchange="this.form.submit()">
                         <option value="">{{ __('-- Choose season --') }}</option>
                         @foreach ($seasons as $s)
@@ -32,9 +32,9 @@
                     </select>
                 </div>
                 <div>
-                    <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose event') }}</label>
+                    <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose event') }}</label>
                     <select id="season_event_id" name="season_event_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 {{ !empty($seasonId) ? 'text-slate-600' : 'text-slate-400' }} focus:border-blue-500 focus:outline-none"
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 {{ !empty($seasonId) ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }} focus:border-blue-500 focus:outline-none"
                         {{ !empty($seasonId) ? '' : 'disabled' }} onchange="this.form.submit()">
                         <option value="">{{ __('-- Choose event --') }}</option>
                         @foreach ($events as $e)
@@ -45,14 +45,14 @@
                         @endforeach
                     </select>
                     @if (($seasonId ?? null) && $events->isEmpty())
-                        <p class="mt-2 text-xs text-amber-600">{{ __('No events for your groups in this season.') }}</p>
+                        <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">{{ __('No events for your groups in this season.') }}</p>
                     @endif
                 </div>
             </div>
         </form>
 
         @if (!empty($seasonEventId))
-            <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-blue-300">
+            <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
                 <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm">
                     @csrf
                     <input type="hidden" name="season_id" value="{{ $seasonId }}">
@@ -62,7 +62,7 @@
 
                         {{-- Current user --}}
                         <div class="flex items-center gap-2">
-                            <span class="text-sm text-slate-700 font-semibold">{{ __('Attendance taken by') }}</span>
+                            <span class="text-sm text-slate-700 dark:text-slate-200 font-semibold">{{ __('Attendance taken by') }}</span>
                             @php
                                 $fullName = trim(
                                     (optional($me)->FirstName ?? '') .
@@ -74,7 +74,7 @@
                                         (optional($me)->FourthName ?? ''),
                                 );
                             @endphp
-                            <span class="inline-block px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm">
+                            <span class="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-200 text-sm">
                                 {{ $fullName ?: __('Me') }}
                             </span>
                         </div>
@@ -82,8 +82,8 @@
                         {{-- Search --}}
                         <div class="relative w-full md:w-80">
                             <input id="tableSearch" type="text" placeholder="{{ __('Search: name / phone / sector / stage') }}"
-                                class="w-full h-11 pr-4 pl-10 rounded-lg border border-slate-200 focus:border-blue-500 focus:outline-none text-sm">
-                            <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24"
+                                class="w-full h-11 pr-4 pl-10 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none text-sm">
+                            <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" viewBox="0 0 24 24"
                                 fill="none">
                                 <path stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     d="m21 21-4.3-4.3m0-6.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
@@ -92,28 +92,28 @@
 
                         {{-- Mark all buttons --}}
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-sm font-semibold text-slate-700">{{ __('Set all:') }}</span>
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('Set all:') }}</span>
                             <button type="button" id="markAllPresent"
-                                class="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-xs font-semibold hover:bg-green-200 transition">{{ __('✓ Present') }}</button>
+                                class="px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-xs font-semibold hover:bg-green-200 dark:hover:bg-green-900/60 transition">{{ __('✓ Present') }}</button>
                             <button type="button" id="markAllAbsent"
-                                class="px-3 py-1.5 rounded-lg bg-red-100 text-red-800 text-xs font-semibold hover:bg-red-200 transition">{{ __('✗ Absent') }}</button>
+                                class="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-900/60 transition">{{ __('✗ Absent') }}</button>
                             <button type="button" id="markAllExcused"
-                                class="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 text-xs font-semibold hover:bg-amber-200 transition">{{ __('~ Absent with excuse') }}</button>
+                                class="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition">{{ __('~ Absent with excuse') }}</button>
                         </div>
 
                     </div>
 
                     {{-- Table --}}
                     <div class="overflow-x-auto">
-                        <table id="attendanceTable" class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                            <thead class="bg-slate-100">
+                        <table id="attendanceTable" class="min-w-full border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                            <thead class="bg-slate-100 dark:bg-slate-800">
                                 <tr>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Name') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Phone') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Sector') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right">{{ __('Stage') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-center w-56">{{ __('Attendance section') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Name') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Phone') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Sector') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Stage') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center w-56">{{ __('Attendance section') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,11 +134,11 @@
                                             ),
                                         );
                                     @endphp
-                                    <tr class="border-t attendance-row" data-search="{{ e($searchHaystack) }}">
-                                        <td class="px-4 py-3 text-right">{{ $r['PersonName'] }}</td>
-                                        <td class="px-4 py-3 text-right">{{ $r['PhoneNumber'] }}</td>
-                                        <td class="px-4 py-3 text-right">{{ $r['QetaaName'] }}</td>
-                                        <td class="px-4 py-3 text-right">{{ $r['SanaMarhalaName'] }}</td>
+                                    <tr class="border-t border-slate-200 dark:border-slate-700 attendance-row" data-search="{{ e($searchHaystack) }}">
+                                        <td class="px-4 py-3 text-right text-slate-800 dark:text-slate-100">{{ $r['PersonName'] }}</td>
+                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['PhoneNumber'] }}</td>
+                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['QetaaName'] }}</td>
+                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['SanaMarhalaName'] }}</td>
 
                                         {{-- 3-way status selector --}}
                                         <td class="px-4 py-3">
@@ -154,7 +154,7 @@
                                                         class="status-btn present-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'present'
                                                         ? 'bg-green-600 text-white border-green-600'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-green-400' }}">{{ __('✓ Present') }}</span>
+                                                        : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-green-400' }}">{{ __('✓ Present') }}</span>
                                                 </label>
 
                                                 {{-- Absent --}}
@@ -167,7 +167,7 @@
                                                         class="status-btn absent-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'absent'
                                                         ? 'bg-red-600 text-white border-red-600'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-red-400' }}">{{ __('✗ Absent') }}</span>
+                                                        : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-red-400' }}">{{ __('✗ Absent') }}</span>
                                                 </label>
 
                                                 {{-- Excused --}}
@@ -180,7 +180,7 @@
                                                         class="status-btn excused-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
                                                     {{ $status === 'excused'
                                                         ? 'bg-amber-500 text-white border-amber-500'
-                                                        : 'bg-white text-slate-500 border-slate-200 hover:border-amber-400' }}">{{ __('~ Excuse') }}</span>
+                                                        : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400' }}">{{ __('~ Excuse') }}</span>
                                                 </label>
 
                                             </div>
@@ -191,18 +191,18 @@
                                             style="{{ $status !== 'excused' ? 'display:none' : '' }}">
                                             <input type="text" name="attendance[{{ $pid }}][excuse]"
                                                 value="{{ e($excuse) }}" placeholder="{{ __('Write the excuse...') }}" maxlength="1000"
-                                                class="w-full h-9 px-3 rounded-lg border border-slate-200 text-sm focus:border-amber-400 focus:outline-none text-right">
+                                                class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 text-sm focus:border-amber-400 focus:outline-none text-right">
                                         </td>
                                         {{-- Placeholder cell when not excused --}}
                                         <td class="px-4 py-3 no-excuse-cell"
                                             style="{{ $status === 'excused' ? 'display:none' : '' }}">
-                                            <span class="text-slate-300 text-xs">—</span>
+                                            <span class="text-slate-300 dark:text-slate-600 text-xs">—</span>
                                         </td>
 
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600">{{ __('No people to display.') }}</td>
+                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600 dark:text-slate-300">{{ __('No people to display.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -211,17 +211,17 @@
 
                     {{-- Pagination --}}
                     <div id="pager" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
-                        <div id="pager-info" class="text-sm text-slate-600"></div>
+                        <div id="pager-info" class="text-sm text-slate-600 dark:text-slate-300"></div>
                         <div class="flex items-center gap-2" id="pager-controls"></div>
                     </div>
 
                     {{-- Summary counts --}}
                     <div class="flex items-center gap-6 mt-4 px-2">
-                        <span class="text-sm text-green-700 font-semibold">{{ __('Present:') }} <span id="countPresent">0</span></span>
-                        <span class="text-sm text-red-700 font-semibold">{{ __('Absent:') }} <span id="countAbsent">0</span></span>
-                        <span class="text-sm text-amber-700 font-semibold">{{ __('Absent with excuse:') }} <span
+                        <span class="text-sm text-green-700 dark:text-green-300 font-semibold">{{ __('Present:') }} <span id="countPresent">0</span></span>
+                        <span class="text-sm text-red-700 dark:text-red-300 font-semibold">{{ __('Absent:') }} <span id="countAbsent">0</span></span>
+                        <span class="text-sm text-amber-700 dark:text-amber-300 font-semibold">{{ __('Absent with excuse:') }} <span
                                 id="countExcused">0</span></span>
-                        <span class="text-sm text-slate-500">{{ __('Total:') }} <span id="countTotal">0</span></span>
+                        <span class="text-sm text-slate-500 dark:text-slate-400">{{ __('Total:') }} <span id="countTotal">0</span></span>
                     </div>
 
                     {{-- Save --}}
@@ -242,6 +242,12 @@
                     const allRows = Array.from(table.querySelectorAll('tbody tr.attendance-row'));
                     const pagerInfo = document.getElementById('pager-info');
                     const pagerControls = document.getElementById('pager-controls');
+
+                    const inactiveBtnClasses = [
+                        'bg-white', 'dark:bg-slate-900',
+                        'text-slate-500', 'dark:text-slate-400',
+                        'border-slate-200', 'dark:border-slate-700',
+                    ];
 
                     // ── Status button visual update ──────────────────────────────
                     function updateStatusButtons(row, value) {
@@ -268,12 +274,13 @@
                             btn.classList.remove(
                                 'bg-green-600', 'bg-red-600', 'bg-amber-500',
                                 'text-white', 'border-green-600', 'border-red-600', 'border-amber-500',
-                                'hover:border-green-400', 'hover:border-red-400', 'hover:border-amber-400'
+                                'hover:border-green-400', 'hover:border-red-400', 'hover:border-amber-400',
+                                ...inactiveBtnClasses
                             );
-                            btn.classList.add('bg-white', 'text-slate-500', 'border-slate-200');
+                            btn.classList.add(...inactiveBtnClasses);
 
                             if (key === value) {
-                                btn.classList.remove('bg-white', 'text-slate-500', 'border-slate-200');
+                                btn.classList.remove(...inactiveBtnClasses);
                                 btn.classList.add(...styles[key]);
                             } else {
                                 btn.classList.add(hoverBorders[key]);
@@ -354,9 +361,9 @@
                         const btn = (label, disabled, onClick, extra = '') => {
                             const a = document.createElement('button');
                             a.type = 'button';
-                            a.className = `px-3 py-1 rounded border text-sm ${disabled
-                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        : 'bg-white hover:bg-slate-50 text-slate-700'} ${extra}`;
+                            a.className = `px-3 py-1 rounded border border-slate-200 dark:border-slate-700 text-sm ${disabled
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                        : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'} ${extra}`;
                             a.textContent = label;
                             if (!disabled) a.addEventListener('click', onClick);
                             return a;
@@ -378,7 +385,7 @@
                         }));
                         if (start > 2) {
                             const d = document.createElement('span');
-                            d.className = 'px-2 text-slate-500';
+                            d.className = 'px-2 text-slate-500 dark:text-slate-400';
                             d.textContent = '…';
                             pagerControls.appendChild(d);
                         }
@@ -393,7 +400,7 @@
 
                         if (end < totalPages - 1) {
                             const d = document.createElement('span');
-                            d.className = 'px-2 text-slate-500';
+                            d.className = 'px-2 text-slate-500 dark:text-slate-400';
                             d.textContent = '…';
                             pagerControls.appendChild(d);
                         }

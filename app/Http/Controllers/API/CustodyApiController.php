@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Domain\Custody\CustodyRequestService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -327,7 +328,7 @@ class CustodyApiController extends Controller
      *   "items":[{"inventory_id":5,"qty":2}]
      * }
      */
-    public function store(Request $request)
+    public function store(Request $request, CustodyRequestService $custodyRequests)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -351,43 +352,16 @@ class CustodyApiController extends Controller
         [$ok, $normalizedItems, $errorResponse] = $this->normalizeItems($request->items);
         if (!$ok) return $errorResponse;
 
-        DB::beginTransaction();
         try {
-            $requestId = DB::table('CustodyRequests')->insertGetId([
-                'PersonID'    => $personId,
-                'QetaaID'     => $request->qetaa_id ?: null,
-                'EventTypeID' => $request->event_type_id ?: null,
-
-                'DateFrom'    => $request->date_from,
-                'DateTo'      => $request->date_to,
-
-                'Status'      => 'pending',
-                'UserNote'    => $request->user_note,
-                'AdminNote'   => null,
-                'ReviewedBy'  => null,
-                'ReviewedAt'  => null,
-
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
-
-            foreach ($normalizedItems as $ni) {
-                DB::table('CustodyRequestItems')->insert([
-                    'RequestID'        => $requestId,
-                    'InventoryID'      => $ni['InventoryID'],
-                    'ItemNameSnapshot' => $ni['ItemNameSnapshot'],
-                    'ItemUnitSnapshot' => $ni['ItemUnitSnapshot'],
-                    'QtyRequested'     => $ni['QtyRequested'],
-
-                    'QtyApproved'      => null,
-                    'AdminItemNote'    => null,
-
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ]);
-            }
-
-            DB::commit();
+            $requestId = $custodyRequests->create(
+                $personId,
+                $request->date_from,
+                $request->date_to,
+                $request->qetaa_id ?: null,
+                $request->event_type_id ?: null,
+                $request->user_note,
+                $normalizedItems
+            );
 
             NotificationController::sendToRoles(
             ['SuperAdmin','AdminInventory','Inventory'],
@@ -395,8 +369,6 @@ class CustodyApiController extends Controller
             $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a custody on ' . $request->date_from . ' to ' . $request->date_to . '. Please review the request.'
               );
 
-
-              
             return response()->json([
                 'ok'        => true,
                 'message'   => 'Custody request created',
@@ -404,7 +376,6 @@ class CustodyApiController extends Controller
             ], 201);
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('Custody API: store failed', ['error' => $e->getMessage()]);
             return response()->json(['ok' => false, 'message' => 'Failed to create request'], 500);
         }

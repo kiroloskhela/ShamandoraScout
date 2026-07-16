@@ -51,17 +51,7 @@ class InventoryController extends Controller
      */
     public function insert(Request $request)
     {
-        $lastItem = DB::table('Inventory')
-            ->orderBy('InventoryID', 'desc')
-            ->first();
-
-        if ($lastItem == null)
-            $thisInventoryID = 1;
-        else
-            $thisInventoryID = $lastItem->InventoryID + 1;
-
         DB::table('Inventory')->insert(array(
-            'InventoryID'       => $thisInventoryID,
             'ItemName'          => $request->item_name,
             'ItemQuantity'      => $request->item_quantity,
             'ItemMeasuringUnit' => $request->item_measuring_unit,

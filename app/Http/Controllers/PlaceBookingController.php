@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\PlaceBooking\PlaceBookingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -31,7 +32,7 @@ class PlaceBookingController extends Controller
         return response()->json($places);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
         if (!$personId) {
@@ -65,29 +66,15 @@ class PlaceBookingController extends Controller
         // NOTE: As requested, we allow multiple pending even if same time/place.
         // So we do NOT block here. Admin will decide (approve with edit).
 
-        DB::table('PlaceBookings')->insert([
-            'PersonID'    => $personId,
-            'PlaceID'     => $request->place_id,
-            'QetaaID'     => $request->qetaa_id ?: null,
-
-            'BookingDate' => $request->booking_date,
-            'TimeFrom'    => $request->time_from,
-            'TimeTo'      => $request->time_to,
-
-            'UserNote'    => $request->user_note,
-            'Status'      => 'pending',
-
-            'AdminNote'   => null,
-            'ReviewedBy'  => null,
-            'ReviewedAt'  => null,
-
-            'ApprovedPlaceID'  => null,
-            'ApprovedTimeFrom' => null,
-            'ApprovedTimeTo'   => null,
-
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $placeBookings->create(
+            $personId,
+            (int) $request->place_id,
+            $request->qetaa_id ?: null,
+            $request->booking_date,
+            $request->time_from,
+            $request->time_to,
+            $request->user_note
+        );
 
         NotificationController::sendToRoles(
                  ['SuperAdmin', 'Secretary', 'AdminSecretary'],

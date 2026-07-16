@@ -58,16 +58,8 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
 
         public function insert(Request  $request)
         {
-            $lastPersonRoleID = DB::table('PersonRole')->orderBy('PersonRoleID','desc')->first();
-            
-            if($lastPersonRoleID==Null)
-                $thisPersonRoleID = 1;
-            else
-                $thisPersonRoleID = $lastPersonRoleID->PersonRoleID + 1;
-
             DB::table('PersonRole')->insert(
                 array(
-                    'PersonRoleID' => $thisPersonRoleID,
                     'PersonID' => $request -> person_id,
                     'RoleID' => $request -> role_id,
                     'RequestPersonID' => $request -> RequestPersonID,

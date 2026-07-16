@@ -57,11 +57,7 @@ class GroupController extends Controller
 
     public function insert(Request $request)
     {
-        $lastGroupID = DB::table('GroupTable')->orderBy('GroupID','desc')->first();
-        $thisGroupID = $lastGroupID ? $lastGroupID->GroupID + 1 : 1;
-
         DB::table('GroupTable')->insert([
-            'GroupID' => $thisGroupID,
             'GroupName' => $request->group_name,
             'GroupTypeID' => $request->group_type_id,
             'IncludedUnderGroupID' => $request->included_under_group_id

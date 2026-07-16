@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Domain\PlaceBooking\PlaceBookingService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -237,7 +238,7 @@ class PlaceBookingApiController extends Controller
     /**
      * POST /api/place_bookings
      */
-    public function store(Request $request)
+    public function store(Request $request, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -260,52 +261,30 @@ class PlaceBookingApiController extends Controller
             return response()->json(['ok' => false, 'message' => 'Invalid PlaceID'], 422);
         }
 
-        DB::beginTransaction();
         try {
-            $bookingId = DB::table('PlaceBookings')->insertGetId([
-                'PersonID'    => $personId,
-                'PlaceID'     => (int)$request->place_id,
-                'QetaaID'     => $request->qetaa_id ?: null,
+            $bookingId = $placeBookings->create(
+                $personId,
+                (int) $request->place_id,
+                $request->qetaa_id ?: null,
+                $request->booking_date,
+                $request->time_from,
+                $request->time_to,
+                $request->user_note
+            );
 
-                'BookingDate' => $request->booking_date,
-                'TimeFrom'    => $request->time_from,
-                'TimeTo'      => $request->time_to,
-
-                'UserNote'    => $request->user_note,
-
-                'Status'      => 'pending',
-
-                'AdminNote'   => null,
-                'ReviewedBy'  => null,
-                'ReviewedAt'  => null,
-
-                // approved fields are null until admin reviews
-                'ApprovedPlaceID'  => null,
-                'ApprovedTimeFrom' => null,
-                'ApprovedTimeTo'   => null,
-
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
-       DB::commit();
-      
-      
-       NotificationController::sendToRoles(
+            NotificationController::sendToRoles(
                 ['SuperAdmin', 'Secretary', 'AdminSecretary'],
                 'Room Booking',
                 $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a room booking on ' . $request->booking_date . ' from ' . $request->time_from . ' to ' . $request->time_to . '. Please review the request.'
             );
-     
 
             return response()->json([
                 'ok'        => true,
                 'message'   => 'Place booking created',
                 'BookingID' => (int)$bookingId,
             ], 201);
-            
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('PlaceBooking API: store failed', ['error' => $e->getMessage()]);
             return response()->json(['ok' => false, 'message' => 'Failed to create booking'], 500);
         }

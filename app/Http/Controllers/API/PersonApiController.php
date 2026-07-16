@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use App\Domain\Person\AuthenticatedPersonId;
 use App\Domain\Person\PersonApiQueryService;
+use App\Http\Resources\PersonResource;
 use App\Models\User;
 
 class PersonApiController extends Controller
@@ -156,7 +157,9 @@ public function showPersons(Request $request, PersonApiQueryService $query)
         ], 401);
     }
 
-    return response()->json(['persons' => $query->personsVisibleTo($userId)]);
+    return response()->json([
+        'persons' => PersonResource::collection($query->personsVisibleTo($userId))->resolve(),
+    ]);
 }
 
 

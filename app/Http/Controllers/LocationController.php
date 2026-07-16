@@ -25,11 +25,7 @@ class LocationController extends Controller
             'LocationName' => 'required|string|max:100',
         ]);
 
-        $last = DB::table('Locations')->orderBy('LocationID', 'desc')->first();
-        $thisID = ($last == null) ? 1 : ($last->LocationID + 1);
-
         DB::table('Locations')->insert([
-            'LocationID' => $thisID,
             'LocationName' => $request->LocationName, 
         ]);
 

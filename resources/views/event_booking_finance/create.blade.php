@@ -2,13 +2,13 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-5xl mx-auto border-2 border-blue-300">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-8 w-full max-w-5xl mx-auto border-2 border-blue-300 dark:border-slate-700">
             <div class="mb-6 text-center">
-                <h2 class="text-xl font-bold text-gray-800">{{ __('Create new booking + first payment') }}</h2>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-100">{{ __('Create new booking + first payment') }}</h2>
             </div>
 
             @if ($errors->any())
-                <div class="mb-6 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-3">
+                <div class="mb-6 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-slate-700 text-red-800 dark:text-red-200 px-4 py-3">
                     <ul class="list-disc pr-5 space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+            <div class="mb-6 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-blue-950/40 p-4 text-sm text-blue-900 dark:text-blue-200">
                 <div><strong>{{ __('Season:') }}</strong> {{ $event->SeasonName }} ({{ $event->SeasonYear }})</div>
                 <div><strong>{{ __('Event:') }}</strong> {{ $event->EventTypeName }} - {{ $event->EventName }}</div>
                 <div><strong>{{ __('Event start:') }}</strong> {{ $event->EventStartDate }}</div>
@@ -32,17 +32,17 @@
 
                 <div class="space-y-6">
                     <div>
-                        <label class="block mb-2 text-sm text-gray-700">{{ __('Search for eligible person') }}</label>
+                        <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Search for eligible person') }}</label>
                         <input type="text" id="person-search"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
                             placeholder="{{ __('Search by name, PersonID, or mobile') }}">
                         <input type="hidden" name="person_id" id="person_id" value="{{ old('person_id') }}">
                         <div id="search-results"
-                            class="mt-2 border rounded-lg bg-white shadow hidden max-h-80 overflow-y-auto"></div>
+                            class="mt-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 shadow hidden max-h-80 overflow-y-auto"></div>
                     </div>
 
                     <div id="selected-person-box"
-                        class="hidden rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-900">
+                        class="hidden rounded-lg border border-green-200 dark:border-slate-700 bg-green-50 dark:bg-green-950/40 p-4 text-sm text-green-900 dark:text-green-200">
                         <div><strong>{{ __('Name:') }}</strong> <span id="selected-person-name"></span></div>
                         <div><strong>PersonID:</strong> <span id="selected-person-id"></span></div>
                         <div><strong>{{ __('Mobile:') }}</strong> <span id="selected-person-mobile"></span></div>
@@ -52,24 +52,24 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">{{ __('First payment date') }}</label>
+                            <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment date') }}</label>
                             <input type="text" value="{{ now()->format('Y-m-d') }}" readonly
-                                class="w-full h-12 px-4 border rounded-lg text-right bg-gray-100 border-slate-200 text-slate-600 cursor-not-allowed">
+                                class="w-full h-12 px-4 border rounded-lg text-right bg-gray-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed">
 
                             <input type="hidden" name="first_payment_date" value="{{ now()->format('Y-m-d') }}">
                         </div>
 
                         <div>
-                            <label class="block mb-2 text-sm text-gray-700">{{ __('First payment amount') }}</label>
+                            <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment amount') }}</label>
                             <input type="number" step="0.01" min="0.01" name="first_payment_amount"
                                 value="{{ old('first_payment_amount') }}" id="first_payment_amount"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                         </div>
                         @if ((int) $plan->HaveShirt === 1)
                             <div>
-                                <label class="block mb-2 text-sm text-gray-700">{{ __('T-shirt size') }}</label>
+                                <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('T-shirt size') }}</label>
                                 <select name="shirt_size" id="shirt_size"
-                                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                                     <option value="">{{ __('-- Choose size --') }}</option>
                                     <option value="XS" {{ old('shirt_size') === 'XS' ? 'selected' : '' }}>XS</option>
                                     <option value="S" {{ old('shirt_size') === 'S' ? 'selected' : '' }}>S</option>
@@ -86,34 +86,34 @@
                         @endif
                     </div>
 
-                    <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
+                    <div class="rounded-lg border border-indigo-200 dark:border-slate-700 bg-indigo-50 dark:bg-indigo-950/40 p-4 text-sm text-indigo-900 dark:text-indigo-200">
                         <div><strong>{{ __('Current installment number:') }}</strong> 1</div>
                         <div><strong>{{ __('Max installments in the plan:') }}</strong> {{ $plan->MaxInstallmentsNumber }}</div>
 
                         @if ((int) $plan->MaxInstallmentsNumber === 1)
-                            <div class="mt-2 text-red-700 font-bold">{{ __('This event has only one installment, so the full amount must be paid in the first payment.') }}</div>
+                            <div class="mt-2 text-red-700 dark:text-red-300 font-bold">{{ __('This event has only one installment, so the full amount must be paid in the first payment.') }}</div>
                         @else
-                            <div class="mt-2 text-green-700">
+                            <div class="mt-2 text-green-700 dark:text-green-300">
                                 {{ __('After recording the first payment, remaining installments can be added up to :count installments.', ['count' => $plan->MaxInstallmentsNumber]) }}
                             </div>
                         @endif
                     </div>
 
-                    <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                    <div class="rounded-lg border border-orange-200 dark:border-slate-700 bg-orange-50 dark:bg-orange-950/40 p-4">
                         <div class="mb-4">
                             <label class="inline-flex items-center gap-2">
                                 <input type="checkbox" id="is_not_able_to_pay_all" name="is_not_able_to_pay_all"
                                     value="1" {{ old('is_not_able_to_pay_all') ? 'checked' : '' }}>
-                                <span class="text-sm text-gray-800">{{ __('Unable to pay the full amount') }}</span>
+                                <span class="text-sm text-gray-800 dark:text-slate-100">{{ __('Unable to pay the full amount') }}</span>
                             </label>
                         </div>
                         <input type="hidden" name="booking_type" value="PERSON">
                         <div id="special-options-box" class="{{ old('is_not_able_to_pay_all') ? '' : 'hidden' }}">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
-                                    <label class="block mb-2 text-sm text-gray-700">{{ __('Case type') }}</label>
+                                    <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Case type') }}</label>
                                     <select name="special_case_type" id="special_case_type"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
+                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                         <option value="NONE">{{ __('None') }}</option>
                                         <option value="AKHOH_RAB"
                                             {{ old('special_case_type') === 'AKHOH_RAB' ? 'selected' : '' }}>{{ __('Brotherhood case') }}</option>
@@ -126,33 +126,33 @@
 
                                 <div id="discount-box"
                                     class="{{ in_array(old('special_case_type'), ['AKHOH_RAB', 'HAS_BROTHERS', 'OTHER']) ? '' : 'hidden' }}">
-                                    <label class="block mb-2 text-sm text-gray-700">{{ __('Discount amount') }}</label>
+                                    <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Discount amount') }}</label>
                                     <input type="number" step="0.01" min="0" name="discount_amount"
                                         id="discount_amount" value="{{ old('discount_amount', 0) }}"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
+                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                 </div>
 
                                 <div id="note-box"
                                     class="{{ old('special_case_type') === 'OTHER' || old('special_case_type') === 'AKHOH_RAB' ? '' : 'hidden' }}">
-                                    <label class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
+                                    <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Notes') }}</label>
                                     <input type="text" name="special_case_note" id="special_case_note"
                                         value="{{ old('special_case_note') }}"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
+                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     @if ((int) $plan->AllowBelowMinimumDeposit === 1)
-                        <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">{{ __('If the first payment is below the minimum deposit, only a warning is shown and you can continue.') }}</div>
+                        <div class="rounded-lg border border-yellow-200 dark:border-slate-700 bg-yellow-50 dark:bg-yellow-950/40 p-4 text-sm text-yellow-800 dark:text-yellow-200">{{ __('If the first payment is below the minimum deposit, only a warning is shown and you can continue.') }}</div>
                     @endif
 
                     <div class="flex justify-center gap-3">
                         <a href="{{ route('eventBookingFinance.index', $event->SeasonEventID) }}"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition">{{ __('Back') }}</a>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-700 transition">{{ __('Back') }}</a>
 
                         <button type="submit" id="submit-btn"
-                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-600 transition">{{ __('Save and print receipt') }}</button>
+                            class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-500 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/60 hover:text-blue-600 dark:hover:text-blue-100 transition">{{ __('Save and print receipt') }}</button>
                     </div>
                 </div>
             </form>
@@ -240,7 +240,7 @@
 
                             if (!data.length) {
                                 resultsBox.innerHTML =
-                                    '<div class="p-3 text-sm text-gray-500">{{ __('No results') }}</div>';
+                                    '<div class="p-3 text-sm text-gray-500 dark:text-slate-400">{{ __('No results') }}</div>';
                                 return;
                             }
 
@@ -248,24 +248,24 @@
                                 const item = document.createElement('div');
                                 const disabled = parseInt(person.IsBlacklisted) === 1 ||
                                     parseInt(person.AlreadyBooked) === 1;
-                                item.className = 'p-3 border-b last:border-b-0';
+                                item.className = 'p-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0';
 
                                 let statusBadges = '';
                                 if (parseInt(person.IsBlacklisted) === 1) {
                                     statusBadges +=
-                                        '<span class="inline-block bg-red-100 text-red-700 px-2 py-1 rounded text-xs ml-1">{{ __('Blacklisted') }}</span>';
+                                        '<span class="inline-block bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200 px-2 py-1 rounded text-xs ml-1">{{ __('Blacklisted') }}</span>';
                                 }
                                 if (parseInt(person.IsSpecialCase) === 1) {
                                     statusBadges +=
-                                        '<span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs ml-1">{{ __('Brotherhood case') }}</span>';
+                                        '<span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded text-xs ml-1">{{ __('Brotherhood case') }}</span>';
                                 }
                                 if (parseInt(person.AlreadyBooked) === 1) {
                                     statusBadges +=
-                                        '<span class="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs ml-1">{{ __('Already booked') }}</span>';
+                                        '<span class="inline-block bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 px-2 py-1 rounded text-xs ml-1">{{ __('Already booked') }}</span>';
                                 }
 
                                 const content = `
-                                    <div class="${disabled ? 'line-through text-gray-400' : 'text-gray-800 cursor-pointer'}">
+                                    <div class="${disabled ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-800 dark:text-slate-100 cursor-pointer'}">
                                         <div class="font-bold">${escapeHtml(person.PersonFullName)}</div>
                                         <div class="text-xs mt-1">PersonID: ${escapeHtml(person.PersonID)}</div>
                                         <div class="text-xs">${@json(__('Mobile:'))} ${escapeHtml(person.PersonPersonalMobileNumber ?? '-')}</div>

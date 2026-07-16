@@ -30,16 +30,8 @@ class BetakaTakaddomController extends Controller
 
         public function insert(Request  $request)
         {
-            $lastBetakaID = DB::table('EgazetBetakatTaqaddom')->orderBy('EgazetBetakatTaqaddomID','desc')->first();
-
-            if($lastBetakaID==Null)
-                $thisBetakaID = 1;
-            else
-                $thisBetakaID = $lastBetakaID->EgazetBetakatTaqaddomID + 1;
-
             DB::table('EgazetBetakatTaqaddom')->insert(
                 array(
-                    'EgazetBetakatTaqaddomID' => $thisBetakaID,
                     'EgazetBetakatTaqaddomName' => $request -> betaka_name
                 )
             );

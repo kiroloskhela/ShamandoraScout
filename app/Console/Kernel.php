@@ -12,10 +12,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-     $schedule->command('sanctum:prune-expired --hours=24')
-    ->daily()
-    ->appendOutputTo(storage_path('logs/sanctum_prune.log'));
+        $schedule->command('sanctum:prune-expired --hours=24')
+            ->daily()
+            ->appendOutputTo(storage_path('logs/sanctum_prune.log'));
 
+        $schedule->command('queue:report-failed --threshold=1')
+            ->hourly()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/failed_jobs_report.log'));
     }
 
     /**

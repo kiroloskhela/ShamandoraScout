@@ -30,16 +30,8 @@ class CurriculaCategoryController extends Controller
 
         public function insert(Request  $request)
         {
-            $lastCurriculaCategoryID = DB::table('CurriculaCategory')->orderBy('CurriculaCategoryID','desc')->first();
-
-            if($lastCurriculaCategoryID==Null)
-                $thisCurriculaCategoryID = 1;
-            else
-                $thisCurriculaCategoryID = $lastCurriculaCategoryID->CurriculaCategoryID + 1;
-
             DB::table('CurriculaCategory')->insert(
                 array(
-                    'CurriculaCategoryID' => $thisCurriculaCategoryID,
                     'CurriculaCategoryName' => $request -> CurriculaCategoryName,
                 )
             );

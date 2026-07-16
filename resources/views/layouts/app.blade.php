@@ -89,6 +89,10 @@
 </head>
 
 <body class="bg-gray-50 dark:bg-slate-950 min-h-screen">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:{{ $isRtl ? 'right-3' : 'left-3' }} focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-blue-600 focus:text-white focus:shadow-lg">
+        {{ __('Skip to main content') }}
+    </a>
     <!-- Main Layout Container -->
     <div class="flex flex-col min-h-screen bg-gray-50 dark:bg-slate-950">
         <!-- Main Wrapper -->
@@ -619,7 +623,7 @@
             </aside>
 
             <!-- Main Content Area -->
-            <main class="flex-1 flex flex-col min-w-0 w-full bg-gray-50 dark:bg-slate-950">
+            <main id="main-content" class="flex-1 flex flex-col min-w-0 w-full bg-gray-50 dark:bg-slate-950" tabindex="-1">
                 <!-- Header Bar -->
                 <header class="bg-white/95 dark:bg-slate-900/90 shadow-sm border-b border-gray-200 dark:border-slate-800/80 px-4 py-3 sticky top-0 z-10 backdrop-blur-md"
                     style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">

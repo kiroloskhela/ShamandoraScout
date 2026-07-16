@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Custody\CustodyRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class CustodyRequestController extends Controller
     }
 
     // حفظ الطلب
-    public function store(Request $request)
+    public function store(Request $request, CustodyRequestService $custodyRequests)
     {
         $personId = $this->currentPersonId();
         if (!$personId) {
@@ -88,43 +89,16 @@ class CustodyRequestController extends Controller
             ];
         }
 
-        DB::beginTransaction();
         try {
-            $requestId = DB::table('CustodyRequests')->insertGetId([
-                'PersonID'    => $personId,
-                'QetaaID'     => $request->qetaa_id,
-                'EventTypeID' => $request->event_type_id,
-
-                'DateFrom'    => $request->date_from,
-                'DateTo'      => $request->date_to,
-
-                'Status'      => 'pending',
-                'UserNote'    => $request->user_note,
-                'AdminNote'   => null,
-                'ReviewedBy'  => null,
-                'ReviewedAt'  => null,
-
-                'created_at'  => now(),
-                'updated_at'  => now(),
-            ]);
-
-            foreach ($normalizedItems as $ni) {
-                DB::table('CustodyRequestItems')->insert([
-                    'RequestID'        => $requestId,
-                    'InventoryID'      => $ni['InventoryID'],
-                    'ItemNameSnapshot' => $ni['ItemNameSnapshot'],
-                    'ItemUnitSnapshot' => $ni['ItemUnitSnapshot'],
-                    'QtyRequested'     => $ni['QtyRequested'],
-
-                    'QtyApproved'      => null,
-                    'AdminItemNote'    => null,
-
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ]);
-            }
-
-            DB::commit();
+            $requestId = $custodyRequests->create(
+                $personId,
+                $request->date_from,
+                $request->date_to,
+                $request->qetaa_id ?: null,
+                $request->event_type_id ?: null,
+                $request->user_note,
+                $normalizedItems
+            );
 
             NotificationController::sendToRoles(
             ['SuperAdmin' ,'AdminInventory','Inventory'],
@@ -211,7 +185,6 @@ class CustodyRequestController extends Controller
             return redirect()->route('custody_requests.my')
                 ->with('success', '✅ تم إرسال طلب العهدة بنجاح وهو الآن قيد المراجعة.');
         } catch (\Throwable $e) {
-            DB::rollBack();
             return back()->with('error', '❌ حدث خطأ أثناء حفظ الطلب.')->withInput();
         }
     }

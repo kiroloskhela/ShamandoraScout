@@ -38,9 +38,6 @@ class MarhalaEntryQuestionsController extends Controller
 
 public function insert(Request $request)
 {
-    $lastQuestionID = DB::table('MarhalaEntryQuestions')->orderBy('QuestionID','desc')->first();
-    $thisQuestionID = $lastQuestionID ? ($lastQuestionID->QuestionID + 1) : 1;
-
     $num = (int) $request->input('memberA', 0);
     if ($num > 6) { $num = 6; }
 
@@ -60,8 +57,7 @@ public function insert(Request $request)
     $stringOfChoices = implode('|', $choices);
     $isRequired = $request->has('questionIsRequired') ? 1 : 0;
 
-    DB::table('MarhalaEntryQuestions')->insert([
-        'QuestionID'          => $thisQuestionID,
+    $thisQuestionID = DB::table('MarhalaEntryQuestions')->insertGetId([
         'QetaaID'             => $request->qetaa_id,
         'QuestionText'        => $request->question_text,
         'RequiredAnswerType'  => $request->required_answer_type,

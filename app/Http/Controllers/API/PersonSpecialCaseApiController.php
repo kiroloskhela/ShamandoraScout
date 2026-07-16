@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Domain\SpecialCase\PersonSpecialCaseService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -414,7 +415,7 @@ class PersonSpecialCaseApiController extends Controller
     /**
      * POST /api/person-special-cases
      */
-    public function store(Request $request)
+    public function store(Request $request, PersonSpecialCaseService $specialCases)
     {
         if ($deny = $this->denyIfNoSpecialCaseAccess()) {
             return $deny;
@@ -453,12 +454,11 @@ class PersonSpecialCaseApiController extends Controller
             ], 409);
         }
 
-        $specialCaseId = DB::table('PersonSpecialCase')->insertGetId([
-            'PersonID'  => (int) $data['person_id'],
-            'ServentID' => (int) $userPersonId,
-            'CaseDate'  => now(),
-            'Note'      => $data['note'] ?? null,
-        ]);
+        $specialCaseId = $specialCases->create(
+            (int) $data['person_id'],
+            (int) $userPersonId,
+            $data['note'] ?? null
+        );
 
         $case = $this->getAllowedCase((int) $specialCaseId, $userPersonId);
 
