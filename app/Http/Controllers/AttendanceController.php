@@ -131,15 +131,34 @@ class AttendanceController extends Controller
             'attendance.*.excuse'    => 'nullable|string|max:1000',
         ]);
 
+        $allowedQetaas = $this->allowedQetaas((int) $serventId, (int) $seasonEventId);
+        if (empty($allowedQetaas)) {
+            abort(403, 'Not allowed to take attendance for this event');
+        }
+
+        $allowedPersonIds = DB::table('PersonQetaa')
+            ->whereIn('QetaaID', $allowedQetaas)
+            ->pluck('PersonID')
+            ->map(fn ($v) => (int) $v)
+            ->flip()
+            ->toArray();
+
         $rows = [];
 
         foreach ((array) $request->input('attendance', []) as $personId => $data) {
+            $personId = (int) $personId;
+
+            // Silently skip any PersonID the servant has no authority over
+            if (! isset($allowedPersonIds[$personId])) {
+                continue;
+            }
+
             $status = $data['status'];
             $excuse = ($status === 'excused') ? ($data['excuse'] ?? null) : null;
 
             $rows[] = [
                 'SeasonEventID'    => (int) $seasonEventId,
-                'ServedID'         => (int) $personId,
+                'ServedID'         => $personId,
                 'ServentID'        => (int) $serventId,
                 'AttendanceStatus' => $status,
                 'Excuse'           => $excuse,
@@ -162,5 +181,43 @@ class AttendanceController extends Controller
             'season_id'       => $request->season_id,
             'season_event_id' => $seasonEventId,
         ])->with('success', 'تم حفظ الحضور بنجاح');
+    }
+
+    /**
+     * Intersection of the servant's Qetaas (via groups) and the event's Qetaas.
+     * Mirrors AttendanceApiController::allowedQetaas.
+     */
+    private function allowedQetaas(int $serventId, int $seasonEventId): array
+    {
+        $eventId = DB::table('SeasonEvent')
+            ->where('SeasonEventID', $seasonEventId)
+            ->value('EventID');
+
+        if (! $eventId) {
+            return [];
+        }
+
+        $myGroups = DB::table('PersonGroup')
+            ->where('PersonID', $serventId)
+            ->pluck('GroupID')
+            ->toArray();
+
+        if (empty($myGroups)) {
+            return [];
+        }
+
+        $myQetaas = DB::table('GroupQetaa')
+            ->whereIn('GroupID', $myGroups)
+            ->pluck('QetaaID')
+            ->map(fn ($v) => (int) $v)
+            ->toArray();
+
+        $eventQetaas = DB::table('EventQetaa')
+            ->where('EventID', $eventId)
+            ->pluck('QetaaID')
+            ->map(fn ($v) => (int) $v)
+            ->toArray();
+
+        return array_values(array_intersect($myQetaas, $eventQetaas));
     }
 }

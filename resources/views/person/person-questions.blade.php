@@ -113,17 +113,16 @@
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 
-                            <!-- Password -->
-                            <div class="md:col-span-4">
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">كلمة السر</label>
-                                <input type="text" readonly value="{{ $person->Password }}"
-                                    class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                            </div>
-
                             <!-- Sector -->
                             <div class="md:col-span-4">
                                 <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Sector') }}</label>
                                 <input type="text" readonly value="{{ $person->QetaaName }}"
+                                    class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-4">
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">كلمة السر</label>
+                                <input type="text" readonly value="مخفية — أعد التعيين من إدارة كلمات المرور"
                                     class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
                             </div>
 

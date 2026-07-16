@@ -3,9 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Person record access: own PersonID, or SuperAdmin / AdminQetaa.
+ * Person record access: own PersonID, SuperAdmin (any), or AdminQetaa (shared Qetaa only).
  */
 class PersonPolicy
 {
@@ -25,8 +26,27 @@ class PersonPolicy
             return true;
         }
 
-        return $user->role()
-            ->whereIn('RoleName', ['SuperAdmin', 'AdminQetaa'])
+        $roleNames = $user->role()->pluck('RoleName');
+
+        if ($roleNames->contains('SuperAdmin')) {
+            return true;
+        }
+
+        if (! $roleNames->contains('AdminQetaa')) {
+            return false;
+        }
+
+        $adminQetaas = DB::table('PersonQetaa')
+            ->where('PersonID', $user->PersonID)
+            ->pluck('QetaaID');
+
+        if ($adminQetaas->isEmpty()) {
+            return false;
+        }
+
+        return DB::table('PersonQetaa')
+            ->where('PersonID', $person->PersonID)
+            ->whereIn('QetaaID', $adminQetaas)
             ->exists();
     }
 }

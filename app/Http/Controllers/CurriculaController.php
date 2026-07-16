@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class CurriculaController extends Controller
 {
 public function index()
 {
+    Gate::authorize('curricula.view');
+
     $curricula = DB::table('Curricula as c')
         ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
         ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
@@ -35,6 +38,8 @@ public function index()
 
     public function create()
     {
+        Gate::authorize('curricula.create');
+
         $categories = DB::table('CurriculaCategory')->get();
         $marhalat   = DB::table('Marhala')->get();
 
@@ -43,6 +48,8 @@ public function index()
 
     public function upload(Request $request)
     {
+        Gate::authorize('curricula.create');
+
         $request->validate([
             'curricula_name'        => 'required|string|max:255',
             'curricula_file'        => 'required|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:10240',
@@ -81,6 +88,8 @@ public function index()
 
     public function edit($id)
     {
+        Gate::authorize('curricula.update');
+
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
         if (!$curriculum) {
             return redirect()->route('Curricula.index')->with('error', '❌ Curriculum not found.');
@@ -94,6 +103,8 @@ public function index()
 
     public function download($id)
     {
+        Gate::authorize('curricula.view');
+
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
 
         if (!$curriculum || empty($curriculum->CurriculaPath)) {
@@ -110,6 +121,8 @@ public function index()
 
     public function updates(Request $request, $id)
     {
+        Gate::authorize('curricula.update');
+
         $request->validate([
             'curricula_name'        => 'required|string|max:255',
             'curricula_category_id' => 'required|integer',
@@ -128,6 +141,8 @@ public function index()
 
     public function delete($id)
     {
+        Gate::authorize('curricula.delete');
+
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
         return view('Curricula.delete', compact('curriculum'));
     }
@@ -140,6 +155,8 @@ public function index()
 
     public function destroy($id)
     {
+        Gate::authorize('curricula.delete');
+
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
 
         if ($curriculum && !empty($curriculum->CurriculaPath)) {

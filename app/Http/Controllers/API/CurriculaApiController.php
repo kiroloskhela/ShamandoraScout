@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class CurriculaApiController extends Controller
@@ -72,6 +73,8 @@ class CurriculaApiController extends Controller
 
     public function index(Request $request)
     {
+        Gate::authorize('curricula.view');
+
         $limit = (int) ($request->query('limit', 50));
         $limit = max(1, min($limit, 200));
 
@@ -127,6 +130,8 @@ class CurriculaApiController extends Controller
      */
     public function show(int $id)
     {
+        Gate::authorize('curricula.view');
+
         $item = DB::table('Curricula as c')
             ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
             ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
@@ -159,6 +164,8 @@ class CurriculaApiController extends Controller
      */
     public function download(int $id)
     {
+        Gate::authorize('curricula.view');
+
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
 
         if (!$curriculum || empty($curriculum->CurriculaPath)) {
@@ -181,6 +188,8 @@ class CurriculaApiController extends Controller
      */
     public function meta()
     {
+        Gate::authorize('curricula.view');
+
         $categories = DB::table('CurriculaCategory')
             ->select('CurriculaCategoryID', 'CurriculaCategoryName') // change if needed
             ->orderBy('CurriculaCategoryName')

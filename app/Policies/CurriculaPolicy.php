@@ -2,20 +2,19 @@
 
 namespace App\Policies;
 
-use App\Models\Game;
 use App\Models\User;
 
 /**
- * Games: any authenticated user may view; only SuperAdmin may mutate.
+ * Curricula: any authenticated user may view/download; only SuperAdmin may mutate.
  */
-class GamePolicy
+class CurriculaPolicy
 {
     public function viewAny(User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Game $game): bool
+    public function view(User $user): bool
     {
         return true;
     }
@@ -25,12 +24,12 @@ class GamePolicy
         return $this->isSuperAdmin($user);
     }
 
-    public function update(User $user, Game $game): bool
+    public function update(User $user): bool
     {
         return $this->isSuperAdmin($user);
     }
 
-    public function delete(User $user, Game $game): bool
+    public function delete(User $user): bool
     {
         return $this->isSuperAdmin($user);
     }

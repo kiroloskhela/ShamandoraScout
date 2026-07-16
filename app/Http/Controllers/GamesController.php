@@ -19,17 +19,20 @@ class GamesController extends Controller
      */
  public function index()
 {
+    $this->authorize('viewAny', \App\Models\Game::class);
     $games = DB::table('Games')->get();
     return view('games.index', compact('games'));
 }
 
     public function create()
     {
+        $this->authorize('create', \App\Models\Game::class);
         return view("games.create");
     }
 
     public function insert(Request $request)
     {
+        $this->authorize('create', \App\Models\Game::class);
         // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
         DB::table('Games')->insert([
             'Title' => $request->title,
@@ -53,6 +56,7 @@ class GamesController extends Controller
      */
      public function show($id)
     {
+        $this->authorize('viewAny', \App\Models\Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
         return view("games.show", array('game' => $game, 'title' => "تفاصيل اللعبة"));
     }
@@ -66,12 +70,14 @@ class GamesController extends Controller
      */
     public function edit($id)
     {
+        $this->authorize('create', \App\Models\Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
         return view("games.edit", array('game' => $game, 'title' => "تعديل لعبة"));
     }
 
     public function updates(Request $request, $id)
     {
+        $this->authorize('create', \App\Models\Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         $affected = DB::table('Games')->where('GameID', $id)->update([
@@ -92,12 +98,14 @@ class GamesController extends Controller
    
     public function deletes($id)
     {
+        $this->authorize('create', \App\Models\Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
         return view("games.delete", array('game' => $game, 'title' => "حذف لعبة"));
     }
 
     public function destroy($id)
     {
+        $this->authorize('create', \App\Models\Game::class);
         $deleted = DB::table('Games')->where('GameID', $id)->delete();
 
         return redirect()->route('games.index')->with('status', 'تم حذف اللعبة بنجاح');

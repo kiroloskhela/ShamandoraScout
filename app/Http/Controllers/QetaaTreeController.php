@@ -16,7 +16,8 @@ class QetaaTreeController extends Controller
 
     public function index(Request $request)
     {
-        $userId = $request->query('id') ?? Auth::id();
+        // Never trust spoofable ?id= — always scope the tree to the authenticated user.
+        $userId = Auth::id();
         $servedQetaaIds = $this->servedQetaaIds($userId);
         [$seasons, $currentSeasonId] = $this->seasonContext($request);
         $servedQetaas = DB::table('Qetaa')

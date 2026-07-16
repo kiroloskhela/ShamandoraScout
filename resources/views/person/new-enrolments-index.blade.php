@@ -102,7 +102,7 @@
                 [
                     'name' => 'fill',
                     'label' => __('Complete questions'),
-                    'route' => route('person.liveform-resume-questions', ':id'),
+                    'route' => route('person.new-enrolments-resume-questions', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200',

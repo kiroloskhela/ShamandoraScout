@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use App\Domain\Enrolment\LiveFormCapacityService;
 use App\Domain\Enrolment\LiveFormSubmitService;
 
@@ -399,6 +400,7 @@ public function getLiveformQuestions()
     'person' => $person,
     'existingAnswers' => [],
     'is_resume_mode' => false,
+    'resume_submit_url' => route('person.entry-questions-submit-liveform'),
 ]);
 }
 
@@ -715,11 +717,20 @@ public function resumeLegacyLiveformQuestions($id)
         ->where('PersonID', $id)
         ->pluck('Answer', 'QuestionID');
 
+    $isAdminResume = request()->routeIs('person.new-enrolments-resume-questions');
+
     return view('person.person-questions-liveform', [
         'person' => $person,
         'questions' => $questions,
         'existingAnswers' => $existingAnswers,
         'is_resume_mode' => true,
+        'resume_submit_url' => $isAdminResume
+            ? route('person.new-enrolments-resume-questions-submit', $id)
+            : URL::temporarySignedRoute(
+                'person.liveform-resume-questions-submit',
+                now()->addHours(6),
+                ['id' => $id]
+            ),
     ]);
 }
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * Games write endpoints are open to any authenticated Sanctum user (any role).
+ * Games writes require SuperAdmin. Any authenticated user may list/view.
  * These legacy tables are not managed by Laravel migrations, so the test
  * builds a minimal sqlite schema for this suite only.
  */
@@ -124,9 +124,21 @@ class GamesApiAuthorizationTest extends TestCase
         $this->assertDatabaseCount('Games', 0);
     }
 
-    public function test_store_is_allowed_for_any_authenticated_role(): void
+    public function test_store_is_forbidden_for_non_superadmin(): void
     {
         $headers = $this->authHeadersForRoles(['Servant']);
+
+        $response = $this->withHeaders($headers)->postJson('/api/games', [
+            'title' => 'New Game',
+        ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseCount('Games', 0);
+    }
+
+    public function test_store_is_allowed_for_superadmin(): void
+    {
+        $headers = $this->authHeadersForRoles(['SuperAdmin']);
 
         $response = $this->withHeaders($headers)->postJson('/api/games', [
             'title' => 'New Game',
@@ -137,7 +149,7 @@ class GamesApiAuthorizationTest extends TestCase
         $this->assertDatabaseCount('Games', 1);
     }
 
-    public function test_update_is_allowed_for_any_authenticated_role(): void
+    public function test_update_is_forbidden_for_non_superadmin(): void
     {
         $gameId = $this->seedGame();
         $headers = $this->authHeadersForRoles(['Finance']);
@@ -146,22 +158,22 @@ class GamesApiAuthorizationTest extends TestCase
             'title' => 'Updated Title',
         ]);
 
-        $response->assertStatus(200);
+        $response->assertForbidden();
         $this->assertDatabaseHas('Games', [
             'GameID' => $gameId,
-            'Title' => 'Updated Title',
+            'Title' => 'Original Title',
         ]);
     }
 
-    public function test_destroy_is_allowed_for_any_authenticated_role(): void
+    public function test_destroy_is_forbidden_for_non_superadmin(): void
     {
         $gameId = $this->seedGame();
         $headers = $this->authHeadersForRoles(['Inventory']);
 
         $response = $this->withHeaders($headers)->deleteJson("/api/games/{$gameId}");
 
-        $response->assertStatus(200);
-        $this->assertDatabaseMissing('Games', ['GameID' => $gameId]);
+        $response->assertForbidden();
+        $this->assertDatabaseHas('Games', ['GameID' => $gameId]);
     }
 
     public function test_index_remains_accessible_to_any_authenticated_user(): void

@@ -17,6 +17,7 @@ class AuthPoliciesPhase1Test extends TestCase
     {
         parent::setUp();
 
+        Schema::dropIfExists('PersonQetaa');
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonInformation');
@@ -40,6 +41,12 @@ class AuthPoliciesPhase1Test extends TestCase
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('RoleID');
             $table->unsignedInteger('RequestPersonID')->nullable();
+        });
+
+        Schema::create('PersonQetaa', function (Blueprint $table) {
+            $table->increments('PersonQetaaID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('QetaaID');
         });
     }
 
@@ -69,11 +76,21 @@ class AuthPoliciesPhase1Test extends TestCase
         ]);
     }
 
-    public function test_games_gates_allow_authenticated_user(): void
+    public function test_games_gates_allow_view_but_deny_mutate_for_regular_user(): void
     {
         $user = $this->createUser();
 
         $this->assertTrue(Gate::forUser($user)->allows('games.view'));
+        $this->assertTrue(Gate::forUser($user)->denies('games.create'));
+        $this->assertTrue(Gate::forUser($user)->denies('games.update'));
+        $this->assertTrue(Gate::forUser($user)->denies('games.delete'));
+    }
+
+    public function test_games_gates_allow_mutate_for_superadmin(): void
+    {
+        $user = $this->createUser();
+        $this->attachRole($user, 'SuperAdmin');
+
         $this->assertTrue(Gate::forUser($user)->allows('games.create'));
         $this->assertTrue(Gate::forUser($user)->allows('games.update'));
         $this->assertTrue(Gate::forUser($user)->allows('games.delete'));
@@ -87,17 +104,17 @@ class AuthPoliciesPhase1Test extends TestCase
         $this->assertTrue(Gate::forUser(null)->denies('games.view'));
     }
 
-    public function test_game_policy_allows_authenticated_user(): void
+    public function test_game_policy_allows_view_but_denies_mutate_for_regular_user(): void
     {
         $user = $this->createUser();
         $policy = new GamePolicy();
         $game = new \App\Models\Game();
 
         $this->assertTrue($policy->viewAny($user));
-        $this->assertTrue($policy->create($user));
         $this->assertTrue($policy->view($user, $game));
-        $this->assertTrue($policy->update($user, $game));
-        $this->assertTrue($policy->delete($user, $game));
+        $this->assertFalse($policy->create($user));
+        $this->assertFalse($policy->update($user, $game));
+        $this->assertFalse($policy->delete($user, $game));
     }
 
     public function test_person_policy_allows_own_record(): void
@@ -133,14 +150,23 @@ class AuthPoliciesPhase1Test extends TestCase
         $this->assertTrue($policy->update($admin, $target));
     }
 
-    public function test_person_policy_allows_admin_qetaa_on_other(): void
+    public function test_person_policy_allows_admin_qetaa_on_shared_qetaa_only(): void
     {
         $admin = $this->createUser('AQ1');
         $this->attachRole($admin, 'AdminQetaa');
-        $target = $this->createUser('T3');
+        $shared = $this->createUser('T3');
+        $other = $this->createUser('T4');
         $policy = new PersonPolicy();
 
-        $this->assertTrue($policy->view($admin, $target));
-        $this->assertTrue($policy->update($admin, $target));
+        DB::table('PersonQetaa')->insert([
+            ['PersonID' => $admin->PersonID, 'QetaaID' => 1],
+            ['PersonID' => $shared->PersonID, 'QetaaID' => 1],
+            ['PersonID' => $other->PersonID, 'QetaaID' => 2],
+        ]);
+
+        $this->assertTrue($policy->view($admin, $shared));
+        $this->assertTrue($policy->update($admin, $shared));
+        $this->assertFalse($policy->view($admin, $other));
+        $this->assertFalse($policy->update($admin, $other));
     }
 }

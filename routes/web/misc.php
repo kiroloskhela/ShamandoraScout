@@ -78,15 +78,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/media/pages/events', [MediaController::class, 'getEventsForPages'])->name('media.getEventsForPages');
     Route::get('/media/pages/media', [MediaController::class, 'getMediaForEvent'])->name('media.getMediaForEvent');
 
-    // Curricula
+    // Curricula (read for any auth user; writes SuperAdmin via controller authorize)
     Route::get('/curricula', [CurriculaController::class, 'index'])->name('curricula.index');
-    Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
-    Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
-    Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
-    Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
-    Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
-    Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
     Route::get('/curricula/download/{id}', [CurriculaController::class, 'download'])->name('curricula.download');
+    Route::middleware(['checkAuth:SuperAdmin'])->group(function () {
+        Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
+        Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
+        Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
+        Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
+        Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
+        Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
+    });
 
     // Attendance
     Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
@@ -107,11 +109,13 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/games', [GamesController::class, 'index'])->name('games.index');
-    Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
-    Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
-    Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
-    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
-    Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
-    Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
     Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
+    Route::middleware(['checkAuth:SuperAdmin'])->group(function () {
+        Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
+        Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
+        Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
+        Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+        Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
+        Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
+    });
 });

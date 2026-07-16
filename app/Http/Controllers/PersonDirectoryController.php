@@ -476,7 +476,7 @@ public function changePersonQetaa(Request $request, $id)
 
         return redirect()
             ->route('person.entry-questions', $created['person_id'])
-            ->with('status', 'تم إنشاء الشخص. كلمة المرور المؤقتة: '.$created['password']);
+            ->with('status', 'تم إنشاء الشخص بنجاح. يمكن إعادة تعيين كلمة المرور من إدارة كلمات المرور.');
     }
 
     public function getQuestions($id)
@@ -485,10 +485,8 @@ public function changePersonQetaa(Request $request, $id)
             ->where('PersonInformation.PersonID', $id)
             ->join('PersonQetaa', 'PersonInformation.PersonID', '=', 'PersonQetaa.PersonID')
             ->join('Qetaa', 'PersonQetaa.QetaaID', '=', 'Qetaa.QetaaID')
-            ->leftJoin('PersonSystemPassword', 'PersonInformation.PersonID', '=', 'PersonSystemPassword.PersonID')
             ->select(
                 'PersonInformation.*',
-                'PersonSystemPassword.Password',
                 'PersonQetaa.QetaaID',
                 'Qetaa.QetaaName'
             )

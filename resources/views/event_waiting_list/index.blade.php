@@ -140,6 +140,16 @@
 
             let timeout = null;
 
+            function escapeHtml(str) {
+                return String(str ?? '').replace(/[&<>"']/g, s => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[s]));
+            }
+
             searchInput.addEventListener('input', function() {
                 const q = this.value.trim();
                 clearTimeout(timeout);
@@ -172,10 +182,10 @@
 
                                 item.innerHTML = `
                                     <div>
-                                        <div class="font-bold">${person.PersonFullName}</div>
-                                        <div class="text-xs mt-1">PersonID: ${person.PersonID}</div>
-                                        <div class="text-xs">${@json(__('Mobile:'))} ${person.PersonPersonalMobileNumber ?? '-'}</div>
-                                        <div class="text-xs">${@json(__('Sector:'))} ${person.QetaaNames ?? '-'}</div>
+                                        <div class="font-bold">${escapeHtml(person.PersonFullName)}</div>
+                                        <div class="text-xs mt-1">PersonID: ${escapeHtml(person.PersonID)}</div>
+                                        <div class="text-xs">${@json(__('Mobile:'))} ${escapeHtml(person.PersonPersonalMobileNumber ?? '-')}</div>
+                                        <div class="text-xs">${@json(__('Sector:'))} ${escapeHtml(person.QetaaNames ?? '-')}</div>
                                     </div>
                                 `;
 

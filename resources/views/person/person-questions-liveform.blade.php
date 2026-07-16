@@ -112,19 +112,11 @@
             class="p-2 rounded-lg border border-teal-200 bg-white/90 text-teal-800 dark:border-slate-600 dark:bg-slate-900/90 dark:text-teal-300 shadow-sm"
             aria-label="{{ __('Dark') }}">◐</button>
     </div>
-    @php
-        $isResumeMode = !empty($is_resume_mode);
-        $existingAnswers = $existingAnswers ?? [];
-
-        if ($existingAnswers instanceof \Illuminate\Support\Collection) {
-            $existingAnswers = $existingAnswers->toArray();
-        }
-
-        $requestNumber =
-            $isResumeMode && !empty($person->PersonID)
-                ? $person->PersonID
-                : __('Request number will be created after final confirmation');
-    @endphp
+    @php($isResumeMode = ! empty($is_resume_mode ?? false))
+    @php($resumeSubmitUrl = $resume_submit_url ?? route('person.entry-questions-submit-liveform'))
+    @php($existingAnswers = $existingAnswers ?? [])
+    @php($existingAnswers = $existingAnswers instanceof \Illuminate\Support\Collection ? $existingAnswers->toArray() : $existingAnswers)
+    @php($requestNumber = $isResumeMode && ! empty($person->PersonID) ? $person->PersonID : __('Request number will be created after final confirmation'))
 
     <div class="max-w-4xl mx-auto px-4">
         <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
@@ -147,9 +139,7 @@
 
             <div class="p-6 md:p-10">
                 <form id="regForm" method="POST"
-                    action="{{ $isResumeMode
-                        ? route('person.liveform-resume-questions-submit', $person->PersonID)
-                        : route('person.entry-questions-submit-liveform') }}"
+                    action="{{ $isResumeMode ? $resumeSubmitUrl : route('person.entry-questions-submit-liveform') }}"
                     novalidate>
                     @csrf
 
@@ -248,27 +238,13 @@
                             </div>
                         </div>
 
-                        @php
-                            $noQuestionsFlag = true;
-                        @endphp
+                        @php($noQuestionsFlag = collect($questions)->where('NotToBeShown', 0)->isEmpty())
 
                         <div class="space-y-6">
                             @foreach ($questions as $question)
                                 @if ($question->NotToBeShown == 0)
-                                    @php
-                                        $noQuestionsFlag = false;
-                                        $selectedAnswer = old(
-                                            (string) $question->QuestionID,
-                                            $existingAnswers[$question->QuestionID] ?? '',
-                                        );
-                                        $multiChoices =
-                                            $question->RequiredAnswerType == 'MultipleChoice'
-                                                ? array_filter(
-                                                    array_map('trim', explode('|', (string) $question->MCAnswer)),
-                                                    fn($value) => $value !== '',
-                                                )
-                                                : [];
-                                    @endphp
+                                    @php($selectedAnswer = old((string) $question->QuestionID, $existingAnswers[$question->QuestionID] ?? ''))
+                                    @php($multiChoices = $question->RequiredAnswerType == 'MultipleChoice' ? array_values(array_filter(array_map('trim', explode('|', (string) ($question->MCAnswer ?? ''))), fn ($value) => $value !== '')) : [])
 
                                     <div class="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 md:p-5">
                                         <div class="flex items-start justify-between gap-3">

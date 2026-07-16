@@ -19,10 +19,13 @@ Route::middleware(['liveform.open'])->group(function () {
     Route::get('/liveform/questions', [LiveFormEnrolmentController::class, 'getLiveformQuestions'])->name('person.entry-questions-liveform');
     Route::post('/liveform/questions', [LiveFormEnrolmentController::class, 'submitLiveformQuestions'])->name('person.entry-questions-submit-liveform');
 
+    // Public resume requires a valid Laravel signed URL (no bare IDOR).
     Route::get('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'resumeLegacyLiveformQuestions'])
+        ->middleware('signed')
         ->name('person.liveform-resume-questions');
 
     Route::post('/liveform/resume/{id}', [LiveFormEnrolmentController::class, 'submitLegacyLiveformQuestions'])
+        ->middleware('signed')
         ->name('person.liveform-resume-questions-submit');
 });
 

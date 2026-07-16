@@ -236,12 +236,22 @@
 
                 selectedSummary.innerHTML = `
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-bold text-slate-800">${item.PersonFullName ?? '-'}</span>
-                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-1 text-xs">${buildCode(item)}</span>
-                        <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-2 py-1 text-xs">${item.QetaaNames ?? '-'}</span>
-                        <span class="text-slate-500 text-xs">${item.PersonPersonalMobileNumber ?? '-'}</span>
+                        <span class="font-bold text-slate-800">${escapeHtml(item.PersonFullName ?? '-')}</span>
+                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-1 text-xs">${escapeHtml(buildCode(item))}</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-2 py-1 text-xs">${escapeHtml(item.QetaaNames ?? '-')}</span>
+                        <span class="text-slate-500 text-xs">${escapeHtml(item.PersonPersonalMobileNumber ?? '-')}</span>
                     </div>
                 `;
+            }
+
+            function escapeHtml(str) {
+                return String(str ?? '').replace(/[&<>"']/g, s => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[s]));
             }
 
             function renderResults(items) {
@@ -261,13 +271,13 @@
                             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2 mb-2">
-                                        <span class="font-bold text-slate-800">${item.PersonFullName ?? '-'}</span>
-                                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-1 text-xs">${code}</span>
-                                        <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-2 py-1 text-xs">${item.QetaaNames ?? '-'}</span>
+                                        <span class="font-bold text-slate-800">${escapeHtml(item.PersonFullName ?? '-')}</span>
+                                        <span class="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-1 text-xs">${escapeHtml(code)}</span>
+                                        <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-2 py-1 text-xs">${escapeHtml(item.QetaaNames ?? '-')}</span>
                                     </div>
 
                                     <div class="flex flex-wrap gap-2 text-xs text-slate-500">
-                                        <span>${@json(__('Mobile:'))} ${item.PersonPersonalMobileNumber ?? '-'}</span>
+                                        <span>${@json(__('Mobile:'))} ${escapeHtml(item.PersonPersonalMobileNumber ?? '-')}</span>
                                         ${booked ? '<span class="text-amber-700 font-bold">{{ __('Already booked') }}</span>' : ''}
                                     </div>
                                 </div>
