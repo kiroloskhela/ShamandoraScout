@@ -57,7 +57,11 @@ class GroupController extends Controller
 
     public function insert(Request $request)
     {
+        // GroupTable.GroupID is not AUTO_INCREMENT in production.
+        $thisGroupID = \App\Support\ManualPrimaryKey::next('GroupTable', 'GroupID');
+
         DB::table('GroupTable')->insert([
+            'GroupID' => $thisGroupID,
             'GroupName' => $request->group_name,
             'GroupTypeID' => $request->group_type_id,
             'IncludedUnderGroupID' => $request->included_under_group_id

@@ -30,8 +30,12 @@ class BetakaTakaddomController extends Controller
 
         public function insert(Request  $request)
         {
+            // EgazetBetakatTaqaddomID is not AUTO_INCREMENT in production.
+            $thisBetakaID = \App\Support\ManualPrimaryKey::next('EgazetBetakatTaqaddom', 'EgazetBetakatTaqaddomID');
+
             DB::table('EgazetBetakatTaqaddom')->insert(
                 array(
+                    'EgazetBetakatTaqaddomID' => $thisBetakaID,
                     'EgazetBetakatTaqaddomName' => $request -> betaka_name
                 )
             );

@@ -2,6 +2,7 @@
 
 namespace App\Domain\OrgTree;
 
+use App\Support\ManualPrimaryKey;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -91,7 +92,11 @@ class GroupTreeService
     public function createGroup(string $name, int $typeId, int $parentGroupId, int $qetaaId): int
     {
         return (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
-            $newId = DB::table('GroupTable')->insertGetId([
+            // GroupTable.GroupID is not AUTO_INCREMENT in production.
+            $newId = ManualPrimaryKey::next('GroupTable', 'GroupID');
+
+            DB::table('GroupTable')->insert([
+                'GroupID' => $newId,
                 'GroupTypeID' => $typeId,
                 'IncludedUnderGroupID' => $parentGroupId,
                 'GroupName' => $name,

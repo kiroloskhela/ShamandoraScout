@@ -58,8 +58,12 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
 
         public function insert(Request  $request)
         {
+            // PersonRole.PersonRoleID is not AUTO_INCREMENT in production.
+            $thisPersonRoleID = \App\Support\ManualPrimaryKey::next('PersonRole', 'PersonRoleID');
+
             DB::table('PersonRole')->insert(
                 array(
+                    'PersonRoleID' => $thisPersonRoleID,
                     'PersonID' => $request -> person_id,
                     'RoleID' => $request -> role_id,
                     'RequestPersonID' => $request -> RequestPersonID,

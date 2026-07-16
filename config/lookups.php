@@ -217,6 +217,10 @@ return [
         'primary_key' => 'RoleID',
         'display_field' => 'RoleName',
         'request_field' => 'role_name',
+        // RoleDescription is NOT NULL in production schema.
+        'insert_defaults' => [
+            'RoleDescription' => '',
+        ],
         'views' => [
             'index' => 'role.index',
             'create' => 'role.create',
@@ -226,3 +230,4 @@ return [
         'variables' => ['index' => 'roles', 'item' => 'role'],
     ],
 ];
+

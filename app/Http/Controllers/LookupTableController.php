@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LookupStoreRequest;
 use App\Http\Requests\LookupUpdateRequest;
+use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -32,8 +33,11 @@ class LookupTableController extends Controller
     public function insert(LookupStoreRequest $request)
     {
         $config = $this->lookupConfig();
+        $payload = $this->payload($config, $request, true);
+        // Most lookup PKs are still non-AUTO_INCREMENT in production.
+        $payload[$config['primary_key']] = ManualPrimaryKey::next($config['table'], $config['primary_key']);
 
-        DB::table($config['table'])->insert($this->payload($config, $request, true));
+        DB::table($config['table'])->insert($payload);
 
         return $this->redirectWithMessage($config, 'store', $request);
     }

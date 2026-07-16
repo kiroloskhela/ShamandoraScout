@@ -698,6 +698,18 @@ private function allocateNewEnrolmentRecord(string $table, array $data): int
     return $this->submissions->allocateNewEnrolmentRecord($table, $data);
 }
 
+/**
+ * Public resume URL with a temporary signature (for WhatsApp/email links).
+ */
+public static function signedResumeUrl(int $personId, int $days = 14): string
+{
+    return URL::temporarySignedRoute(
+        'person.liveform-resume-questions',
+        now()->addDays($days),
+        ['id' => $personId]
+    );
+}
+
 public function resumeLegacyLiveformQuestions($id)
 {
     $person = DB::table('NewUsersInformation')
