@@ -199,10 +199,16 @@ jobs:
               systemctl try-restart laravel-queue.service 2>/dev/null || true
             fi
 
+            echo "==> Laravel scheduler (cron)"
+            if [ -f /var/www/shamandora/deploy/laravel-scheduler.cron ]; then
+              install -m 644 /var/www/shamandora/deploy/laravel-scheduler.cron /etc/cron.d/shamandora-scheduler
+            fi
+
             # Or pm2 queue if present (legacy)
             if command -v pm2 >/dev/null 2>&1; then
               pm2 restart shamandora-queue 2>/dev/null || true
             fi
 
-            echo "==> Deployed $(git rev-parse --short HEAD) (rollback tip: git reset --hard ${PREV_SHA:-unknown})"
+            echo "==> Deployed $(git rev-parse --short HEAD) release=${DEPLOY_SHA} (rollback tip: git reset --hard ${PREV_SHA:-unknown})"
             git log -1 --oneline
+            php artisan tinker --execute="echo 'release=' . (config('sentry.release') ?: config('app.release') ?: 'null') . PHP_EOL . 'log=' . config('logging.default') . PHP_EOL;" 2>/dev/null || true

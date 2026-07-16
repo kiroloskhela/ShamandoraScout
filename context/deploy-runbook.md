@@ -44,6 +44,19 @@ Prefer forward-fix migrations over rollback when data was written.
 
 - App probe: `GET /health` (JSON; 503 if DB down)  
 - Queue: `php artisan queue:report-failed` (scheduled hourly; logs + Sentry)
+- Scheduler: `/etc/cron.d/shamandora-scheduler` from `deploy/laravel-scheduler.cron`
+
+## One-time VPS polish (if `/health` shows `"release": null`)
+
+```bash
+cd /var/www/shamandora
+SHA="$(git rev-parse HEAD)"
+grep -q '^SENTRY_RELEASE=' .env && sed -i "s|^SENTRY_RELEASE=.*|SENTRY_RELEASE=${SHA}|" .env || printf '\nSENTRY_RELEASE=%s\n' "${SHA}" >> .env
+grep -q '^LOG_CHANNEL=' .env && sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=daily|' .env || printf '\nLOG_CHANNEL=daily\n' >> .env
+install -m 644 deploy/laravel-scheduler.cron /etc/cron.d/shamandora-scheduler
+php artisan optimize:clear && php artisan config:cache
+curl -sS https://shamandorascout.com/health
+```
 
 ## Logs
 

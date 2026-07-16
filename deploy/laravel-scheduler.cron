@@ -1,0 +1,3 @@
+# Install on the VPS as /etc/cron.d/shamandora-scheduler
+# (root-owned, mode 644). Runs Laravel's scheduler every minute.
+* * * * * www-data cd /var/www/shamandora && php artisan schedule:run >> /dev/null 2>&1

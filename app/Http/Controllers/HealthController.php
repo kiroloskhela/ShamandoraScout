@@ -38,11 +38,15 @@ class HealthController extends Controller
 
         $ok = $checks['app'] && $checks['database'];
 
+        // Prefer config() — env() is null after `php artisan config:cache`.
+        $release = config('sentry.release') ?: config('app.release');
+
         return response()->json([
             'ok' => $ok,
             'status' => $ok ? 'healthy' : 'degraded',
             'checks' => $checks,
-            'release' => env('SENTRY_RELEASE') ?: null,
+            'release' => $release ?: null,
+            'log_channel' => config('logging.default'),
             'time' => now()->toIso8601String(),
         ], $ok ? 200 : 503);
     }

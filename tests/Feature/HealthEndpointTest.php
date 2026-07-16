@@ -16,6 +16,7 @@ class HealthEndpointTest extends TestCase
                 'ok',
                 'status',
                 'checks' => ['app', 'database'],
+                'log_channel',
                 'time',
             ]);
     }

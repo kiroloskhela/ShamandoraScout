@@ -20,6 +20,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application release (deploy SHA)
+    |--------------------------------------------------------------------------
+    |
+    | Mirrored from SENTRY_RELEASE so /health and logs can read it after
+    | config:cache (env() alone returns null when config is cached).
+    |
+    */
+    'release' => env('SENTRY_RELEASE', env('APP_RELEASE')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
