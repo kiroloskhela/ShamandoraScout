@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Domain\EventFinance\SeasonEventBookingService;
+use App\Domain\EventFinance\SeasonEventBookingPaymentService;
 
 class SeasonEventBookingFinanceController extends Controller
 {
     public function __construct(
         private readonly SeasonEventBookingService $bookings,
+        private readonly SeasonEventBookingPaymentService $payments,
     ) {
     }
 
@@ -25,8 +27,10 @@ class SeasonEventBookingFinanceController extends Controller
     
 private function shouldBypassLastInstallmentCompletion($personID = null, $specialCaseType = null): bool
 {
-    return ($personID ? $this->isSpecialCase($personID) : false)
-        || $specialCaseType === 'AKHOH_RAB';
+    return $this->payments->shouldBypassLastInstallmentCompletion(
+        $personID ? (int) $personID : null,
+        $specialCaseType,
+    );
 }
 
     public function getEventsWithPlan(Request $request)
@@ -632,9 +636,6 @@ public function storeInstallment(Request $request, $bookingID)
     }
 
     $paymentsCount = $this->getPaymentsCount($bookingID);
-    $nextInstallmentNumber = $paymentsCount + 1;
-
-    $isLastInstallment = ($nextInstallmentNumber >= (int)$booking->InstallmentsNumber);
 
     $validator = Validator::make($request->all(), [
         'amount' => 'required|numeric',
@@ -648,16 +649,14 @@ public function storeInstallment(Request $request, $bookingID)
         return redirect()->back()->withErrors($validator)->withInput();
     }
 
- $remaining = (float) $booking->RemainingAmount;
-
-$isSpecialBehavior = $this->shouldBypassLastInstallmentCompletion(
-    (int) $booking->PersonID,
-    $booking->SpecialCaseType
-);
-
-$forceFullLastInstallment = $isLastInstallment && !$isSpecialBehavior;
-
-$amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
+    $remaining = (float) $booking->RemainingAmount;
+    $installment = $this->payments->calculateInstallment(
+        $booking,
+        $paymentsCount,
+        (float) $request->amount,
+        $request->notes,
+    );
+    $amount = (float) $installment['amount'];
 
     if ($amount > $remaining) {
         return redirect()->back()->withErrors([
@@ -665,51 +664,17 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
         ])->withInput();
     }
 
-    DB::beginTransaction();
-
     try {
-        $paymentID = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
-            'SeasonEventParticipantFinanceID' => $bookingID,
-            'ServentID' => (int)Auth::user()->PersonID,
-            'PaymentDate' => now(),
-            'Amount' => $amount,
-            'InstallmentNumber' => $nextInstallmentNumber,
-            'PaymentType' => 'PAYMENT',
-            'Notes' => $forceFullLastInstallment
-                ? trim(($request->notes ? $request->notes . ' | ' : '') . 'آخر قسط - تم تحصيل كامل المتبقي تلقائيًا')
-                : $request->notes,
-        ]);
-
-        $newPaid = (float)$booking->AmountPaid + $amount;
-        $newRemaining = max(0, (float)$booking->FinalRequiredAmount - $newPaid);
-
-        DB::table('SeasonEventParticipantFinance')
-            ->where('SeasonEventParticipantFinanceID', $bookingID)
-            ->update([
-                'AmountPaid' => $newPaid,
-                'RemainingAmount' => $newRemaining,
-            ]);
-
-        $receiptID = DB::table('SeasonEventParticipantFinanceReceipt')->insertGetId([
-            'PaymentID' => $paymentID,
-            'ReceiptNumber' => 'TEMP',
-            'IssuedAt' => now(),
-            'IssuedByServentID' => (int)Auth::user()->PersonID,
-        ]);
-
-        $receiptNumber = 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID;
-
-        DB::table('SeasonEventParticipantFinanceReceipt')
-            ->where('ReceiptID', $receiptID)
-            ->update(['ReceiptNumber' => $receiptNumber]);
-
-        DB::commit();
+        $paymentID = $this->payments->recordInstallment(
+            $booking,
+            (int) $bookingID,
+            (int) Auth::user()->PersonID,
+            $installment,
+        );
 
         return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
             ->with('success', 'تم تسجيل الدفعة وإصدار الإيصال بنجاح.');
     } catch (Exception $e) {
-        DB::rollBack();
-
         return redirect()->back()->withErrors([
             'general' => 'حدث خطأ أثناء تسجيل الدفعة.'
         ])->withInput();
@@ -786,33 +751,19 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
             ])->withInput();
         }
 
-        DB::beginTransaction();
-
         try {
-            DB::table('SeasonEventParticipantFinancePayment')
-                ->where('PaymentID', $paymentID)
-                ->update([
-                    'Amount' => $newAmount,
-                    'Notes' => trim(($payment->Notes ? $payment->Notes . ' | ' : '') . 'تم تعديل مبلغ آخر دفعة')
-                ]);
-
-            $newPaid = $otherPaymentsTotal + $newAmount;
-            $newRemaining = max(0, (float)$payment->FinalRequiredAmount - $newPaid);
-
-            DB::table('SeasonEventParticipantFinance')
-                ->where('SeasonEventParticipantFinanceID', $bookingID)
-                ->update([
-                    'AmountPaid' => $newPaid,
-                    'RemainingAmount' => $newRemaining,
-                ]);
-
-            DB::commit();
+            $this->payments->updateLastPaymentAmount(
+                (int) $paymentID,
+                $bookingID,
+                $newAmount,
+                (float) $payment->FinalRequiredAmount,
+                $otherPaymentsTotal,
+                $payment->Notes,
+            );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
                 ->with('success', 'تم تعديل مبلغ آخر دفعة بنجاح.');
         } catch (Exception $e) {
-            DB::rollBack();
-
             return redirect()->back()->withErrors([
                 'general' => 'حدث خطأ أثناء تعديل آخر دفعة.'
             ])->withInput();
@@ -846,48 +797,17 @@ $amount = $forceFullLastInstallment ? $remaining : (float) $request->amount;
                 ->withErrors(['general' => 'لا يوجد مبلغ مدفوع لاسترداده.']);
         }
 
-        DB::beginTransaction();
-
         try {
-            $paymentID = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
-                'SeasonEventParticipantFinanceID' => $bookingID,
-                'ServentID' => (int)Auth::user()->PersonID,
-                'PaymentDate' => now(),
-                'Amount' => (float)$booking->AmountPaid,
-                'InstallmentNumber' => $this->getPaymentsCount($bookingID) + 1,
-                'PaymentType' => 'REFUND',
-                'Notes' => 'استرداد كامل لكل المبلغ المدفوع',
-            ]);
-
-            DB::table('SeasonEventParticipantFinance')
-                ->where('SeasonEventParticipantFinanceID', $bookingID)
-                ->update([
-                    'IsRefunded' => 1,
-                    'RefundDate' => now(),
-                    'RemainingAmount' => (float)$booking->FinalRequiredAmount,
-                    'AmountPaid' => 0,
-                ]);
-
-            $receiptID = DB::table('SeasonEventParticipantFinanceReceipt')->insertGetId([
-                'PaymentID' => $paymentID,
-                'ReceiptNumber' => 'TEMP',
-                'IssuedAt' => now(),
-                'IssuedByServentID' => (int)Auth::user()->PersonID,
-            ]);
-
-            $receiptNumber = 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID;
-
-            DB::table('SeasonEventParticipantFinanceReceipt')
-                ->where('ReceiptID', $receiptID)
-                ->update(['ReceiptNumber' => $receiptNumber]);
-
-            DB::commit();
+            $paymentID = $this->payments->refundFull(
+                (int) $bookingID,
+                $booking,
+                (int) Auth::user()->PersonID,
+                $this->getPaymentsCount($bookingID) + 1,
+            );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
                 ->with('success', 'تم استرداد كل المبلغ المدفوع بنجاح.');
         } catch (Exception $e) {
-            DB::rollBack();
-
             return redirect()->back()->withErrors([
                 'general' => 'حدث خطأ أثناء الاسترداد.'
             ]);
@@ -1130,7 +1050,6 @@ public function partialRefundStore(Request $request, $bookingID)
 
     $amountPaid = (float)$booking->AmountPaid;
     $deductionAmount = (float)$request->deduction_amount;
-    $refundAmount = $amountPaid - $deductionAmount;
 
     if ($deductionAmount > $amountPaid) {
         return redirect()->back()->withErrors([
@@ -1138,57 +1057,19 @@ public function partialRefundStore(Request $request, $bookingID)
         ])->withInput();
     }
 
-    if ($refundAmount < 0) {
-        return redirect()->back()->withErrors([
-            'deduction_amount' => 'المبلغ المسترد يجب أن يكون أكبر من صفر.'
-        ])->withInput();
-    }
-
-    DB::beginTransaction();
-
     try {
-        $paymentID = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
-            'SeasonEventParticipantFinanceID' => $bookingID,
-            'ServentID' => (int)Auth::user()->PersonID,
-            'PaymentDate' => now(),
-            'Amount' => $refundAmount,
-            'InstallmentNumber' => $this->getPaymentsCount($bookingID) + 1,
-            'PaymentType' => 'REFUND',
-            'Notes' => 'استرداد مع خصم جزء | المدفوع: ' . number_format($amountPaid, 2) .
-                ' | المخصوم: ' . number_format($deductionAmount, 2) .
-                ' | المسترد: ' . number_format($refundAmount, 2) .
-                ($request->filled('notes') ? ' | ' . $request->notes : ''),
-        ]);
-
-        DB::table('SeasonEventParticipantFinance')
-            ->where('SeasonEventParticipantFinanceID', $bookingID)
-            ->update([
-                'IsRefunded' => 1,
-                'RefundDate' => now(),
-                'AmountPaid' => $deductionAmount,
-                'RemainingAmount' => 0,
-            ]);
-
-        $receiptID = DB::table('SeasonEventParticipantFinanceReceipt')->insertGetId([
-            'PaymentID' => $paymentID,
-            'ReceiptNumber' => 'TEMP',
-            'IssuedAt' => now(),
-            'IssuedByServentID' => (int)Auth::user()->PersonID,
-        ]);
-
-        $receiptNumber = 'REC-' . now()->format('i-H-d-m-y') . '-' . $receiptID;
-
-        DB::table('SeasonEventParticipantFinanceReceipt')
-            ->where('ReceiptID', $receiptID)
-            ->update(['ReceiptNumber' => $receiptNumber]);
-
-        DB::commit();
+        $paymentID = $this->payments->refundPartial(
+            (int) $bookingID,
+            $booking,
+            (int) Auth::user()->PersonID,
+            $this->getPaymentsCount($bookingID) + 1,
+            $deductionAmount,
+            $request->filled('notes') ? $request->notes : null,
+        );
 
         return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
             ->with('success', 'تم استرداد المبلغ بعد خصم جزء منه بنجاح.');
     } catch (Exception $e) {
-        DB::rollBack();
-
         return redirect()->back()->withErrors([
             'general' => 'حدث خطأ أثناء تنفيذ الاسترداد مع خصم جزء.'
         ])->withInput();

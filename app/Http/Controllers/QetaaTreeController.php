@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\OrgTree\GroupTreeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class QetaaTreeController extends Controller
 {
+    public function __construct(
+        private readonly GroupTreeService $groups,
+    ) {
+    }
+
     public function index(Request $request)
     {
         $userId = $request->query('id') ?? Auth::id();
@@ -444,17 +450,12 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'نوع المجموعة غير صحيح.'], 422);
         }
 
-        $lastGroupID = DB::table('GroupTable')->orderBy('GroupID', 'desc')->first();
-        $newId = $lastGroupID ? $lastGroupID->GroupID + 1 : 1;
-
-        DB::table('GroupTable')->insert([
-            'GroupID'              => $newId,
-            'GroupTypeID'          => $request->GroupTypeID,
-            'IncludedUnderGroupID' => $request->IncludedUnderGroupID ?? 0,
-            'GroupName'            => $request->GroupName,
-        ]);
-
-        DB::table('GroupQetaa')->insert(['GroupID' => $newId, 'QetaaID' => $request->QetaaID]);
+        $newId = $this->groups->createGroup(
+            $request->GroupName,
+            (int) $request->GroupTypeID,
+            (int) ($request->IncludedUnderGroupID ?? 0),
+            (int) $request->QetaaID,
+        );
 
         return response()->json(['success' => true, 'GroupID' => $newId]);
     }
@@ -471,15 +472,12 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'لا يمكنك حذف هذه المجموعة.'], 403);
         }
 
-        $groupIds = $this->descendantGroupIds($groupId);
+        $groupIds = collect([$groupId])
+            ->merge($this->groups->nodesBelow($groupId))
+            ->unique()
+            ->values();
 
-        DB::transaction(function () use ($groupIds) {
-            DB::table('PersonGroup')->whereIn('GroupID', $groupIds)->delete();
-            DB::table('GroupQetaa')->whereIn('GroupID', $groupIds)->delete();
-            $groupIds->reverse()->each(function ($deleteGroupId) {
-                DB::table('GroupTable')->where('GroupID', $deleteGroupId)->delete();
-            });
-        });
+        $this->groups->deleteGroups($groupIds);
 
         return response()->json(['success' => true, 'deleted_groups' => $groupIds->count()]);
     }
@@ -558,31 +556,14 @@ class QetaaTreeController extends Controller
             }
         }
 
-        DB::transaction(function () use ($request, $personIds, $rotbaByPerson) {
-            DB::table('PersonGroup')->whereIn('PersonID', $personIds)->delete();
+        $count = $this->groups->assignPeopleToGroup(
+            (int) $request->GroupID,
+            $personIds,
+            $rotbaByPerson->all(),
+            $request->filled('RotbaID') ? $request->RotbaID : null,
+        );
 
-            DB::table('PersonGroup')->insert(
-                $personIds->map(fn($personId) => [
-                    'PersonID' => $personId,
-                    'GroupID'  => $request->GroupID,
-                ])->all()
-            );
-
-            foreach ($personIds as $personId) {
-                $rotbaId = $rotbaByPerson->has($personId)
-                    ? $rotbaByPerson->get($personId)
-                    : ($request->filled('RotbaID') ? $request->RotbaID : null);
-
-                if ($rotbaId !== null && $rotbaId !== '') {
-                    DB::table('PersonRotba')->updateOrInsert(
-                        ['PersonID' => $personId],
-                        ['RotbaID'  => $rotbaId]
-                    );
-                }
-            }
-        });
-
-        return response()->json(['success' => true, 'count' => $personIds->count()]);
+        return response()->json(['success' => true, 'count' => $count]);
     }
 
     public function updatePersonRotba(Request $request)
@@ -613,12 +594,9 @@ class QetaaTreeController extends Controller
                 return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
             }
 
-            DB::table('PersonRotba')->updateOrInsert(
-                ['PersonID' => $request->PersonID],
-                ['RotbaID'  => $request->RotbaID]
-            );
+            $this->groups->updatePersonRotba((int) $request->PersonID, $request->RotbaID);
         } else {
-            DB::table('PersonRotba')->where('PersonID', $request->PersonID)->delete();
+            $this->groups->updatePersonRotba((int) $request->PersonID, null);
         }
 
         return response()->json(['success' => true]);
@@ -636,10 +614,7 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
         }
 
-        DB::table('PersonGroup')
-            ->where('PersonID', $request->PersonID)
-            ->where('GroupID',  $request->GroupID)
-            ->delete();
+        $this->groups->removePersonFromGroup((int) $request->PersonID, (int) $request->GroupID);
 
         return response()->json(['success' => true]);
     }
@@ -651,27 +626,4 @@ class QetaaTreeController extends Controller
             ->exists();
     }
 
-    private function descendantGroupIds($groupId)
-    {
-        $groupIds = collect([(int) $groupId]);
-        $frontier = collect([(int) $groupId]);
-
-        while ($frontier->isNotEmpty()) {
-            $children = DB::table('GroupTable')
-                ->whereIn('IncludedUnderGroupID', $frontier)
-                ->pluck('GroupID')
-                ->map(fn($id) => (int) $id)
-                ->diff($groupIds)
-                ->values();
-
-            if ($children->isEmpty()) {
-                break;
-            }
-
-            $groupIds = $groupIds->merge($children)->unique()->values();
-            $frontier = $children;
-        }
-
-        return $groupIds;
-    }
 }

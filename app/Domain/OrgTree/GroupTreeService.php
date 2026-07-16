@@ -87,4 +87,96 @@ class GroupTreeService
 
         return implode(' -> ', $parts);
     }
+
+    public function createGroup(string $name, int $typeId, int $parentGroupId, int $qetaaId): int
+    {
+        return (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
+            $lastGroup = DB::table('GroupTable')->orderBy('GroupID', 'desc')->first();
+            $newId = $lastGroup ? ((int) $lastGroup->GroupID + 1) : 1;
+
+            DB::table('GroupTable')->insert([
+                'GroupID' => $newId,
+                'GroupTypeID' => $typeId,
+                'IncludedUnderGroupID' => $parentGroupId,
+                'GroupName' => $name,
+            ]);
+
+            DB::table('GroupQetaa')->insert([
+                'GroupID' => $newId,
+                'QetaaID' => $qetaaId,
+            ]);
+
+            return $newId;
+        });
+    }
+
+    public function deleteGroups(iterable $groupIds): void
+    {
+        $ids = collect($groupIds)->map(fn ($id) => (int) $id)->values();
+
+        DB::transaction(function () use ($ids) {
+            DB::table('PersonGroup')->whereIn('GroupID', $ids)->delete();
+            DB::table('GroupQetaa')->whereIn('GroupID', $ids)->delete();
+            $ids->reverse()->each(function ($groupId) {
+                DB::table('GroupTable')->where('GroupID', $groupId)->delete();
+            });
+        });
+    }
+
+    /**
+     * @param  iterable<int>  $personIds
+     * @param  array<int, int|string|null>  $rotbaByPerson
+     */
+    public function assignPeopleToGroup(int $groupId, iterable $personIds, array $rotbaByPerson = [], int|string|null $defaultRotbaId = null): int
+    {
+        $ids = collect($personIds)->map(fn ($id) => (int) $id)->unique()->values();
+
+        DB::transaction(function () use ($groupId, $ids, $rotbaByPerson, $defaultRotbaId) {
+            DB::table('PersonGroup')->whereIn('PersonID', $ids)->delete();
+
+            DB::table('PersonGroup')->insert(
+                $ids->map(fn ($personId) => [
+                    'PersonID' => $personId,
+                    'GroupID' => $groupId,
+                ])->all()
+            );
+
+            foreach ($ids as $personId) {
+                $rotbaId = array_key_exists($personId, $rotbaByPerson)
+                    ? $rotbaByPerson[$personId]
+                    : $defaultRotbaId;
+
+                if ($rotbaId !== null && $rotbaId !== '') {
+                    DB::table('PersonRotba')->updateOrInsert(
+                        ['PersonID' => $personId],
+                        ['RotbaID' => $rotbaId]
+                    );
+                }
+            }
+        });
+
+        return $ids->count();
+    }
+
+    public function updatePersonRotba(int $personId, int|string|null $rotbaId): void
+    {
+        if ($rotbaId !== null && $rotbaId !== '') {
+            DB::table('PersonRotba')->updateOrInsert(
+                ['PersonID' => $personId],
+                ['RotbaID' => $rotbaId]
+            );
+
+            return;
+        }
+
+        DB::table('PersonRotba')->where('PersonID', $personId)->delete();
+    }
+
+    public function removePersonFromGroup(int $personId, int $groupId): void
+    {
+        DB::table('PersonGroup')
+            ->where('PersonID', $personId)
+            ->where('GroupID', $groupId)
+            ->delete();
+    }
 }

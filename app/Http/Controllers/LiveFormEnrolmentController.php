@@ -12,6 +12,11 @@ use App\Domain\Enrolment\LiveFormSubmitService;
 
 class LiveFormEnrolmentController extends Controller
 {
+        public function __construct(
+            private readonly LiveFormCapacityService $capacity,
+            private readonly LiveFormSubmitService $submissions,
+        ) {
+        }
 
         public function createLiveForm()
         {
@@ -535,7 +540,7 @@ public function submitLiveformQuestions(Request $request)
             $answers[$question->QuestionID] = $request->input($question->QuestionID);
         }
 
-        $result = app(LiveFormSubmitService::class)->persistSubmission(
+        $result = $this->submissions->persistSubmission(
             $personData,
             (int) $step1['qetaa_id'],
             (int) $step1['sana_marhala_id'],
@@ -688,7 +693,7 @@ private function finalizeTempLiveformFile(?string $path): ?string
  */
 private function allocateNewEnrolmentRecord(string $table, array $data): int
 {
-    return app(LiveFormSubmitService::class)->allocateNewEnrolmentRecord($table, $data);
+    return $this->submissions->allocateNewEnrolmentRecord($table, $data);
 }
 
 public function resumeLegacyLiveformQuestions($id)
@@ -744,8 +749,7 @@ public function submitLegacyLiveformQuestions(Request $request, $id, \App\Domain
     DB::beginTransaction();
 
     try {
-        $shouldWait = app(LiveFormCapacityService::class)
-            ->shouldUseWaitingList((int) $person->QetaaID, (int) $person->SanaMarhalaID);
+        $shouldWait = $this->capacity->shouldUseWaitingList((int) $person->QetaaID, (int) $person->SanaMarhalaID);
 
         $answers = [];
         foreach ($questions as $question) {

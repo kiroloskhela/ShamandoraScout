@@ -7,31 +7,35 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSearchService;
 use App\Support\LikeSearch;
-use App\Support\ShamandoraCode;
 use Throwable;
 
 class PersonDirectoryController extends Controller
 {
+    public function __construct(
+        private readonly PersonSearchService $personSearch,
+        private readonly PersonProfileService $profiles,
+    ) {
+    }
 
-       public function index(Request $request, PersonSearchService $personSearch)
+       public function index(Request $request)
             {
                 $userId = Auth::id();
                 Log::info("Fetching persons for user ID: " . $userId);
 
                 $term = LikeSearch::fromRequest($request);
-                $persons = $personSearch->paginateScopedToPerson((int) $userId, $term);
+                $persons = $this->personSearch->paginateScopedToPerson((int) $userId, $term);
 
                 return view("person.person-index", ['persons' => $persons, 'q' => $term ?? '']);
                         }
 
 
-public function ShowPersons(Request $request, PersonSearchService $personSearch)
+public function ShowPersons(Request $request)
 {
     $term = LikeSearch::fromRequest($request);
-    $persons = $personSearch->paginateAllPersons($term);
+    $persons = $this->personSearch->paginateAllPersons($term);
 
     return view("person.person-showAllPersons", ['persons' => $persons, 'q' => $term ?? '']);
 }
@@ -243,13 +247,13 @@ if (!empty($person->QetaaID)) {
     ]);
 }
 
-public function updates(Request $request, $id, \App\Domain\Person\PersonProfileService $profiles)
+public function updates(Request $request, $id)
 {
-    if (!$profiles->exists((int) $id)) {
+    if (!$this->profiles->exists((int) $id)) {
         return view('person.entry-error');
     }
 
-    if ($request->filled('input_raqam_qawmy') && $profiles->raqamQawmyTaken((string) $request->input_raqam_qawmy, (int) $id)) {
+    if ($request->filled('input_raqam_qawmy') && $this->profiles->raqamQawmyTaken((string) $request->input_raqam_qawmy, (int) $id)) {
         return view('person.person-already-exists');
     }
 
@@ -308,7 +312,7 @@ public function updates(Request $request, $id, \App\Domain\Person\PersonProfileS
     }
 
     try {
-        $profiles->updateProfile(
+        $this->profiles->updateProfile(
             (int) $id,
             $request->all(),
             $request->file('personal_image'),
@@ -377,11 +381,11 @@ public function showChangeQetaa()
 
 
 
-public function searchPerson(Request $request, PersonSearchService $personSearch)
+public function searchPerson(Request $request)
 {
     $term = LikeSearch::fromRequest($request);
 
-    return response()->json($personSearch->typeaheadByNameOrIdentity($term));
+    return response()->json($this->personSearch->typeaheadByNameOrIdentity($term));
 }
 
 
@@ -441,7 +445,7 @@ public function changePersonQetaa(Request $request, $id)
             return view('person.person-already-exists');
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'first_name' => 'required',
             'second_name' => 'required',
             'third_name' => 'required',
@@ -463,117 +467,16 @@ public function changePersonQetaa(Request $request, $id)
         ]);
 
         try {
-            DB::beginTransaction();
-
-            $thisPersonID = (int) DB::table('PersonInformation')->insertGetId([
-                'ShamandoraCode' => bin2hex(random_bytes(5)),
-                'FirstName' => $request->first_name,
-                'SecondName' => $request->second_name,
-                'ThirdName' => $request->third_name,
-                'FourthName' => $request->fourth_name,
-                'Gender' => $request->gender,
-                'DateOfBirth' => $request->birthdate_input,
-                'RaqamQawmy' => $request->input_raqam_qawmy,
-                'ScoutJoiningYear' => $request->joining_year_input,
-                'BloodTypeID' => $request->blood_type_input,
-                'FacebookProfileURL' => $request->inputFacebookLink,
-                'InstagramProfileURL' => $request->inputInstagramLink,
-                'PersonalEmail' => $request->email_input,
-                'RequestPersonID' => $request->RequestPersonID ?? Auth::id(),
-            ], 'PersonID');
-
-            DB::table('PersonInformation')->where('PersonID', $thisPersonID)->update([
-                'ShamandoraCode' => ShamandoraCode::forPersonId($thisPersonID),
-            ]);
-
-            DB::table('PersonPhoneNumbers')->insert([
-                'PersonID' => $thisPersonID,
-                'PersonPersonalMobileNumber' => $request->personal_phone_number,
-                'FatherMobileNumber' => $request->father_phone_number,
-                'MotherMobileNumber' => $request->mother_phone_number,
-                'HomePhoneNumber' => $request->home_phone_number,
-                'IsOPersonalPhoneNumberHavingWhatsapp' => $request->has_whatsapp,
-            ]);
-
-            DB::table('PersonJob')->insert([
-                'PersonID' => $thisPersonID,
-                'JobName' => $request->person_job,
-                'WorkPlace' => $request->person_job_place,
-            ]);
-
-            DB::table('PersonLearningInformation')->insert([
-                'PersonID' => $thisPersonID,
-                'SchoolName' => $request->school_name ?? $request->person_school,
-                'SchoolGraduationYear' => $request->school_grad_year,
-                'FacultyID' => $request->person_faculty,
-                'UniversityID' => $request->person_university,
-                'ActualFacultyGraduationYear' => $request->university_grad_year,
-            ]);
-
-            if ($request->filled('rotba_kashfeyya_id')) {
-                DB::table('PersonRotbaKashfeyya')->insert([
-                    'PersonID' => $thisPersonID,
-                    'RotbaID' => $request->rotba_kashfeyya_id,
-                ]);
-            }
-
-            DB::table('PersonQetaa')->insert([
-                'PersonID' => $thisPersonID,
-                'QetaaID' => $request->qetaa_id,
-            ]);
-
-            if ($request->filled('betaka_id')) {
-                DB::table('PersonEgazetBetakatTaqaddom')->insert([
-                    'PersonID' => $thisPersonID,
-                    'EgazetBetakatTaqaddomID' => $request->betaka_id,
-                ]);
-            }
-
-            DB::table('PersonSanaMarhala')->insert([
-                'PersonID' => $thisPersonID,
-                'SanaMarhalaID' => $request->sana_marhala_id,
-            ]);
-
-            DB::table('PersonSpiritualFatherInformation')->insert([
-                'PersonID' => $thisPersonID,
-                'SpiritualFatherName' => $request->spiritual_father,
-                'SpiritualFatherChurchName' => $request->spiritual_father_church,
-            ]);
-
-            $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-            $pass = '';
-            for ($i = 0; $i < 8; $i++) {
-                $pass .= $alphabet[random_int(0, strlen($alphabet) - 1)];
-            }
-
-            DB::table('PersonSystemPassword')->insert([
-                'PersonID' => $thisPersonID,
-                'Password' => Hash::make($pass),
-            ]);
-
-            DB::table('PersonalPhysicalAddress')->insert([
-                'PersonID' => $thisPersonID,
-                'BuildingNumber' => $request->building_number,
-                'FloorNumber' => $request->floor_number,
-                'AppartmentNumber' => $request->appartment_number,
-                'MainStreetName' => $request->main_street_name,
-                'SubStreetName' => $request->sub_street_name,
-                'ManteqaID' => $request->manteqa_id,
-                'DistrictID' => $request->district_id ?: 1,
-                'NearestLandmark' => $request->nearest_landmark,
-            ]);
-
-            DB::commit();
+            $created = $this->profiles->createProfile($request->all(), (int) Auth::id());
         } catch (Throwable $e) {
-            DB::rollBack();
             Log::error('person.insert failed', ['message' => $e->getMessage()]);
 
             return view('person.entry-error');
         }
 
         return redirect()
-            ->route('person.entry-questions', $thisPersonID)
-            ->with('status', 'تم إنشاء الشخص. كلمة المرور المؤقتة: '.$pass);
+            ->route('person.entry-questions', $created['person_id'])
+            ->with('status', 'تم إنشاء الشخص. كلمة المرور المؤقتة: '.$created['password']);
     }
 
     public function getQuestions($id)
