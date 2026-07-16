@@ -1,56 +1,56 @@
-@extends('layouts.app', ['pageTitle' => 'حالة طلبات الحجز'])
+@extends('layouts.app', ['pageTitle' => __('Booking request status')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
 
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">حالة طلبات الحجز</h1>
-            <p class="text-gray-600">تابع حالة طلبات الحجز الخاصة بك</p>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">{{ __('Booking request status') }}</h1>
+            <p class="text-gray-600 dark:text-slate-300">{{ __('Track your place booking request status') }}</p>
         </div>
 
         @if (session('success'))
-            <div class="mb-6 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+            <div class="mb-6 p-3 rounded-lg bg-green-50 dark:bg-green-900/40 border border-green-200 dark:border-slate-700 text-green-700 dark:text-green-200 text-sm">
                 {{ session('success') }}
             </div>
         @endif
         @if (session('error'))
-            <div class="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div class="mb-6 p-3 rounded-lg bg-red-50 dark:bg-red-900/40 border border-red-200 dark:border-slate-700 text-red-700 dark:text-red-200 text-sm">
                 {{ session('error') }}
             </div>
         @endif
 
-        <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-slate-200">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-slate-200 dark:border-slate-700">
             <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-                <h2 class="text-lg font-bold text-gray-800">قائمة الطلبات</h2>
+                <h2 class="text-lg font-bold text-gray-800 dark:text-slate-100">{{ __('Request list') }}</h2>
                 <a href="{{ route('place_bookings.create') }}"
                     class="inline-flex items-center justify-center h-10 px-6 text-sm font-medium rounded-full
-                       bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                    طلب حجز جديد
+                       bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900/60 transition border border-green-200 dark:border-slate-700">
+                    {{ __('New booking request') }}
                 </a>
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-center border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-slate-50">
-                        <tr class="text-sm text-slate-700">
-                            <th class="p-3 border-b">{{ __('Request number') }}</th>
-                            <th class="p-3 border-b">{{ __('Location') }}</th>
-                            <th class="p-3 border-b">{{ __('Place') }}</th>
-                            <th class="p-3 border-b">{{ __('Date') }}</th>
-                            <th class="p-3 border-b">{{ __('From') }}</th>
-                            <th class="p-3 border-b">{{ __('To') }}</th>
-                            <th class="p-3 border-b">{{ __('Data') }}</th>
-                            <th class="p-3 border-b">{{ __('Status') }}</th>
-                            <th class="p-3 border-b">المُراجع</th>
-                            <th class="p-3 border-b">{{ __('Details') }}</th>
-                            <th class="p-3 border-b">{{ __('Actions') }}</th>
+                <table class="w-full text-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-50 dark:bg-slate-800">
+                        <tr class="text-sm text-slate-700 dark:text-slate-200">
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Request number') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Location') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Place') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Date') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('From') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('To') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Data') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Status') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Reviewer') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Details') }}</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm text-slate-800">
+                    <tbody class="text-sm text-slate-800 dark:text-slate-100">
                         @forelse ($rows as $idx => $r)
                             <tr
-                                class="border-b hover:bg-slate-50 transition {{ $idx % 2 ? 'bg-white' : 'bg-slate-50/40' }}">
-                                <td class="p-3 font-semibold text-slate-900">#{{ $r->BookingID }}</td>
+                                class="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition {{ $idx % 2 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/40 dark:bg-slate-800/40' }}">
+                                <td class="p-3 font-semibold text-slate-900 dark:text-slate-100">#{{ $r->BookingID }}</td>
                                 <td class="p-3">{{ $r->LocationName ?? '—' }}</td>
                                 <td class="p-3">{{ $r->PlaceName ?? '—' }}</td>
 
@@ -61,19 +61,19 @@
                                 <td class="p-3">
                                     <div class="flex flex-col gap-1 items-center">
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200">
-                                            القطاع: {{ $r->QetaaName ?? '—' }}
+                                            class="px-3 py-1 rounded-full text-xs bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 border border-blue-200 dark:border-slate-700">
+                                            {{ __('Sector:') }} {{ $r->QetaaName ?? '—' }}
                                         </span>
 
                                         @if (!empty($r->ApprovedPlaceID) || !empty($r->ApprovedTimeFrom) || !empty($r->ApprovedTimeTo))
                                             <span
-                                                class="px-3 py-1 rounded-full text-xs bg-slate-50 text-slate-700 border border-slate-200">
-                                                تم التعديل بواسطة الإدارة
+                                                class="px-3 py-1 rounded-full text-xs bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                                                {{ __('Modified by admin') }}
                                             </span>
                                         @else
                                             <span
-                                                class="px-3 py-1 rounded-full text-xs bg-slate-50 text-slate-700 border border-slate-200">
-                                                بدون تعديل
+                                                class="px-3 py-1 rounded-full text-xs bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                                                {{ __('No modifications') }}
                                             </span>
                                         @endif
                                     </div>
@@ -82,50 +82,48 @@
                                 <td class="p-3">
                                     @if ($r->Status === 'pending')
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
-                                            المراجعة</span>
+                                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 dark:bg-amber-900/40 text-yellow-700 dark:text-amber-200 border border-yellow-200 dark:border-slate-700">{{ __('Pending review') }}</span>
                                     @elseif ($r->Status === 'approved')
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">تمت
-                                            الموافقة</span>
+                                            class="px-3 py-1 rounded-full text-xs bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-200 border border-green-200 dark:border-slate-700">{{ __('Approved') }}</span>
                                     @else
                                         <span
-                                            class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
+                                            class="px-3 py-1 rounded-full text-xs bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-200 border border-red-200 dark:border-slate-700">{{ __('Rejected') }}</span>
                                     @endif
                                 </td>
 
-                                <td class="p-3 text-gray-600">
+                                <td class="p-3 text-gray-600 dark:text-slate-300">
                                     {{ $r->ReviewerName ?? '—' }}
                                 </td>
 
                                 <td class="p-3">
                                     <a href="{{ route('place_bookings.show', $r->BookingID) }}"
-                                        class="px-3 py-2 text-xs rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition border border-blue-200">{{ __('View') }}</a>
+                                        class="px-3 py-2 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition border border-blue-200 dark:border-slate-700">{{ __('View') }}</a>
                                 </td>
 
                                 <td class="p-3">
                                     @if ($r->Status === 'pending')
                                         <div class="flex items-center justify-center gap-2">
                                             <a href="{{ route('place_bookings.edit', $r->BookingID) }}"
-                                                class="px-3 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">{{ __('Edit') }}</a>
+                                                class="px-3 py-2 text-xs rounded-lg bg-green-50 dark:bg-green-900/40 text-green-700 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900/60 transition border border-green-200 dark:border-slate-700">{{ __('Edit') }}</a>
 
                                             <form method="POST"
                                                 action="{{ route('place_bookings.destroy', $r->BookingID) }}"
-                                                onsubmit="return confirm('هل أنت متأكد من حذف الطلب؟');">
+                                                onsubmit="return confirm('{{ __('Are you sure you want to delete this request?') }}');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                    class="px-3 py-2 text-xs rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition border border-red-200">{{ __('Delete') }}</button>
+                                                    class="px-3 py-2 text-xs rounded-lg bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-200 hover:bg-red-100 dark:hover:bg-red-900/60 transition border border-red-200 dark:border-slate-700">{{ __('Delete') }}</button>
                                             </form>
                                         </div>
                                     @else
-                                        <span class="text-xs text-gray-400">—</span>
+                                        <span class="text-xs text-gray-400 dark:text-slate-500">—</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td class="p-8 text-gray-500" colspan="11">لا توجد طلبات بعد.</td>
+                                <td class="p-8 text-gray-500 dark:text-slate-400" colspan="11">{{ __('No requests yet.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

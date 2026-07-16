@@ -4,18 +4,18 @@
     <div class="container mx-auto px-4 py-8" dir="rtl">
         <!-- Header -->
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">معرض الصور</h1>
-            <p class="text-gray-600">اختر الموسم والفعالية لعرض الصور والفيديوهات</p>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">معرض الصور</h1>
+            <p class="text-gray-600 dark:text-slate-300">اختر الموسم والفعالية لعرض الصور والفيديوهات</p>
         </div>
 
         <!-- Selection Form -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 border-2 border-blue-300">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 mb-8 border-2 border-blue-300 dark:border-slate-700">
             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Season Selection -->
                 <div class="relative">
-                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose season') }}</label>
+                    <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose season') }}</label>
                     <select id="season_id" name="season_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الموسم --</option>
                         @foreach ($seasons as $season)
                             <option value="{{ $season->SeasonID }}">
@@ -27,9 +27,9 @@
 
                 <!-- Event Selection -->
                 <div class="relative">
-                    <label for="event_id" class="block mb-2 text-sm font-semibold text-gray-700">{{ __('Choose event') }}</label>
+                    <label for="event_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose event') }}</label>
                     <select id="event_id" name="event_id" disabled
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-400 focus:border-blue-500 focus:outline-none">
+                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-400 dark:text-slate-500 focus:border-blue-500 focus:outline-none">
                         <option value="">-- اختر الفعالية --</option>
                     </select>
                 </div>
@@ -53,7 +53,7 @@
         <div id="loadingIndicator" class="hidden text-center py-8">
             <div class="inline-flex items-center">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 ml-3"></div>
-                <span class="text-gray-600">جاري تحميل الوسائط...</span>
+                <span class="text-gray-600 dark:text-slate-300">جاري تحميل الوسائط...</span>
             </div>
         </div>
 
@@ -65,9 +65,9 @@
 
         <!-- No Media Message -->
         <div id="noMediaMessage" class="hidden text-center py-12">
-            <div class="text-6xl text-gray-300 mb-4">🎬</div>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">لا توجد وسائط</h3>
-            <p class="text-gray-500">لم يتم العثور على صور أو فيديوهات لهذه الفعالية</p>
+            <div class="text-6xl text-gray-300 dark:text-slate-600 mb-4">🎬</div>
+            <h3 class="text-xl font-semibold text-gray-600 dark:text-slate-300 mb-2">لا توجد وسائط</h3>
+            <p class="text-gray-500 dark:text-slate-400">لم يتم العثور على صور أو فيديوهات لهذه الفعالية</p>
         </div>
 
         <!-- Media Gallery -->
@@ -79,10 +79,10 @@
 
         <!-- Media Modal -->
         <div id="videoModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <div class="flex justify-between items-center p-4 border-b">
-                    <h3 id="videoTitle" class="text-lg font-semibold"></h3>
-                    <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+            <div class="bg-white dark:bg-slate-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden dark:border dark:border-slate-700">
+                <div class="flex justify-between items-center p-4 border-b dark:border-slate-700">
+                    <h3 id="videoTitle" class="text-lg font-semibold text-slate-800 dark:text-slate-100"></h3>
+                    <button id="closeModal" class="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                             </path>
@@ -90,7 +90,7 @@
                     </button>
                 </div>
                 <div class="p-4">
-                    <div id="videoContainer" class="aspect-video bg-gray-100 rounded"></div>
+                    <div id="videoContainer" class="aspect-video bg-gray-100 dark:bg-slate-800 rounded"></div>
                     <div class="flex gap-2 mt-4">
                         <a id="openDriveLink" href="#" target="_blank"
                             class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
@@ -265,8 +265,8 @@
 
             function createMediaCard(link, type, index) {
                 const card = document.createElement('div');
-                card.classList.add('media-card', 'bg-white', 'rounded-lg', 'shadow-md', 'overflow-hidden',
-                    'hover:shadow-lg', 'transition-shadow', type);
+                card.classList.add('media-card', 'bg-white', 'dark:bg-slate-900', 'rounded-lg', 'shadow-md', 'overflow-hidden',
+                    'hover:shadow-lg', 'transition-shadow', 'dark:border', 'dark:border-slate-700', type);
 
                 if (type === 'folder') {
                     // Validate folderId extraction
@@ -286,7 +286,7 @@
                     }
                     card.appendChild(aspectDiv);
                     const labelDiv = document.createElement('div');
-                    labelDiv.classList.add('p-3', 'text-center', 'font-semibold', 'text-gray-700');
+                    labelDiv.classList.add('p-3', 'text-center', 'font-semibold', 'text-gray-700', 'dark:text-slate-200');
                     labelDiv.textContent = `مجلد الوسائط ${index}`;
                     card.appendChild(labelDiv);
                 } else {
@@ -298,7 +298,7 @@
 
                     // Aspect square div
                     const aspectDiv = document.createElement('div');
-                    aspectDiv.classList.add('aspect-square', 'bg-gray-100', 'flex', 'items-center',
+                    aspectDiv.classList.add('aspect-square', 'bg-gray-100', 'dark:bg-slate-800', 'flex', 'items-center',
                         'justify-center', 'relative', 'cursor-pointer');
 
                     // Click behavior
@@ -316,7 +316,7 @@
                             if (img.parentElement) {
                                 img.parentElement.innerHTML = '';
                                 const fallbackDiv = document.createElement('div');
-                                fallbackDiv.classList.add('text-gray-400', 'text-4xl');
+                                fallbackDiv.classList.add('text-gray-400', 'dark:text-slate-500', 'text-4xl');
                                 fallbackDiv.textContent = icon;
                                 img.parentElement.appendChild(fallbackDiv);
                             }
@@ -324,7 +324,7 @@
                         aspectDiv.appendChild(img);
                     } else {
                         const fallbackDiv = document.createElement('div');
-                        fallbackDiv.classList.add('text-gray-400', 'text-4xl');
+                        fallbackDiv.classList.add('text-gray-400', 'dark:text-slate-500', 'text-4xl');
                         fallbackDiv.textContent = icon;
                         aspectDiv.appendChild(fallbackDiv);
                     }
@@ -369,7 +369,7 @@
                         `<img src="https://drive.google.com/uc?export=view&id=${extractFileId(link)}" alt="${title}" class="w-full h-full object-contain rounded" />`;
                 } else {
                     videoContainer.innerHTML =
-                        `<div class="flex items-center justify-center h-full text-gray-500 text-center"><div class="text-6xl mb-4">${type==='video'?'🎬':'📷'}</div>لا يمكن عرض الملف هنا<br>يرجى فتحه في Drive</div>`;
+                        `<div class="flex items-center justify-center h-full text-gray-500 dark:text-slate-400 text-center"><div class="text-6xl mb-4">${type==='video'?'🎬':'📷'}</div>لا يمكن عرض الملف هنا<br>يرجى فتحه في Drive</div>`;
                 }
                 videoModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
