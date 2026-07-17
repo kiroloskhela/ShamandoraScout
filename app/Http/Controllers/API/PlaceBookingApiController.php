@@ -4,10 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Domain\PlaceBooking\PlaceBookingService;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
+use App\Http\Requests\StorePlaceBookingRequest;
+use App\Http\Resources\ApprovedPlaceResource;
+use App\Http\Resources\PlaceBookingResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\NotificationController;
 
 class PlaceBookingApiController extends Controller
 {
@@ -238,19 +241,10 @@ class PlaceBookingApiController extends Controller
     /**
      * POST /api/place_bookings
      */
-    public function store(Request $request, PlaceBookingService $placeBookings)
+    public function store(StorePlaceBookingRequest $request, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
-
-        $request->validate([
-            'place_id'      => 'required|integer',
-            'qetaa_id'      => 'nullable|integer',
-            'booking_date'  => 'required|date',
-            'time_from'     => 'required|date_format:H:i',
-            'time_to'       => 'required|date_format:H:i',
-            'user_note'     => 'nullable|string|max:500',
-        ]);
 
         if ($err = $this->ensureOptionalFksExist($request)) return $err;
         if ($err = $this->validateTimeOrder($request->time_from, $request->time_to)) return $err;
@@ -332,7 +326,11 @@ class PlaceBookingApiController extends Controller
             ])
             ->get();
 
-        return response()->json(['ok' => true, 'count' => $bookings->count(), 'bookings' => $bookings]);
+        return response()->json([
+            'ok' => true,
+            'count' => $bookings->count(),
+            'bookings' => PlaceBookingResource::collection($bookings)->resolve(),
+        ]);
     }
 
     /**
@@ -380,9 +378,11 @@ class PlaceBookingApiController extends Controller
         }
 
         return response()->json([
-            'ok'       => true,
-            'booking'  => $booking,
-            'approved' => $approved,
+            'ok' => true,
+            'booking' => (new PlaceBookingResource($booking))->resolve(),
+            'approved' => $approved
+                ? (new ApprovedPlaceResource($approved))->resolve()
+                : null,
         ]);
     }
 
@@ -390,7 +390,7 @@ class PlaceBookingApiController extends Controller
      * PUT /api/place_bookings/{id}
      * Update pending-only (must be mine).
      */
-    public function update(Request $request, int $id)
+    public function update(StorePlaceBookingRequest $request, int $id)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -404,15 +404,6 @@ class PlaceBookingApiController extends Controller
         if ($row->Status !== 'pending') {
             return response()->json(['ok' => false, 'message' => 'Cannot update after review'], 403);
         }
-
-        $request->validate([
-            'place_id'      => 'required|integer',
-            'qetaa_id'      => 'nullable|integer',
-            'booking_date'  => 'required|date',
-            'time_from'     => 'required|date_format:H:i',
-            'time_to'       => 'required|date_format:H:i',
-            'user_note'     => 'nullable|string|max:500',
-        ]);
 
         if ($err = $this->ensureOptionalFksExist($request)) return $err;
         if ($err = $this->validateTimeOrder($request->time_from, $request->time_to)) return $err;

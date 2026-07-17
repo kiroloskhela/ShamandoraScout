@@ -4,6 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Domain\SpecialCase\PersonSpecialCaseService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePersonSpecialCaseRequest;
+use App\Http\Requests\UpdatePersonSpecialCaseRequest;
+use App\Http\Resources\PersonSpecialCaseResource;
+use App\Http\Resources\SpecialCasePersonResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -326,7 +330,7 @@ class PersonSpecialCaseApiController extends Controller
 
         return response()->json([
             'ok' => true,
-            'cases' => $cases,
+            'cases' => PersonSpecialCaseResource::collection(collect($cases))->resolve(),
         ]);
     }
 
@@ -384,7 +388,7 @@ class PersonSpecialCaseApiController extends Controller
 
         return response()->json([
             'ok' => true,
-            'persons' => $persons,
+            'persons' => SpecialCasePersonResource::collection(collect($persons))->resolve(),
         ]);
     }
 
@@ -408,23 +412,20 @@ class PersonSpecialCaseApiController extends Controller
 
         return response()->json([
             'ok' => true,
-            'case' => $case,
+            'case' => (new PersonSpecialCaseResource($case))->resolve(),
         ]);
     }
 
     /**
      * POST /api/person-special-cases
      */
-    public function store(Request $request, PersonSpecialCaseService $specialCases)
+    public function store(StorePersonSpecialCaseRequest $request, PersonSpecialCaseService $specialCases)
     {
         if ($deny = $this->denyIfNoSpecialCaseAccess()) {
             return $deny;
         }
 
-        $data = $request->validate([
-            'person_id' => 'required|integer|exists:PersonInformation,PersonID',
-            'note' => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
 
         $userPersonId = $this->authPersonId();
 
@@ -465,22 +466,22 @@ class PersonSpecialCaseApiController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Special case created successfully',
-            'case' => $case,
+            'case' => $case
+                ? (new PersonSpecialCaseResource($case))->resolve()
+                : null,
         ], 201);
     }
 
     /**
      * PUT /api/person-special-cases/{id}
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePersonSpecialCaseRequest $request, $id)
     {
         if ($deny = $this->denyIfNoSpecialCaseAccess()) {
             return $deny;
         }
 
-        $data = $request->validate([
-            'note' => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
 
         $case = $this->getAllowedCase((int) $id);
 
@@ -502,7 +503,9 @@ class PersonSpecialCaseApiController extends Controller
         return response()->json([
             'ok' => true,
             'message' => 'Special case updated successfully',
-            'case' => $updatedCase,
+            'case' => $updatedCase
+                ? (new PersonSpecialCaseResource($updatedCase))->resolve()
+                : null,
         ]);
     }
 
@@ -626,7 +629,7 @@ class PersonSpecialCaseApiController extends Controller
 
             return response()->json([
                 'ok' => true,
-                'persons' => $persons,
+                'persons' => SpecialCasePersonResource::collection(collect($persons))->resolve(),
             ]);
         } catch (\Throwable $e) {
             Log::error('PersonSpecialCaseApiController searchPersons failed', [

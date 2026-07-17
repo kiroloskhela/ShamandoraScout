@@ -116,6 +116,9 @@ jobs:
           tests/Unit/LiveFormCapacityServiceTest.php
           tests/Unit/LiveFormDuplicateCheckTest.php
           tests/Unit/ManualPrimaryKeyTest.php
+          tests/Feature/CustodyApiIdorTest.php
+          tests/Feature/PlaceBookingApiIdorTest.php
+          tests/Feature/PersonSpecialCaseApiAuthorizationTest.php
 
 
   deploy:

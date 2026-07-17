@@ -4,11 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Domain\Custody\CustodyRequestService;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\NotificationController;
+use App\Http\Requests\StoreCustodyRequestRequest;
+use App\Http\Resources\CustodyRequestItemResource;
+use App\Http\Resources\CustodyRequestResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
-use App\Http\Controllers\NotificationController;
 class CustodyApiController extends Controller
 {
     // ---------------- helpers ----------------
@@ -328,24 +330,10 @@ class CustodyApiController extends Controller
      *   "items":[{"inventory_id":5,"qty":2}]
      * }
      */
-    public function store(Request $request, CustodyRequestService $custodyRequests)
+    public function store(StoreCustodyRequestRequest $request, CustodyRequestService $custodyRequests)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
-
-        $request->validate([
-            'date_from' => 'required|date',
-            'date_to'   => 'required|date|after_or_equal:date_from',
-
-            'qetaa_id'      => 'nullable|integer',
-            'event_type_id' => 'nullable|integer',
-
-            'items'                => 'required|array|min:1',
-            'items.*.inventory_id' => 'required|integer',
-            'items.*.qty'          => 'required|integer|min:1',
-
-            'user_note' => 'nullable|string|max:500',
-        ]);
 
         if ($err = $this->ensureOptionalFksExist($request)) return $err;
 
@@ -416,7 +404,11 @@ class CustodyApiController extends Controller
             ])
             ->get();
 
-        return response()->json(['ok' => true, 'count' => $requests->count(), 'requests' => $requests]);
+        return response()->json([
+            'ok' => true,
+            'count' => $requests->count(),
+            'requests' => CustodyRequestResource::collection($requests)->resolve(),
+        ]);
     }
 
     /**
@@ -451,14 +443,18 @@ class CustodyApiController extends Controller
             ->orderBy('RequestItemID')
             ->get();
 
-        return response()->json(['ok' => true, 'request' => $requestRow, 'items' => $items]);
+        return response()->json([
+            'ok' => true,
+            'request' => (new CustodyRequestResource($requestRow))->resolve(),
+            'items' => CustodyRequestItemResource::collection($items)->resolve(),
+        ]);
     }
 
     /**
      * PUT /api/custody/requests/{id}
      * Update pending-only (must be mine).
      */
-    public function update(Request $request, int $id)
+    public function update(StoreCustodyRequestRequest $request, int $id)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -472,20 +468,6 @@ class CustodyApiController extends Controller
         if ($req->Status !== 'pending') {
             return response()->json(['ok' => false, 'message' => 'Cannot update after review'], 403);
         }
-
-        $request->validate([
-            'date_from' => 'required|date',
-            'date_to'   => 'required|date|after_or_equal:date_from',
-
-            'qetaa_id'      => 'nullable|integer',
-            'event_type_id' => 'nullable|integer',
-
-            'user_note' => 'nullable|string|max:500',
-
-            'items'                => 'required|array|min:1',
-            'items.*.inventory_id' => 'required|integer',
-            'items.*.qty'          => 'required|integer|min:1',
-        ]);
 
         if ($err = $this->ensureOptionalFksExist($request)) return $err;
 
