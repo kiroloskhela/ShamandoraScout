@@ -2,19 +2,19 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8" dir="rtl">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full border-2 border-blue-300">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 w-full border-2 border-blue-300 dark:border-slate-700">
             <div class="mb-6 text-center">
-                <h2 class="text-xl font-bold text-gray-800">{{ __('Manage event waiting list') }}</h2>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-slate-100">{{ __('Manage event waiting list') }}</h2>
             </div>
 
             @if (session('success'))
-                <div class="mb-6 rounded-lg bg-green-100 border border-green-300 text-green-800 px-4 py-3">
+                <div class="mb-6 rounded-lg bg-green-100 dark:bg-green-900/40 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-200 px-4 py-3">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="mb-6 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-3">
+                <div class="mb-6 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-200 px-4 py-3">
                     <ul class="list-disc pr-5 space-y-1">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -23,16 +23,16 @@
                 </div>
             @endif
 
-            <div class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+            <div class="mb-6 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800/60 p-4 text-sm text-blue-900 dark:text-slate-200">
                 <div><strong>{{ __('Season:') }}</strong> {{ $event->SeasonName }} ({{ $event->SeasonYear }})</div>
                 <div><strong>{{ __('Event:') }}</strong> {{ $event->EventTypeName }} - {{ $event->EventName }}</div>
                 <div><strong>{{ __('Event start:') }}</strong> {{ $event->EventStartDate }}</div>
                 <div><strong>{{ __('Event end:') }}</strong> {{ $event->EventEndDate }}</div>
             </div>
 
-            <div class="mb-8 rounded-lg border border-slate-200 bg-slate-50 p-6">
+            <div class="mb-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-6">
                 <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-gray-800">{{ __('Add person to waiting list') }}</h3>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-slate-100">{{ __('Add person to waiting list') }}</h3>
                 </div>
 
                 <form method="POST" action="{{ route('eventWaitingList.store', $event->SeasonEventID) }}">

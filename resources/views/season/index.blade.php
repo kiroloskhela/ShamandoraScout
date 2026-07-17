@@ -11,19 +11,19 @@
                 'key' => 'SeasonID',
                 'label' => 'رقم موسم',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium'
+                'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],
             [
                 'key' => 'SeasonName',
                 'label' => 'اسم موسم',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium'
+                'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],
             [
                 'key' => 'SeasonYear',
                 'label' => __('Year'),
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium'
+                'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],
         ]" :actions="[
             [

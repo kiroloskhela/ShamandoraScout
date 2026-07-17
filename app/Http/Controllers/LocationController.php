@@ -26,7 +26,8 @@ class LocationController extends Controller
         ]);
 
         DB::table('Locations')->insert([
-            'LocationName' => $request->LocationName, 
+            'LocationID' => \App\Support\ManualPrimaryKey::next('Locations', 'LocationID'),
+            'LocationName' => $request->LocationName,
         ]);
 
         return redirect()->route('locations.index')

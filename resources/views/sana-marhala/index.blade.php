@@ -12,13 +12,13 @@
                 'key' => 'SanaMarhalaID',
                 'label' => 'رقم المرحلة',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium',
+                'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'SanaMarhalaName',
                 'label' => 'اسم المرحلة',
                 'type' => 'label',
-                'cssClass' => 'text-blue-600 font-bold text-sm',
+                'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],
         ]"
             :actions="[

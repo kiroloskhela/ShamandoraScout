@@ -25,19 +25,19 @@
                     'key' => 'SeasonName',
                     'label' => __('Season'),
                     'type' => 'text',
-                    'cssClass' => 'text-sm text-gray-900 font-medium',
+                    'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 ],
                 [
                     'key' => 'SeasonYear',
                     'label' => __('Year'),
                     'type' => 'text',
-                    'cssClass' => 'text-sm text-gray-900 font-medium',
+                    'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 ],
                 [
                     'key' => 'EventDisplayName',
                     'label' => __('Event'),
                     'type' => 'text',
-                    'cssClass' => 'text-sm text-gray-900 font-medium',
+                    'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 ],
                 [
                     'key' => 'EventStartDate',
@@ -67,7 +67,7 @@
                     'key' => 'AllowBelowMinimumDepositText',
                     'label' => __('Allow below minimum deposit'),
                     'type' => 'text',
-                    'cssClass' => 'text-sm text-gray-900 font-medium',
+                    'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 ],
                 [
                     'key' => 'IntervalsCount',

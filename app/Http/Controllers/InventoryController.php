@@ -51,13 +51,14 @@ class InventoryController extends Controller
      */
     public function insert(Request $request)
     {
-        DB::table('Inventory')->insert(array(
-            'ItemName'          => $request->item_name,
-            'ItemQuantity'      => $request->item_quantity,
+        DB::table('Inventory')->insert([
+            'InventoryID' => \App\Support\ManualPrimaryKey::next('Inventory', 'InventoryID'),
+            'ItemName' => $request->item_name,
+            'ItemQuantity' => $request->item_quantity,
             'ItemMeasuringUnit' => $request->item_measuring_unit,
-            'Category'          => $request->category,
-            'Location'          => $request->location
-        ));
+            'Category' => $request->category,
+            'Location' => $request->location,
+        ]);
 
         return redirect()->route('inventory.index');
     }

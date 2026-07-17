@@ -3,6 +3,7 @@
 namespace App\Domain\PlaceBooking;
 
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class PlaceBookingService
 {
@@ -43,5 +44,47 @@ class PlaceBookingService
                 'updated_at' => now(),
             ]);
         });
+    }
+
+    public function updatePending(
+        int $bookingId,
+        int $personId,
+        int $placeId,
+        ?int $qetaaId,
+        string $bookingDate,
+        string $timeFrom,
+        string $timeTo,
+        ?string $userNote
+    ): void {
+        $updated = DB::table('PlaceBookings')
+            ->where('BookingID', $bookingId)
+            ->where('PersonID', $personId)
+            ->where('Status', 'pending')
+            ->update([
+                'PlaceID' => $placeId,
+                'QetaaID' => $qetaaId,
+                'BookingDate' => $bookingDate,
+                'TimeFrom' => $timeFrom,
+                'TimeTo' => $timeTo,
+                'UserNote' => $userNote,
+                'updated_at' => now(),
+            ]);
+
+        if ($updated === 0) {
+            throw new RuntimeException('Place booking not pending or not owned');
+        }
+    }
+
+    public function deletePending(int $bookingId, int $personId): void
+    {
+        $deleted = DB::table('PlaceBookings')
+            ->where('BookingID', $bookingId)
+            ->where('PersonID', $personId)
+            ->where('Status', 'pending')
+            ->delete();
+
+        if ($deleted === 0) {
+            throw new RuntimeException('Place booking not pending or not owned');
+        }
     }
 }

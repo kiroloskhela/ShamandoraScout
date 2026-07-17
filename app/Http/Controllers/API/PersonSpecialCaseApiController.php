@@ -475,7 +475,7 @@ class PersonSpecialCaseApiController extends Controller
     /**
      * PUT /api/person-special-cases/{id}
      */
-    public function update(UpdatePersonSpecialCaseRequest $request, $id)
+    public function update(UpdatePersonSpecialCaseRequest $request, $id, PersonSpecialCaseService $specialCases)
     {
         if ($deny = $this->denyIfNoSpecialCaseAccess()) {
             return $deny;
@@ -492,11 +492,7 @@ class PersonSpecialCaseApiController extends Controller
             ], 404);
         }
 
-        DB::table('PersonSpecialCase')
-            ->where('SpecialCaseID', (int) $id)
-            ->update([
-                'Note' => $data['note'] ?? null,
-            ]);
+        $specialCases->updateNote((int) $id, $data['note'] ?? null);
 
         $updatedCase = $this->getAllowedCase((int) $id);
 
@@ -512,7 +508,7 @@ class PersonSpecialCaseApiController extends Controller
     /**
      * DELETE /api/person-special-cases/{id}
      */
-    public function destroy($id)
+    public function destroy($id, PersonSpecialCaseService $specialCases)
     {
         if ($deny = $this->denyIfNoSpecialCaseAccess()) {
             return $deny;
@@ -527,9 +523,7 @@ class PersonSpecialCaseApiController extends Controller
             ], 404);
         }
 
-        DB::table('PersonSpecialCase')
-            ->where('SpecialCaseID', (int) $id)
-            ->delete();
+        $specialCases->delete((int) $id);
 
         return response()->json([
             'ok' => true,

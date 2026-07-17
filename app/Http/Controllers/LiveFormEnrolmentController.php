@@ -73,29 +73,19 @@ public function insertLiveForm(Request $request)
             ->where('SanaMarhalaID', $request->sana_marhala_id)
             ->count();
 
-      //  $is_full = ($marhala_limit <= 0) || ($numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit);
-   //!! Note: We are allowing proceeding with empty available_qetaat to show a message in step 2 about no available sectors, instead of blocking here, because some stages might not have limits and we want to allow them to proceed to step 2 to show the available sectors without limits.
-  
-        // if (!$is_full) {
-        //     $available_qetaat[] = [
-        //         'QetaaID' => $qetaa_id,
-        //         'QetaaName' => $qetaa_name,
-        //         'gender' => $gender,
-        //         'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
-        //         'max_limit' => $marhala_limit,
-        //         'is_full' => false,
-        //     ];
-        // }
+        // Advisory only — final capacity decision stays locked in LiveFormCapacityService at submit.
+        $is_full = ($marhala_limit <= 0)
+            || ($numberOfStudentsCurrentlySubmittedInSanaMarhala >= $marhala_limit);
 
-
-           $available_qetaat[] = [
-                'QetaaID' => $qetaa_id,
-                'QetaaName' => $qetaa_name,
-                'gender' => $gender,
-                'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
-                'max_limit' => $marhala_limit,
-                'is_full' => false,
-            ];
+        // Keep full qetaat visible (honest is_full) so step 2 can explain waiting-list risk.
+        $available_qetaat[] = [
+            'QetaaID' => $qetaa_id,
+            'QetaaName' => $qetaa_name,
+            'gender' => $gender,
+            'current_count' => $numberOfStudentsCurrentlySubmittedInSanaMarhala,
+            'max_limit' => $marhala_limit,
+            'is_full' => $is_full,
+        ];
     }
     //!! Note: We are allowing proceeding with empty available_qetaat to show a message in step 2 about no available sectors, instead of blocking here, because some stages might not have limits and we want to allow them to proceed to step 2 to show the available sectors without limits.
     // if (empty($available_qetaat)) {

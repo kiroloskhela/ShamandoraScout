@@ -39,8 +39,9 @@ class PlaceController extends Controller
         }
 
         DB::table('Place')->insert([
-            'PlaceName'  => $request->place_name,
-            'LocationID' => $request->location_id
+            'PlaceID' => \App\Support\ManualPrimaryKey::next('Place', 'PlaceID'),
+            'PlaceName' => $request->place_name,
+            'LocationID' => $request->location_id,
         ]);
 
         return redirect()->route('place.index')

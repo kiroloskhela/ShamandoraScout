@@ -30,11 +30,10 @@ class CurriculaCategoryController extends Controller
 
         public function insert(Request  $request)
         {
-            DB::table('CurriculaCategory')->insert(
-                array(
-                    'CurriculaCategoryName' => $request -> CurriculaCategoryName,
-                )
-            );
+            DB::table('CurriculaCategory')->insert([
+                'CurriculaCategoryID' => \App\Support\ManualPrimaryKey::next('CurriculaCategory', 'CurriculaCategoryID'),
+                'CurriculaCategoryName' => $request->CurriculaCategoryName,
+            ]);
             return redirect()->route('CurriculaCategory.index');
         }
     

@@ -454,7 +454,7 @@ class CustodyApiController extends Controller
      * PUT /api/custody/requests/{id}
      * Update pending-only (must be mine).
      */
-    public function update(StoreCustodyRequestRequest $request, int $id)
+    public function update(StoreCustodyRequestRequest $request, int $id, CustodyRequestService $custodyRequests)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -474,42 +474,20 @@ class CustodyApiController extends Controller
         [$ok, $normalizedItems, $errorResponse] = $this->normalizeItems($request->items);
         if (!$ok) return $errorResponse;
 
-        DB::beginTransaction();
         try {
-            DB::table('CustodyRequests')
-                ->where('RequestID', $id)
-                ->update([
-                    'DateFrom'    => $request->date_from,
-                    'DateTo'      => $request->date_to,
-                    'QetaaID'     => $request->qetaa_id ?: null,
-                    'EventTypeID' => $request->event_type_id ?: null,
-                    'UserNote'    => $request->user_note,
-                    'updated_at'  => now(),
-                ]);
+            $custodyRequests->updatePending(
+                $id,
+                $personId,
+                $request->date_from,
+                $request->date_to,
+                $request->qetaa_id ?: null,
+                $request->event_type_id ?: null,
+                $request->user_note,
+                $normalizedItems
+            );
 
-            DB::table('CustodyRequestItems')->where('RequestID', $id)->delete();
-
-            $rows = [];
-            foreach ($normalizedItems as $ni) {
-                $rows[] = [
-                    'RequestID'        => $id,
-                    'InventoryID'      => $ni['InventoryID'],
-                    'ItemNameSnapshot' => $ni['ItemNameSnapshot'],
-                    'ItemUnitSnapshot' => $ni['ItemUnitSnapshot'],
-                    'QtyRequested'     => $ni['QtyRequested'],
-                    'QtyApproved'      => null,
-                    'AdminItemNote'    => null,
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ];
-            }
-            DB::table('CustodyRequestItems')->insert($rows);
-
-            DB::commit();
             return response()->json(['ok' => true, 'message' => 'Request updated']);
-
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('Custody API: update failed', ['error' => $e->getMessage()]);
             return response()->json(['ok' => false, 'message' => 'Failed to update request'], 500);
         }
@@ -519,7 +497,7 @@ class CustodyApiController extends Controller
      * DELETE /api/custody/requests/{id}
      * Delete pending-only (must be mine).
      */
-    public function destroy(int $id)
+    public function destroy(int $id, CustodyRequestService $custodyRequests)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -535,7 +513,8 @@ class CustodyApiController extends Controller
         }
 
         try {
-            DB::table('CustodyRequests')->where('RequestID', $id)->delete();
+            $custodyRequests->deletePending($id, $personId);
+
             return response()->json(['ok' => true, 'message' => 'Request deleted']);
         } catch (\Throwable $e) {
             Log::error('Custody API: delete failed', ['error' => $e->getMessage()]);

@@ -184,4 +184,108 @@ class PersonSpecialCaseApiAuthorizationTest extends TestCase
             ->assertStatus(409)
             ->assertJsonPath('message', 'This person already has a special case today');
     }
+
+    public function test_admin_qetaa_can_access_index_and_is_scoped(): void
+    {
+        foreach ([
+            'PersonEntryQuestions',
+            'PersonSanaMarhala',
+            'SanaMarhala',
+            'PersonQetaa',
+            'Qetaa',
+            'PersonPhoneNumbers',
+            'PersonGroup',
+            'GroupQetaa',
+        ] as $table) {
+            Schema::dropIfExists($table);
+        }
+
+        Schema::create('PersonEntryQuestions', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID');
+        });
+        Schema::create('PersonSanaMarhala', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('SanaMarhalaID')->nullable();
+        });
+        Schema::create('SanaMarhala', function (Blueprint $table) {
+            $table->increments('SanaMarhalaID');
+            $table->string('SanaMarhalaName')->nullable();
+        });
+        Schema::create('PersonQetaa', function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('QetaaID');
+        });
+        Schema::create('Qetaa', function (Blueprint $table) {
+            $table->increments('QetaaID');
+            $table->string('QetaaName')->nullable();
+        });
+        Schema::create('PersonPhoneNumbers', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID');
+            $table->string('PersonPersonalMobileNumber')->nullable();
+        });
+        Schema::create('PersonGroup', function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('GroupID');
+        });
+        Schema::create('GroupQetaa', function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('GroupID');
+            $table->unsignedInteger('QetaaID');
+        });
+
+        $headers = $this->authHeadersForRoles(['AdminQetaa']);
+        /** @var User $admin */
+        $admin = $headers['_user'];
+        unset($headers['_user']);
+
+        $inScope = User::create([
+            'FirstName' => 'In',
+            'SecondName' => 'Scope',
+            'ThirdName' => 'X',
+            'FourthName' => 'Y',
+            'ShamandoraCode' => 'IN'.uniqid(),
+        ]);
+        $outScope = User::create([
+            'FirstName' => 'Out',
+            'SecondName' => 'Scope',
+            'ThirdName' => 'X',
+            'FourthName' => 'Y',
+            'ShamandoraCode' => 'OUT'.uniqid(),
+        ]);
+
+        DB::table('Qetaa')->insert(['QetaaID' => 1, 'QetaaName' => 'A']);
+        DB::table('Qetaa')->insert(['QetaaID' => 2, 'QetaaName' => 'B']);
+        DB::table('PersonGroup')->insert(['PersonID' => $admin->PersonID, 'GroupID' => 10]);
+        DB::table('GroupQetaa')->insert(['GroupID' => 10, 'QetaaID' => 1]);
+        DB::table('PersonQetaa')->insert(['PersonID' => $inScope->PersonID, 'QetaaID' => 1]);
+        DB::table('PersonQetaa')->insert(['PersonID' => $outScope->PersonID, 'QetaaID' => 2]);
+
+        $inCaseId = (int) DB::table('PersonSpecialCase')->insertGetId([
+            'PersonID' => $inScope->PersonID,
+            'ServentID' => $admin->PersonID,
+            'CaseDate' => now(),
+            'Note' => 'in',
+        ]);
+        $outCaseId = (int) DB::table('PersonSpecialCase')->insertGetId([
+            'PersonID' => $outScope->PersonID,
+            'ServentID' => $admin->PersonID,
+            'CaseDate' => now(),
+            'Note' => 'out',
+        ]);
+
+        $index = $this->withHeaders($headers)
+            ->getJson('/api/person-special-cases')
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $caseIds = collect($index->json('cases'))->pluck('SpecialCaseID')->all();
+        $this->assertContains($inCaseId, $caseIds);
+        $this->assertNotContains($outCaseId, $caseIds);
+
+        $this->withHeaders($headers)
+            ->getJson("/api/person-special-cases/{$outCaseId}")
+            ->assertStatus(404);
+    }
 }

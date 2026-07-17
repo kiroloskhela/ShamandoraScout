@@ -119,6 +119,7 @@ jobs:
           tests/Feature/CustodyApiIdorTest.php
           tests/Feature/PlaceBookingApiIdorTest.php
           tests/Feature/PersonSpecialCaseApiAuthorizationTest.php
+          tests/Feature/AttendanceApiAllowListTest.php
 
 
   deploy:

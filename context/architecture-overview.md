@@ -80,13 +80,16 @@ It is **not** a React/SPA product. The primary UI is **server-rendered Blade** w
 - Web authorization is **role-string middleware**, not Policies/Gates.
 - API tokens often issued with ability `['*']`.
 
-### Phase D (arch / quality) — current state
+### Phase D–E (arch / quality / ops) — current state
 
-- Domain services own custody, place booking, and special-case creates (API + web special-case insert).
-- API list/show payloads for persons, attendance persons, and games go through JsonResources (envelope `{ ok, … }` preserved).
-- Form Requests for games store/update and attendance save.
-- Legacy tables without AUTO_INCREMENT still use `ManualPrimaryKey::next()` — do not blindly ALTER `GroupTable` / `PersonRole` without resequencing.
+- Domain services own custody, place booking, and special-case **create + update/destroy** (API wired; web special-case insert uses create).
+- API Resources: Person, AttendancePerson, Game, Custody, PlaceBooking, SpecialCase (+ person picker).
+- Form Requests: Games, Attendance save, Custody, PlaceBooking, SpecialCase, SeasonEvent booking store, Booking installment.
+- Ops: public `/health` is minimal; details via `HEALTH_TOKEN`; post-deploy `deploy/check-health.php`; systemd queue only (pm2 stopped); ManualPrimaryKey uses MySQL `GET_LOCK`.
+- Liveform: resume removed (410); waiting-list RaqamQawmy duplicate checks; step1 exposes honest `is_full` (submit still atomic).
+- Legacy tables without AUTO_INCREMENT still use `ManualPrimaryKey::next()` — do not blindly ALTER `GroupTable` / `PersonRole` without resequencing. Run `php scripts/check-auto-increment.php` on prod after schema changes.
 - Pint CI allowlist covers Domain, Requests, Resources, Policies, and a growing set of cleaned controllers/models.
+- Dark mode: layout + `x-data-table` + `x-form-card` + high-traffic indexes (qetaa, inventory, season, group, finance, events, …).
 
 ### What is already done well (preserve these)
 

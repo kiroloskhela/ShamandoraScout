@@ -151,7 +151,8 @@ class AttendanceApiController extends Controller
     //
     //  Response:
     //    { ok: true, message: "Attendance saved", count: 3,
-    //      saved: [ { PersonID, Status, Excuse } ] }
+    //      saved: [ { PersonID, Status, Excuse } ],
+    //      skipped: [ PersonID, ... ] }
     // =========================================================================
     public function save(StoreAttendanceSaveRequest $request)
     {
@@ -181,12 +182,15 @@ class AttendanceApiController extends Controller
 
         $rows = [];
         $saved = [];
+        $skipped = [];
 
         foreach ((array) $data['attendance'] as $personId => $entry) {
             $personId = (int) $personId;
 
-            // Silently skip any PersonID the servant has no authority over
+            // Skip (and report) any PersonID the servant has no authority over
             if (! isset($allowedPersonIds[$personId])) {
+                $skipped[] = $personId;
+
                 continue;
             }
 
@@ -224,6 +228,7 @@ class AttendanceApiController extends Controller
             'message' => 'Attendance saved',
             'count' => count($saved),
             'saved' => $saved,
+            'skipped' => $skipped,
         ]);
     }
 

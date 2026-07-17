@@ -66,4 +66,25 @@ class PlaceBookingServiceTest extends TestCase
         $this->assertSame('pending', $booking->Status);
         $this->assertNull($booking->ApprovedPlaceID);
     }
+
+    public function test_update_pending_changes_fields(): void
+    {
+        $bookingId = $this->service->create(42, 10, 3, '2026-01-28', '08:00', '09:00', 'old');
+
+        $this->service->updatePending($bookingId, 42, 11, 4, '2026-01-29', '10:00', '11:00', 'new');
+
+        $booking = DB::table('PlaceBookings')->where('BookingID', $bookingId)->first();
+        $this->assertSame(11, (int) $booking->PlaceID);
+        $this->assertSame(4, (int) $booking->QetaaID);
+        $this->assertSame('2026-01-29', $booking->BookingDate);
+        $this->assertSame('10:00', $booking->TimeFrom);
+        $this->assertSame('new', $booking->UserNote);
+    }
+
+    public function test_delete_pending_removes_booking(): void
+    {
+        $bookingId = $this->service->create(42, 10, null, '2026-01-28', '08:00', '09:00', null);
+        $this->service->deletePending($bookingId, 42);
+        $this->assertNull(DB::table('PlaceBookings')->where('BookingID', $bookingId)->first());
+    }
 }

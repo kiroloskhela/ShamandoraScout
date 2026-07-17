@@ -761,6 +761,10 @@
                                             <option value="{{ $qetaa['QetaaID'] }}"
                                                 {{ (string) ($qetaa_id ?? '') === (string) $qetaa['QetaaID'] ? 'selected' : '' }}>
                                                 {{ $qetaa['QetaaName'] }}
+                                                @if (!empty($qetaa['is_full']))
+                                                    — {{ __('Full / waiting list') }}
+                                                    ({{ $qetaa['current_count'] ?? 0 }}/{{ $qetaa['max_limit'] ?? 0 }})
+                                                @endif
                                             </option>
                                         @endforeach
                                     </select>

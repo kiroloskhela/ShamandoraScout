@@ -390,7 +390,7 @@ class PlaceBookingApiController extends Controller
      * PUT /api/place_bookings/{id}
      * Update pending-only (must be mine).
      */
-    public function update(StorePlaceBookingRequest $request, int $id)
+    public function update(StorePlaceBookingRequest $request, int $id, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -413,26 +413,20 @@ class PlaceBookingApiController extends Controller
             return response()->json(['ok' => false, 'message' => 'Invalid PlaceID'], 422);
         }
 
-        DB::beginTransaction();
         try {
-            DB::table('PlaceBookings')
-                ->where('BookingID', $id)
-                ->where('Status', 'pending') // atomic guard
-                ->update([
-                    'PlaceID'     => (int)$request->place_id,
-                    'QetaaID'     => $request->qetaa_id ?: null,
-                    'BookingDate' => $request->booking_date,
-                    'TimeFrom'    => $request->time_from,
-                    'TimeTo'      => $request->time_to,
-                    'UserNote'    => $request->user_note,
-                    'updated_at'  => now(),
-                ]);
+            $placeBookings->updatePending(
+                $id,
+                $personId,
+                (int) $request->place_id,
+                $request->qetaa_id ?: null,
+                $request->booking_date,
+                $request->time_from,
+                $request->time_to,
+                $request->user_note
+            );
 
-            DB::commit();
             return response()->json(['ok' => true, 'message' => 'Booking updated']);
-
         } catch (\Throwable $e) {
-            DB::rollBack();
             Log::error('PlaceBooking API: update failed', ['error' => $e->getMessage()]);
             return response()->json(['ok' => false, 'message' => 'Failed to update booking'], 500);
         }
@@ -442,7 +436,7 @@ class PlaceBookingApiController extends Controller
      * DELETE /api/place_bookings/{id}
      * Delete pending-only (must be mine).
      */
-    public function destroy(int $id)
+    public function destroy(int $id, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
         if (!$personId) return $this->jsonUnauthorized();
@@ -458,7 +452,8 @@ class PlaceBookingApiController extends Controller
         }
 
         try {
-            DB::table('PlaceBookings')->where('BookingID', $id)->delete();
+            $placeBookings->deletePending($id, $personId);
+
             return response()->json(['ok' => true, 'message' => 'Booking deleted']);
         } catch (\Throwable $e) {
             Log::error('PlaceBooking API: delete failed', ['error' => $e->getMessage()]);

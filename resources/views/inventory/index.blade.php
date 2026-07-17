@@ -12,37 +12,37 @@
                 'key' => 'InventoryID',
                 'label' => 'رقم العنصر',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-900 font-medium',
+                'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'ItemName',
                 'label' => 'اسم العنصر',
                 'type' => 'label',
-                'cssClass' => 'text-blue-600 font-bold text-sm',
+                'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],
             [
                 'key' => 'ItemQuantity',
                 'label' => __('Quantity'),
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-800',
+                'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],
             [
                 'key' => 'ItemMeasuringUnit',
                 'label' => 'وحدة القياس',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-800',
+                'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],
             [
                 'key' => 'Category',
                 'label' => 'الفئة',
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-800',
+                'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],
             [
                 'key' => 'Location',
                 'label' => __('Location'),
                 'type' => 'text',
-                'cssClass' => 'text-sm text-gray-800',
+                'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],
         ]" :actions="[
             [

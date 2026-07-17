@@ -51,4 +51,16 @@ class PersonSpecialCaseServiceTest extends TestCase
         $this->assertNotNull($case);
         $this->assertNull($case->Note);
     }
+
+    public function test_update_note_and_delete(): void
+    {
+        $specialCaseId = $this->service->create(100, 200, 'old');
+        $this->service->updateNote($specialCaseId, 'updated');
+
+        $case = DB::table('PersonSpecialCase')->where('SpecialCaseID', $specialCaseId)->first();
+        $this->assertSame('updated', $case->Note);
+
+        $this->service->delete($specialCaseId);
+        $this->assertNull(DB::table('PersonSpecialCase')->where('SpecialCaseID', $specialCaseId)->first());
+    }
 }

@@ -98,4 +98,50 @@ class CustodyRequestServiceTest extends TestCase
         $this->assertSame(7, (int) $items[1]->InventoryID);
         $this->assertSame(10, (int) $items[1]->QtyRequested);
     }
+
+    public function test_update_pending_replaces_items(): void
+    {
+        $requestId = $this->service->create(10, '2026-01-21', '2026-01-22', null, null, 'old', [
+            [
+                'InventoryID' => 5,
+                'ItemNameSnapshot' => 'Tent',
+                'ItemUnitSnapshot' => 'piece',
+                'QtyRequested' => 2,
+            ],
+        ]);
+
+        $this->service->updatePending($requestId, 10, '2026-02-01', '2026-02-03', 1, 2, 'new', [
+            [
+                'InventoryID' => 9,
+                'ItemNameSnapshot' => 'Rope',
+                'ItemUnitSnapshot' => 'm',
+                'QtyRequested' => 4,
+            ],
+        ]);
+
+        $request = DB::table('CustodyRequests')->where('RequestID', $requestId)->first();
+        $this->assertSame('2026-02-01', $request->DateFrom);
+        $this->assertSame('new', $request->UserNote);
+
+        $items = DB::table('CustodyRequestItems')->where('RequestID', $requestId)->get();
+        $this->assertCount(1, $items);
+        $this->assertSame(9, (int) $items[0]->InventoryID);
+        $this->assertSame(4, (int) $items[0]->QtyRequested);
+    }
+
+    public function test_delete_pending_removes_request(): void
+    {
+        $requestId = $this->service->create(10, '2026-01-21', '2026-01-22', null, null, null, [
+            [
+                'InventoryID' => 5,
+                'ItemNameSnapshot' => 'Tent',
+                'ItemUnitSnapshot' => 'piece',
+                'QtyRequested' => 1,
+            ],
+        ]);
+
+        $this->service->deletePending($requestId, 10);
+
+        $this->assertNull(DB::table('CustodyRequests')->where('RequestID', $requestId)->first());
+    }
 }
