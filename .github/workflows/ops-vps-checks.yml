@@ -1,0 +1,63 @@
+name: VPS ops checks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ops:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run HEALTH_TOKEN + AUTO_INCREMENT audit on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: 22
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+            cd /var/www/shamandora
+
+            echo "==> Ensure HEALTH_TOKEN"
+            if [ ! -f .env ]; then
+              echo "ERROR: .env missing"
+              exit 1
+            fi
+            if ! grep -q '^HEALTH_TOKEN=' .env || [ -z "$(grep '^HEALTH_TOKEN=' .env | cut -d= -f2-)" ]; then
+              TOKEN="$(openssl rand -hex 16)"
+              if grep -q '^HEALTH_TOKEN=' .env; then
+                sed -i "s|^HEALTH_TOKEN=.*|HEALTH_TOKEN=${TOKEN}|" .env
+              else
+                printf '\nHEALTH_TOKEN=%s\n' "${TOKEN}" >> .env
+              fi
+              echo "HEALTH_TOKEN set (new)"
+            else
+              echo "HEALTH_TOKEN already present"
+            fi
+
+            php artisan optimize:clear
+            php artisan config:cache
+
+            echo "==> Queue consumer check"
+            systemctl is-active laravel-queue.service || true
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 list || true
+              pm2 stop shamandora-queue 2>/dev/null || true
+              pm2 delete shamandora-queue 2>/dev/null || true
+            fi
+
+            echo "==> AUTO_INCREMENT audit"
+            php scripts/check-auto-increment.php || true
+
+            echo "==> Public /health"
+            curl -fsS https://shamandorascout.com/health || curl -fsS http://127.0.0.1/health || true
+            echo
+
+            echo "==> Detailed /health (token)"
+            HT="$(grep '^HEALTH_TOKEN=' .env | cut -d= -f2-)"
+            curl -fsS "https://shamandorascout.com/health?token=${HT}" || true
+            echo
+
+            echo "==> Done"
