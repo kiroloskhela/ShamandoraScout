@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
@@ -10,15 +11,13 @@ use Throwable;
 class HealthController extends Controller
 {
     /**
-     * Lightweight readiness probe for load balancers / uptime monitors.
-     * Does not require auth. Avoids leaking internals beyond ok/status.
+     * Public readiness probe. Detailed ops fields require HEALTH_TOKEN.
      */
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
         $checks = [
             'app' => true,
             'database' => false,
-            'failed_jobs' => null,
         ];
 
         try {
@@ -28,26 +27,45 @@ class HealthController extends Controller
             $checks['database'] = false;
         }
 
-        if (Schema::hasTable('failed_jobs')) {
-            try {
-                $checks['failed_jobs'] = (int) DB::table('failed_jobs')->count();
-            } catch (Throwable) {
-                $checks['failed_jobs'] = null;
-            }
-        }
-
         $ok = $checks['app'] && $checks['database'];
 
-        // Prefer config() — env() is null after `php artisan config:cache`.
-        $release = config('sentry.release') ?: config('app.release');
-
-        return response()->json([
+        $payload = [
             'ok' => $ok,
             'status' => $ok ? 'healthy' : 'degraded',
             'checks' => $checks,
-            'release' => $release ?: null,
-            'log_channel' => config('logging.default'),
             'time' => now()->toIso8601String(),
-        ], $ok ? 200 : 503);
+        ];
+
+        if ($this->wantsDetails($request)) {
+            $payload['checks']['failed_jobs'] = null;
+
+            if (Schema::hasTable('failed_jobs')) {
+                try {
+                    $payload['checks']['failed_jobs'] = (int) DB::table('failed_jobs')->count();
+                } catch (Throwable) {
+                    $payload['checks']['failed_jobs'] = null;
+                }
+            }
+
+            // Prefer config() — env() is null after `php artisan config:cache`.
+            $release = config('sentry.release') ?: config('app.release');
+            $payload['release'] = $release ?: null;
+            $payload['log_channel'] = config('logging.default');
+        }
+
+        return response()->json($payload, $ok ? 200 : 503);
+    }
+
+    private function wantsDetails(Request $request): bool
+    {
+        $token = (string) config('app.health_token', '');
+
+        if ($token === '') {
+            return false;
+        }
+
+        $provided = (string) $request->query('token', '');
+
+        return $provided !== '' && hash_equals($token, $provided);
     }
 }

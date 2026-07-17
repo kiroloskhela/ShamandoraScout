@@ -8,13 +8,16 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Domain\Enrolment\LiveFormCapacityService;
+use App\Domain\Enrolment\LiveFormDuplicateCheck;
 use App\Domain\Enrolment\LiveFormSubmitService;
+use Illuminate\Database\QueryException;
 
 class LiveFormEnrolmentController extends Controller
 {
         public function __construct(
             private readonly LiveFormCapacityService $capacity,
             private readonly LiveFormSubmitService $submissions,
+            private readonly LiveFormDuplicateCheck $duplicates,
         ) {
         }
 
@@ -293,17 +296,9 @@ $step1['qetaa_name'] = $selectedQetaa['QetaaName'];
 
 session(['liveform.step1' => $step1]);
 
- $raqam = $request->input('input_raqam_qawmy');
+ $raqam = (string) $request->input('input_raqam_qawmy');
 
-$existsInNewUsers = DB::table('NewUsersInformation')
-    ->where('RaqamQawmy', $raqam)
-    ->exists();
-
-$existsInPersonInformation = DB::table('PersonInformation')
-    ->where('RaqamQawmy', $raqam)
-    ->exists();
-
-if ($existsInNewUsers || $existsInPersonInformation) {
+if ($this->duplicates->exists($raqam)) {
     return view('person.person-already-exists');
 }
     $profileImagePath = session('liveform.step2.profile_image');
@@ -435,12 +430,7 @@ public function submitLiveformQuestions(Request $request)
         |--------------------------------------------------------------------------
         */
 
-        $exists = DB::table('NewUsersInformation')
-            ->where('RaqamQawmy', $step2['input_raqam_qawmy'])
-            ->lockForUpdate()
-            ->exists();
-
-        if ($exists) {
+        if ($this->duplicates->exists((string) $step2['input_raqam_qawmy'], lockForUpdate: true)) {
             DB::rollBack();
             return view('person.person-already-exists');
         }
@@ -557,6 +547,20 @@ public function submitLiveformQuestions(Request $request)
 
         return view('person.liveform-finalize');
 
+    } catch (QueryException $e) {
+        DB::rollBack();
+
+        if ($this->duplicates->isUniqueViolation($e)) {
+            return view('person.person-already-exists');
+        }
+
+        Log::error('submitLiveformQuestions failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return view('person.entry-error');
     } catch (\Throwable $e) {
 
         DB::rollBack();

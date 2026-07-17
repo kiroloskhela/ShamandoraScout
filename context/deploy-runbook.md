@@ -42,20 +42,26 @@ Prefer forward-fix migrations over rollback when data was written.
 
 ## Health
 
-- App probe: `GET /health` (JSON; 503 if DB down)  
+- Public probe: `GET /health` — `{ ok, status, checks.app, checks.database, time }` (503 if DB down)
+- Details (failed_jobs / release / log_channel): `GET /health?token=$HEALTH_TOKEN` when `HEALTH_TOKEN` is set in `.env`
 - Queue: `php artisan queue:report-failed` (scheduled hourly; logs + Sentry)
 - Scheduler: `/etc/cron.d/shamandora-scheduler` from `deploy/laravel-scheduler.cron`
+- Queue worker: **systemd only** (`laravel-queue.service`). Deploy stops legacy `pm2 shamandora-queue` if present.
+- Deploy fails closed if the in-process post-deploy `/health` check is not `ok`.
 
-## One-time VPS polish (if `/health` shows `"release": null`)
+## One-time VPS polish (details token + release)
 
 ```bash
 cd /var/www/shamandora
 SHA="$(git rev-parse HEAD)"
 grep -q '^SENTRY_RELEASE=' .env && sed -i "s|^SENTRY_RELEASE=.*|SENTRY_RELEASE=${SHA}|" .env || printf '\nSENTRY_RELEASE=%s\n' "${SHA}" >> .env
 grep -q '^LOG_CHANNEL=' .env && sed -i 's|^LOG_CHANNEL=.*|LOG_CHANNEL=daily|' .env || printf '\nLOG_CHANNEL=daily\n' >> .env
+# Optional ops token for /health?token=…
+grep -q '^HEALTH_TOKEN=' .env || printf '\nHEALTH_TOKEN=%s\n' "$(openssl rand -hex 16)" >> .env
 install -m 644 deploy/laravel-scheduler.cron /etc/cron.d/shamandora-scheduler
 php artisan optimize:clear && php artisan config:cache
 curl -sS https://shamandorascout.com/health
+curl -sS "https://shamandorascout.com/health?token=$(grep ^HEALTH_TOKEN= .env | cut -d= -f2-)"
 ```
 
 ## Logs

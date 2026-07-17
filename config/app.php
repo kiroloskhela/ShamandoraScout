@@ -31,6 +31,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Health details token
+    |--------------------------------------------------------------------------
+    |
+    | When set, GET /health?token=… returns failed_jobs, release, and log_channel.
+    | Public /health without the token stays minimal (ok / database only).
+    |
+    */
+    'health_token' => env('HEALTH_TOKEN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
