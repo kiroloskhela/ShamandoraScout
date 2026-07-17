@@ -257,4 +257,87 @@ class SeasonEventBookingService
             return ['ok' => false, 'field' => 'general', 'message' => 'حدث خطأ أثناء إنشاء الحجز.'];
         }
     }
+
+    public function getBookingDetails(int $bookingId): ?object
+    {
+        return DB::table('SeasonEventParticipantFinance as b')
+            ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
+            ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
+            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+            ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+            ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
+            ->where('b.SeasonEventParticipantFinanceID', $bookingId)
+            ->select(
+                'b.*',
+                DB::raw("
+                TRIM(CONCAT(
+                    COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                    COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                    COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                    COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                )) as PersonFullName
+            "),
+                DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+                DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN CONCAT('SH-', b.PersonID)
+                    WHEN b.FamilyID IS NOT NULL THEN CONCAT('FM-', b.FamilyID)
+                    WHEN b.GuestID IS NOT NULL THEN CONCAT('GU-', b.GuestID)
+                    ELSE '-'
+                END as BookingCode
+            "),
+                DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN 'شخص'
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE '-'
+                END as BookingEntityLabel
+            "),
+                's.SeasonName',
+                's.SeasonYear',
+                'e.EventName',
+                'et.EventTypeName'
+            )
+            ->first();
+    }
+
+    public function countPayments(int $bookingId): int
+    {
+        return (int) DB::table('SeasonEventParticipantFinancePayment')
+            ->where('SeasonEventParticipantFinanceID', $bookingId)
+            ->where('PaymentType', 'PAYMENT')
+            ->count();
+    }
+
+    public function getPaymentWithBooking(int $paymentId): ?object
+    {
+        return DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join('SeasonEventParticipantFinance as b', 'p.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('p.PaymentID', $paymentId)
+            ->select(
+                'p.*',
+                'b.SeasonEventID',
+                'b.FinalRequiredAmount',
+                'b.InstallmentsNumber',
+                'b.PersonID',
+                'b.GuestID',
+                'b.FamilyID'
+            )
+            ->first();
+    }
+
+    public function isLastPayment(int $bookingId, int $paymentId): bool
+    {
+        $lastPayment = DB::table('SeasonEventParticipantFinancePayment')
+            ->where('SeasonEventParticipantFinanceID', $bookingId)
+            ->orderByDesc('PaymentDate')
+            ->orderByDesc('PaymentID')
+            ->first();
+
+        return $lastPayment && (int) $lastPayment->PaymentID === $paymentId;
+    }
 }
