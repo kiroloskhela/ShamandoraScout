@@ -216,20 +216,8 @@ jobs:
               pm2 delete shamandora-queue 2>/dev/null || true
             fi
 
-            echo "==> Post-deploy health check (in-process; fails deploy if unhealthy)"
-            HEALTH_JSON="$(php -r '
-require "vendor/autoload.php";
-$app = require "bootstrap/app.php";
-$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-$request = Illuminate\Http\Request::create("/health", "GET");
-$response = $kernel->handle($request);
-echo $response->getContent();
-$kernel->terminate($request, $response);
-if ($response->getStatusCode() !== 200) { fwrite(STDERR, "health HTTP ".$response->getStatusCode().PHP_EOL); exit(1); }
-')"
-            echo "${HEALTH_JSON}"
-            echo "${HEALTH_JSON}" | grep -q '"ok":true'
-            echo "${HEALTH_JSON}" | grep -q '"database":true'
+            echo "==> Post-deploy health check (fails deploy if unhealthy)"
+            php deploy/check-health.php
 
             echo "==> Deployed $(git rev-parse --short HEAD) release=${DEPLOY_SHA} (rollback tip: git reset --hard ${PREV_SHA:-unknown})"
             git log -1 --oneline
