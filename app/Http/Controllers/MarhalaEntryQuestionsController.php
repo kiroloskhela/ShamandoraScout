@@ -57,13 +57,17 @@ public function insert(Request $request)
     $stringOfChoices = implode('|', $choices);
     $isRequired = $request->has('questionIsRequired') ? 1 : 0;
 
-    $thisQuestionID = DB::table('MarhalaEntryQuestions')->insertGetId([
-        'QetaaID'             => $request->qetaa_id,
-        'QuestionText'        => $request->question_text,
-        'RequiredAnswerType'  => $request->required_answer_type,
-        'MCAnswer'            => $stringOfChoices,
-        'NotToBeShown'        => 0,
-        'IsRequired'          => $isRequired,
+    // Prod PK is NOT AUTO_INCREMENT — allocate explicitly (see scripts/check-auto-increment.php).
+    $thisQuestionID = \App\Support\ManualPrimaryKey::next('MarhalaEntryQuestions', 'QuestionID');
+
+    DB::table('MarhalaEntryQuestions')->insert([
+        'QuestionID' => $thisQuestionID,
+        'QetaaID' => $request->qetaa_id,
+        'QuestionText' => $request->question_text,
+        'RequiredAnswerType' => $request->required_answer_type,
+        'MCAnswer' => $stringOfChoices,
+        'NotToBeShown' => 0,
+        'IsRequired' => $isRequired,
     ]);
 
     return redirect()->route('entry-questions.index')
