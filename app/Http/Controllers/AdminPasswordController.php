@@ -70,11 +70,14 @@ class AdminPasswordController extends Controller
         if ($phone) {
             try {
                 $loginUrl = route('login-auth');
+                $message = "تم تغيير كلمة المرور الخاصة بك بواسطة المسؤول.\n\n"
+                    ."رقم المستخدم (ID): {$id}\n"
+                    ."كلمة المرور الجديدة: {$plain}\n\n"
+                    ."سجّل الدخول من هنا:\n{$loginUrl}";
+
                 $payload = [
                     'full_number' => $phone,
-                    'message' => 'Your password was reset by an admin. '
-                        .'Please log in with your new password here: '.$loginUrl."\n"
-                        .'If you don\'t know it, use "Forgot Password" on the login page.',
+                    'message' => $message,
                 ];
 
                 $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
@@ -90,6 +93,6 @@ class AdminPasswordController extends Controller
             Log::warning('No phone found for WA new password', ['person_id' => $id]);
         }
 
-        return Redirect::route('admin.passwords')->with('success', 'Password updated. WhatsApp sent if phone exists.');
+        return Redirect::route('admin.passwords')->with('success', 'تم تحديث كلمة المرور. تم إرسال واتساب إن وُجد رقم.');
     }
 }
