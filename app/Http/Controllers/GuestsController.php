@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
+use App\Support\LikeSearch;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class GuestsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $term = LikeSearch::fromRequest($request);
+
         $guests = DB::table('Guests')
             ->leftJoin('PersonInformation', 'PersonInformation.PersonID', '=', 'Guests.PersonID')
             ->select(
@@ -29,10 +31,25 @@ class GuestsController extends Controller
                 DB::raw("CONCAT_WS(' ', Guests.FirstName, Guests.SecondName, Guests.ThirdName, Guests.FourthName) as FullName"),
                 DB::raw("CONCAT_WS(' ', PersonInformation.FirstName, PersonInformation.SecondName, PersonInformation.ThirdName, PersonInformation.FourthName) as PersonFullName")
             )
+            ->when($term !== null, function ($query) use ($term) {
+                $fields = LikeSearch::namedPartyFields('Guests', 'GuestID');
+                $query->where(function ($sub) use ($term, $fields) {
+                    LikeSearch::applyFlexibleOr(
+                        $sub,
+                        $term,
+                        array_merge($fields['columns'], ['Guests.Email']),
+                        array_merge($fields['raw'], [
+                            "CONCAT_WS(' ', PersonInformation.FirstName, PersonInformation.SecondName, PersonInformation.ThirdName, PersonInformation.FourthName)",
+                        ]),
+                        ['Guests.MobileNumber'],
+                    );
+                });
+            })
             ->orderBy('Guests.GuestID', 'DESC')
-            ->get();
+            ->paginate(25)
+            ->appends($request->query());
 
-        return view('guests.index', array('guests' => $guests));
+        return view('guests.index', ['guests' => $guests, 'q' => $term ?? '']);
     }
 
     public function create()
@@ -45,35 +62,35 @@ class GuestsController extends Controller
             ->orderBy('FirstName')
             ->get();
 
-        return view('guests.create', array('persons' => $persons));
+        return view('guests.create', ['persons' => $persons]);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'        => 'required|string|max:100',
-            'second_name'       => 'nullable|string|max:100',
-            'third_name'        => 'nullable|string|max:100',
-            'fourth_name'       => 'nullable|string|max:100',
-            'email'             => 'nullable|email|max:150',
-            'mobile_number'     => 'nullable|string|max:20',
-            'date_of_birth'     => 'nullable|date',
-            'raqam_qawmy'       => 'nullable|digits:14',
-            'person_id'         => 'required|integer|exists:PersonInformation,PersonID',
+            'first_name' => 'required|string|max:100',
+            'second_name' => 'nullable|string|max:100',
+            'third_name' => 'nullable|string|max:100',
+            'fourth_name' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:150',
+            'mobile_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'raqam_qawmy' => 'nullable|digits:14',
+            'person_id' => 'required|integer|exists:PersonInformation,PersonID',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        if (!is_null($request->raqam_qawmy)) {
+        if (! is_null($request->raqam_qawmy)) {
             $exists = DB::table('Guests')
                 ->where('RaqamQawmy', $request->raqam_qawmy)
                 ->exists();
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر'
+                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر',
                 ])->withInput();
             }
         }
@@ -82,17 +99,17 @@ class GuestsController extends Controller
 
         try {
             DB::table('Guests')->insert([
-                'FirstName'      => $request->first_name,
-                'SecondName'     => $request->second_name,
-                'ThirdName'      => $request->third_name,
-                'FourthName'     => $request->fourth_name,
-                'Email'          => $request->email,
-                'MobileNumber'   => $request->mobile_number,
-                'DateOfBirth'    => $request->date_of_birth,
-                'RaqamQawmy'     => $request->raqam_qawmy,
-                'PersonID'       => $request->person_id,
-                'created_at'     => now(),
-                'updated_at'     => now(),
+                'FirstName' => $request->first_name,
+                'SecondName' => $request->second_name,
+                'ThirdName' => $request->third_name,
+                'FourthName' => $request->fourth_name,
+                'Email' => $request->email,
+                'MobileNumber' => $request->mobile_number,
+                'DateOfBirth' => $request->date_of_birth,
+                'RaqamQawmy' => $request->raqam_qawmy,
+                'PersonID' => $request->person_id,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             DB::commit();
@@ -102,7 +119,7 @@ class GuestsController extends Controller
             DB::rollBack();
 
             Log::error('Guests store error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'حدث خطأ أثناء حفظ الضيف')->withInput();
@@ -121,7 +138,7 @@ class GuestsController extends Controller
             )
             ->first();
 
-        return view('guests.show', array('guest' => $guest));
+        return view('guests.show', ['guest' => $guest]);
     }
 
     public function edit($id)
@@ -136,31 +153,31 @@ class GuestsController extends Controller
             ->orderBy('FirstName')
             ->get();
 
-        return view('guests.edit', array(
+        return view('guests.edit', [
             'guest' => $guest,
-            'persons' => $persons
-        ));
+            'persons' => $persons,
+        ]);
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'        => 'required|string|max:100',
-            'second_name'       => 'nullable|string|max:100',
-            'third_name'        => 'nullable|string|max:100',
-            'fourth_name'       => 'nullable|string|max:100',
-            'email'             => 'nullable|email|max:150',
-            'mobile_number'     => 'nullable|string|max:20',
-            'date_of_birth'     => 'nullable|date',
-            'raqam_qawmy'       => 'nullable|digits:14',
-            'person_id'         => 'required|integer|exists:PersonInformation,PersonID',
+            'first_name' => 'required|string|max:100',
+            'second_name' => 'nullable|string|max:100',
+            'third_name' => 'nullable|string|max:100',
+            'fourth_name' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:150',
+            'mobile_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'raqam_qawmy' => 'nullable|digits:14',
+            'person_id' => 'required|integer|exists:PersonInformation,PersonID',
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        if (!is_null($request->raqam_qawmy)) {
+        if (! is_null($request->raqam_qawmy)) {
             $exists = DB::table('Guests')
                 ->where('RaqamQawmy', $request->raqam_qawmy)
                 ->where('GuestID', '!=', $id)
@@ -168,7 +185,7 @@ class GuestsController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر'
+                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر',
                 ])->withInput();
             }
         }
@@ -179,16 +196,16 @@ class GuestsController extends Controller
             DB::table('Guests')
                 ->where('GuestID', $id)
                 ->update([
-                    'FirstName'      => $request->first_name,
-                    'SecondName'     => $request->second_name,
-                    'ThirdName'      => $request->third_name,
-                    'FourthName'     => $request->fourth_name,
-                    'Email'          => $request->email,
-                    'MobileNumber'   => $request->mobile_number,
-                    'DateOfBirth'    => $request->date_of_birth,
-                    'RaqamQawmy'     => $request->raqam_qawmy,
-                    'PersonID'       => $request->person_id,
-                    'updated_at'     => now(),
+                    'FirstName' => $request->first_name,
+                    'SecondName' => $request->second_name,
+                    'ThirdName' => $request->third_name,
+                    'FourthName' => $request->fourth_name,
+                    'Email' => $request->email,
+                    'MobileNumber' => $request->mobile_number,
+                    'DateOfBirth' => $request->date_of_birth,
+                    'RaqamQawmy' => $request->raqam_qawmy,
+                    'PersonID' => $request->person_id,
+                    'updated_at' => now(),
                 ]);
 
             DB::commit();
@@ -198,7 +215,7 @@ class GuestsController extends Controller
             DB::rollBack();
 
             Log::error('Guests update error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل الضيف')->withInput();
@@ -215,7 +232,7 @@ class GuestsController extends Controller
             )
             ->first();
 
-        return view('guests.delete', array('guest' => $guest));
+        return view('guests.delete', ['guest' => $guest]);
     }
 
     public function destroy($id)
@@ -232,7 +249,7 @@ class GuestsController extends Controller
             DB::rollBack();
 
             Log::error('Guests destroy error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'لا يمكن حذف الضيف');

@@ -2,7 +2,9 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$persons" title="{{ __('Waiting list') }}" tableId="WaitingListTable" :columns="[
+                <x-table-server-search :q="$q ?? ''" />
+
+        <x-data-table :data="$persons->items()" title="{{ __('Waiting list') }}" tableId="WaitingListTable" :columns="[
             [
                 'key' => 'PersonID',
                 'label' => __('Request'),
@@ -78,6 +80,9 @@
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 ml-2',
             ],
         ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
     </div>
+        <div class="mt-4">
+            {{ $persons->links() }}
+        </div>
 @endsection

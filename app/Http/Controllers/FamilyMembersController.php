@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
+use App\Support\LikeSearch;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class FamilyMembersController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $term = LikeSearch::fromRequest($request);
+
         $familyMembers = DB::table('FamilyMembers as fm')
             ->leftJoin('PersonFamily as pf', 'pf.FamilyID', '=', 'fm.FamilyID')
             ->leftJoin('PersonInformation as pi', 'pi.PersonID', '=', 'pf.PersonID')
@@ -28,10 +30,24 @@ class FamilyMembersController extends Controller
                 'fm.DateOfBirth',
                 'fm.RaqamQawmy',
                 DB::raw("CONCAT_WS(' ', fm.FirstName, fm.SecondName, fm.ThirdName, fm.FourthName) as FullName"),
-                DB::raw("COUNT(DISTINCT pf.PersonID) as LinkedPersonsCount"),
+                DB::raw('COUNT(DISTINCT pf.PersonID) as LinkedPersonsCount'),
                 DB::raw("GROUP_CONCAT(DISTINCT CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) SEPARATOR ' | ') as LinkedPersons"),
                 DB::raw("GROUP_CONCAT(DISTINCT r.RelationName SEPARATOR ' | ') as RelationNames")
             )
+            ->when($term !== null, function ($query) use ($term) {
+                $fields = LikeSearch::namedPartyFields('fm', 'FamilyID');
+                $query->where(function ($sub) use ($term, $fields) {
+                    LikeSearch::applyFlexibleOr(
+                        $sub,
+                        $term,
+                        array_merge($fields['columns'], ['fm.Email']),
+                        array_merge($fields['raw'], [
+                            "CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)",
+                        ]),
+                        ['fm.MobileNumber'],
+                    );
+                });
+            })
             ->groupBy(
                 'fm.FamilyID',
                 'fm.FirstName',
@@ -44,11 +60,13 @@ class FamilyMembersController extends Controller
                 'fm.RaqamQawmy'
             )
             ->orderBy('fm.FamilyID', 'DESC')
-            ->get();
+            ->paginate(25)
+            ->appends($request->query());
 
-        return view('family-members.index', array(
-            'familyMembers' => $familyMembers
-        ));
+        return view('family-members.index', [
+            'familyMembers' => $familyMembers,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function create()
@@ -65,26 +83,26 @@ class FamilyMembersController extends Controller
             ->orderBy('RelationName')
             ->get();
 
-        return view('family-members.create', array(
+        return view('family-members.create', [
             'persons' => $persons,
-            'relations' => $relations
-        ));
+            'relations' => $relations,
+        ]);
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'      => 'required|string|max:100',
-            'second_name'     => 'nullable|string|max:100',
-            'third_name'      => 'nullable|string|max:100',
-            'fourth_name'     => 'nullable|string|max:100',
-            'email'           => 'nullable|email|max:150',
-            'mobile_number'   => 'nullable|string|max:20',
-            'date_of_birth'   => 'nullable|date',
-            'raqam_qawmy'     => 'nullable|digits:14',
-            'person_ids'      => 'nullable|array',
-            'person_ids.*'    => 'nullable|integer|exists:PersonInformation,PersonID',
-            'relation_type_ids'   => 'nullable|array',
+            'first_name' => 'required|string|max:100',
+            'second_name' => 'nullable|string|max:100',
+            'third_name' => 'nullable|string|max:100',
+            'fourth_name' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:150',
+            'mobile_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'raqam_qawmy' => 'nullable|digits:14',
+            'person_ids' => 'nullable|array',
+            'person_ids.*' => 'nullable|integer|exists:PersonInformation,PersonID',
+            'relation_type_ids' => 'nullable|array',
             'relation_type_ids.*' => 'nullable|integer|exists:Relations,RelationTypeID',
         ]);
 
@@ -111,8 +129,8 @@ class FamilyMembersController extends Controller
                     $validator->errors()->add("assignment_$i", 'يجب اختيار الشخص وصلة القرابة معًا في كل صف.');
                 }
 
-                if (!$personEmpty && !$relationEmpty) {
-                    $pairKey = $personId . '-' . $relationId;
+                if (! $personEmpty && ! $relationEmpty) {
+                    $pairKey = $personId.'-'.$relationId;
 
                     if (in_array($pairKey, $pairs)) {
                         $validator->errors()->add("assignment_duplicate_$i", 'لا يمكن تكرار نفس الشخص ونفس صلة القرابة أكثر من مرة.');
@@ -127,14 +145,14 @@ class FamilyMembersController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        if (!is_null($request->raqam_qawmy)) {
+        if (! is_null($request->raqam_qawmy)) {
             $exists = DB::table('FamilyMembers')
                 ->where('RaqamQawmy', $request->raqam_qawmy)
                 ->exists();
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر'
+                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر',
                 ])->withInput();
             }
         }
@@ -143,16 +161,16 @@ class FamilyMembersController extends Controller
 
         try {
             $familyId = DB::table('FamilyMembers')->insertGetId([
-                'FirstName'    => $request->first_name,
-                'SecondName'   => $request->second_name,
-                'ThirdName'    => $request->third_name,
-                'FourthName'   => $request->fourth_name,
-                'Email'        => $request->email,
+                'FirstName' => $request->first_name,
+                'SecondName' => $request->second_name,
+                'ThirdName' => $request->third_name,
+                'FourthName' => $request->fourth_name,
+                'Email' => $request->email,
                 'MobileNumber' => $request->mobile_number,
-                'DateOfBirth'  => $request->date_of_birth,
-                'RaqamQawmy'   => $request->raqam_qawmy,
-                'created_at'   => now(),
-                'updated_at'   => now(),
+                'DateOfBirth' => $request->date_of_birth,
+                'RaqamQawmy' => $request->raqam_qawmy,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $personIds = $request->person_ids ?? [];
@@ -169,11 +187,11 @@ class FamilyMembersController extends Controller
                 }
 
                 DB::table('PersonFamily')->insert([
-                    'PersonID'        => $personId,
-                    'FamilyID'        => $familyId,
-                    'RelationTypeID'  => $relationId,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
+                    'PersonID' => $personId,
+                    'FamilyID' => $familyId,
+                    'RelationTypeID' => $relationId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
@@ -184,7 +202,7 @@ class FamilyMembersController extends Controller
             DB::rollBack();
 
             Log::error('FamilyMembers store error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'حدث خطأ أثناء حفظ فرد الأسرة')->withInput();
@@ -215,10 +233,10 @@ class FamilyMembersController extends Controller
             ->orderBy('pf.PersonFamilyID', 'ASC')
             ->get();
 
-        return view('family-members.show', array(
+        return view('family-members.show', [
             'familyMember' => $familyMember,
-            'assignments' => $assignments
-        ));
+            'assignments' => $assignments,
+        ]);
     }
 
     public function edit($id)
@@ -244,28 +262,28 @@ class FamilyMembersController extends Controller
             ->orderBy('PersonFamilyID', 'ASC')
             ->get();
 
-        return view('family-members.edit', array(
+        return view('family-members.edit', [
             'familyMember' => $familyMember,
             'persons' => $persons,
             'relations' => $relations,
-            'assignments' => $assignments
-        ));
+            'assignments' => $assignments,
+        ]);
     }
 
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'first_name'      => 'required|string|max:100',
-            'second_name'     => 'nullable|string|max:100',
-            'third_name'      => 'nullable|string|max:100',
-            'fourth_name'     => 'nullable|string|max:100',
-            'email'           => 'nullable|email|max:150',
-            'mobile_number'   => 'nullable|string|max:20',
-            'date_of_birth'   => 'nullable|date',
-            'raqam_qawmy'     => 'nullable|digits:14',
-            'person_ids'      => 'nullable|array',
-            'person_ids.*'    => 'nullable|integer|exists:PersonInformation,PersonID',
-            'relation_type_ids'   => 'nullable|array',
+            'first_name' => 'required|string|max:100',
+            'second_name' => 'nullable|string|max:100',
+            'third_name' => 'nullable|string|max:100',
+            'fourth_name' => 'nullable|string|max:100',
+            'email' => 'nullable|email|max:150',
+            'mobile_number' => 'nullable|string|max:20',
+            'date_of_birth' => 'nullable|date',
+            'raqam_qawmy' => 'nullable|digits:14',
+            'person_ids' => 'nullable|array',
+            'person_ids.*' => 'nullable|integer|exists:PersonInformation,PersonID',
+            'relation_type_ids' => 'nullable|array',
             'relation_type_ids.*' => 'nullable|integer|exists:Relations,RelationTypeID',
         ]);
 
@@ -292,8 +310,8 @@ class FamilyMembersController extends Controller
                     $validator->errors()->add("assignment_$i", 'يجب اختيار الشخص وصلة القرابة معًا في كل صف.');
                 }
 
-                if (!$personEmpty && !$relationEmpty) {
-                    $pairKey = $personId . '-' . $relationId;
+                if (! $personEmpty && ! $relationEmpty) {
+                    $pairKey = $personId.'-'.$relationId;
 
                     if (in_array($pairKey, $pairs)) {
                         $validator->errors()->add("assignment_duplicate_$i", 'لا يمكن تكرار نفس الشخص ونفس صلة القرابة أكثر من مرة.');
@@ -308,7 +326,7 @@ class FamilyMembersController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        if (!is_null($request->raqam_qawmy)) {
+        if (! is_null($request->raqam_qawmy)) {
             $exists = DB::table('FamilyMembers')
                 ->where('RaqamQawmy', $request->raqam_qawmy)
                 ->where('FamilyID', '!=', $id)
@@ -316,7 +334,7 @@ class FamilyMembersController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر'
+                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر',
                 ])->withInput();
             }
         }
@@ -327,15 +345,15 @@ class FamilyMembersController extends Controller
             DB::table('FamilyMembers')
                 ->where('FamilyID', $id)
                 ->update([
-                    'FirstName'    => $request->first_name,
-                    'SecondName'   => $request->second_name,
-                    'ThirdName'    => $request->third_name,
-                    'FourthName'   => $request->fourth_name,
-                    'Email'        => $request->email,
+                    'FirstName' => $request->first_name,
+                    'SecondName' => $request->second_name,
+                    'ThirdName' => $request->third_name,
+                    'FourthName' => $request->fourth_name,
+                    'Email' => $request->email,
                     'MobileNumber' => $request->mobile_number,
-                    'DateOfBirth'  => $request->date_of_birth,
-                    'RaqamQawmy'   => $request->raqam_qawmy,
-                    'updated_at'   => now(),
+                    'DateOfBirth' => $request->date_of_birth,
+                    'RaqamQawmy' => $request->raqam_qawmy,
+                    'updated_at' => now(),
                 ]);
 
             DB::table('PersonFamily')
@@ -356,11 +374,11 @@ class FamilyMembersController extends Controller
                 }
 
                 DB::table('PersonFamily')->insert([
-                    'PersonID'        => $personId,
-                    'FamilyID'        => $id,
-                    'RelationTypeID'  => $relationId,
-                    'created_at'      => now(),
-                    'updated_at'      => now(),
+                    'PersonID' => $personId,
+                    'FamilyID' => $id,
+                    'RelationTypeID' => $relationId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
@@ -371,7 +389,7 @@ class FamilyMembersController extends Controller
             DB::rollBack();
 
             Log::error('FamilyMembers update error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل فرد الأسرة')->withInput();
@@ -392,10 +410,10 @@ class FamilyMembersController extends Controller
             ->where('FamilyID', $id)
             ->count();
 
-        return view('family-members.delete', array(
+        return view('family-members.delete', [
             'familyMember' => $familyMember,
-            'assignmentsCount' => $assignmentsCount
-        ));
+            'assignmentsCount' => $assignmentsCount,
+        ]);
     }
 
     public function destroy($id)
@@ -413,7 +431,7 @@ class FamilyMembersController extends Controller
             DB::rollBack();
 
             Log::error('FamilyMembers destroy error', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'لا يمكن حذف فرد الأسرة');

@@ -54,7 +54,39 @@ class LikeSearch
     {
         $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term);
 
-        return '%' . $escaped . '%';
+        return '%'.$escaped.'%';
+    }
+
+    /**
+     * Digits only from a term (for phone matching). Null when fewer than 3 digits.
+     */
+    public static function digits(?string $term, int $minLength = 3): ?string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $term) ?? '';
+        if ($digits === '' || strlen($digits) < $minLength) {
+            return null;
+        }
+
+        return $digits;
+    }
+
+    /**
+     * Common EG phone string variants for LIKE matching (portable; no REGEXP_REPLACE).
+     *
+     * @return list<string>
+     */
+    public static function phoneDigitVariants(string $digits): array
+    {
+        $variants = [$digits];
+        if (strlen($digits) >= 10) {
+            $last10 = substr($digits, -10);
+            $variants[] = $last10;
+            $variants[] = '0'.$last10;
+            $variants[] = '20'.$last10;
+            $variants[] = '+20'.$last10;
+        }
+
+        return array_values(array_unique($variants));
     }
 
     /**
@@ -92,12 +124,81 @@ class LikeSearch
             }
             foreach ($rawExpressions as $expression) {
                 if ($first) {
-                    $sub->whereRaw($expression . ' LIKE ?', [$like]);
+                    $sub->whereRaw($expression.' LIKE ?', [$like]);
                     $first = false;
                 } else {
-                    $sub->orWhereRaw($expression . ' LIKE ?', [$like]);
+                    $sub->orWhereRaw($expression.' LIKE ?', [$like]);
                 }
             }
+        });
+    }
+
+    /**
+     * applyOr plus phone digit-variant OR matches when the term looks numeric.
+     *
+     * @param  EloquentBuilder|QueryBuilder  $query
+     * @param  list<string>  $columns
+     * @param  list<string>  $rawExpressions
+     * @param  list<string>  $phoneColumns
+     */
+    public static function applyFlexibleOr(
+        $query,
+        string $term,
+        array $columns = [],
+        array $rawExpressions = [],
+        array $phoneColumns = [],
+    ): void {
+        $query->where(function ($sub) use ($term, $columns, $rawExpressions, $phoneColumns) {
+            self::applyOr($sub, $term, $columns, $rawExpressions);
+
+            $digits = self::digits($term);
+            if ($digits === null || $phoneColumns === []) {
+                return;
+            }
+
+            foreach (self::phoneDigitVariants($digits) as $variant) {
+                $like = self::wildcard($variant);
+                foreach ($phoneColumns as $column) {
+                    $sub->orWhere($column, 'like', $like);
+                }
+            }
+        });
+    }
+
+    /**
+     * Word-mode names OR full CONCAT OR identity/phone columns (flexible person match).
+     *
+     * @param  EloquentBuilder|QueryBuilder  $query
+     */
+    public static function applyFlexiblePersonMatch(
+        $query,
+        string $term,
+        string $pi = 'pi',
+        ?string $ppn = 'ppn',
+    ): void {
+        $nameColumns = [
+            "{$pi}.FirstName",
+            "{$pi}.SecondName",
+            "{$pi}.ThirdName",
+            "{$pi}.FourthName",
+        ];
+        $fields = self::personIdentityFields($pi, $ppn);
+        $phoneColumns = $ppn !== null ? self::personPhoneColumns($ppn) : [];
+
+        $query->where(function ($outer) use ($term, $nameColumns, $fields, $phoneColumns) {
+            $outer->where(function ($names) use ($term, $nameColumns) {
+                self::applyWordNames($names, $term, $nameColumns);
+            });
+
+            $outer->orWhere(function ($identity) use ($term, $fields, $phoneColumns) {
+                self::applyFlexibleOr(
+                    $identity,
+                    $term,
+                    $fields['columns'],
+                    $fields['raw'],
+                    $phoneColumns,
+                );
+            });
         });
     }
 
@@ -144,13 +245,58 @@ class LikeSearch
         $parts = [];
         $bindings = [];
         foreach ($columns as $column) {
-            $parts[] = $column . ' LIKE ?';
+            $parts[] = $column.' LIKE ?';
             $bindings[] = $like;
         }
 
         return [
-            'sql' => '(' . implode(' OR ', $parts) . ')',
+            'sql' => '('.implode(' OR ', $parts).')',
             'bindings' => $bindings,
+        ];
+    }
+
+    /**
+     * sqlOr plus phone digit-variant OR matches.
+     *
+     * @param  list<string>  $columns
+     * @param  list<string>  $phoneColumns
+     * @return array{sql: string, bindings: list<string>}
+     */
+    public static function sqlFlexibleOr(array $columns, string $term, array $phoneColumns = []): array
+    {
+        $fragment = self::sqlOr($columns, $term);
+        $digits = self::digits($term);
+        if ($digits === null || $phoneColumns === []) {
+            return $fragment;
+        }
+
+        $parts = [$fragment['sql']];
+        $bindings = $fragment['bindings'];
+        foreach (self::phoneDigitVariants($digits) as $variant) {
+            $like = self::wildcard($variant);
+            foreach ($phoneColumns as $column) {
+                $parts[] = $column.' LIKE ?';
+                $bindings[] = $like;
+            }
+        }
+
+        return [
+            'sql' => '('.implode(' OR ', $parts).')',
+            'bindings' => $bindings,
+        ];
+    }
+
+    /**
+     * Personal + father + mother mobile columns.
+     *
+     * @return list<string>
+     */
+    public static function personPhoneColumns(string $ppn = 'ppn'): array
+    {
+        return [
+            "{$ppn}.PersonPersonalMobileNumber",
+            "{$ppn}.FatherMobileNumber",
+            "{$ppn}.MotherMobileNumber",
         ];
     }
 
@@ -161,16 +307,20 @@ class LikeSearch
      */
     public static function personDirectoryColumns(string $pi = 'pi', string $ppn = 'ppn', string $q = 'q', string $sm = 'sm'): array
     {
-        return [
-            "{$pi}.ShamandoraCode",
-            "{$pi}.FirstName",
-            "{$pi}.SecondName",
-            "{$pi}.ThirdName",
-            "{$pi}.FourthName",
-            "{$ppn}.PersonPersonalMobileNumber",
-            "{$q}.QetaaName",
-            "{$sm}.SanaMarhalaName",
-        ];
+        return array_merge(
+            [
+                "CAST({$pi}.PersonID AS CHAR)",
+                "{$pi}.ShamandoraCode",
+                "{$pi}.FirstName",
+                "{$pi}.SecondName",
+                "{$pi}.ThirdName",
+                "{$pi}.FourthName",
+                "CONCAT_WS(' ', {$pi}.FirstName, {$pi}.SecondName, {$pi}.ThirdName, {$pi}.FourthName)",
+                "{$q}.QetaaName",
+                "{$sm}.SanaMarhalaName",
+            ],
+            self::personPhoneColumns($ppn),
+        );
     }
 
     /**
@@ -184,6 +334,8 @@ class LikeSearch
             "{$alias}.PersonName",
             "CAST({$alias}.PersonID AS CHAR)",
             "{$alias}.PersonPersonalMobileNumber",
+            "{$alias}.FatherMobileNumber",
+            "{$alias}.MotherMobileNumber",
             "{$alias}.FirstName",
             "{$alias}.SecondName",
             "{$alias}.ThirdName",
@@ -194,11 +346,11 @@ class LikeSearch
     }
 
     /**
-     * Identity columns for person typeaheads (name parts + code + id + national id + optional phone).
+     * Identity columns for person typeaheads (name parts + code + id + national id + phones).
      *
      * @return array{columns: list<string>, raw: list<string>}
      */
-    public static function personIdentityFields(string $pi = 'pi', ?string $phoneColumn = null): array
+    public static function personIdentityFields(string $pi = 'pi', ?string $ppn = null): array
     {
         $columns = [
             "{$pi}.FirstName",
@@ -209,12 +361,14 @@ class LikeSearch
             "{$pi}.PersonID",
             "{$pi}.RaqamQawmy",
         ];
-        if ($phoneColumn !== null) {
-            $columns[] = $phoneColumn;
+        if ($ppn !== null) {
+            $columns = array_merge($columns, self::personPhoneColumns($ppn));
         }
 
+        // CAST must be raw — Query Builder would quote it as a column name.
         $raw = [
             "CONCAT_WS(' ', {$pi}.FirstName, {$pi}.SecondName, {$pi}.ThirdName, {$pi}.FourthName)",
+            "CAST({$pi}.PersonID AS CHAR)",
         ];
 
         return ['columns' => $columns, 'raw' => $raw];
@@ -235,6 +389,7 @@ class LikeSearch
             ],
             'raw' => [
                 "CONCAT_WS(' ', {$alias}.FirstName, {$alias}.SecondName, {$alias}.ThirdName, {$alias}.FourthName)",
+                "CAST({$alias}.{$idColumn} AS CHAR)",
             ],
         ];
     }

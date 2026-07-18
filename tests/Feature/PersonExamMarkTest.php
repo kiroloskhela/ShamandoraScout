@@ -31,6 +31,7 @@ class PersonExamMarkTest extends TestCase
             'PersonRole',
             'Roles',
             'PersonImages',
+            'PersonPhoneNumbers',
             'PersonInformation',
         ] as $table) {
             Schema::dropIfExists($table);
@@ -43,6 +44,13 @@ class PersonExamMarkTest extends TestCase
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
             $table->string('FourthName')->nullable();
+        });
+
+        Schema::create('PersonPhoneNumbers', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID')->primary();
+            $table->string('PersonPersonalMobileNumber')->nullable();
+            $table->string('FatherMobileNumber')->nullable();
+            $table->string('MotherMobileNumber')->nullable();
         });
 
         Schema::create('PersonImages', function (Blueprint $table) {

@@ -2,7 +2,9 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$guests" title="إدارة الضيوف" :add-button="[
+                <x-table-server-search :q="$q ?? ''" />
+
+        <x-data-table :data="$guests->items()" title="إدارة الضيوف" :add-button="[
             'label' => 'إضافة ضيف',
             'route' => route('guests.create'),
             'cssClass' =>
@@ -64,6 +66,9 @@
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700',
             ],
         ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
     </div>
+        <div class="mt-4">
+            {{ $guests->links() }}
+        </div>
 @endsection

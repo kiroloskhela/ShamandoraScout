@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LikeSearch;
+use App\Support\SqlPaginator;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PersonBlackListController extends Controller
@@ -34,6 +35,8 @@ class PersonBlackListController extends Controller
                 sm.SanaMarhalaName,
                 pi.RaqamQawmy,
                 ppn.PersonPersonalMobileNumber,
+                ppn.FatherMobileNumber,
+                ppn.MotherMobileNumber,
                 q.QetaaID,
                 PG.PersonID AS GroupPersonID,
                 IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
@@ -65,7 +68,7 @@ class PersonBlackListController extends Controller
      */
     private function allowedPersonIdsSql()
     {
-        return "
+        return '
             SELECT DISTINCT
                 pi.PersonID
             FROM PersonInformation pi
@@ -87,7 +90,7 @@ class PersonBlackListController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
-        ";
+        ';
     }
 
     private function allowedPersonExists($personId, $userId = null)
@@ -143,9 +146,34 @@ class PersonBlackListController extends Controller
     public function index(Request $request)
     {
         $userId = $request->query('id') ?? Auth::id();
-        Log::info("Fetching PersonBlackList for user ID: " . $userId);
+        Log::info('Fetching PersonBlackList for user ID: '.$userId);
 
-        $blacklist = DB::select("
+        $term = LikeSearch::fromRequest($request);
+        $bindings = [$userId];
+        $searchSql = '';
+        if ($term !== null) {
+            $fragment = LikeSearch::sqlFlexibleOr(
+                [
+                    'CAST(pbl.PersonID AS CHAR)',
+                    'pbl.Note',
+                    'p.FirstName',
+                    'p.SecondName',
+                    'p.ThirdName',
+                    'p.FourthName',
+                    "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
+                    "CONCAT_WS(' ', s.FirstName, s.SecondName, s.ThirdName, s.FourthName)",
+                    'ppn.PersonPersonalMobileNumber',
+                    'ppn.FatherMobileNumber',
+                    'ppn.MotherMobileNumber',
+                ],
+                $term,
+                LikeSearch::personPhoneColumns('ppn'),
+            );
+            $searchSql = ' AND '.$fragment['sql'];
+            $bindings = array_merge($bindings, $fragment['bindings']);
+        }
+
+        $sql = "
             SELECT
                 pbl.BlackListID,
                 pbl.PersonID,
@@ -167,13 +195,20 @@ class PersonBlackListController extends Controller
             FROM PersonBlackList pbl
             LEFT JOIN PersonInformation p ON p.PersonID = pbl.PersonID
             LEFT JOIN PersonInformation s ON s.PersonID = pbl.ServentID
+            LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = pbl.PersonID
             WHERE pbl.PersonID IN (
                 {$this->allowedPersonIdsSql()}
             )
+            {$searchSql}
             ORDER BY pbl.BlackListID DESC
-        ", [$userId]);
+        ";
 
-        return view("personblacklist.index", ['blacklist' => $blacklist]);
+        $blacklist = SqlPaginator::paginate($sql, $bindings, 25);
+
+        return view('personblacklist.index', [
+            'blacklist' => $blacklist,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function create(Request $request)
@@ -185,19 +220,19 @@ class PersonBlackListController extends Controller
             ORDER BY ShamandoraCode ASC
         ", [$userId]);
 
-        return view("personblacklist.create", ['persons' => $persons]);
+        return view('personblacklist.create', ['persons' => $persons]);
     }
 
     public function insert(Request $request)
     {
         $request->validate([
             'person_id' => 'required|integer',
-            'note'      => 'nullable|string|max:1000',
+            'note' => 'nullable|string|max:1000',
         ]);
 
         $userId = Auth::id();
 
-        if (!$this->allowedPersonExists($request->person_id, $userId)) {
+        if (! $this->allowedPersonExists($request->person_id, $userId)) {
             return redirect()->back()->with('status', 'هذا الشخص غير متاح لك');
         }
 
@@ -211,10 +246,10 @@ class PersonBlackListController extends Controller
         }
 
         DB::table('PersonBlackList')->insert([
-            'PersonID'  => $request->person_id,
+            'PersonID' => $request->person_id,
             'ServentID' => $userId,
-            'CaseDate'  => now(),
-            'Note'      => $request->note,
+            'CaseDate' => now(),
+            'Note' => $request->note,
         ]);
 
         return redirect()->route('personblacklist.index')
@@ -225,13 +260,13 @@ class PersonBlackListController extends Controller
     {
         $black = $this->getAllowedBlackList($id);
 
-        if (!$black) {
+        if (! $black) {
             abort(403, 'غير مسموح لك بالوصول لهذا السجل');
         }
 
-        return view("personblacklist.edit", [
+        return view('personblacklist.edit', [
             'black' => $black,
-            'title' => 'تعديل القائمة السوداء'
+            'title' => 'تعديل القائمة السوداء',
         ]);
     }
 
@@ -243,14 +278,14 @@ class PersonBlackListController extends Controller
 
         $black = $this->getAllowedBlackList($id);
 
-        if (!$black) {
+        if (! $black) {
             abort(403, 'غير مسموح لك بتعديل هذا السجل');
         }
 
         DB::table('PersonBlackList')
             ->where('BlackListID', $id)
             ->update([
-                'Note' => $request->note
+                'Note' => $request->note,
             ]);
 
         return redirect()->route('personblacklist.index')
@@ -261,13 +296,13 @@ class PersonBlackListController extends Controller
     {
         $black = $this->getAllowedBlackList($id);
 
-        if (!$black) {
+        if (! $black) {
             abort(403, 'غير مسموح لك بحذف هذا السجل');
         }
 
-        return view("personblacklist.delete", [
+        return view('personblacklist.delete', [
             'black' => $black,
-            'title' => 'حذف من القائمة السوداء'
+            'title' => 'حذف من القائمة السوداء',
         ]);
     }
 
@@ -275,7 +310,7 @@ class PersonBlackListController extends Controller
     {
         $black = $this->getAllowedBlackList($id);
 
-        if (!$black) {
+        if (! $black) {
             abort(403, 'غير مسموح لك بحذف هذا السجل');
         }
 
@@ -290,15 +325,20 @@ class PersonBlackListController extends Controller
     public function searchPersons(Request $request)
     {
         $userId = Auth::id();
-        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
+        $term = LikeSearch::fromRequest($request, ['search', 'q']);
 
         try {
             $bindings = [$userId];
             $whereSql = '1=1';
             if ($term !== null) {
-                $fragment = \App\Support\LikeSearch::sqlOr(
-                    \App\Support\LikeSearch::allowedPeopleColumns(),
-                    $term
+                $fragment = LikeSearch::sqlFlexibleOr(
+                    LikeSearch::allowedPeopleColumns(),
+                    $term,
+                    [
+                        'allowed_people.PersonPersonalMobileNumber',
+                        'allowed_people.FatherMobileNumber',
+                        'allowed_people.MotherMobileNumber',
+                    ]
                 );
                 $whereSql = $fragment['sql'];
                 $bindings = array_merge($bindings, $fragment['bindings']);
@@ -323,7 +363,7 @@ class PersonBlackListController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Search failed'
+                'message' => 'Search failed',
             ], 500);
         }
     }

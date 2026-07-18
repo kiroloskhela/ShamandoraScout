@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Support\AppSettings;
 use Illuminate\Http\Request;
 
 class VersionApiController extends Controller
@@ -14,28 +15,29 @@ class VersionApiController extends Controller
     {
         $request->validate([
             'platform' => 'required|in:android,ios',
-            'version'  => 'required|string',
+            'version' => 'required|string',
         ]);
 
-        $platform        = $request->query('platform');
-        $clientVersion   = $request->query('version');
-        $config          = config('app_version');
-        $platform_config = $config[$platform];
+        $platform = $request->query('platform');
+        $clientVersion = $request->query('version');
+        $config = AppSettings::appVersionConfig();
+        $platformConfig = $config[$platform];
 
-        $needsUpdate = version_compare($clientVersion, $platform_config['latest_version'], '<');
-        $forceUpdate = $platform_config['force_update'] || version_compare($clientVersion, $platform_config['min_version'], '<');
+        $needsUpdate = version_compare($clientVersion, $platformConfig['latest_version'], '<');
+        $forceUpdate = $platformConfig['force_update']
+            || version_compare($clientVersion, $platformConfig['min_version'], '<');
 
         return response()->json([
             'success' => true,
-            'data'    => [
+            'data' => [
                 $platform => [
-                    'latest_version' => $platform_config['latest_version'],
-                    'min_version'    => $platform_config['min_version'],
-                    'force_update'   => $forceUpdate,
-                    'url'            => $platform_config['url'],
+                    'latest_version' => $platformConfig['latest_version'],
+                    'min_version' => $platformConfig['min_version'],
+                    'force_update' => $forceUpdate,
+                    'url' => $platformConfig['url'],
                 ],
-                'maintenance'  => $config['maintenance'],
-                'update_ui'    => $config['update_ui'],
+                'maintenance' => $config['maintenance'],
+                'update_ui' => $config['update_ui'],
                 'needs_update' => $needsUpdate,
                 'force_update' => $forceUpdate,
             ],

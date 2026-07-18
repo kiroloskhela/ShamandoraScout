@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\OrgTree\GroupTreeService;
+use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -11,8 +12,7 @@ class QetaaTreeController extends Controller
 {
     public function __construct(
         private readonly GroupTreeService $groups,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -26,7 +26,7 @@ class QetaaTreeController extends Controller
             ->get();
 
         $selectedQetaaId = $request->query('qetaa');
-        if ($selectedQetaaId && !$servedQetaaIds->contains((int) $selectedQetaaId)) {
+        if ($selectedQetaaId && ! $servedQetaaIds->contains((int) $selectedQetaaId)) {
             $selectedQetaaId = null;
         }
 
@@ -60,11 +60,11 @@ class QetaaTreeController extends Controller
             ->get();
 
         $selectedQetaaId = $request->query('qetaa');
-        if (!$selectedQetaaId && $servedQetaas->count() === 1) {
+        if (! $selectedQetaaId && $servedQetaas->count() === 1) {
             $selectedQetaaId = $servedQetaas->first()->QetaaID;
         }
 
-        if ($selectedQetaaId && !$servedQetaaIds->contains((int) $selectedQetaaId)) {
+        if ($selectedQetaaId && ! $servedQetaaIds->contains((int) $selectedQetaaId)) {
             $selectedQetaaId = null;
         }
 
@@ -93,13 +93,13 @@ class QetaaTreeController extends Controller
                 })
                 ->count();
 
-            if (!$selectedTeamId && $directTalaeaCount > 0 && $teams->isEmpty()) {
+            if (! $selectedTeamId && $directTalaeaCount > 0 && $teams->isEmpty()) {
                 $selectedTeamId = 'direct';
-            } elseif (!$selectedTeamId && $directTalaeaCount === 0 && $teams->count() === 1) {
+            } elseif (! $selectedTeamId && $directTalaeaCount === 0 && $teams->count() === 1) {
                 $selectedTeamId = $teams->first()->GroupID;
             }
 
-            if ($selectedTeamId && $selectedTeamId !== 'direct' && !$teams->pluck('GroupID')->contains((int) $selectedTeamId)) {
+            if ($selectedTeamId && $selectedTeamId !== 'direct' && ! $teams->pluck('GroupID')->contains((int) $selectedTeamId)) {
                 $selectedTeamId = null;
             }
 
@@ -163,6 +163,7 @@ class QetaaTreeController extends Controller
 
                 $talaea = $talaea->map(function ($taleia) use ($peopleByTaleia) {
                     $taleia->people = $peopleByTaleia->get($taleia->GroupID, collect());
+
                     return $taleia;
                 });
             }
@@ -318,28 +319,30 @@ class QetaaTreeController extends Controller
         $peopleByGroup = $people->groupBy('GroupID');
 
         $tree = $allQetaas->map(function ($qetaa) use ($groupsByQetaa, $peopleByGroup, $servedQetaaIds) {
-            $qGroups  = $groupsByQetaa->get($qetaa->QetaaID, collect());
+            $qGroups = $groupsByQetaa->get($qetaa->QetaaID, collect());
             $groupIds = $qGroups->pluck('GroupID')->toArray();
 
-            $topLevel = $qGroups->filter(fn($g) => !in_array($g->IncludedUnderGroupID, $groupIds));
-            $children = $qGroups->filter(fn($g) =>  in_array($g->IncludedUnderGroupID, $groupIds));
+            $topLevel = $qGroups->filter(fn ($g) => ! in_array($g->IncludedUnderGroupID, $groupIds));
+            $children = $qGroups->filter(fn ($g) => in_array($g->IncludedUnderGroupID, $groupIds));
 
             $topLevel = $topLevel->map(function ($g) use ($children, $peopleByGroup) {
                 $g->children = $children
                     ->where('IncludedUnderGroupID', $g->GroupID)
                     ->map(function ($child) use ($peopleByGroup) {
                         $child->people = $peopleByGroup->get($child->GroupID, collect());
+
                         return $child;
                     })->values();
                 $g->people = $peopleByGroup->get($g->GroupID, collect());
+
                 return $g;
             })->values();
 
             return [
-                'qetaa'        => $qetaa,
-                'groups'       => $topLevel,
-                'is_served'    => $servedQetaaIds->contains($qetaa->QetaaID),
-                'total_groups'  => $qGroups->count(),
+                'qetaa' => $qetaa,
+                'groups' => $topLevel,
+                'is_served' => $servedQetaaIds->contains($qetaa->QetaaID),
+                'total_groups' => $qGroups->count(),
                 'total_people' => $peopleByGroup->only($qGroups->pluck('GroupID')->toArray())->flatten(1)->count(),
             ];
         });
@@ -352,28 +355,27 @@ class QetaaTreeController extends Controller
      */
     public function searchPersons(Request $request)
     {
-        $term = \App\Support\LikeSearch::fromRequest($request, ['q', 'search'], 2);
+        $term = LikeSearch::fromRequest($request, ['q', 'search'], 2);
         $groupId = (int) $request->query('group_id', 0);
 
-        if ($term === null || !$groupId) {
+        if ($term === null || ! $groupId) {
             return response()->json([]);
         }
 
         $qetaaId = $this->qetaaIdForGroup($groupId);
-        if (!$qetaaId || !$this->servedQetaaIds(Auth::id())->contains((int) $qetaaId)) {
+        if (! $qetaaId || ! $this->servedQetaaIds(Auth::id())->contains((int) $qetaaId)) {
             return response()->json([]);
         }
 
-        $fields = \App\Support\LikeSearch::personIdentityFields('pi');
-
         $results = DB::table('PersonInformation as pi')
             ->join('PersonQetaa as pq', 'pq.PersonID', '=', 'pi.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
             ->leftJoin('PersonRotba as pr', 'pr.PersonID', '=', 'pi.PersonID')
             ->leftJoin('RotbaInformation as ri', 'ri.RotbaID', '=', 'pr.RotbaID')
             ->leftJoin('PersonImages as pim', 'pim.PersonID', '=', 'pi.PersonID')
             ->where('pq.QetaaID', $qetaaId)
-            ->where(function ($query) use ($term, $fields) {
-                \App\Support\LikeSearch::applyOr($query, $term, $fields['columns'], $fields['raw']);
+            ->where(function ($query) use ($term) {
+                LikeSearch::applyFlexiblePersonMatch($query, $term, 'pi', 'ppn');
             })
             ->select(
                 'pi.PersonID',
@@ -393,7 +395,7 @@ class QetaaTreeController extends Controller
             ->get()
             ->map(function ($person) {
                 $person->AvatarUrl = $person->PersonSystemImagePath
-                    ? asset('storage/' . $person->PersonSystemImagePath)
+                    ? asset('storage/'.$person->PersonSystemImagePath)
                     : null;
 
                 return $person;
@@ -411,27 +413,28 @@ class QetaaTreeController extends Controller
             ->whereIn('RotbaID', [1, 2, 11, 12])
             ->orderBy('RotbaID')
             ->get();
+
         return response()->json($rotbas);
     }
 
     public function storeGroup(Request $request)
     {
         $request->validate([
-            'GroupName'            => 'required|string|max:50',
-            'GroupTypeID'          => 'required|in:2,3',
-            'QetaaID'              => 'required|integer',
+            'GroupName' => 'required|string|max:50',
+            'GroupTypeID' => 'required|in:2,3',
+            'QetaaID' => 'required|integer',
             'IncludedUnderGroupID' => 'required|integer',
-            'SeasonID'             => 'required|integer',
+            'SeasonID' => 'required|integer',
         ]);
 
-        if (!$this->servedQetaaIds(Auth::id())->contains((int) $request->QetaaID)) {
+        if (! $this->servedQetaaIds(Auth::id())->contains((int) $request->QetaaID)) {
             return response()->json(['error' => 'لا يمكنك تعديل هذا القطاع.'], 403);
         }
 
         if ($request->IncludedUnderGroupID > 0) {
             $parent = DB::table('GroupTable')->where('GroupID', $request->IncludedUnderGroupID)->first();
 
-            if (!$parent) {
+            if (! $parent) {
                 return response()->json(['error' => 'المجموعة الرئيسية غير موجودة.'], 422);
             }
 
@@ -440,14 +443,14 @@ class QetaaTreeController extends Controller
                 ->where('QetaaID', $request->QetaaID)
                 ->exists();
 
-            if (!$parentInQetaa) {
+            if (! $parentInQetaa) {
                 return response()->json(['error' => 'المجموعة الرئيسية لا تتبع هذا القطاع.'], 422);
             }
 
             if ((int) $parent->GroupTypeID !== 2 || (int) $request->GroupTypeID !== 3) {
                 return response()->json(['error' => 'يمكن إضافة طليعة فقط داخل فريق.'], 422);
             }
-        } elseif (!in_array((int) $request->GroupTypeID, [2, 3], true)) {
+        } elseif (! in_array((int) $request->GroupTypeID, [2, 3], true)) {
             return response()->json(['error' => 'نوع المجموعة غير صحيح.'], 422);
         }
 
@@ -469,7 +472,7 @@ class QetaaTreeController extends Controller
             ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
             ->exists();
 
-        if (!$canAccessGroup) {
+        if (! $canAccessGroup) {
             return response()->json(['error' => 'لا يمكنك حذف هذه المجموعة.'], 403);
         }
 
@@ -489,18 +492,18 @@ class QetaaTreeController extends Controller
     public function storePerson(Request $request)
     {
         $request->validate([
-            'PersonID'    => 'required_without:PersonIDs|integer',
-            'PersonIDs'   => 'required_without:PersonID|array|min:1',
+            'PersonID' => 'required_without:PersonIDs|integer',
+            'PersonIDs' => 'required_without:PersonID|array|min:1',
             'PersonIDs.*' => 'integer',
-            'GroupID'     => 'required|integer',
-            'RotbaID'     => 'nullable|integer',
+            'GroupID' => 'required|integer',
+            'RotbaID' => 'nullable|integer',
             'PersonRotbas' => 'nullable|array',
             'PersonRotbas.*.PersonID' => 'required_with:PersonRotbas|integer',
             'PersonRotbas.*.RotbaID' => 'nullable|integer',
         ]);
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
-        if (!$group || (int) $group->GroupTypeID !== 3) {
+        if (! $group || (int) $group->GroupTypeID !== 3) {
             return response()->json(['error' => 'يمكن إضافة الأشخاص داخل طليعة فقط.'], 422);
         }
 
@@ -509,18 +512,18 @@ class QetaaTreeController extends Controller
             ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
             ->exists();
 
-        if (!$canAccessGroup) {
+        if (! $canAccessGroup) {
             return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
         }
 
-        if ($request->filled('RotbaID') && !$this->rotbaExists($request->RotbaID)) {
+        if ($request->filled('RotbaID') && ! $this->rotbaExists($request->RotbaID)) {
             return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
         }
 
         $qetaaId = $this->qetaaIdForGroup($request->GroupID);
         $personIds = collect($request->input('PersonIDs', [$request->PersonID]))
             ->filter()
-            ->map(fn($id) => (int) $id)
+            ->map(fn ($id) => (int) $id)
             ->unique()
             ->values();
 
@@ -535,14 +538,14 @@ class QetaaTreeController extends Controller
         }
 
         $rotbaByPerson = collect($request->input('PersonRotbas', []))
-            ->filter(fn($row) => isset($row['PersonID']))
-            ->mapWithKeys(fn($row) => [
+            ->filter(fn ($row) => isset($row['PersonID']))
+            ->mapWithKeys(fn ($row) => [
                 (int) $row['PersonID'] => $row['RotbaID'] ?? null,
             ]);
 
         $rotbaIds = $rotbaByPerson
-            ->filter(fn($rotbaId) => $rotbaId !== null && $rotbaId !== '')
-            ->map(fn($rotbaId) => (int) $rotbaId)
+            ->filter(fn ($rotbaId) => $rotbaId !== null && $rotbaId !== '')
+            ->map(fn ($rotbaId) => (int) $rotbaId)
             ->unique()
             ->values();
 
@@ -571,8 +574,8 @@ class QetaaTreeController extends Controller
     {
         $request->validate([
             'PersonID' => 'required|integer',
-            'GroupID'  => 'required|integer',
-            'RotbaID'  => 'nullable|integer',
+            'GroupID' => 'required|integer',
+            'RotbaID' => 'nullable|integer',
         ]);
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
@@ -583,15 +586,15 @@ class QetaaTreeController extends Controller
 
         $personInGroup = DB::table('PersonGroup')
             ->where('PersonID', $request->PersonID)
-            ->where('GroupID',  $request->GroupID)
+            ->where('GroupID', $request->GroupID)
             ->exists();
 
-        if (!$group || (int) $group->GroupTypeID !== 3 || !$canAccessGroup || !$personInGroup) {
+        if (! $group || (int) $group->GroupTypeID !== 3 || ! $canAccessGroup || ! $personInGroup) {
             return response()->json(['error' => 'لا يمكنك تعديل رتبة هذا الشخص.'], 403);
         }
 
         if ($request->filled('RotbaID')) {
-            if (!$this->rotbaExists($request->RotbaID)) {
+            if (! $this->rotbaExists($request->RotbaID)) {
                 return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
             }
 
@@ -611,7 +614,7 @@ class QetaaTreeController extends Controller
             ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
             ->exists();
 
-        if (!$group || (int) $group->GroupTypeID !== 3 || !$canAccessGroup) {
+        if (! $group || (int) $group->GroupTypeID !== 3 || ! $canAccessGroup) {
             return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
         }
 
@@ -626,5 +629,4 @@ class QetaaTreeController extends Controller
             ->where('RotbaID', $rotbaId)
             ->exists();
     }
-
 }

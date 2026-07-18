@@ -112,12 +112,7 @@ class SeasonEventBookingEligibilitySearch
             ->whereIn('pq.QetaaID', $eligibleQetaaIDs)
             ->when($term !== null, function ($query) use ($term) {
                 $query->where(function ($sub) use ($term) {
-                    LikeSearch::applyOr(
-                        $sub,
-                        $term,
-                        ['p.PersonID', 'ppn.PersonPersonalMobileNumber'],
-                        ["CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"]
-                    );
+                    LikeSearch::applyFlexiblePersonMatch($sub, $term, 'p', 'ppn');
                 });
             })
             ->select(
