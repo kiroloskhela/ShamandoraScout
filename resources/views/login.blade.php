@@ -14,12 +14,14 @@
         (function () {
             try {
                 var stored = localStorage.getItem('theme');
-                var dark = stored === null ? true : stored === 'dark';
+                var dark = stored === 'dark';
                 if (dark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
             } catch (e) {}
         })();
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
@@ -28,6 +30,10 @@
 
         body {
             font-family: 'Cairo', sans-serif;
+        }
+
+        [x-cloak] {
+            display: none !important;
         }
 
         html.dark body {
@@ -79,16 +85,38 @@
 </head>
 
 <body class="bg-white dark:bg-slate-950 min-h-screen flex items-center justify-center p-4 text-gray-900 dark:text-slate-100">
-    <div class="fixed top-4 {{ $isRtl ? 'left-4' : 'right-4' }} z-20 flex items-center gap-2">
+    <div class="fixed top-4 {{ $isRtl ? 'left-4' : 'right-4' }} z-20 flex items-center gap-1 sm:gap-2">
         <button type="button" id="themeToggle"
-            class="p-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-gray-700 dark:text-emerald-300 hover:border-emerald-400/50 transition-colors"
-            aria-label="{{ __('Dark') }}">
-            <span class="text-sm font-semibold">◐</span>
+            class="inline-flex h-10 w-10 items-center justify-center text-gray-600 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            title="{{ __('Dark') }} / {{ __('Light') }}" aria-label="{{ __('Dark') }}">
+            <svg id="iconSun" class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M12 3v2.25M12 18.75V21m9-9h-2.25M5.25 12H3m15.364 6.364l-1.591-1.591M7.227 7.227 5.636 5.636m12.728 0-1.591 1.591M7.227 16.773l-1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+            </svg>
+            <svg id="iconMoon" class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+            </svg>
         </button>
-        <a href="{{ route('locale.switch', $locale === 'ar' ? 'en' : 'ar') }}"
-            class="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-sm font-semibold text-gray-700 dark:text-slate-200 hover:border-emerald-400/50 transition-colors">
-            {{ $locale === 'ar' ? 'EN' : 'ع' }}
-        </a>
+
+        <div class="relative" x-data="{ open: false }">
+            <button type="button" @click="open = !open"
+                class="inline-flex h-10 w-10 items-center justify-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                aria-label="{{ __('Language') }}">
+                {{ $locale === 'ar' ? 'ع' : 'EN' }}
+            </button>
+            <div x-show="open" @click.outside="open = false" x-cloak
+                class="absolute {{ $isRtl ? 'left-0' : 'right-0' }} mt-1 w-36 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-20">
+                <a href="{{ route('locale.switch', 'ar') }}"
+                    class="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-slate-800 {{ $locale === 'ar' ? 'font-bold text-emerald-600 dark:text-emerald-400' : '' }}">
+                    {{ __('Arabic') }}
+                </a>
+                <a href="{{ route('locale.switch', 'en') }}"
+                    class="block px-3 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-slate-800 {{ $locale === 'en' ? 'font-bold text-emerald-600 dark:text-emerald-400' : '' }}">
+                    {{ __('English') }}
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="w-full max-w-6xl mx-auto">
@@ -193,9 +221,9 @@
                     <div
                         class="w-40 h-40 bg-gray-100 dark:bg-slate-900 rounded-full flex items-center justify-center shadow-md dark:shadow-[0_0_40px_rgba(16,185,129,0.2)] border border-gray-200 dark:border-emerald-500/30 overflow-hidden ring-4 ring-transparent dark:ring-emerald-500/10">
                         <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora Scout') }}"
-                            class="w-full h-full object-contain dark:hidden">
+                            class="h-24 w-24 object-contain dark:hidden">
                         <img src="{{ asset('img/shamandora-dark.png') }}" alt="{{ __('Shamandora Scout') }}"
-                            class="w-full h-full object-contain hidden dark:block">
+                            class="h-24 w-24 object-contain hidden dark:block">
                     </div>
                 </div>
 

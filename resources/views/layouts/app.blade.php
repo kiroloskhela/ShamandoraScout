@@ -648,9 +648,9 @@
                     <div class="flex items-center justify-center">
                         <a href="{{ url('/') }}">
                             <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
-                                class="h-14 w-auto sm:h-14 lg:h-20 dark:hidden">
+                                class="h-10 w-auto sm:h-10 lg:h-14 dark:hidden">
                             <img src="{{ asset('img/shamandora-dark.png') }}" alt="Logo"
-                                class="h-14 w-auto sm:h-14 lg:h-20 hidden dark:block">
+                                class="h-10 w-auto sm:h-10 lg:h-14 hidden dark:block">
                         </a>
                     </div>
 
