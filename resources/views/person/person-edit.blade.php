@@ -37,8 +37,8 @@
 
                     <div class="px-6 md:px-10 py-8 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
                         <div class="flex flex-col items-center justify-center gap-4 text-center">
-                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain dark:hidden" />
-                            <img src="{{ asset('img/shamandora-dark.png') }}" alt="Logo" class="h-20 w-20 object-contain hidden dark:block" />
+                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-14 w-14 object-contain dark:hidden" />
+                            <img src="{{ asset('img/shamandora-dark.png') }}" alt="Logo" class="h-14 w-14 object-contain hidden dark:block" />
                             <div>
                                 <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">تعديل بيانات الملتحق</h1>
                                 <p class="text-slate-500 dark:text-slate-400 mt-2">تعديل جميع البيانات المسجلة بنفس أسلوب صفحات الملتحقين الجدد
