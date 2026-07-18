@@ -237,6 +237,8 @@
                                     @if ($isSuperAdmin)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                             href="{{ route('liveform-settings.edit') }}">{{ __('Open / close enrolment form') }}</a>
+                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                            href="{{ route('app-version-settings.edit') }}">{{ __('App version settings') }}</a>
                                     @endif
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/entry-questions') }}">{{ __('Sector questions control') }}</a>
@@ -569,6 +571,8 @@
                                 <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.passwords') }}">{{ __('View & edit passwords') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('app-version-settings.edit') }}">{{ __('App version settings') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('audit-logs.index') }}">{{ __('Audit log') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"

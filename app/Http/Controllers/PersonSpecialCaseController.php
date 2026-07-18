@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\SpecialCase\PersonSpecialCaseService;
 use App\Support\LikeSearch;
+use App\Support\SqlPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,8 @@ class PersonSpecialCaseController extends Controller
                 sm.SanaMarhalaName,
                 pi.RaqamQawmy,
                 ppn.PersonPersonalMobileNumber,
+                ppn.FatherMobileNumber,
+                ppn.MotherMobileNumber,
                 q.QetaaID,
                 PG.PersonID AS GroupPersonID,
                 IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
@@ -145,7 +148,32 @@ class PersonSpecialCaseController extends Controller
     {
         $userId = $request->query('id') ?? Auth::id();
 
-        $cases = DB::select("
+        $term = LikeSearch::fromRequest($request);
+        $bindings = [$userId];
+        $searchSql = '';
+        if ($term !== null) {
+            $fragment = LikeSearch::sqlFlexibleOr(
+                [
+                    'CAST(psc.PersonID AS CHAR)',
+                    'psc.Note',
+                    'p.FirstName',
+                    'p.SecondName',
+                    'p.ThirdName',
+                    'p.FourthName',
+                    "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
+                    "CONCAT_WS(' ', s.FirstName, s.SecondName, s.ThirdName, s.FourthName)",
+                    'ppn.PersonPersonalMobileNumber',
+                    'ppn.FatherMobileNumber',
+                    'ppn.MotherMobileNumber',
+                ],
+                $term,
+                LikeSearch::personPhoneColumns('ppn'),
+            );
+            $searchSql = ' AND '.$fragment['sql'];
+            $bindings = array_merge($bindings, $fragment['bindings']);
+        }
+
+        $sql = "
             SELECT
                 psc.SpecialCaseID,
                 psc.PersonID,
@@ -167,13 +195,20 @@ class PersonSpecialCaseController extends Controller
             FROM PersonSpecialCase psc
             LEFT JOIN PersonInformation p ON p.PersonID = psc.PersonID
             LEFT JOIN PersonInformation s ON s.PersonID = psc.ServentID
+            LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = psc.PersonID
             WHERE psc.PersonID IN (
                 {$this->allowedPersonIdsSql()}
             )
+            {$searchSql}
             ORDER BY psc.SpecialCaseID DESC
-        ", [$userId]);
+        ";
 
-        return view('personspecialcase.index', ['cases' => $cases]);
+        $cases = SqlPaginator::paginate($sql, $bindings, 25);
+
+        return view('personspecialcase.index', [
+            'cases' => $cases,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function create(Request $request)
@@ -295,9 +330,14 @@ class PersonSpecialCaseController extends Controller
             $bindings = [$userId];
             $whereSql = '1=1';
             if ($term !== null) {
-                $fragment = LikeSearch::sqlOr(
+                $fragment = LikeSearch::sqlFlexibleOr(
                     LikeSearch::allowedPeopleColumns(),
-                    $term
+                    $term,
+                    [
+                        'allowed_people.PersonPersonalMobileNumber',
+                        'allowed_people.FatherMobileNumber',
+                        'allowed_people.MotherMobileNumber',
+                    ]
                 );
                 $whereSql = $fragment['sql'];
                 $bindings = array_merge($bindings, $fragment['bindings']);

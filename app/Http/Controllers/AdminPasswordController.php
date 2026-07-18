@@ -2,81 +2,94 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LikeSearch;
 use Illuminate\Http\Request;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redirect;
-use App\Http\Controllers\WhatsAppBridgeController;
-use Illuminate\Http\Request as HttpRequest; 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
+
 class AdminPasswordController extends Controller
 {
-    // List all users for password management
     public function index(Request $request)
     {
-        $users = DB::table('PersonInformation')
-            ->select('PersonInformation.*')
-            ->orderBy('PersonID')
-            ->paginate(50)
-            ->appends($request->query());
-        return view('admin.passwords-index', compact('users'));
+        $term = LikeSearch::fromRequest($request);
+
+        $query = DB::table('PersonInformation as pi')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
+            ->select(
+                'pi.PersonID',
+                'pi.FirstName',
+                'pi.SecondName',
+                'pi.ThirdName',
+                'pi.FourthName',
+                'pi.ShamandoraCode',
+                'ppn.PersonPersonalMobileNumber',
+            )
+            ->orderBy('pi.PersonID');
+
+        if ($term !== null) {
+            $query->where(function ($sub) use ($term) {
+                LikeSearch::applyFlexiblePersonMatch($sub, $term, 'pi', 'ppn');
+            });
+        }
+
+        $users = $query->paginate(50)->appends($request->query());
+
+        return view('admin.passwords-index', [
+            'users' => $users,
+            'q' => $term ?? '',
+        ]);
     }
 
-    // Show edit form for a user's password
     public function edit($id)
     {
         $user = DB::table('PersonInformation')->where('PersonID', $id)->first();
+
         return view('admin.passwords-edit', compact('user'));
     }
 
-    // Update a user's password
-public function update(HttpRequest $request, $id)
-{
-    $request->validate([
-        'password' => 'required|min:6',
-    ]);
+    public function update(HttpRequest $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|min:6',
+        ]);
 
-    $plain = (string) $request->input('password');
+        $plain = (string) $request->input('password');
 
-    // 1) Update (or create) the hashed password
-    DB::table('PersonSystemPassword')->updateOrInsert(
-        ['PersonID' => $id],
-        ['Password' => Hash::make($plain)]
-    );
+        DB::table('PersonSystemPassword')->updateOrInsert(
+            ['PersonID' => $id],
+            ['Password' => Hash::make($plain)]
+        );
 
-    // 2) Get phone number by PersonID
-    $phone = DB::table('PersonPhoneNumbers')
-        ->where('PersonID', $id)
-        ->value('PersonPersonalMobileNumber');
+        $phone = DB::table('PersonPhoneNumbers')
+            ->where('PersonID', $id)
+            ->value('PersonPersonalMobileNumber');
 
-    // 3) Send WhatsApp using your existing sendWithHeader
-    if ($phone) {
-        try {
-            // Create an internal request payload for sendWithHeader.
-            // Do NOT include the plaintext password in the message body.
-            $loginUrl = route('login-auth');
-            $payload = [
-                'full_number' => $phone,
-                'message'     => "Your password was reset by an admin. "
-                                . "Please log in with your new password here: {$loginUrl}\n"
-                                . "If you don't know it, use \"Forgot Password\" on the login page.",
-            ];
+        if ($phone) {
+            try {
+                $loginUrl = route('login-auth');
+                $payload = [
+                    'full_number' => $phone,
+                    'message' => 'Your password was reset by an admin. '
+                        .'Please log in with your new password here: '.$loginUrl."\n"
+                        .'If you don\'t know it, use "Forgot Password" on the login page.',
+                ];
 
-            // Build a fake POST Request object and call the controller directly
-            $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
+                $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
 
-            app(WhatsAppBridgeController::class)->sendWithHeader($fake);
-            // We ignore the returned RedirectResponse; we’ll always go back to admin list
-        } catch (\Throwable $e) {
-            Log::error('Failed to send WA new password via sendWithHeader', [
-                'person_id' => $id,
-                'error'     => $e->getMessage(),
-            ]);
+                app(WhatsAppBridgeController::class)->sendWithHeader($fake);
+            } catch (\Throwable $e) {
+                Log::error('Failed to send WA new password via sendWithHeader', [
+                    'person_id' => $id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        } else {
+            Log::warning('No phone found for WA new password', ['person_id' => $id]);
         }
-    } else {
-        Log::warning('No phone found for WA new password', ['person_id' => $id]);
-    }
 
-    return Redirect::route('admin.passwords')->with('success', 'Password updated. WhatsApp sent if phone exists.');
-}
+        return Redirect::route('admin.passwords')->with('success', 'Password updated. WhatsApp sent if phone exists.');
+    }
 }

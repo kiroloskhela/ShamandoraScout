@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LikeSearch;
+use App\Support\SqlPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +33,8 @@ class PersonExamMarkController extends Controller
                 sm.SanaMarhalaName,
                 pi.RaqamQawmy,
                 ppn.PersonPersonalMobileNumber,
+                ppn.FatherMobileNumber,
+                ppn.MotherMobileNumber,
                 q.QetaaID,
                 psm.SanaMarhalaID
             FROM PersonInformation pi
@@ -55,7 +59,7 @@ class PersonExamMarkController extends Controller
 
     private function allowedPersonIdsSql(): string
     {
-        return "
+        return '
             SELECT DISTINCT pi.PersonID
             FROM PersonInformation pi
             LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
@@ -71,7 +75,7 @@ class PersonExamMarkController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
-        ";
+        ';
     }
 
     private function allowedPersonExists($personId, $userId = null): bool
@@ -141,11 +145,37 @@ class PersonExamMarkController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
+        $term = LikeSearch::fromRequest($request);
+        $bindings = [$userId];
+        $searchSql = '';
+        if ($term !== null) {
+            $fragment = LikeSearch::sqlFlexibleOr(
+                [
+                    'CAST(em.PersonID AS CHAR)',
+                    'em.Note',
+                    'q.QetaaName',
+                    'sm.SanaMarhalaName',
+                    'p.FirstName',
+                    'p.SecondName',
+                    'p.ThirdName',
+                    'p.FourthName',
+                    "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
+                    "CONCAT_WS(' ', s.FirstName, s.SecondName, s.ThirdName, s.FourthName)",
+                    'ppn.PersonPersonalMobileNumber',
+                    'ppn.FatherMobileNumber',
+                    'ppn.MotherMobileNumber',
+                ],
+                $term,
+                LikeSearch::personPhoneColumns('ppn'),
+            );
+            $searchSql = ' AND '.$fragment['sql'];
+            $bindings = array_merge($bindings, $fragment['bindings']);
+        }
 
-        $marks = DB::select("
+        $sql = "
             SELECT
                 em.ExamMarkID,
                 em.PersonID,
@@ -173,13 +203,20 @@ class PersonExamMarkController extends Controller
             FROM PersonExamMark em
             LEFT JOIN PersonInformation p ON p.PersonID = em.PersonID
             LEFT JOIN PersonInformation s ON s.PersonID = em.ServentID
+            LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = em.PersonID
             LEFT JOIN Qetaa q ON q.QetaaID = em.QetaaID
             LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = em.SanaMarhalaID
             WHERE em.PersonID IN ({$this->allowedPersonIdsSql()})
+            {$searchSql}
             ORDER BY em.ExamDate DESC, em.ExamMarkID DESC
-        ", [$userId]);
+        ";
 
-        return view('personexammark.index', ['marks' => $marks]);
+        $marks = SqlPaginator::paginate($sql, $bindings, 25);
+
+        return view('personexammark.index', [
+            'marks' => $marks,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function create()
@@ -195,7 +232,7 @@ class PersonExamMarkController extends Controller
         $data = $request->validate($this->markRules());
         $userId = Auth::id();
 
-        if (!$this->allowedPersonExists($data['person_id'], $userId)) {
+        if (! $this->allowedPersonExists($data['person_id'], $userId)) {
             return redirect()->back()->withInput()->with('error', 'هذا الشخص غير متاح لك');
         }
 
@@ -218,7 +255,7 @@ class PersonExamMarkController extends Controller
     {
         $mark = $this->getAllowedMark($id);
 
-        if (!$mark) {
+        if (! $mark) {
             abort(403, 'غير مسموح لك بالوصول لهذا السجل');
         }
 
@@ -232,7 +269,7 @@ class PersonExamMarkController extends Controller
     public function updates(Request $request, $id)
     {
         $mark = $this->getAllowedMark($id);
-        if (!$mark) {
+        if (! $mark) {
             abort(403, 'غير مسموح لك بتعديل هذا السجل');
         }
 
@@ -263,7 +300,7 @@ class PersonExamMarkController extends Controller
     public function deletes($id)
     {
         $mark = $this->getAllowedMark($id);
-        if (!$mark) {
+        if (! $mark) {
             abort(403, 'غير مسموح لك بحذف هذا السجل');
         }
 
@@ -273,7 +310,7 @@ class PersonExamMarkController extends Controller
     public function destroy($id)
     {
         $mark = $this->getAllowedMark($id);
-        if (!$mark) {
+        if (! $mark) {
             abort(403, 'غير مسموح لك بحذف هذا السجل');
         }
 
@@ -286,15 +323,20 @@ class PersonExamMarkController extends Controller
     public function searchPersons(Request $request)
     {
         $userId = Auth::id();
-        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
+        $term = LikeSearch::fromRequest($request, ['search', 'q']);
 
         try {
             $bindings = [$userId];
             $whereSql = '1=1';
             if ($term !== null) {
-                $fragment = \App\Support\LikeSearch::sqlOr(
-                    \App\Support\LikeSearch::allowedPeopleColumns(),
-                    $term
+                $fragment = LikeSearch::sqlFlexibleOr(
+                    LikeSearch::allowedPeopleColumns(),
+                    $term,
+                    [
+                        'allowed_people.PersonPersonalMobileNumber',
+                        'allowed_people.FatherMobileNumber',
+                        'allowed_people.MotherMobileNumber',
+                    ]
                 );
                 $whereSql = $fragment['sql'];
                 $bindings = array_merge($bindings, $fragment['bindings']);

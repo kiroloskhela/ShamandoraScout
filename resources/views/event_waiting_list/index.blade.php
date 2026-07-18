@@ -68,7 +68,9 @@
                 </form>
             </div>
 
-            <x-data-table :data="$waitingList" title="{{ __('Waiting list') }}" tableId="WaitingList" :columns="[
+            <x-table-server-search :q="$q ?? ''" />
+
+            <x-data-table :data="$waitingList->items()" title="{{ __('Waiting list') }}" tableId="WaitingList" :columns="[
                 [
                     'key' => 'PersonFullName',
                     'label' => __('Name'),
@@ -122,7 +124,11 @@
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200',
                 ],
             ]"
-                :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+                :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
+
+            <div class="mt-4">
+                {{ $waitingList->links() }}
+            </div>
         </div>
     </div>
 

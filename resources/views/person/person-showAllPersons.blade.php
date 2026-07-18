@@ -3,15 +3,7 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <form method="GET" action="{{ url()->current() }}" class="mb-4 flex flex-wrap gap-2 items-end">
-            <div class="flex-1 min-w-[220px]">
-                <label class="block text-sm text-gray-600 mb-1">{{ __('Search') }}</label>
-                <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="{{ __('Name / code / phone / sector') }}"
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
-            </div>
-            <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">{{ __('Apply filter') }}</button>
-            <a href="{{ url()->current() }}" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg">{{ __('Reset') }}</a>
-        </form>
+        <x-table-server-search :q="$q ?? ''" placeholder="{{ __('Name / code / phone / sector') }}" />
         <x-data-table :data="$persons->items()" title="{{ __('Manage users') }}" :add-button="[
             'label' => __('Add user'),
             'route' => route('person.create'),

@@ -2,7 +2,9 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$cases" title="إدارة الحالات الخاصة" :add-button="[
+                <x-table-server-search :q="$q ?? ''" />
+
+        <x-data-table :data="$cases->items()" title="إدارة الحالات الخاصة" :add-button="[
             'label' => 'إضافة حالة خاصة',
             'route' => route('personspecialcase.create'),
             'cssClass' =>
@@ -62,6 +64,9 @@
                     'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200',
             ],
         ]"
-            :searchable="true" :sortable="true" :pagination="true" :per-page="10" />
+            :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
     </div>
+        <div class="mt-4">
+            {{ $cases->links() }}
+        </div>
 @endsection

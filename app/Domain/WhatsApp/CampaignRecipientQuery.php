@@ -33,7 +33,11 @@ class CampaignRecipientQuery
         $hasConsentCols = Schema::hasColumn('PersonPhoneNumbers', 'WhatsAppConsent');
 
         if (! empty($filters['q'])) {
-            $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), (string) $filters['q']);
+            $fragment = LikeSearch::sqlFlexibleOr(
+                LikeSearch::personDirectoryColumns(),
+                (string) $filters['q'],
+                LikeSearch::personPhoneColumns(),
+            );
             $wheres[] = '('.$fragment['sql'].')';
             $bindings = array_merge($bindings, $fragment['bindings']);
         }

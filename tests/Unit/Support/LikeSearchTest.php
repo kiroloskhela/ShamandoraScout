@@ -51,4 +51,51 @@ class LikeSearchTest extends TestCase
         $this->assertStringContainsString('like', strtolower($sql));
         $this->assertCount(2, $builder->getBindings());
     }
+
+    public function test_person_phone_columns_include_parents(): void
+    {
+        $cols = LikeSearch::personPhoneColumns('ppn');
+        $this->assertSame([
+            'ppn.PersonPersonalMobileNumber',
+            'ppn.FatherMobileNumber',
+            'ppn.MotherMobileNumber',
+        ], $cols);
+    }
+
+    public function test_phone_digit_variants_cover_eg_formats(): void
+    {
+        $variants = LikeSearch::phoneDigitVariants('201012345678');
+        $this->assertContains('01012345678', $variants);
+        $this->assertContains('+201012345678', $variants);
+        $this->assertContains('1012345678', $variants);
+    }
+
+    public function test_sql_flexible_or_adds_digit_variants_for_phones(): void
+    {
+        $fragment = LikeSearch::sqlFlexibleOr(
+            ['pi.FirstName'],
+            '01012345678',
+            ['ppn.PersonPersonalMobileNumber'],
+        );
+
+        $this->assertGreaterThan(1, count($fragment['bindings']));
+        $this->assertStringContainsString('ppn.PersonPersonalMobileNumber LIKE ?', $fragment['sql']);
+    }
+
+    public function test_directory_columns_include_id_and_parent_phones(): void
+    {
+        $cols = LikeSearch::personDirectoryColumns();
+        $this->assertContains('CAST(pi.PersonID AS CHAR)', $cols);
+        $this->assertContains('ppn.FatherMobileNumber', $cols);
+        $this->assertContains('ppn.MotherMobileNumber', $cols);
+    }
+
+    public function test_identity_fields_put_cast_in_raw_for_query_builder(): void
+    {
+        $fields = LikeSearch::personIdentityFields('pi', 'ppn');
+        $this->assertContains('pi.PersonID', $fields['columns']);
+        $this->assertNotContains('CAST(pi.PersonID AS CHAR)', $fields['columns']);
+        $this->assertContains('CAST(pi.PersonID AS CHAR)', $fields['raw']);
+        $this->assertContains('ppn.FatherMobileNumber', $fields['columns']);
+    }
 }

@@ -23,7 +23,11 @@ class PersonSearchService
         $searchSql = '';
 
         if ($term !== null) {
-            $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), $term);
+            $fragment = LikeSearch::sqlFlexibleOr(
+                LikeSearch::personDirectoryColumns(),
+                $term,
+                LikeSearch::personPhoneColumns(),
+            );
             $searchSql = ' WHERE '.$fragment['sql'];
             $bindings = $fragment['bindings'];
         }
@@ -73,7 +77,11 @@ class PersonSearchService
         $searchSql = '';
 
         if ($term !== null) {
-            $fragment = LikeSearch::sqlOr(LikeSearch::personDirectoryColumns(), $term);
+            $fragment = LikeSearch::sqlFlexibleOr(
+                LikeSearch::personDirectoryColumns(),
+                $term,
+                LikeSearch::personPhoneColumns(),
+            );
             $searchSql = ' AND '.$fragment['sql'];
             $bindings = array_merge($bindings, $fragment['bindings']);
         }
@@ -126,7 +134,7 @@ class PersonSearchService
     }
 
     /**
-     * Typeahead: word-mode names OR identity fields (code / id / national id).
+     * Typeahead: word-mode names OR identity/code/id/phones (personal + parents).
      */
     public function typeaheadByNameOrIdentity(?string $term, int $limit = 15): Collection
     {
@@ -134,10 +142,10 @@ class PersonSearchService
             return collect();
         }
 
-        $nameColumns = ['pi.FirstName', 'pi.SecondName', 'pi.ThirdName', 'pi.FourthName'];
         $likePrefix = $term.'%';
 
         $results = DB::table('PersonInformation as pi')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'pi.PersonID', '=', 'ppn.PersonID')
             ->leftJoin('PersonQetaa as pq', 'pi.PersonID', '=', 'pq.PersonID')
             ->leftJoin('Qetaa as qt', 'pq.QetaaID', '=', 'qt.QetaaID')
             ->select(
@@ -148,18 +156,12 @@ class PersonSearchService
                 'pi.ThirdName',
                 'pi.FourthName',
                 'pi.RaqamQawmy',
+                'ppn.PersonPersonalMobileNumber',
                 'pq.QetaaID',
                 'qt.QetaaName'
             )
-            ->where(function ($query) use ($term, $nameColumns) {
-                LikeSearch::applyWordNames($query, $term, $nameColumns);
-                $query->orWhere(function ($identity) use ($term) {
-                    LikeSearch::applyOr($identity, $term, [
-                        'pi.RaqamQawmy',
-                        'pi.ShamandoraCode',
-                        'pi.PersonID',
-                    ]);
-                });
+            ->where(function ($query) use ($term) {
+                LikeSearch::applyFlexiblePersonMatch($query, $term, 'pi', 'ppn');
             })
             ->groupBy(
                 'pi.PersonID',
@@ -169,6 +171,7 @@ class PersonSearchService
                 'pi.ThirdName',
                 'pi.FourthName',
                 'pi.RaqamQawmy',
+                'ppn.PersonPersonalMobileNumber',
                 'pq.QetaaID',
                 'qt.QetaaName'
             )
@@ -197,7 +200,7 @@ class PersonSearchService
     }
 
     /**
-     * Medicine / generic identity typeahead with phone join.
+     * Medicine / generic identity typeahead with phone join (personal + parents).
      */
     public function typeaheadWithPhone(?string $term, int $limit = 20): Collection
     {
@@ -205,7 +208,7 @@ class PersonSearchService
             return collect();
         }
 
-        $fields = LikeSearch::personIdentityFields('pi', 'ppn.PersonPersonalMobileNumber');
+        $fields = LikeSearch::personIdentityFields('pi', 'ppn');
 
         return DB::table('PersonInformation as pi')
             ->leftJoin('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
@@ -216,7 +219,13 @@ class PersonSearchService
                 DB::raw("CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) as PersonName")
             )
             ->where(function ($query) use ($term, $fields) {
-                LikeSearch::applyOr($query, $term, $fields['columns'], $fields['raw']);
+                LikeSearch::applyFlexibleOr(
+                    $query,
+                    $term,
+                    $fields['columns'],
+                    $fields['raw'],
+                    LikeSearch::personPhoneColumns('ppn'),
+                );
             })
             ->groupBy('pi.PersonID', 'pi.ShamandoraCode', 'pi.FirstName', 'pi.SecondName', 'pi.ThirdName', 'pi.FourthName')
             ->orderBy('pi.ShamandoraCode')

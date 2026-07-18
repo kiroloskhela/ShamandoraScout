@@ -55,4 +55,48 @@ class AppSettings
             'التسجيل مغلق حالياً. تابعونا لمعرفة موعد فتح باب الالتحاق الجديد.'
         );
     }
+
+    /**
+     * Mobile version payload for GET /api/version/check (DB overrides config/app_version.php).
+     *
+     * @return array{
+     *   android: array{latest_version: string, min_version: string, force_update: bool, url: string},
+     *   ios: array{latest_version: string, min_version: string, force_update: bool, url: string},
+     *   maintenance: array{enabled: bool, message: string},
+     *   update_ui: array{title: string, message: string, button: string}
+     * }
+     */
+    public static function appVersionConfig(): array
+    {
+        $file = config('app_version', []);
+
+        $android = $file['android'] ?? [];
+        $ios = $file['ios'] ?? [];
+        $maintenance = $file['maintenance'] ?? [];
+        $updateUi = $file['update_ui'] ?? [];
+
+        return [
+            'android' => [
+                'latest_version' => (string) self::get('android_latest_version', $android['latest_version'] ?? '1.0.0'),
+                'min_version' => (string) self::get('android_min_version', $android['min_version'] ?? '1.0.0'),
+                'force_update' => self::get('android_force_update', ($android['force_update'] ?? false) ? '1' : '0') === '1',
+                'url' => (string) self::get('android_url', $android['url'] ?? ''),
+            ],
+            'ios' => [
+                'latest_version' => (string) self::get('ios_latest_version', $ios['latest_version'] ?? '1.0.0'),
+                'min_version' => (string) self::get('ios_min_version', $ios['min_version'] ?? '1.0.0'),
+                'force_update' => self::get('ios_force_update', ($ios['force_update'] ?? false) ? '1' : '0') === '1',
+                'url' => (string) self::get('ios_url', $ios['url'] ?? ''),
+            ],
+            'maintenance' => [
+                'enabled' => self::get('maintenance_enabled', ($maintenance['enabled'] ?? false) ? '1' : '0') === '1',
+                'message' => (string) self::get('maintenance_message', $maintenance['message'] ?? 'Server under maintenance'),
+            ],
+            'update_ui' => [
+                'title' => (string) self::get('update_ui_title', $updateUi['title'] ?? 'Update Required'),
+                'message' => (string) self::get('update_ui_message', $updateUi['message'] ?? 'Please update the app'),
+                'button' => (string) self::get('update_ui_button', $updateUi['button'] ?? 'Update'),
+            ],
+        ];
+    }
 }

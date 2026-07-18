@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LikeSearch;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,7 @@ class SeasonEventWaitingListController extends Controller
     {
         $seasonID = $request->query('seasonID');
 
-        if (!$seasonID) {
+        if (! $seasonID) {
             return response()->json([]);
         }
 
@@ -44,13 +45,15 @@ class SeasonEventWaitingListController extends Controller
         return response()->json($events);
     }
 
-    public function index($seasonEventID)
+    public function index(Request $request, $seasonEventID)
     {
         $event = $this->getSeasonEventFullInfo($seasonEventID);
 
-        if (!$event) {
+        if (! $event) {
             abort(404);
         }
+
+        $term = LikeSearch::fromRequest($request);
 
         $waitingList = DB::table('SeasonEventWaitingList as wl')
             ->join('PersonInformation as p', 'wl.PersonID', '=', 'p.PersonID')
@@ -58,6 +61,12 @@ class SeasonEventWaitingListController extends Controller
             ->leftJoin('Qetaa as q', 'wl.QetaaID', '=', 'q.QetaaID')
             ->leftJoin('PersonInformation as s', 'wl.ServentID', '=', 's.PersonID')
             ->where('wl.SeasonEventID', $seasonEventID)
+            ->when($term !== null, function ($query) use ($term) {
+                $query->where(function ($sub) use ($term) {
+                    LikeSearch::applyFlexiblePersonMatch($sub, $term, 'p', 'ppn');
+                    $sub->orWhere('q.QetaaName', 'like', LikeSearch::wildcard($term));
+                });
+            })
             ->select(
                 'wl.SeasonEventWaitingListID',
                 'wl.SeasonEventID',
@@ -82,17 +91,22 @@ class SeasonEventWaitingListController extends Controller
                 )) as ServentFullName")
             )
             ->orderBy('wl.CreatedAt')
-            ->get();
+            ->paginate(25)
+            ->appends($request->query());
 
-        return view('event_waiting_list.index', compact('event', 'waitingList'));
+        return view('event_waiting_list.index', [
+            'event' => $event,
+            'waitingList' => $waitingList,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function searchEligiblePersons(Request $request, $seasonEventID)
     {
-        $term = \App\Support\LikeSearch::fromRequest($request);
+        $term = LikeSearch::fromRequest($request);
 
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
-        if (!$event) {
+        if (! $event) {
             return response()->json([]);
         }
 
@@ -129,12 +143,7 @@ class SeasonEventWaitingListController extends Controller
             })
             ->when($term !== null, function ($query) use ($term) {
                 $query->where(function ($sub) use ($term) {
-                    \App\Support\LikeSearch::applyOr(
-                        $sub,
-                        $term,
-                        ['p.PersonID', 'ppn.PersonPersonalMobileNumber'],
-                        ["CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)"]
-                    );
+                    LikeSearch::applyFlexiblePersonMatch($sub, $term, 'p', 'ppn');
                 });
             })
             ->select(
@@ -168,7 +177,7 @@ class SeasonEventWaitingListController extends Controller
     public function store(Request $request, $seasonEventID)
     {
         $event = $this->getSeasonEventFullInfo($seasonEventID);
-        if (!$event) {
+        if (! $event) {
             abort(404);
         }
 
@@ -191,7 +200,7 @@ class SeasonEventWaitingListController extends Controller
             return redirect()->route('eventWaitingList.index', $seasonEventID);
         }
 
-        if (!$this->isEligibleByQetaa($seasonEventID, $personID)) {
+        if (! $this->isEligibleByQetaa($seasonEventID, $personID)) {
             return redirect()->route('eventWaitingList.index', $seasonEventID);
         }
 
@@ -234,7 +243,7 @@ class SeasonEventWaitingListController extends Controller
         } catch (Exception $e) {
             return redirect()->route('eventWaitingList.index', $seasonEventID)
                 ->withErrors([
-                    'general' => 'حدث خطأ أثناء إضافة الشخص إلى قائمة الانتظار.'
+                    'general' => 'حدث خطأ أثناء إضافة الشخص إلى قائمة الانتظار.',
                 ]);
         }
     }
@@ -245,7 +254,7 @@ class SeasonEventWaitingListController extends Controller
             ->where('SeasonEventWaitingListID', $waitingListID)
             ->first();
 
-        if (!$row) {
+        if (! $row) {
             abort(404);
         }
 
@@ -281,7 +290,7 @@ class SeasonEventWaitingListController extends Controller
     private function isEligibleByQetaa($seasonEventID, $personID)
     {
         $event = DB::table('SeasonEvent')->where('SeasonEventID', $seasonEventID)->first();
-        if (!$event) {
+        if (! $event) {
             return false;
         }
 
@@ -300,52 +309,51 @@ class SeasonEventWaitingListController extends Controller
     }
 
     public function deletePage($waitingListID)
-{
-    $row = DB::table('SeasonEventWaitingList as wl')
-        ->join('SeasonEvent as se', 'wl.SeasonEventID', '=', 'se.SeasonEventID')
-        ->join('Season as sn', 'se.SeasonID', '=', 'sn.SeasonID')
-        ->join('Event as e', 'se.EventID', '=', 'e.EventID')
-        ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
-        ->join('PersonInformation as p', 'wl.PersonID', '=', 'p.PersonID')
-        ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
-        ->leftJoin('Qetaa as q', 'wl.QetaaID', '=', 'q.QetaaID')
-        ->leftJoin('PersonInformation as s', 'wl.ServentID', '=', 's.PersonID')
-        ->where('wl.SeasonEventWaitingListID', $waitingListID)
-        ->select(
-            'wl.SeasonEventWaitingListID',
-            'wl.SeasonEventID',
-            'wl.PersonID',
-            'wl.ServentID',
-            'wl.QetaaID',
-            'wl.CreatedAt',
-            'sn.SeasonName',
-            'sn.SeasonYear',
-            'e.EventName',
-            'e.EventStartDate',
-            'e.EventEndDate',
-            'et.EventTypeName',
-            'ppn.PersonPersonalMobileNumber',
-            'q.QetaaName',
-            DB::raw("TRIM(CONCAT(
+    {
+        $row = DB::table('SeasonEventWaitingList as wl')
+            ->join('SeasonEvent as se', 'wl.SeasonEventID', '=', 'se.SeasonEventID')
+            ->join('Season as sn', 'se.SeasonID', '=', 'sn.SeasonID')
+            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->join('PersonInformation as p', 'wl.PersonID', '=', 'p.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+            ->leftJoin('Qetaa as q', 'wl.QetaaID', '=', 'q.QetaaID')
+            ->leftJoin('PersonInformation as s', 'wl.ServentID', '=', 's.PersonID')
+            ->where('wl.SeasonEventWaitingListID', $waitingListID)
+            ->select(
+                'wl.SeasonEventWaitingListID',
+                'wl.SeasonEventID',
+                'wl.PersonID',
+                'wl.ServentID',
+                'wl.QetaaID',
+                'wl.CreatedAt',
+                'sn.SeasonName',
+                'sn.SeasonYear',
+                'e.EventName',
+                'e.EventStartDate',
+                'e.EventEndDate',
+                'et.EventTypeName',
+                'ppn.PersonPersonalMobileNumber',
+                'q.QetaaName',
+                DB::raw("TRIM(CONCAT(
                 COALESCE(p.FirstName,''), ' ',
                 COALESCE(p.SecondName,''), ' ',
                 COALESCE(p.ThirdName,''), ' ',
                 COALESCE(p.FourthName,'')
             )) as PersonFullName"),
-            DB::raw("TRIM(CONCAT(
+                DB::raw("TRIM(CONCAT(
                 COALESCE(s.FirstName,''), ' ',
                 COALESCE(s.SecondName,''), ' ',
                 COALESCE(s.ThirdName,''), ' ',
                 COALESCE(s.FourthName,'')
             )) as ServentFullName")
-        )
-        ->first();
+            )
+            ->first();
 
-    if (!$row) {
-        abort(404);
+        if (! $row) {
+            abort(404);
+        }
+
+        return view('event_waiting_list.delete', compact('row'));
     }
-
-    return view('event_waiting_list.delete', compact('row'));
-}
-
 }

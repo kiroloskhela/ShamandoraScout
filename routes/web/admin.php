@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminPasswordController;
+use App\Http\Controllers\AppVersionSettingsController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\BetakaTakaddomController;
 use App\Http\Controllers\BloodTypeController;
@@ -31,6 +31,7 @@ use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\WhatsAppBridgeController;
 use App\Http\Controllers\WhatsAppCampaignController;
 use App\Http\Controllers\WhatsAppStatusController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/liveform-settings', [LiveFormSettingsController::class, 'edit'])->name('liveform-settings.edit');
     Route::put('/liveform-settings', [LiveFormSettingsController::class, 'update'])->name('liveform-settings.update');
 
+    // Mobile app version settings (iOS / Android)
+    Route::get('/app-version-settings', [AppVersionSettingsController::class, 'edit'])->name('app-version-settings.edit');
+    Route::put('/app-version-settings', [AppVersionSettingsController::class, 'update'])->name('app-version-settings.update');
+
     // Whatsapp
     Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
@@ -99,8 +104,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     // Show ALL persons
     Route::get('/person/ShowPersons', [PersonDirectoryController::class, 'ShowPersons'])->name('person.ShowPersons');
 
-
-
     // Events (shared CRUD lives in Secretary group; delete stays SuperAdmin-only)
     Route::get('/event/delete/{id}', [EventController::class, 'deletes'])->name('event.delete');
     Route::delete('/event/destroy/{id}', [EventController::class, 'destroy'])->name('event.destroy');
@@ -122,7 +125,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::patch('/media/update/{id}', [MediaController::class, 'update'])->name('media.update');
     Route::get('/media/delete/{id}', [MediaController::class, 'delete'])->name('media.delete');
     Route::delete('/media/destroy/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
-
 
     // Group Type
     Route::get('/group-type', [GroupTypeController::class, 'index'])->name('group-type.index');
@@ -151,8 +153,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/rotab/delete/{id}', [RotbaKashfeyaController::class, 'deletes'])->name('rotab.delete');
     Route::delete('/rotab/destroy/{id}', [RotbaKashfeyaController::class, 'destroy'])->name('rotab.destroy');
 
-  
-
     // Betaka
     Route::get('/betaka', [BetakaTakaddomController::class, 'index'])->name('betaka.index');
     Route::get('/betaka/add', [BetakaTakaddomController::class, 'create'])->name('betaka.create');
@@ -169,19 +169,19 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/blood/edit/{id}', [BloodTypeController::class, 'edit'])->name('blood.edit');
     Route::patch('/blood/update/{id}', [BloodTypeController::class, 'updates'])->name('blood.update');
     Route::get('/blood/delete/{id}', [BloodTypeController::class, 'deletes'])->name('blood.delete');
-    Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy'); 
+    Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy');
 
     Route::get('/person/change-qetaa', [PersonDirectoryController::class, 'showChangeQetaa'])
         ->name('person.changeQetaa');
-    
+
     // AJAX search (called by the search box)
     Route::get('/person/search', [PersonDirectoryController::class, 'searchPerson'])
         ->name('person.search');
-    
+
     // POST — save the actual change
     Route::post('/person/{id}/change-qetaa', [PersonDirectoryController::class, 'changePersonQetaa'])
         ->name('person.changePersonQetaa');
-    
+
     // Manteqa
     Route::get('/manteqa', [ManteqaController::class, 'index'])->name('manteqa.index');
     Route::get('/manteqa/add', [ManteqaController::class, 'create'])->name('manteqa.create');
@@ -202,8 +202,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // Qetaa
     Route::get('/qetaa', [QetaaController::class, 'index'])->name('qetaa.index');
-
-
 
     Route::get('/qetaa/add', [QetaaController::class, 'create'])->name('qetaa.create');
     Route::post('/qetaa/insert', [QetaaController::class, 'insert'])->name('qetaa.insert');
@@ -248,7 +246,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/university/delete/{id}', [UniversityController::class, 'deletes'])->name('university.delete');
     Route::delete('/university/destroy/{id}', [UniversityController::class, 'destroy'])->name('university.destroy');
 
-
     // Marhala
     Route::get('/marhala', [MarhalaDeraseyyaController::class, 'index'])->name('marhala.index');
     Route::get('/marhala/add', [MarhalaDeraseyyaController::class, 'create'])->name('marhala.create');
@@ -267,7 +264,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/sana-marhala/delete/{id}', [SanaMarhalaDeraseyyaController::class, 'deletes'])->name('sana-marhala.delete');
     Route::delete('/sana-marhala/destroy/{id}', [SanaMarhalaDeraseyyaController::class, 'destroy'])->name('sana-marhala.destroy');
 
- 
     // Liveform MaxLimits (duplicate in your original file, keep one set)
     Route::get('/liveform-maxlimits', [LiveFormMaxLimitsController::class, 'index'])->name('liveform-maxlimits.index');
     Route::get('/liveform-maxlimits/add', [LiveFormMaxLimitsController::class, 'create'])->name('liveform-maxlimits.create');
@@ -277,19 +273,13 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/liveform-maxlimits/delete/{id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('liveform-maxlimits.delete');
     Route::delete('/liveform-maxlimits/destroy/{id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('liveform-maxlimits.destroy');
 
-  
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/create', [NotificationController::class, 'create']);
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
-
     // Migrate New Enrolments
-    Route::get('/migrate-new-enrolments/{qetaaID}', array('as'=> 'person.migrate-new-enrolments', 'uses'=> 'App\Http\Controllers\MigrateNewEnrolments@migrate'));
-        Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
+    Route::get('/migrate-new-enrolments/{qetaaID}', ['as' => 'person.migrate-new-enrolments', 'uses' => 'App\Http\Controllers\MigrateNewEnrolments@migrate']);
+    Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 
-
-
-
-  
-    });
+  });

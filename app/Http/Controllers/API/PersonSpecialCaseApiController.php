@@ -8,6 +8,7 @@ use App\Http\Requests\StorePersonSpecialCaseRequest;
 use App\Http\Requests\UpdatePersonSpecialCaseRequest;
 use App\Http\Resources\PersonSpecialCaseResource;
 use App\Http\Resources\SpecialCasePersonResource;
+use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ class PersonSpecialCaseApiController extends Controller
 
     private function denyIfUnauthorized()
     {
-        if (!$this->authUser()) {
+        if (! $this->authUser()) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Unauthorized',
@@ -68,7 +69,7 @@ class PersonSpecialCaseApiController extends Controller
             return $deny;
         }
 
-        if (!$this->hasSpecialCaseAccess()) {
+        if (! $this->hasSpecialCaseAccess()) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Forbidden',
@@ -105,6 +106,8 @@ class PersonSpecialCaseApiController extends Controller
                 sm.SanaMarhalaName,
                 pi.RaqamQawmy,
                 ppn.PersonPersonalMobileNumber,
+                ppn.FatherMobileNumber,
+                ppn.MotherMobileNumber,
                 q.QetaaID,
                 PG.PersonID AS GroupPersonID,
                 IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
@@ -133,7 +136,7 @@ class PersonSpecialCaseApiController extends Controller
 
     private function allowedPersonIdsSql()
     {
-        return "
+        return '
             SELECT DISTINCT
                 pi.PersonID
             FROM PersonInformation pi
@@ -155,7 +158,7 @@ class PersonSpecialCaseApiController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
-        ";
+        ';
     }
 
     /*
@@ -174,7 +177,7 @@ class PersonSpecialCaseApiController extends Controller
 
         $userPersonId = $userPersonId ?? $this->authPersonId();
 
-        if (!$userPersonId) {
+        if (! $userPersonId) {
             return false;
         }
 
@@ -222,7 +225,7 @@ class PersonSpecialCaseApiController extends Controller
 
         $userPersonId = $userPersonId ?? $this->authPersonId();
 
-        if (!$userPersonId) {
+        if (! $userPersonId) {
             return null;
         }
 
@@ -403,7 +406,7 @@ class PersonSpecialCaseApiController extends Controller
 
         $case = $this->getAllowedCase((int) $id);
 
-        if (!$case) {
+        if (! $case) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Case not found or not allowed',
@@ -429,14 +432,14 @@ class PersonSpecialCaseApiController extends Controller
 
         $userPersonId = $this->authPersonId();
 
-        if (!$userPersonId) {
+        if (! $userPersonId) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Unauthorized',
             ], 401);
         }
 
-        if (!$this->allowedPersonExists((int) $data['person_id'], $userPersonId)) {
+        if (! $this->allowedPersonExists((int) $data['person_id'], $userPersonId)) {
             return response()->json([
                 'ok' => false,
                 'message' => 'This person is not allowed for you',
@@ -485,7 +488,7 @@ class PersonSpecialCaseApiController extends Controller
 
         $case = $this->getAllowedCase((int) $id);
 
-        if (!$case) {
+        if (! $case) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Case not found or not allowed',
@@ -516,7 +519,7 @@ class PersonSpecialCaseApiController extends Controller
 
         $case = $this->getAllowedCase((int) $id);
 
-        if (!$case) {
+        if (! $case) {
             return response()->json([
                 'ok' => false,
                 'message' => 'Case not found or not allowed',
@@ -540,7 +543,7 @@ class PersonSpecialCaseApiController extends Controller
             return $deny;
         }
 
-        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q']);
+        $term = LikeSearch::fromRequest($request, ['search', 'q']);
         $userPersonId = $this->authPersonId();
 
         try {
@@ -548,17 +551,11 @@ class PersonSpecialCaseApiController extends Controller
                 $bindings = [];
                 $whereSql = '1=1';
                 if ($term !== null) {
-                    $fragment = \App\Support\LikeSearch::sqlOr([
-                        "CONCAT(COALESCE(pi.FirstName, ''), ' ', COALESCE(pi.SecondName, ''), ' ', COALESCE(pi.ThirdName, ''), ' ', COALESCE(pi.FourthName, ''))",
-                        'CAST(pi.PersonID AS CHAR)',
-                        'ppn.PersonPersonalMobileNumber',
-                        'pi.FirstName',
-                        'pi.SecondName',
-                        'pi.ThirdName',
-                        'pi.FourthName',
-                        'pi.ShamandoraCode',
-                        'pi.RaqamQawmy',
-                    ], $term);
+                    $fragment = LikeSearch::sqlFlexibleOr(
+                        LikeSearch::personDirectoryColumns(),
+                        $term,
+                        LikeSearch::personPhoneColumns(),
+                    );
                     $whereSql = $fragment['sql'];
                     $bindings = $fragment['bindings'];
                 }
@@ -582,6 +579,8 @@ class PersonSpecialCaseApiController extends Controller
                         sm.SanaMarhalaName,
                         pi.RaqamQawmy,
                         ppn.PersonPersonalMobileNumber,
+                        ppn.FatherMobileNumber,
+                        ppn.MotherMobileNumber,
                         q.QetaaID,
                         PG.PersonID AS GroupPersonID,
                         IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
@@ -602,9 +601,14 @@ class PersonSpecialCaseApiController extends Controller
                 $bindings = [$userPersonId];
                 $whereSql = '1=1';
                 if ($term !== null) {
-                    $fragment = \App\Support\LikeSearch::sqlOr(
-                        \App\Support\LikeSearch::allowedPeopleColumns(),
-                        $term
+                    $fragment = LikeSearch::sqlFlexibleOr(
+                        LikeSearch::allowedPeopleColumns(),
+                        $term,
+                        [
+                            'allowed_people.PersonPersonalMobileNumber',
+                            'allowed_people.FatherMobileNumber',
+                            'allowed_people.MotherMobileNumber',
+                        ]
                     );
                     $whereSql = $fragment['sql'];
                     $bindings = array_merge($bindings, $fragment['bindings']);

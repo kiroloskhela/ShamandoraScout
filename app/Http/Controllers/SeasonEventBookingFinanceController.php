@@ -123,6 +123,8 @@ class SeasonEventBookingFinanceController extends Controller
                 ->sum('p.Amount'),
         ];
 
+        $term = LikeSearch::fromRequest($request);
+
         $bookings = DB::table('SeasonEventParticipantFinance as b')
             ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
@@ -132,6 +134,37 @@ class SeasonEventBookingFinanceController extends Controller
             ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
             ->where('b.SeasonEventID', $seasonEventID)
+            ->when($term !== null, function ($query) use ($term) {
+                $query->where(function ($sub) use ($term) {
+                    LikeSearch::applyFlexibleOr(
+                        $sub,
+                        $term,
+                        [
+                            'CAST(b.PersonID AS CHAR)',
+                            'CAST(b.GuestID AS CHAR)',
+                            'CAST(b.FamilyID AS CHAR)',
+                            'p.ShamandoraCode',
+                            'ppn.PersonPersonalMobileNumber',
+                            'ppn.FatherMobileNumber',
+                            'ppn.MotherMobileNumber',
+                            'g.MobileNumber',
+                            'f.MobileNumber',
+                        ],
+                        [
+                            "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
+                            "CONCAT_WS(' ', g.FirstName, g.SecondName, g.ThirdName, g.FourthName)",
+                            "CONCAT_WS(' ', f.FirstName, f.SecondName, f.ThirdName, f.FourthName)",
+                        ],
+                        [
+                            'ppn.PersonPersonalMobileNumber',
+                            'ppn.FatherMobileNumber',
+                            'ppn.MotherMobileNumber',
+                            'g.MobileNumber',
+                            'f.MobileNumber',
+                        ],
+                    );
+                });
+            })
             ->select(
                 'b.SeasonEventParticipantFinanceID',
                 'b.PersonID',
@@ -313,15 +346,16 @@ class SeasonEventBookingFinanceController extends Controller
             ->orderBy('QetaaName')
             ->get();
 
-        return view('event_booking_finance.index', compact(
-            'event',
-            'bookings',
-            'paymentDays',
-            'selectedSummaryDate',
-            'selectedDaySummary',
-            'totalSummary',
-            'qetaaCounts'
-        ));
+        return view('event_booking_finance.index', [
+            'event' => $event,
+            'bookings' => $bookings,
+            'paymentDays' => $paymentDays,
+            'selectedSummaryDate' => $selectedSummaryDate,
+            'selectedDaySummary' => $selectedDaySummary,
+            'totalSummary' => $totalSummary,
+            'qetaaCounts' => $qetaaCounts,
+            'q' => $term ?? '',
+        ]);
     }
 
     public function searchEligibleGuests(Request $request, $seasonEventID)
