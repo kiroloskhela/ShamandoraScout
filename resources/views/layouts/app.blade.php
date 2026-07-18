@@ -17,7 +17,7 @@
         content="الشمندوره البحريه, Shamandora Scout, scouts, sea scout, shamandora, الكشافة, الكشفية البحرية">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Shamandora Scout">
-    <meta name="color-scheme" content="dark light">
+    <meta name="color-scheme" content="light dark">
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Favicon / Logo in browser tab and Google icon --}}
@@ -43,12 +43,8 @@
         (function () {
             try {
                 var stored = localStorage.getItem('theme');
-                var preferDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var dark = stored === 'dark' || (stored === null && preferDark);
-                if (stored === null) {
-                    // Default to dark for the new UI direction
-                    dark = true;
-                }
+                // Default to light unless the user explicitly chose dark
+                var dark = stored === 'dark';
                 if (dark) document.documentElement.classList.add('dark');
                 else document.documentElement.classList.remove('dark');
             } catch (e) {}
@@ -661,7 +657,7 @@
                     <!-- End: theme + language + logout -->
                     <div class="flex items-center justify-end gap-1 sm:gap-2">
                         <button type="button" id="themeToggle"
-                            class="p-2 text-gray-600 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                            class="inline-flex h-10 w-10 items-center justify-center text-gray-600 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                             title="{{ __('Dark') }} / {{ __('Light') }}" aria-label="{{ __('Dark') }}">
                             <svg id="iconSun" class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -675,7 +671,7 @@
 
                         <div class="relative" x-data="{ open: false }">
                             <button type="button" @click="open = !open"
-                                class="px-2.5 py-2 text-xs sm:text-sm font-semibold text-gray-700 rounded-lg hover:bg-gray-100"
+                                class="inline-flex h-10 w-10 items-center justify-center text-xs sm:text-sm font-semibold text-gray-700 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                                 aria-label="{{ __('Language') }}">
                                 {{ $locale === 'ar' ? 'ع' : 'EN' }}
                             </button>
