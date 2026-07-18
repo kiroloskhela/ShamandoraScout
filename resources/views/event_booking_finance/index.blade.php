@@ -415,7 +415,10 @@
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
                 ],
             ]" :searchable="false"
-                :sortable="true" :pagination="false" :per-page="25" />
+                :sortable="true" :pagination="false" :per-page="25"
+                :server-filters="true"
+                :filter-options="$filterOptions ?? []"
+                :active-server-filters="$activeServerFilters ?? []" />
             <div class="mt-4">
                 {{ $bookings->links() }}
             </div>

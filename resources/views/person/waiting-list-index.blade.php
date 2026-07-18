@@ -80,7 +80,10 @@
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 ml-2',
             ],
         ]"
-            :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
+            :searchable="false" :sortable="true" :pagination="false" :per-page="10"
+            :server-filters="true"
+            :filter-options="$filterOptions ?? []"
+            :active-server-filters="$activeServerFilters ?? []" />
     </div>
         <div class="mt-4">
             {{ $persons->links() }}

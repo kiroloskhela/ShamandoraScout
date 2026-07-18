@@ -4,6 +4,7 @@ namespace App\Domain\Person;
 
 use App\Support\LikeSearch;
 use App\Support\SqlPaginator;
+use App\Support\TableColumnFilters;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,13 +15,21 @@ use Illuminate\Support\Facades\DB;
  */
 class PersonSearchService
 {
+    /** @var array<string, string> */
+    private const DIRECTORY_FILTER_COLUMNS = [
+        'SanaMarhalaName' => 'sm.SanaMarhalaName',
+        'QetaaName' => 'q.QetaaName',
+    ];
+
     /**
-     * SuperAdmin all-persons directory (optional text filter).
+     * SuperAdmin all-persons directory (optional text + column filters).
+     *
+     * @param  array<string, string>  $columnFilters
      */
-    public function paginateAllPersons(?string $term, int $perPage = 25): LengthAwarePaginator
+    public function paginateAllPersons(?string $term, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
     {
         $bindings = [];
-        $searchSql = '';
+        $whereParts = [];
 
         if ($term !== null) {
             $fragment = LikeSearch::sqlFlexibleOr(
@@ -28,9 +37,17 @@ class PersonSearchService
                 $term,
                 LikeSearch::personPhoneColumns(),
             );
-            $searchSql = ' WHERE '.$fragment['sql'];
-            $bindings = $fragment['bindings'];
+            $whereParts[] = $fragment['sql'];
+            $bindings = array_merge($bindings, $fragment['bindings']);
         }
+
+        $filterFrag = TableColumnFilters::sqlEquals($columnFilters, self::DIRECTORY_FILTER_COLUMNS);
+        if ($filterFrag['sql'] !== '') {
+            $whereParts[] = $filterFrag['sql'];
+            $bindings = array_merge($bindings, $filterFrag['bindings']);
+        }
+
+        $searchSql = $whereParts === [] ? '' : (' WHERE '.implode(' AND ', $whereParts));
 
         $sql = "
             SELECT DISTINCT
@@ -70,11 +87,13 @@ class PersonSearchService
 
     /**
      * Scoped directory for the authenticated person's groups.
+     *
+     * @param  array<string, string>  $columnFilters
      */
-    public function paginateScopedToPerson(int $userId, ?string $term = null, int $perPage = 25): LengthAwarePaginator
+    public function paginateScopedToPerson(int $userId, ?string $term = null, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
     {
         $bindings = [$userId];
-        $searchSql = '';
+        $searchParts = [];
 
         if ($term !== null) {
             $fragment = LikeSearch::sqlFlexibleOr(
@@ -82,9 +101,17 @@ class PersonSearchService
                 $term,
                 LikeSearch::personPhoneColumns(),
             );
-            $searchSql = ' AND '.$fragment['sql'];
+            $searchParts[] = $fragment['sql'];
             $bindings = array_merge($bindings, $fragment['bindings']);
         }
+
+        $filterFrag = TableColumnFilters::sqlEquals($columnFilters, self::DIRECTORY_FILTER_COLUMNS);
+        if ($filterFrag['sql'] !== '') {
+            $searchParts[] = $filterFrag['sql'];
+            $bindings = array_merge($bindings, $filterFrag['bindings']);
+        }
+
+        $searchSql = $searchParts === [] ? '' : (' AND '.implode(' AND ', $searchParts));
 
         $sql = "
             SELECT DISTINCT
@@ -131,6 +158,65 @@ class PersonSearchService
 
             return $person;
         });
+    }
+
+    /**
+     * Distinct filter options for directory column filters (full dataset).
+     *
+     * @return array{SanaMarhalaName: list<string>, QetaaName: list<string>}
+     */
+    public function directoryFilterOptions(?int $scopedUserId = null): array
+    {
+        if ($scopedUserId !== null) {
+            $scope = '
+                AND q.QetaaID IN (
+                    SELECT gq2.QetaaID
+                    FROM GroupQetaa gq2
+                    WHERE gq2.GroupID IN (
+                        SELECT pg3.GroupID FROM PersonGroup pg3 WHERE pg3.PersonID = ?
+                    )
+                )
+            ';
+            $bindings = [$scopedUserId];
+
+            $stages = DB::select("
+                SELECT DISTINCT sm.SanaMarhalaName AS v
+                FROM PersonInformation pi
+                LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+                LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+                LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+                LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+                WHERE sm.SanaMarhalaName IS NOT NULL AND sm.SanaMarhalaName <> ''
+                {$scope}
+                ORDER BY sm.SanaMarhalaName
+            ", $bindings);
+
+            $sectors = DB::select("
+                SELECT DISTINCT q.QetaaName AS v
+                FROM PersonInformation pi
+                LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+                LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+                WHERE q.QetaaName IS NOT NULL AND q.QetaaName <> ''
+                {$scope}
+                ORDER BY q.QetaaName
+            ", $bindings);
+        } else {
+            $stages = DB::select("
+                SELECT DISTINCT SanaMarhalaName AS v FROM SanaMarhala
+                WHERE SanaMarhalaName IS NOT NULL AND SanaMarhalaName <> ''
+                ORDER BY SanaMarhalaName
+            ");
+            $sectors = DB::select("
+                SELECT DISTINCT QetaaName AS v FROM Qetaa
+                WHERE QetaaName IS NOT NULL AND QetaaName <> ''
+                ORDER BY QetaaName
+            ");
+        }
+
+        return [
+            'SanaMarhalaName' => array_values(array_map(fn ($r) => (string) $r->v, $stages)),
+            'QetaaName' => array_values(array_map(fn ($r) => (string) $r->v, $sectors)),
+        ];
     }
 
     /**

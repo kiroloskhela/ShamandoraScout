@@ -124,7 +124,10 @@
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200',
                 ],
             ]"
-                :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
+                :searchable="false" :sortable="true" :pagination="false" :per-page="10"
+                :server-filters="true"
+                :filter-options="$filterOptions ?? []"
+                :active-server-filters="$activeServerFilters ?? []" />
 
             <div class="mt-4">
                 {{ $waitingList->links() }}

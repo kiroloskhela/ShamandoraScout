@@ -11,6 +11,12 @@
     'title' => '',
     'addButton' => null,
     'headerButtons' => [],
+    // When true, column filters navigate via ?f[ColumnKey]=value (full dataset).
+    'serverFilters' => false,
+    // Distinct values per filterable column key (from full dataset / lookups).
+    'filterOptions' => [],
+    // Currently applied server filters: ['ColumnKey' => 'value']
+    'activeServerFilters' => [],
 ])
 
 <div class="bg-white dark:bg-slate-900 shadow-lg rounded-lg overflow-hidden border border-transparent dark:border-slate-800" x-data="dataTable({
@@ -24,7 +30,10 @@
     title: @js($title),
     addButton: @js($addButton),
     headerButtons: @js($headerButtons),
-    tableId: @js($tableId)
+    tableId: @js($tableId),
+    serverFilters: @js((bool) $serverFilters),
+    filterOptions: @js($filterOptions),
+    activeServerFilters: @js($activeServerFilters)
 })" x-init="init()">
 
     <!-- Header: Title, Search, Add Button -->
@@ -307,12 +316,14 @@
             sortable: options.sortable ?? true,
             pagination: options.pagination ?? true,
             perPage: options.perPage || 10,
+            serverFilters: options.serverFilters ?? false,
+            filterOptions: options.filterOptions || {},
 
             searchTerm: '',
             sortColumn: '',
             sortDirection: 'asc',
             currentPage: 1,
-            activeFilters: {},
+            activeFilters: options.activeServerFilters || {},
 
             get filterableColumns() {
                 return this.columns.filter(c => c.filter === true);
@@ -358,6 +369,12 @@
             },
 
             init() {
+                if (this.serverFilters) {
+                    // Server filters come from the URL; do not restore stale localStorage filters.
+                    this.activeFilters = { ...(options.activeServerFilters || {}) };
+                    this.applyAll(false);
+                    return;
+                }
                 this.loadState();
                 this.applyAll(false);
             },
@@ -407,6 +424,11 @@
             },
 
             getDistinctValues(key) {
+                if (this.serverFilters) {
+                    const opts = this.filterOptions[key] || [];
+                    return Array.from(opts).map(String).filter(v => v !== '').sort();
+                }
+
                 const seen = new Set();
 
                 this.originalData.forEach(item => {
@@ -419,7 +441,34 @@
                 return Array.from(seen).sort();
             },
 
+            navigateWithFilters(nextFilters) {
+                const url = new URL(window.location.href);
+                // Drop previous f[*] params
+                [...url.searchParams.keys()]
+                    .filter(k => k === 'f' || k.startsWith('f['))
+                    .forEach(k => url.searchParams.delete(k));
+
+                Object.entries(nextFilters || {}).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && String(value) !== '' && String(value) !== '__all__') {
+                        url.searchParams.set(`f[${key}]`, String(value));
+                    }
+                });
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
+            },
+
             setFilter(key, value) {
+                if (this.serverFilters) {
+                    const next = { ...this.activeFilters };
+                    if (value === '__all__') {
+                        delete next[key];
+                    } else {
+                        next[key] = value;
+                    }
+                    this.navigateWithFilters(next);
+                    return;
+                }
+
                 if (value === '__all__') {
                     delete this.activeFilters[key];
                 } else {
@@ -430,11 +479,21 @@
             },
 
             clearFilter(key) {
+                if (this.serverFilters) {
+                    const next = { ...this.activeFilters };
+                    delete next[key];
+                    this.navigateWithFilters(next);
+                    return;
+                }
                 delete this.activeFilters[key];
                 this.applyAll(true);
             },
 
             clearAllFilters() {
+                if (this.serverFilters) {
+                    this.navigateWithFilters({});
+                    return;
+                }
                 this.activeFilters = {};
                 this.applyAll(true);
             },
@@ -446,7 +505,8 @@
             applyAll(resetPage = true) {
                 let result = [...this.originalData];
 
-                if (this.searchTerm.trim()) {
+                // Client search/filter only when not in server mode
+                if (!this.serverFilters && this.searchTerm.trim()) {
                     const term = this.searchTerm.toLowerCase();
 
                     result = result.filter(item =>
@@ -459,12 +519,14 @@
                     );
                 }
 
-                Object.entries(this.activeFilters).forEach(([key, value]) => {
-                    result = result.filter(item => {
-                        const val = this.getNestedValue(item, key);
-                        return val !== null && val !== undefined && String(val) === String(value);
+                if (!this.serverFilters) {
+                    Object.entries(this.activeFilters).forEach(([key, value]) => {
+                        result = result.filter(item => {
+                            const val = this.getNestedValue(item, key);
+                            return val !== null && val !== undefined && String(val) === String(value);
+                        });
                     });
-                });
+                }
 
                 if (this.sortColumn) {
                     result.sort((a, b) => {

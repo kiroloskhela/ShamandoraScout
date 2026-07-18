@@ -26,6 +26,7 @@
                 'key' => 'SanaMarhalaName',
                 'label' => __('Stage'),
                 'type' => 'label',
+                'filter' => true,
                 'cssClass' => 'text-sm text-gray-800 font-medium',
             ],
             [
@@ -100,7 +101,10 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-colors duration-200 ml-2',
                 ],
-            ]" :searchable="false" :sortable="true" :pagination="false" :per-page="25" />
+            ]" :searchable="false" :sortable="true" :pagination="false" :per-page="25"
+            :server-filters="true"
+            :filter-options="$filterOptions ?? []"
+            :active-server-filters="$activeServerFilters ?? []" />
         <div class="mt-4">
             {{ $persons->links() }}
         </div>
