@@ -650,8 +650,10 @@
                         </a>
                     </div>
 
-                    <!-- End: theme + language + logout -->
+                    <!-- End: help + theme + language + logout -->
                     <div class="flex items-center justify-end gap-1 sm:gap-2">
+                        <x-page-help />
+
                         <button type="button" id="themeToggle"
                             class="inline-flex h-10 w-10 items-center justify-center text-gray-600 dark:text-emerald-300/90 hover:text-gray-900 dark:hover:text-emerald-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                             title="{{ __('Dark') }} / {{ __('Light') }}" aria-label="{{ __('Dark') }}">
