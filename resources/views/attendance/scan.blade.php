@@ -69,19 +69,6 @@
                 </div>
             @endif
 
-            <div class="mb-6 flex flex-wrap items-center justify-center gap-3">
-                <form method="POST" action="{{ route('attendance.send-qr-bulk') }}"
-                    onsubmit="return confirm(@json(__('Confirm send QR codes to all people on this event roster via WhatsApp?')))">
-                    @csrf
-                    <input type="hidden" name="season_id" value="{{ $seasonId }}">
-                    <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
-                    <button type="submit"
-                        class="inline-flex items-center justify-center h-11 px-5 text-sm font-medium rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition">
-                        {{ __('Send QR codes via WhatsApp') }}
-                    </button>
-                </form>
-            </div>
-
             <div class="grid lg:grid-cols-2 gap-6">
                 <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
                     <div class="flex items-center justify-between gap-3 mb-4">
@@ -99,10 +86,20 @@
 
                     <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-700">
                         <label for="manualCode" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Or enter code manually') }}</label>
+                        <div id="manualPrefixChips" class="flex flex-wrap gap-2 mb-3">
+                            <button type="button" data-prefix="SHAM:" class="manual-prefix-chip h-9 px-3 rounded-full text-xs font-bold border transition bg-slate-800 text-white border-slate-800">SHAM</button>
+                            @if (!empty($takesReservation))
+                                <button type="button" data-prefix="GUEST:" class="manual-prefix-chip h-9 px-3 rounded-full text-xs font-bold border transition bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600">GUEST</button>
+                                <button type="button" data-prefix="FAM:" class="manual-prefix-chip h-9 px-3 rounded-full text-xs font-bold border transition bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600">FAM</button>
+                            @endif
+                        </div>
                         <div class="flex gap-2">
-                            <input id="manualCode" type="text" autocomplete="off"
-                                placeholder="{{ !empty($takesReservation) ? 'SHAM:123 / GUEST:5 / FAM:9' : 'SHAM:123' }}"
-                                class="flex-1 h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none text-sm">
+                            <div class="flex-1 flex items-stretch rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:border-blue-500">
+                                <span id="manualPrefixLabel" class="inline-flex items-center px-3 text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-l border-slate-200 dark:border-slate-700">SHAM:</span>
+                                <input id="manualCode" type="text" inputmode="numeric" autocomplete="off"
+                                    placeholder="{{ __('ID number only') }}"
+                                    class="flex-1 h-11 px-3 dark:bg-slate-900 dark:text-slate-100 focus:outline-none text-sm">
+                            </div>
                             <button type="button" id="manualLookupBtn"
                                 class="h-11 px-4 text-sm font-medium rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 hover:opacity-90 transition">
                                 {{ __('Look up') }}
@@ -176,15 +173,6 @@
                                 {{ __('Mark present') }}
                             </button>
                         </div>
-
-                        <form id="sendQrForm" method="POST" action="#" class="mt-2">
-                            @csrf
-                            <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
-                            <button type="submit"
-                                class="w-full h-12 rounded-full border border-emerald-600 text-emerald-700 dark:text-emerald-300 font-medium hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition">
-                                {{ __('Send QR code via WhatsApp') }}
-                            </button>
-                        </form>
                     </div>
 
                     <div id="lookupError" class="hidden mt-4 p-3 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-sm text-center"></div>
@@ -199,7 +187,7 @@
                     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
                     const lookupUrl = @json(route('attendance.lookup'));
                     const markUrl = @json(route('attendance.mark-status'));
-                    const sendEntityUrl = @json(url('/attendance/send-qr-entity'));
+                    let manualPrefix = 'SHAM:';
 
                     const statusLabels = {
                         present: @json(__('Present')),
@@ -238,9 +226,35 @@
                         cardId: document.getElementById('cardId'),
                         cardMessage: document.getElementById('cardMessage'),
                         markPresentBtn: document.getElementById('markPresentBtn'),
-                        sendQrForm: document.getElementById('sendQrForm'),
                         lookupError: document.getElementById('lookupError'),
+                        manualPrefixLabel: document.getElementById('manualPrefixLabel'),
                     };
+
+                    function setManualPrefix(prefix) {
+                        manualPrefix = prefix;
+                        if (els.manualPrefixLabel) els.manualPrefixLabel.textContent = prefix;
+                        document.querySelectorAll('.manual-prefix-chip').forEach((btn) => {
+                            const on = btn.getAttribute('data-prefix') === prefix;
+                            btn.classList.toggle('bg-slate-800', on);
+                            btn.classList.toggle('text-white', on);
+                            btn.classList.toggle('border-slate-800', on);
+                            btn.classList.toggle('bg-white', !on);
+                            btn.classList.toggle('dark:bg-slate-900', !on);
+                            btn.classList.toggle('text-slate-700', !on);
+                            btn.classList.toggle('dark:text-slate-200', !on);
+                            btn.classList.toggle('border-slate-300', !on);
+                            btn.classList.toggle('dark:border-slate-600', !on);
+                        });
+                        els.manualCode?.focus();
+                    }
+
+                    function buildManualCode() {
+                        const raw = (els.manualCode?.value || '').trim();
+                        if (!raw) return '';
+                        if (/^(SHAM|GUEST|FAM)\s*:/i.test(raw)) return raw;
+                        const id = raw.replace(/[^\d]/g, '');
+                        return id ? (manualPrefix + id) : raw;
+                    }
 
                     function beep() {
                         try {
@@ -286,7 +300,6 @@
                         els.cardStatus.textContent = statusLabels[status] || statusLabels.none;
                         const prefix = currentEntityType === 'GUEST' ? 'GUEST:' : (currentEntityType === 'FAMILY' ? 'FAM:' : 'SHAM:');
                         els.cardId.textContent = prefix + person.PersonID;
-                        els.sendQrForm.action = `${sendEntityUrl}/${currentEntityType}/${person.PersonID}`;
                         els.detectBannerName.textContent = person.PersonName || '';
                         els.detectBannerTitle.textContent = again
                             ? @json(__('Same code scanned again'))
@@ -434,11 +447,15 @@
                     document.querySelectorAll('.status-action').forEach((btn) => {
                         btn.addEventListener('click', () => markStatus(btn.getAttribute('data-status')));
                     });
-                    els.manualLookupBtn?.addEventListener('click', () => lookup(els.manualCode.value));
+                    document.querySelectorAll('.manual-prefix-chip').forEach((btn) => {
+                        btn.addEventListener('click', () => setManualPrefix(btn.getAttribute('data-prefix')));
+                    });
+                    setManualPrefix('SHAM:');
+                    els.manualLookupBtn?.addEventListener('click', () => lookup(buildManualCode()));
                     els.manualCode?.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
-                            lookup(els.manualCode.value);
+                            lookup(buildManualCode());
                         }
                     });
 

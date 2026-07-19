@@ -1050,5 +1050,12 @@
     "Filter by status": "Filter by status",
     "Show only": "Show only",
     "Send QR via WhatsApp?": "Send QR via WhatsApp?",
-    "No events with finance plan and WhatsApp QR in this season.": "No events with finance plan and WhatsApp QR in this season."
+    "No events with finance plan and WhatsApp QR in this season.": "No events with finance plan and WhatsApp QR in this season.",
+    "Attended": "Attended",
+    "Booking attendance": "Booking attendance",
+    "People in event": "People in event",
+    "ID number only": "ID number only",
+    "Search: name / phone / ID": "Search: name / phone / ID",
+    "Search recent activity by name": "Search recent activity by name",
+    "Mark": "Mark"
 }
