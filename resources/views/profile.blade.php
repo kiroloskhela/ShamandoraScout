@@ -367,7 +367,7 @@
             <div class="rounded-3xl overflow-hidden shadow-lg text-white"
                 style="background: linear-gradient(160deg, #0b5f59 0%, #0f766e 55%, #115e59 100%);">
                 <div class="p-5 text-center">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="" class="mx-auto h-14 w-14 object-contain drop-shadow mb-2 bg-white/10 rounded-full p-1">
+                    <img src="{{ asset('img/shamandora.webp') }}" alt="" class="mx-auto h-14 w-14 object-contain drop-shadow mb-2 bg-white/10 rounded-full p-1">
                     <div class="text-xs font-semibold tracking-wide text-teal-100/90 uppercase">{{ __('Scout identity') }}</div>
                     <div class="text-sm font-bold mt-1">{{ __('Shamandora Sea Scouts') }}</div>
                 </div>

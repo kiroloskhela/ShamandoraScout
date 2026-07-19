@@ -21,7 +21,7 @@
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Favicon / Logo in browser tab and Google icon --}}
-    <link rel="icon" type="image/png" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/shamandora.png') }}">
 
     {{-- Open Graph for Facebook / WhatsApp / social preview --}}
@@ -29,14 +29,14 @@
     <meta property="og:title" content="@yield('title', __('Shamandora Scout'))">
     <meta property="og:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('img/shamandora.png') }}">
+    <meta property="og:image" content="{{ asset('img/shamandora.webp') }}">
     <meta property="og:site_name" content="Shamandora Scout">
 
     {{-- Twitter / X preview --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title', __('Shamandora Scout'))">
     <meta name="twitter:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
-    <meta name="twitter:image" content="{{ asset('img/shamandora.png') }}">
+    <meta name="twitter:image" content="{{ asset('img/shamandora.webp') }}">
 
     {{-- Prevent theme flash before CSS loads --}}
     <script>
@@ -59,7 +59,7 @@
         "name": "Shamandora Scout",
         "alternateName": "الشمندوره البحريه",
         "url": "{{ url('/') }}",
-        "logo": "{{ asset('img/shamandora.png') }}",
+        "logo": "{{ asset('img/shamandora.webp') }}",
         "sameAs": [
             "https://www.facebook.com/ShamandoraScout",
             "https://www.instagram.com/shamandora_scout"
@@ -74,12 +74,8 @@
         body {
             font-family: {{ $isRtl ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
         }
-
-        @keyframes shamandora-spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
     </style>
+    @include('partials.motion-styles')
 
     @stack('styles')
 </head>
@@ -647,9 +643,9 @@
                     <!-- Center: Logo -->
                     <div class="flex items-center justify-center">
                         <a href="{{ url('/') }}">
-                            <img src="{{ asset('img/shamandora.png') }}" alt="Logo"
+                            <img src="{{ asset('img/shamandora.webp') }}" alt="Logo"
                                 class="h-10 w-auto sm:h-10 lg:h-14 dark:hidden">
-                            <img src="{{ asset('img/shamandora-dark.png') }}" alt="Logo"
+                            <img src="{{ asset('img/shamandora-dark.webp') }}" alt="Logo"
                                 class="h-10 w-auto sm:h-10 lg:h-14 hidden dark:block">
                         </a>
                     </div>
@@ -705,7 +701,7 @@
 
                 <!-- Content Area -->
                 <div class="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950">
-                    <div class="p-4 lg:p-6">
+                    <div class="p-4 lg:p-6 page-enter">
                         @yield('content')
                     </div>
                 </div>
@@ -721,15 +717,17 @@
     </div>
 
     <!-- Page loading overlay -->
-    <div id="pageLoadingOverlay" class="fixed inset-0 z-50 bg-white/70 dark:bg-slate-950/80 backdrop-blur-sm"
-        style="display: none; align-items: center; justify-content: center;">
+    <div id="pageLoadingOverlay"
+        class="fixed inset-0 z-50 bg-white/70 dark:bg-slate-950/80 backdrop-blur-sm"
+        style="display: none; align-items: center; justify-content: center;"
+        aria-hidden="true" role="status" aria-live="polite">
         <div class="flex flex-col items-center gap-4">
 
             {{-- Spinner + Logo --}}
-            <div class="relative flex items-center justify-center" style="width: 160px; height: 160px;">
+            <div class="relative flex items-center justify-center loading-logo-pulse" style="width: 160px; height: 160px;">
 
                 {{-- Spinning ring --}}
-                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 160 160">
+                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 160 160" aria-hidden="true">
                     <circle cx="80" cy="80" r="72" fill="none" class="stroke-gray-200 dark:stroke-slate-700"
                         stroke-width="4" />
                     <circle cx="80" cy="80" r="72" fill="none" stroke="#1D9E75" stroke-width="4"
@@ -740,15 +738,15 @@
                 {{-- Logo circle --}}
                 <div class="relative z-10 rounded-full bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700 shadow-sm dark:shadow-[0_0_32px_rgba(16,185,129,0.15)] flex items-center justify-center overflow-hidden"
                     style="width: 128px; height: 128px;">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="شماندورة"
+                    <img src="{{ asset('img/shamandora.webp') }}" alt=""
                         class="dark:hidden" style="width: 108px; height: 108px; object-fit: contain;">
-                    <img src="{{ asset('img/shamandora-dark.png') }}" alt="شماندورة"
+                    <img src="{{ asset('img/shamandora-dark.webp') }}" alt=""
                         class="hidden dark:block" style="width: 108px; height: 108px; object-fit: contain;">
                 </div>
             </div>
 
             {{-- Label --}}
-            <p class="text-sm text-gray-500 dark:text-slate-400">{{ __('Loading...') }}</p>
+            <p class="text-sm text-gray-500 dark:text-slate-400 loading-label-pulse">{{ __('Loading...') }}</p>
         </div>
     </div>
 
@@ -764,10 +762,20 @@
         const closedClass = isRtl ? 'translate-x-full' : '-translate-x-full';
 
         let loadingTimer = null;
+        let hidingTimer = null;
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         const showLoading = () => {
-            if (pageLoadingOverlay) {
-                pageLoadingOverlay.style.display = 'flex';
+            if (!pageLoadingOverlay) return;
+            if (hidingTimer) {
+                clearTimeout(hidingTimer);
+                hidingTimer = null;
+            }
+            pageLoadingOverlay.classList.remove('loading-overlay-exit');
+            pageLoadingOverlay.style.display = 'flex';
+            pageLoadingOverlay.setAttribute('aria-hidden', 'false');
+            if (!reduceMotion) {
+                pageLoadingOverlay.classList.add('loading-overlay-enter');
             }
         };
 
@@ -776,13 +784,31 @@
                 clearTimeout(loadingTimer);
                 loadingTimer = null;
             }
-            if (pageLoadingOverlay) {
+            if (!pageLoadingOverlay || pageLoadingOverlay.style.display === 'none') return;
+
+            const finishHide = () => {
                 pageLoadingOverlay.style.display = 'none';
+                pageLoadingOverlay.classList.remove('loading-overlay-enter', 'loading-overlay-exit');
+                pageLoadingOverlay.setAttribute('aria-hidden', 'true');
+                hidingTimer = null;
+            };
+
+            if (reduceMotion) {
+                finishHide();
+                return;
             }
+
+            pageLoadingOverlay.classList.remove('loading-overlay-enter');
+            pageLoadingOverlay.classList.add('loading-overlay-exit');
+            hidingTimer = setTimeout(finishHide, 180);
         };
 
         const showLoadingDelayed = () => {
-            hideLoading();
+            if (loadingTimer) clearTimeout(loadingTimer);
+            if (hidingTimer) {
+                clearTimeout(hidingTimer);
+                hidingTimer = null;
+            }
             loadingTimer = setTimeout(() => {
                 showLoading();
             }, 120);

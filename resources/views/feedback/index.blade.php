@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
+    <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
     <title>تقييم معسكر مجمع 2025</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -465,7 +465,7 @@
     <div class="container">
         <!-- Header Section -->
         <header class="header">
-            <img src={{ asset('img/shamandora.png') }} alt="شعار المعسكر" class="header__logo">
+            <img src={{ asset('img/shamandora.webp') }} alt="شعار المعسكر" class="header__logo">
             <h1 class="header__title">تقييم معسكر مجمع 2025 - مربوط بكيفي</h1>
             <p class="header__subtitle">ربنا يعوضكم على تعبكم وخدمتكم خلال المعسكر</p>
             <p class="header__description">
@@ -1042,7 +1042,7 @@
     <div id="successModal" class="modal">
         <div class="modal__content">
             <div class="modal__icon">
-                <img src="img/shamandora.png" alt="Success Icon" style="max-width: 100px; height: auto;">
+                <img src="img/shamandora.webp" alt="Success Icon" style="max-width: 100px; height: auto;">
             </div>
             <h2 class="modal__title" id="modalTitle">تم الإرسال بنجاح!</h2>
             <p class="modal__text" id="modalText">شكراً لك على وقتك ومشاركتك الصادقة. تقييمك سيساعدنا في تطوير المعسكرات

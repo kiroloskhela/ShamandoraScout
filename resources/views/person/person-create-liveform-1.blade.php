@@ -29,7 +29,7 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -54,7 +54,7 @@
             <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
                 <div class="p-6 sm:p-10">
                     <div class="flex justify-center mb-6">
-                        <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora') }}"
+                        <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora') }}"
                             class="h-24 w-24 object-contain drop-shadow-md" />
                     </div>
 

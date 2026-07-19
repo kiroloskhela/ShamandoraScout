@@ -47,7 +47,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            background-image: url('{{ asset('img/shamandora.png') }}');
+            background-image: url('{{ asset('img/shamandora.webp') }}');
             background-repeat: no-repeat;
             background-position: center center;
             background-size: 400px;
@@ -260,7 +260,7 @@
             <div class="receipt">
                 <div class="receipt-content">
                     <div class="header">
-                        <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="logo-top">
+                        <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="logo-top">
                         <div class="title">{{ __('Receipt') }} {{ $receipt->PaymentType === 'REFUND' ? __('Refund') : __('Pay') }}</div>
                         <div class="subtitle">{{ __('Shamandora Scout Group') }}</div>
                         <div class="copy-badge">{{ $copyLabel }}</div>

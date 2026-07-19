@@ -14,7 +14,7 @@
     <!-- Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -62,7 +62,7 @@
             <!-- Header -->
             <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
+                    <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="h-20 w-20 object-contain" />
                     <div>
                         <h1 class="text-2xl md:text-3xl font-bold text-slate-900">بيانات الملتحق</h1>
                         <p class="text-slate-500 mt-2">عرض جميع البيانات المسجلة</p>

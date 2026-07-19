@@ -39,7 +39,7 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -121,7 +121,7 @@
 
             <div class="px-6 md:px-10 py-8 border-b border-teal-100 bg-gradient-to-b from-teal-50/80 to-white">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora') }}"
+                    <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora') }}"
                         class="h-20 w-20 object-contain drop-shadow-md" />
 
                     <div>

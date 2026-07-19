@@ -430,7 +430,7 @@
     "Installments count:": "Installments count:",
     "Intervals count": "Intervals count",
     "Invalid email address": "Invalid email address",
-    "Invalid login credentials.": "Invalid login credentials.",
+    "Invalid login credentials.": "These credentials do not match our records.",
     "Inventory": "Inventory",
     "Issued at:": "Issued at:",
     "Issuer": "Issuer",
@@ -982,5 +982,11 @@
     "✓ Present": "✓ Present",
     "✗ Absent": "✗ Absent",
     "💾 Save attendance": "💾 Save attendance",
-    "Full / waiting list": "Full / waiting list"
+    "Full / waiting list": "Full / waiting list",
+    "Caps Lock is on": "Caps Lock is on",
+    "Please enter your person ID.": "Please enter your person ID.",
+    "Person ID must contain numbers only.": "Person ID must contain numbers only.",
+    "Please enter your password.": "Please enter your password.",
+    "These credentials do not match our records.": "These credentials do not match our records.",
+    "Check your person ID and password, then try again.": "Check your person ID and password, then try again."
 }

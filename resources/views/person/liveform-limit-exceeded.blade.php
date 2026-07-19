@@ -13,7 +13,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -33,11 +33,12 @@
             background: #9ca3af;
         }
     </style>
+    @include('partials.motion-styles')
 </head>
 
 <body class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-800">
     <main class="min-h-screen flex items-center justify-center px-4 py-10">
-        <div class="w-full max-w-3xl">
+        <div class="w-full max-w-3xl status-card-enter">
 
             <div class="rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200 overflow-hidden">
 
@@ -47,7 +48,7 @@
 
                         <div
                             class="mb-5 h-28 w-28 rounded-full bg-white ring-4 ring-white shadow-md border border-slate-200 overflow-hidden">
-                            <img src="{{ asset('img/shamandora.png') }}" class="h-full w-full object-contain p-3"
+                            <img src="{{ asset('img/shamandora.webp') }}" class="h-full w-full object-contain p-3"
                                 alt="{{ __('Shamandora') }}" />
                         </div>
 

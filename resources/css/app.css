@@ -603,3 +603,83 @@ html.dark main a.text-teal-700 {
 html.dark main a.underline:hover {
   color: rgb(94 234 212) !important;
 }
+
+/* ─── Page / loading motion ─────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes shamandora-page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shamandora-status-enter {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes shamandora-overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes shamandora-overlay-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes shamandora-logo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  @keyframes shamandora-label-pulse {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+
+  .page-enter {
+    animation: shamandora-page-enter 0.35s ease-out both;
+  }
+
+  .status-card-enter {
+    animation: shamandora-status-enter 0.45s ease-out both;
+  }
+
+  .loading-overlay-enter {
+    animation: shamandora-overlay-in 0.2s ease-out both;
+  }
+
+  .loading-overlay-exit {
+    animation: shamandora-overlay-out 0.18s ease-in both;
+  }
+
+  .loading-logo-pulse {
+    animation: shamandora-logo-pulse 1.6s ease-in-out infinite;
+  }
+
+  .loading-label-pulse {
+    animation: shamandora-label-pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .status-card-enter,
+  .loading-overlay-enter,
+  .loading-overlay-exit,
+  .loading-logo-pulse,
+  .loading-label-pulse {
+    animation: none !important;
+  }
+}

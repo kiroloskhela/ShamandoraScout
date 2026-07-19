@@ -149,7 +149,7 @@
                 <div class="mb-8">
                     <div
                         class="w-40 h-40 bg-gray-100 rounded-full flex items-center justify-center shadow-md border border-gray-200">
-                        <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Logo') }}">
+                        <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Logo') }}">
                     </div>
                 </div>
                 <h1 class="text-4xl lg:text-4xl font-bold mb-4 text-center text-gray-800">

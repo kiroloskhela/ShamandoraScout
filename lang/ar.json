@@ -430,7 +430,7 @@
     "Installments count:": "عدد الأقساط:",
     "Intervals count": "عدد الفترات",
     "Invalid email address": "البريد الإلكتروني غير صحيح",
-    "Invalid login credentials.": "بيانات الدخول غير صحيحة.",
+    "Invalid login credentials.": "بيانات الدخول غير مطابقة لسجلاتنا.",
     "Inventory": "العهده",
     "Issued at:": "وقت الإصدار:",
     "Issuer": "المُسَلِّم",
@@ -982,5 +982,11 @@
     "✓ Present": "✓ حاضر",
     "✗ Absent": "✗ غائب",
     "💾 Save attendance": "💾 حفظ الحضور",
-    "Full / waiting list": "مكتمل / قائمة انتظار"
+    "Full / waiting list": "مكتمل / قائمة انتظار",
+    "Caps Lock is on": "مفتاح Caps Lock مفعّل",
+    "Please enter your person ID.": "يرجى إدخال رقم الهوية.",
+    "Person ID must contain numbers only.": "رقم الهوية يجب أن يحتوي على أرقام فقط.",
+    "Please enter your password.": "يرجى إدخال كلمة المرور.",
+    "These credentials do not match our records.": "بيانات الدخول غير مطابقة لسجلاتنا.",
+    "Check your person ID and password, then try again.": "تحقق من رقم الهوية وكلمة المرور ثم حاول مرة أخرى."
 }

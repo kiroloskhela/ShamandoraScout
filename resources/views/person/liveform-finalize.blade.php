@@ -15,18 +15,19 @@
     <!-- Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
             font-family: {{ $locale === 'ar' ? "'Cairo'" : "'Source Sans 3'" }}, sans-serif;
         }
     </style>
+    @include('partials.motion-styles')
 </head>
 
 <body class="min-h-screen bg-slate-50 flex items-center justify-center px-4">
 
-    <div class="w-full max-w-3xl">
+    <div class="w-full max-w-3xl status-card-enter">
 
         <!-- Card -->
         <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
@@ -35,7 +36,7 @@
             <div class="px-6 py-10 border-b border-slate-200 bg-slate-50 text-center">
 
                 <!-- Logo (ONLY HERE) -->
-                <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora') }}"
+                <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora') }}"
                     class="mx-auto h-24 w-24 object-contain mb-4" />
 
                 <h1 class="text-2xl md:text-3xl font-bold text-slate-900">

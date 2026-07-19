@@ -57,7 +57,7 @@ class LoginController extends Controller
     {
         return back()
             ->withErrors([
-                'person_id' => 'بيانات الدخول غير صحيحة.',
+                'login' => __('These credentials do not match our records.'),
             ])
             ->withInput($request->only('person_id'));
     }
