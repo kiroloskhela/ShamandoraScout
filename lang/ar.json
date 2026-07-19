@@ -1050,5 +1050,12 @@
     "Filter by status": "تصفية حسب الحالة",
     "Show only": "اعرض فقط",
     "Send QR via WhatsApp?": "إرسال رمز QR عبر واتساب؟",
-    "No events with finance plan and WhatsApp QR in this season.": "لا توجد فعاليات بخطة مالية وإرسال QR واتساب في هذا الموسم."
+    "No events with finance plan and WhatsApp QR in this season.": "لا توجد فعاليات بخطة مالية وإرسال QR واتساب في هذا الموسم.",
+    "Attended": "حاضر",
+    "Booking attendance": "حضور الحجوزات",
+    "People in event": "الأشخاص في الفعالية",
+    "ID number only": "رقم الهوية فقط",
+    "Search: name / phone / ID": "بحث: الاسم / الهاتف / الرقم",
+    "Search recent activity by name": "ابحث في آخر النشاط بالاسم",
+    "Mark": "تسجيل"
 }

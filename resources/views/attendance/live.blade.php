@@ -65,6 +65,28 @@
                 @endforeach
             </div>
 
+            <div class="mb-6 bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 border border-slate-200 overflow-hidden">
+                <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div class="font-semibold text-slate-800 dark:text-slate-100">{{ __('People in event') }}</div>
+                    <input id="rosterSearch" type="text" placeholder="{{ __('Search: name / phone / ID') }}"
+                        class="w-full md:w-80 h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none text-sm">
+                </div>
+                <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-2 text-right text-sm">{{ __('Name') }}</th>
+                                <th class="px-4 py-2 text-right text-sm">{{ __('Phone') }}</th>
+                                <th class="px-4 py-2 text-right text-sm">{{ __('Code') }}</th>
+                                <th class="px-4 py-2 text-right text-sm">{{ __('Status') }}</th>
+                                <th class="px-4 py-2 text-center text-sm">{{ __('Mark') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveRoster"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="mb-4 flex flex-wrap items-center gap-2">
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 me-2">{{ __('Filter by status') }}:</span>
                 <button type="button" data-filter="all" class="live-filter h-9 px-3 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-600 bg-slate-800 text-white">{{ __('All') }}</button>
@@ -74,8 +96,10 @@
             </div>
 
             <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 border border-slate-200 overflow-hidden">
-                <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-800 dark:text-slate-100">
-                    {{ __('Recent activity') }}
+                <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div class="font-semibold text-slate-800 dark:text-slate-100">{{ __('Recent activity') }}</div>
+                    <input id="feedSearch" type="text" placeholder="{{ __('Search recent activity by name') }}"
+                        class="w-full md:w-80 h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none text-sm">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full">
@@ -98,11 +122,13 @@
                 document.addEventListener('DOMContentLoaded', function() {
                     const seasonEventId = @json((int) $seasonEventId);
                     const snapshotUrl = @json(route('attendance.live.snapshot'));
+                    const markUrl = @json(route('attendance.mark-status'));
                     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
                     const statusLabels = {
                         present: @json(__('Present')),
                         absent: @json(__('Absent')),
                         outside: @json(__('Outside')),
+                        none: @json(__('Not scanned')),
                     };
                     const rowClasses = {
                         present: 'bg-green-100 dark:bg-green-900/40 border-t border-green-200 dark:border-green-800',
@@ -110,9 +136,13 @@
                         outside: 'bg-amber-100 dark:bg-amber-900/40 border-t border-amber-200 dark:border-amber-800',
                     };
                     const connectionEl = document.getElementById('liveConnection');
+                    const rosterSearch = document.getElementById('rosterSearch');
+                    const feedSearch = document.getElementById('feedSearch');
                     let pollTimer = null;
                     let activeFilter = 'all';
                     let latestFeed = @json($snapshot['feed'] ?? []);
+                    let latestRoster = @json($snapshot['roster'] ?? []);
+                    let marking = false;
 
                     function applyCounts(counts) {
                         ['present', 'absent', 'outside', 'unmarked', 'total'].forEach((key) => {
@@ -129,14 +159,57 @@
                             .replaceAll('"', '&quot;');
                     }
 
+                    function normalize(s) {
+                        return (s || '').toString().toLowerCase().trim();
+                    }
+
+                    function renderRoster(roster) {
+                        latestRoster = roster || [];
+                        const tbody = document.getElementById('liveRoster');
+                        if (!tbody) return;
+                        const q = normalize(rosterSearch?.value);
+                        const filtered = !q ? latestRoster : latestRoster.filter((row) => {
+                            const hay = normalize([row.name, row.phone, row.code, row.entity_id].join(' '));
+                            return hay.includes(q);
+                        });
+
+                        if (!filtered.length) {
+                            tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">{{ __('No people to display.') }}</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = filtered.map((row) => {
+                            const status = row.status || '';
+                            const statusText = statusLabels[status] || statusLabels.none;
+                            return `
+                            <tr class="${rowClasses[status] || 'border-t border-slate-200 dark:border-slate-700'}" data-booking="${row.booking_id}">
+                                <td class="px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100">${escapeHtml(row.name || '')}</td>
+                                <td class="px-4 py-2 text-sm text-slate-700 dark:text-slate-200 dir-ltr">${escapeHtml(row.phone || '—')}</td>
+                                <td class="px-4 py-2 text-sm font-mono text-slate-700 dark:text-slate-200">${escapeHtml(row.code || '')}</td>
+                                <td class="px-4 py-2 text-sm font-bold">${escapeHtml(statusText)}</td>
+                                <td class="px-4 py-2">
+                                    <div class="flex flex-wrap items-center justify-center gap-1">
+                                        <button type="button" data-mark="present" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-green-600 text-white">{{ __('Present') }}</button>
+                                        <button type="button" data-mark="absent" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-red-600 text-white">{{ __('Absent') }}</button>
+                                        <button type="button" data-mark="outside" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-amber-500 text-white">{{ __('Outside') }}</button>
+                                    </div>
+                                </td>
+                            </tr>`;
+                        }).join('');
+                    }
+
                     function renderFeed(feed) {
                         latestFeed = feed || [];
                         const tbody = document.getElementById('liveFeed');
                         if (!tbody) return;
 
-                        const filtered = activeFilter === 'all'
+                        const q = normalize(feedSearch?.value);
+                        let filtered = activeFilter === 'all'
                             ? latestFeed
                             : latestFeed.filter((row) => row.status === activeFilter);
+                        if (q) {
+                            filtered = filtered.filter((row) => normalize(row.name || '').includes(q));
+                        }
 
                         if (!filtered.length) {
                             tbody.innerHTML = `<tr id="emptyFeedRow"><td colspan="4" class="px-4 py-8 text-center text-slate-500">{{ __('No attendance marks yet.') }}</td></tr>`;
@@ -172,6 +245,37 @@
                         renderFeed(latestFeed);
                     }
 
+                    async function markBooking(bookingId, status) {
+                        if (marking || !bookingId || !status) return;
+                        marking = true;
+                        try {
+                            const res = await fetch(markUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': csrf,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                body: JSON.stringify({
+                                    season_event_id: seasonEventId,
+                                    booking_id: Number(bookingId),
+                                    status,
+                                }),
+                            });
+                            const data = await res.json();
+                            if (res.ok && data.ok) {
+                                await refreshSnapshot();
+                            } else {
+                                alert(data.error || @json(__('Not allowed to take attendance for this event')));
+                            }
+                        } catch (e) {
+                            alert(@json(__('Not allowed to take attendance for this event')));
+                        } finally {
+                            marking = false;
+                        }
+                    }
+
                     async function refreshSnapshot() {
                         try {
                             const res = await fetch(`${snapshotUrl}?season_event_id=${seasonEventId}`, {
@@ -181,6 +285,7 @@
                             const data = await res.json();
                             if (data.ok && data.snapshot) {
                                 applyCounts(data.snapshot.counts || {});
+                                renderRoster(data.snapshot.roster || []);
                                 renderFeed(data.snapshot.feed || []);
                             }
                         } catch (e) {}
@@ -196,8 +301,16 @@
                     document.querySelectorAll('.live-filter').forEach((btn) => {
                         btn.addEventListener('click', () => setFilter(btn.getAttribute('data-filter')));
                     });
+                    rosterSearch?.addEventListener('input', () => renderRoster(latestRoster));
+                    feedSearch?.addEventListener('input', () => renderFeed(latestFeed));
+                    document.getElementById('liveRoster')?.addEventListener('click', (e) => {
+                        const btn = e.target.closest('.roster-mark');
+                        if (!btn) return;
+                        markBooking(btn.getAttribute('data-booking'), btn.getAttribute('data-mark'));
+                    });
 
                     applyCounts(@json($snapshot['counts'] ?? []));
+                    renderRoster(latestRoster);
                     setFilter('all');
 
                     const pusherKey = @json($pusherKey);
@@ -233,11 +346,9 @@
                             startPolling(2000);
                         }
                     } else {
-                        // Fast polling (~2s) when websockets are not configured
                         startPolling(2000);
                     }
 
-                    // Immediate first refresh
                     refreshSnapshot();
                 });
             </script>

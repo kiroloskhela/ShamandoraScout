@@ -89,6 +89,7 @@ class AttendanceLiveController extends Controller
             'event_name' => $eventName,
             'counts' => $this->bookingAttendance->counts($seasonEventId),
             'feed' => $this->bookingAttendance->recentFeed($seasonEventId),
+            'roster' => $this->bookingAttendance->roster($seasonEventId),
         ];
     }
 

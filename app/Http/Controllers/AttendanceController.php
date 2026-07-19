@@ -25,7 +25,12 @@ class AttendanceController extends Controller
         $ctx = $this->selectionContext($request, $meId);
 
         $tableRows = [];
-        if ($ctx['seasonEventId'] && ! empty($ctx['allowedQetaas']) && ! $ctx['takesReservation']) {
+        $reservationRoster = [];
+        $reservationCounts = null;
+        if ($ctx['seasonEventId'] && $ctx['takesReservation']) {
+            $reservationRoster = $this->bookingAttendance->roster((int) $ctx['seasonEventId']);
+            $reservationCounts = $this->bookingAttendance->counts((int) $ctx['seasonEventId']);
+        } elseif ($ctx['seasonEventId'] && ! empty($ctx['allowedQetaas']) && ! $ctx['takesReservation']) {
             $tableRows = $this->rosterRows((int) $ctx['seasonEventId'], $ctx['allowedQetaas']);
         }
 
@@ -36,6 +41,8 @@ class AttendanceController extends Controller
             'seasonEventId' => $ctx['seasonEventId'],
             'takesReservation' => $ctx['takesReservation'],
             'tableRows' => $tableRows,
+            'reservationRoster' => $reservationRoster,
+            'reservationCounts' => $reservationCounts,
             'me' => $me,
         ]);
     }
@@ -473,7 +480,23 @@ class AttendanceController extends Controller
 
     private function canAccessEvent(int $serventId, int $seasonEventId): bool
     {
-        return ! empty($this->allowedQetaas($serventId, $seasonEventId));
+        if (! empty($this->allowedQetaas($serventId, $seasonEventId))) {
+            return true;
+        }
+
+        // Live-board roles may mark reservation bookings even without sector membership.
+        if ($this->qr->eventTakesReservation($seasonEventId)) {
+            $roles = optional(Auth::user())->role;
+            if ($roles) {
+                foreach (['SuperAdmin', 'Secretary', 'AdminSecretary', 'Finance', 'AdminFinance'] as $role) {
+                    if ($roles->contains('RoleName', $role)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -158,6 +158,86 @@ class BookingAttendanceService
     }
 
     /**
+     * Full booking roster for an event (refresh-based views / live search).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function roster(int $seasonEventId): array
+    {
+        $rows = DB::table('SeasonEventParticipantFinance as b')
+            ->leftJoin('SeasonEventBookingAttendance as a', 'a.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+            ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
+            ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+            ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
+            ->where('b.SeasonEventID', $seasonEventId)
+            ->where('b.IsRefunded', 0)
+            ->orderBy('b.SeasonEventParticipantFinanceID')
+            ->select(
+                'b.SeasonEventParticipantFinanceID',
+                'b.PersonID',
+                'b.GuestID',
+                'b.FamilyID',
+                'a.AttendanceStatus',
+                'a.UpdatedAt',
+                DB::raw("
+                    TRIM(CONCAT(
+                        COALESCE(p.FirstName, g.FirstName, f.FirstName, ''), ' ',
+                        COALESCE(p.SecondName, g.SecondName, f.SecondName, ''), ' ',
+                        COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, ''), ' ',
+                        COALESCE(p.FourthName, g.FourthName, f.FourthName, '')
+                    )) as EntityName
+                "),
+                DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '') as PhoneNumber"),
+                DB::raw("
+                    CASE
+                        WHEN b.FamilyID IS NOT NULL THEN 'FAMILY'
+                        WHEN b.GuestID IS NOT NULL THEN 'GUEST'
+                        ELSE 'PERSON'
+                    END as EntityType
+                "),
+                DB::raw("
+                    CASE
+                        WHEN b.FamilyID IS NOT NULL THEN b.FamilyID
+                        WHEN b.GuestID IS NOT NULL THEN b.GuestID
+                        ELSE b.PersonID
+                    END as EntityID
+                ")
+            )
+            ->get();
+
+        return $rows->map(function ($row) {
+            $typeLabel = match ($row->EntityType) {
+                'GUEST' => __('Guests'),
+                'FAMILY' => __('Families'),
+                default => __('Person'),
+            };
+
+            $prefix = match ($row->EntityType) {
+                'GUEST' => AttendanceQrService::PREFIX_GUEST,
+                'FAMILY' => AttendanceQrService::PREFIX_FAMILY,
+                default => AttendanceQrService::PREFIX_PERSON,
+            };
+
+            $status = $row->AttendanceStatus ?: null;
+            $attended = in_array($status, ['present', 'outside'], true);
+
+            return [
+                'booking_id' => (int) $row->SeasonEventParticipantFinanceID,
+                'name' => trim((string) $row->EntityName),
+                'phone' => (string) ($row->PhoneNumber ?? ''),
+                'entity_type' => $row->EntityType,
+                'entity_id' => (int) $row->EntityID,
+                'code' => $prefix.(int) $row->EntityID,
+                'booking_type_label' => $typeLabel,
+                'status' => $status,
+                'attended' => $attended,
+                'updated_at' => $row->UpdatedAt ? (string) $row->UpdatedAt : null,
+            ];
+        })->all();
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function recentFeed(int $seasonEventId, int $limit = 40): array
