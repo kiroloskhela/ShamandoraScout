@@ -30,7 +30,7 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block mb-2 text-sm text-gray-700">{{ __('New amount') }}</label>
-                        <input type="number" step="0.01" min="0" name="amount"
+                        <input type="number" step="1" min="0" name="amount"
                             value="{{ old('amount', $payment->Amount) }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
                     </div>

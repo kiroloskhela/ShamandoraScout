@@ -29,8 +29,10 @@ class AttendanceLiveController extends Controller
             $events = DB::table('SeasonEvent as se')
                 ->join('Event as e', 'e.EventID', '=', 'se.EventID')
                 ->join('EventType as et', 'et.EventTypeID', '=', 'e.EventTypeID')
+                ->join('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
                 ->where('se.SeasonID', $seasonId)
                 ->where('et.TakesReservation', 1)
+                ->where('sef.SendQrWhatsApp', 1)
                 ->select('se.SeasonEventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate')
                 ->orderBy('e.EventStartDate', 'asc')
                 ->get();
@@ -95,7 +97,10 @@ class AttendanceLiveController extends Controller
         return (bool) DB::table('SeasonEvent as se')
             ->join('Event as e', 'e.EventID', '=', 'se.EventID')
             ->join('EventType as et', 'et.EventTypeID', '=', 'e.EventTypeID')
+            ->join('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
             ->where('se.SeasonEventID', $seasonEventId)
-            ->value('et.TakesReservation');
+            ->where('et.TakesReservation', 1)
+            ->where('sef.SendQrWhatsApp', 1)
+            ->exists();
     }
 }

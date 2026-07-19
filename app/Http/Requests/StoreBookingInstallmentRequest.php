@@ -14,7 +14,7 @@ class StoreBookingInstallmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric'],
+            'amount' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -23,7 +23,8 @@ class StoreBookingInstallmentRequest extends FormRequest
     {
         return [
             'amount.required' => 'يجب إدخال مبلغ الدفعة.',
-            'amount.numeric' => 'يجب أن يكون مبلغ الدفعة رقمًا.',
+            'amount.integer' => 'مبلغ الدفعة يجب أن يكون رقمًا صحيحًا بدون قروش.',
+            'amount.min' => 'يجب أن يكون مبلغ الدفعة أكبر من صفر.',
         ];
     }
 }

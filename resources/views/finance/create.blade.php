@@ -62,7 +62,7 @@
 
                         <div>
                             <label for="minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Minimum deposit') }}</label>
-                            <input type="number" step="0.01" min="0" id="minimum_deposit" name="minimum_deposit"
+                            <input type="number" step="1" min="0" id="minimum_deposit" name="minimum_deposit"
                                 value="{{ old('minimum_deposit', 0) }}"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
@@ -82,6 +82,14 @@
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                                 <option value="1" {{ old('have_shirt', '0') == '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 <option value="0" {{ old('have_shirt', '0') == '0' ? 'selected' : '' }}>{{ __('No') }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="send_qr_whatsapp" class="block mb-2 text-sm text-gray-700">{{ __('Send QR via WhatsApp?') }}</label>
+                            <select id="send_qr_whatsapp" name="send_qr_whatsapp"
+                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                <option value="1" {{ old('send_qr_whatsapp', '1') == '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                <option value="0" {{ old('send_qr_whatsapp', '1') == '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                             </select>
                         </div>
                     </div>
@@ -143,7 +151,7 @@
 
             <div>
                 <label class="block mb-2 text-sm text-gray-700">{{ __('Price') }}</label>
-                <input type="number" step="0.01" min="0" name="price[]" value="${priceValue}"
+                <input type="number" step="1" min="0" name="price[]" value="${priceValue}"
                     class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 

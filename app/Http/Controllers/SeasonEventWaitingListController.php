@@ -33,6 +33,7 @@ class SeasonEventWaitingListController extends Controller
             ->join('Event as e', 'se.EventID', '=', 'e.EventID')
             ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
             ->where('se.SeasonID', $seasonID)
+            ->where('et.TakesReservation', 1)
             ->select(
                 'se.SeasonEventID',
                 'e.EventName',

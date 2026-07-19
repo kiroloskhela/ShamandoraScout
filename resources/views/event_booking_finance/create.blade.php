@@ -61,7 +61,7 @@
 
                         <div>
                             <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment amount') }}</label>
-                            <input type="number" step="0.01" min="0.01" name="first_payment_amount"
+                            <input type="number" step="1" min="1" name="first_payment_amount"
                                 value="{{ old('first_payment_amount') }}" id="first_payment_amount"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                         </div>
@@ -127,7 +127,7 @@
                                 <div id="discount-box"
                                     class="{{ in_array(old('special_case_type'), ['AKHOH_RAB', 'HAS_BROTHERS', 'OTHER']) ? '' : 'hidden' }}">
                                     <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Discount amount') }}</label>
-                                    <input type="number" step="0.01" min="0" name="discount_amount"
+                                    <input type="number" step="1" min="0" name="discount_amount"
                                         id="discount_amount" value="{{ old('discount_amount', 0) }}"
                                         class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                 </div>

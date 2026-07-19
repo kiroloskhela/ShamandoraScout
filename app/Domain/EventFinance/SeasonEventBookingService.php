@@ -288,6 +288,14 @@ class SeasonEventBookingService
                 return;
             }
 
+            $sendQr = DB::table('SeasonEventFinance')
+                ->where('SeasonEventID', $seasonEventId)
+                ->value('SendQrWhatsApp');
+
+            if (empty($sendQr)) {
+                return;
+            }
+
             $entityType = null;
             $entityId = null;
             if ($personID) {
