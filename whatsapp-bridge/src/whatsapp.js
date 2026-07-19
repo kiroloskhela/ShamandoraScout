@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
+  makeCacheableSignalKeyStore,
   useMultiFileAuthState,
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
@@ -12,7 +13,7 @@ import QRCode from 'qrcode';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AUTH_DIR = path.join(__dirname, '..', 'auth_session');
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({ level: process.env.LOG_LEVEL || 'info'});
 
 let sock = null;
 let connected = false;
@@ -20,12 +21,80 @@ let latestQrDataUrl = null;
 let reconnectAttempt = 0;
 let starting = false;
 
+/** Recent outbound messages for Baileys retry / decrypt recovery */
+const recentMessages = new Map();
+const RECENT_MESSAGE_LIMIT = 300;
+
+/** Serialize sends so bulk QR blasts don't corrupt sessions */
+let sendChain = Promise.resolve();
+
+function rememberMessage(key, message) {
+  if (!key?.id) return;
+  const id = key.id;
+  recentMessages.set(id, message);
+  if (recentMessages.size > RECENT_MESSAGE_LIMIT) {
+    const oldest = recentMessages.keys().next().value;
+    recentMessages.delete(oldest);
+  }
+}
+
 function toJid(fullNumber) {
   const digits = String(fullNumber || '').replace(/\D+/g, '');
   if (!digits) {
     throw new Error('Invalid phone number');
   }
   return `${digits}@s.whatsapp.net`;
+}
+
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Warm crypto session with the peer before sending (reduces "Waiting for this message").
+ */
+async function prepareRecipient(jid) {
+  if (!sock) return;
+
+  try {
+    if (typeof sock.onWhatsApp === 'function') {
+      const info = await sock.onWhatsApp(jid);
+      const row = Array.isArray(info) ? info[0] : null;
+      if (row && row.exists === false) {
+        throw new Error('WhatsApp number does not exist');
+      }
+    }
+  } catch (err) {
+    if (err?.message === 'WhatsApp number does not exist') {
+      throw err;
+    }
+    logger.warn({ err: err?.message, jid }, 'onWhatsApp check failed; continuing');
+  }
+
+  try {
+    if (typeof sock.assertSessions === 'function') {
+      await sock.assertSessions([jid], true);
+    }
+  } catch (err) {
+    logger.warn({ err: err?.message, jid }, 'assertSessions failed; continuing');
+  }
+
+  try {
+    if (typeof sock.presenceSubscribe === 'function') {
+      await sock.presenceSubscribe(jid);
+    }
+  } catch {
+    // optional
+  }
+
+  // Small pause so Signal session can settle before media/text
+  await sleep(400);
+}
+
+function enqueueSend(task) {
+  const run = sendChain.then(task, task);
+  sendChain = run.catch(() => {});
+  return run;
 }
 
 export function getStatus() {
@@ -37,52 +106,72 @@ export function getStatus() {
 }
 
 export async function sendText(fullNumber, message) {
-  if (!sock || !connected) {
-    const err = new Error('WhatsApp not connected');
-    err.code = 'NOT_CONNECTED';
-    throw err;
-  }
+  return enqueueSend(async () => {
+    if (!sock || !connected) {
+      const err = new Error('WhatsApp not connected');
+      err.code = 'NOT_CONNECTED';
+      throw err;
+    }
 
-  const jid = toJid(fullNumber);
-  const result = await sock.sendMessage(jid, { text: String(message) });
-  return {
-    ok: true,
-    to: fullNumber,
-    messageId: result?.key?.id || null,
-  };
+    const jid = toJid(fullNumber);
+    await prepareRecipient(jid);
+
+    const content = { text: String(message) };
+    const result = await sock.sendMessage(jid, content);
+    rememberMessage(result?.key, content);
+
+    return {
+      ok: true,
+      to: fullNumber,
+      messageId: result?.key?.id || null,
+    };
+  });
 }
 
 /**
  * Send an image (base64 PNG/JPEG) with optional caption.
  */
 export async function sendImage(fullNumber, imageBase64, caption = '', mimeType = 'image/png') {
-  if (!sock || !connected) {
-    const err = new Error('WhatsApp not connected');
-    err.code = 'NOT_CONNECTED';
-    throw err;
-  }
+  return enqueueSend(async () => {
+    if (!sock || !connected) {
+      const err = new Error('WhatsApp not connected');
+      err.code = 'NOT_CONNECTED';
+      throw err;
+    }
 
-  const raw = String(imageBase64 || '').replace(/^data:[^;]+;base64,/, '');
-  if (!raw) {
-    throw new Error('image_base64 is required');
-  }
+    const raw = String(imageBase64 || '').replace(/^data:[^;]+;base64,/, '');
+    if (!raw) {
+      throw new Error('image_base64 is required');
+    }
 
-  const jid = toJid(fullNumber);
-  const result = await sock.sendMessage(jid, {
-    image: Buffer.from(raw, 'base64'),
-    caption: caption ? String(caption) : undefined,
-    mimetype: mimeType || 'image/png',
+    const jid = toJid(fullNumber);
+    await prepareRecipient(jid);
+
+    // Text-only ping first establishes crypto; then send the image.
+    // Helps a lot with first contact + media "Waiting for this message".
+    try {
+      const ping = await sock.sendMessage(jid, { text: '.' });
+      rememberMessage(ping?.key, { text: '.' });
+      await sleep(350);
+    } catch (err) {
+      logger.warn({ err: err?.message, jid }, 'pre-image ping failed; sending image anyway');
+    }
+
+    const content = {
+      image: Buffer.from(raw, 'base64'),
+      caption: caption ? String(caption) : undefined,
+      mimetype: mimeType || 'image/png',
+    };
+
+    const result = await sock.sendMessage(jid, content);
+    rememberMessage(result?.key, content);
+
+    return {
+      ok: true,
+      to: fullNumber,
+      messageId: result?.key?.id || null,
+    };
   });
-
-  return {
-    ok: true,
-    to: fullNumber,
-    messageId: result?.key?.id || null,
-  };
-}
-
-async function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function startWhatsApp() {
@@ -94,13 +183,24 @@ export async function startWhatsApp() {
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
     const { version } = await fetchLatestBaileysVersion();
+    const silent = pino({ level: 'silent' });
 
     sock = makeWASocket({
       version,
-      auth: state,
-      logger: pino({ level: 'silent' }),
+      auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, silent),
+      },
+      logger: silent,
       syncFullHistory: false,
       markOnlineOnConnect: false,
+      // Critical for WhatsApp retry requests when a phone cannot decrypt yet
+      getMessage: async (key) => {
+        if (key?.id && recentMessages.has(key.id)) {
+          return recentMessages.get(key.id);
+        }
+        return undefined;
+      },
     });
 
     sock.ev.on('creds.update', saveCreds);

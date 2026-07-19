@@ -43,14 +43,14 @@
         </form>
 
         @if (!empty($seasonEventId) && $snapshot)
-            <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">{{ $snapshot['event_name'] }}</h2>
                 <span id="liveConnection" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                     {{ __('Polling') }}
                 </span>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
                 @foreach ([
                     ['key' => 'present', 'label' => __('Present'), 'class' => 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200'],
                     ['key' => 'absent', 'label' => __('Absent'), 'class' => 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'],
@@ -63,6 +63,14 @@
                         <div class="text-2xl font-bold" id="count-{{ $card['key'] }}">{{ $snapshot['counts'][$card['key']] ?? 0 }}</div>
                     </div>
                 @endforeach
+            </div>
+
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 me-2">{{ __('Filter by status') }}:</span>
+                <button type="button" data-filter="all" class="live-filter h-9 px-3 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-600 bg-slate-800 text-white">{{ __('All') }}</button>
+                <button type="button" data-filter="present" class="live-filter h-9 px-3 rounded-full text-xs font-bold border border-green-600 text-green-700 dark:text-green-300 bg-white dark:bg-slate-900">{{ __('Present') }}</button>
+                <button type="button" data-filter="absent" class="live-filter h-9 px-3 rounded-full text-xs font-bold border border-red-600 text-red-700 dark:text-red-300 bg-white dark:bg-slate-900">{{ __('Absent') }}</button>
+                <button type="button" data-filter="outside" class="live-filter h-9 px-3 rounded-full text-xs font-bold border border-amber-500 text-amber-700 dark:text-amber-300 bg-white dark:bg-slate-900">{{ __('Outside') }}</button>
             </div>
 
             <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 border border-slate-200 overflow-hidden">
@@ -79,20 +87,7 @@
                                 <th class="px-4 py-2 text-right text-sm">{{ __('Updated') }}</th>
                             </tr>
                         </thead>
-                        <tbody id="liveFeed">
-                            @forelse ($snapshot['feed'] as $row)
-                                <tr class="border-t border-slate-200 dark:border-slate-700">
-                                    <td class="px-4 py-2 text-sm text-slate-800 dark:text-slate-100">{{ $row['name'] }}</td>
-                                    <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">{{ $row['booking_type_label'] }}</td>
-                                    <td class="px-4 py-2 text-sm font-semibold">{{ __($row['status'] === 'outside' ? 'Outside' : ($row['status'] === 'present' ? 'Present' : 'Absent')) }}</td>
-                                    <td class="px-4 py-2 text-sm text-slate-500">{{ $row['updated_at'] }}</td>
-                                </tr>
-                            @empty
-                                <tr id="emptyFeedRow">
-                                    <td colspan="4" class="px-4 py-8 text-center text-slate-500">{{ __('No attendance marks yet.') }}</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
+                        <tbody id="liveFeed"></tbody>
                     </table>
                 </div>
             </div>
@@ -109,31 +104,21 @@
                         absent: @json(__('Absent')),
                         outside: @json(__('Outside')),
                     };
+                    const rowClasses = {
+                        present: 'bg-green-100 dark:bg-green-900/40 border-t border-green-200 dark:border-green-800',
+                        absent: 'bg-red-100 dark:bg-red-900/40 border-t border-red-200 dark:border-red-800',
+                        outside: 'bg-amber-100 dark:bg-amber-900/40 border-t border-amber-200 dark:border-amber-800',
+                    };
                     const connectionEl = document.getElementById('liveConnection');
                     let pollTimer = null;
+                    let activeFilter = 'all';
+                    let latestFeed = @json($snapshot['feed'] ?? []);
 
                     function applyCounts(counts) {
                         ['present', 'absent', 'outside', 'unmarked', 'total'].forEach((key) => {
                             const el = document.getElementById('count-' + key);
                             if (el) el.textContent = counts[key] ?? 0;
                         });
-                    }
-
-                    function renderFeed(feed) {
-                        const tbody = document.getElementById('liveFeed');
-                        if (!tbody) return;
-                        if (!feed.length) {
-                            tbody.innerHTML = `<tr id="emptyFeedRow"><td colspan="4" class="px-4 py-8 text-center text-slate-500">{{ __('No attendance marks yet.') }}</td></tr>`;
-                            return;
-                        }
-                        tbody.innerHTML = feed.map((row) => `
-                            <tr class="border-t border-slate-200 dark:border-slate-700">
-                                <td class="px-4 py-2 text-sm text-slate-800 dark:text-slate-100">${escapeHtml(row.name || '')}</td>
-                                <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(row.booking_type_label || '')}</td>
-                                <td class="px-4 py-2 text-sm font-semibold">${escapeHtml(statusLabels[row.status] || row.status)}</td>
-                                <td class="px-4 py-2 text-sm text-slate-500">${escapeHtml(row.updated_at || '')}</td>
-                            </tr>
-                        `).join('');
                     }
 
                     function escapeHtml(str) {
@@ -144,10 +129,54 @@
                             .replaceAll('"', '&quot;');
                     }
 
+                    function renderFeed(feed) {
+                        latestFeed = feed || [];
+                        const tbody = document.getElementById('liveFeed');
+                        if (!tbody) return;
+
+                        const filtered = activeFilter === 'all'
+                            ? latestFeed
+                            : latestFeed.filter((row) => row.status === activeFilter);
+
+                        if (!filtered.length) {
+                            tbody.innerHTML = `<tr id="emptyFeedRow"><td colspan="4" class="px-4 py-8 text-center text-slate-500">{{ __('No attendance marks yet.') }}</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = filtered.map((row) => `
+                            <tr class="${rowClasses[row.status] || 'border-t border-slate-200 dark:border-slate-700'}" data-status="${escapeHtml(row.status || '')}">
+                                <td class="px-4 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100">${escapeHtml(row.name || '')}</td>
+                                <td class="px-4 py-2 text-sm text-slate-700 dark:text-slate-200">${escapeHtml(row.booking_type_label || '')}</td>
+                                <td class="px-4 py-2 text-sm font-bold">${escapeHtml(statusLabels[row.status] || row.status)}</td>
+                                <td class="px-4 py-2 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(row.updated_at || '')}</td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    function setFilter(filter) {
+                        activeFilter = filter;
+                        document.querySelectorAll('.live-filter').forEach((btn) => {
+                            const on = btn.getAttribute('data-filter') === filter;
+                            btn.classList.toggle('bg-slate-800', on && filter === 'all');
+                            btn.classList.toggle('text-white', on && filter === 'all');
+                            btn.classList.toggle('bg-green-600', on && filter === 'present');
+                            btn.classList.toggle('bg-red-600', on && filter === 'absent');
+                            btn.classList.toggle('bg-amber-500', on && filter === 'outside');
+                            if (on && filter !== 'all') {
+                                btn.classList.add('text-white');
+                                btn.classList.remove('text-green-700', 'text-red-700', 'text-amber-700', 'dark:text-green-300', 'dark:text-red-300', 'dark:text-amber-300');
+                            } else if (!on) {
+                                btn.classList.remove('bg-slate-800', 'bg-green-600', 'bg-red-600', 'bg-amber-500', 'text-white');
+                            }
+                        });
+                        renderFeed(latestFeed);
+                    }
+
                     async function refreshSnapshot() {
                         try {
                             const res = await fetch(`${snapshotUrl}?season_event_id=${seasonEventId}`, {
                                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                cache: 'no-store',
                             });
                             const data = await res.json();
                             if (data.ok && data.snapshot) {
@@ -157,19 +186,19 @@
                         } catch (e) {}
                     }
 
-                    function startPolling() {
-                        if (pollTimer) return;
+                    function startPolling(ms) {
+                        if (pollTimer) clearInterval(pollTimer);
                         connectionEl.textContent = @json(__('Polling'));
                         connectionEl.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
-                        pollTimer = setInterval(refreshSnapshot, 10000);
+                        pollTimer = setInterval(refreshSnapshot, ms);
                     }
 
-                    function stopPolling() {
-                        if (pollTimer) {
-                            clearInterval(pollTimer);
-                            pollTimer = null;
-                        }
-                    }
+                    document.querySelectorAll('.live-filter').forEach((btn) => {
+                        btn.addEventListener('click', () => setFilter(btn.getAttribute('data-filter')));
+                    });
+
+                    applyCounts(@json($snapshot['counts'] ?? []));
+                    setFilter('all');
 
                     const pusherKey = @json($pusherKey);
                     const broadcastDriver = @json($broadcastDriver);
@@ -199,14 +228,17 @@
 
                             connectionEl.textContent = @json(__('Live'));
                             connectionEl.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200';
-                            // Keep a slow poll as safety net
-                            pollTimer = setInterval(refreshSnapshot, 30000);
+                            startPolling(5000);
                         } catch (e) {
-                            startPolling();
+                            startPolling(2000);
                         }
                     } else {
-                        startPolling();
+                        // Fast polling (~2s) when websockets are not configured
+                        startPolling(2000);
                     }
+
+                    // Immediate first refresh
+                    refreshSnapshot();
                 });
             </script>
         @endif

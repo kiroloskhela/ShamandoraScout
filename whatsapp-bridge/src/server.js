@@ -30,7 +30,8 @@ const PORT = Number(process.env.PORT || 3000);
 const BRIDGE_TOKEN = process.env.BRIDGE_TOKEN || '';
 
 const app = express();
-app.use(express.json({ limit: '64kb' }));
+// QR PNGs + captions need more than the default; truncated bodies corrupt media.
+app.use(express.json({ limit: '5mb' }));
 
 function requireToken(req, res, next) {
   if (!BRIDGE_TOKEN) {
