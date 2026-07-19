@@ -2,74 +2,74 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('person_id')) {
+            $this->merge([
+                'person_id' => preg_replace('/\D+/', '', (string) $this->input('person_id')),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
-     * @return array
+     * @return array<string, mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'person_id' => 'required',
-            'person_password' => 'required',
+            'person_id' => ['required', 'string', 'regex:/^\d+$/', 'max:20'],
+            'person_password' => ['required', 'string'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'person_id.required' => __('Please enter your person ID.'),
+            'person_id.regex' => __('Person ID must contain numbers only.'),
+            'person_id.max' => __('Person ID must contain numbers only.'),
+            'person_password.required' => __('Please enter your password.'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'person_id' => __('Person ID'),
+            'person_password' => __('Password'),
         ];
     }
 
     /**
      * Get the needed authorization credentials from the request.
      *
-     * @return array
-     *
-     * @throws BindingResolutionException
+     * @return array<string, mixed>
      */
-    public function getCredentials()
+    public function getCredentials(): array
     {
-        // The form field for providing username or password
-        // have name of "username", however, in order to support
-        // logging users in with both (username and email)
-        // we have to check if user has entered one or another
-        $id = $this->get('person_id');
-
-        if ($id) {
-            return [
-                'person_id' => $id,
-                'person_password' => $this->get('person_password'),
-            ];
-        }
-
         return $this->only('person_id', 'person_password');
-    }
-
-    /**
-     * Validate if provided parameter is valid email.
-     *
-     * @return bool
-     *
-     * @throws BindingResolutionException
-     */
-    private function isEmail($param)
-    {
-        $factory = $this->container->make(ValidationFactory::class);
-
-        return ! $factory->make(
-            ['username' => $param],
-            ['username' => 'email']
-        )->fails();
     }
 }

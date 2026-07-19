@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -35,13 +35,14 @@
             background: #9ca3af;
         }
     </style>
+    @include('partials.motion-styles')
 </head>
 
 <body class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-800">
 
     <main class="min-h-screen flex items-center justify-center px-4 py-10">
 
-        <div class="w-full max-w-3xl">
+        <div class="w-full max-w-3xl status-card-enter">
 
             <div class="overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
 
@@ -53,7 +54,7 @@
                         <!-- Logo -->
                         <div
                             class="mb-5 h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-white p-3 shadow-md ring-4 ring-white">
-                            <img src="{{ asset('img/shamandora.png') }}" class="h-full w-full object-contain"
+                            <img src="{{ asset('img/shamandora.webp') }}" class="h-full w-full object-contain"
                                 alt="Shamandora Logo">
                         </div>
 

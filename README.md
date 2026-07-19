@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/img/shamandora.png" alt="Shamandora Scout" width="160" />
+  <img src="public/img/shamandora.webp" alt="Shamandora Scout" width="160" />
 </p>
 
 <h1 align="center">ShamandoraScout</h1>
@@ -78,7 +78,7 @@ php artisan serve
 | `/health` · `/up` | Readiness probe (minimal public JSON) |
 | `/health?token=…` | Ops details when `HEALTH_TOKEN` is set |
 
-Dark-theme logo asset: `public/img/shamandora-dark.png` (light: `public/img/shamandora.png`).
+Dark-theme logo asset: `public/img/shamandora-dark.webp` (light: `public/img/shamandora.webp`).
 
 ---
 
@@ -136,6 +136,6 @@ deploy/              # systemd, cron, health check script
 ---
 
 <p align="center">
-  <img src="public/img/shamandora-dark.png" alt="Shamandora Scout (dark)" width="120" /><br />
+  <img src="public/img/shamandora-dark.webp" alt="Shamandora Scout (dark)" width="120" /><br />
   <sub>Built for Shamandora Scout · Athanasius</sub>
 </p>

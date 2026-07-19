@@ -19,7 +19,7 @@
         <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
+    <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.css" rel="stylesheet">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
@@ -37,7 +37,7 @@
                         <!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" style="right:0">
                 <div>
-                    <img class ="" src="{{ asset('img/shamandora.png') }}" style="width: 100px; height: 100px;" alt="Shamandora Image">
+                    <img class ="" src="{{ asset('img/shamandora.webp') }}" style="width: 100px; height: 100px;" alt="Shamandora Image">
                 </div>
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href={{ url('/index') }}>

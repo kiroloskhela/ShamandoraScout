@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تعيين كلمة سر جديدة</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
@@ -20,7 +20,7 @@
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md mx-auto bg-white rounded-lg p-8 shadow-lg border border-gray-100">
         <div class="flex justify-center mb-4">
-            <img src="{{ asset('img/shamandora.png') }}" alt="شعار الشمندورة" class="h-20 w-20 object-contain">
+            <img src="{{ asset('img/shamandora.webp') }}" alt="شعار الشمندورة" class="h-20 w-20 object-contain">
         </div>
         <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">تعيين كلمة سر جديدة</h2>
 

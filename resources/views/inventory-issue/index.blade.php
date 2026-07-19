@@ -147,7 +147,7 @@
             const actionHint = document.getElementById('actionHint');
 
             const inventory = @json($inventory);
-            const logoUrl = @json(asset('img/shamandora.png'));
+            const logoUrl = @json(asset('img/shamandora.webp'));
             const eventsUrl = @json(route('inventory-issue.getEventsForSeason'));
 
             let selectedItems = [];

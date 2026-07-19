@@ -82,6 +82,7 @@
                 0 24px 48px rgba(0, 0, 0, 0.45);
         }
     </style>
+    @include('partials.motion-styles')
 </head>
 
 <body class="bg-white dark:bg-slate-950 min-h-screen flex items-center justify-center p-4 text-gray-900 dark:text-slate-100">
@@ -119,7 +120,7 @@
         </div>
     </div>
 
-    <div class="w-full max-w-6xl mx-auto">
+    <div class="w-full max-w-6xl mx-auto page-enter">
         <div class="grid lg:grid-cols-2 gap-8 items-center min-h-[80vh]">
 
             <div class="order-2 lg:order-1">
@@ -127,11 +128,13 @@
                     <h2 class="text-3xl font-bold text-gray-800 dark:text-slate-50 mb-2 text-center">{{ __('Log in') }}</h2>
                     <p class="text-center text-sm text-gray-500 dark:text-slate-400 mb-8">{{ __('Shamandora Scout') }}</p>
 
-                    @if ($errors->any())
-                        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-200">
-                            {{ __('Invalid login credentials.') }}
+                    @error('login')
+                        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-200"
+                            role="alert">
+                            <p class="font-medium">{{ $message }}</p>
+                            <p class="mt-1 text-red-600/90 dark:text-red-200/90">{{ __('Check your person ID and password, then try again.') }}</p>
                         </div>
-                    @endif
+                    @enderror
 
                     <form id="loginForm" class="space-y-6" method="POST" action="{{ route('login') }}" novalidate>
                         @csrf
@@ -143,12 +146,12 @@
 
                             <input type="text" id="person_id" name="person_id" value="{{ old('person_id') }}"
                                 maxlength="20" inputmode="numeric" pattern="[0-9]*" autocomplete="username"
-                                spellcheck="false" autocapitalize="off"
+                                spellcheck="false" autocapitalize="off" aria-describedby="person_id_error"
                                 class="input-field w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border rounded-lg text-gray-800 dark:text-slate-100 placeholder-gray-400 focus:outline-none @error('person_id') border-red-400 @else border-gray-300 dark:border-slate-600 @enderror"
                                 placeholder="{{ __('Enter person ID') }}" required>
 
                             @error('person_id')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p id="person_id_error" class="mt-2 text-sm text-red-600 dark:text-red-300" role="alert">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -159,12 +162,13 @@
 
                             <div class="relative">
                                 <input type="password" id="person_password" name="person_password"
-                                    autocomplete="current-password"
+                                    autocomplete="current-password" aria-describedby="capsLockWarning person_password_error"
                                     class="input-field w-full px-4 py-3 {{ $isRtl ? 'pl-12' : 'pr-12' }} bg-gray-50 dark:bg-slate-800 border rounded-lg text-gray-800 dark:text-slate-100 placeholder-gray-400 focus:outline-none @error('person_password') border-red-400 @else border-gray-300 dark:border-slate-600 @enderror"
                                     placeholder="{{ __('Enter password') }}" required>
 
                                 <button type="button" onclick="togglePassword()"
-                                    class="absolute {{ $isRtl ? 'left-3' : 'right-3' }} top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-slate-400">
+                                    class="absolute {{ $isRtl ? 'left-3' : 'right-3' }} top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                                    aria-label="{{ __('Password') }}">
                                     <svg id="eye-open" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -186,8 +190,12 @@
                                 </button>
                             </div>
 
+                            <p id="capsLockWarning" class="mt-2 text-sm text-amber-700 dark:text-amber-300 hidden" role="status" aria-live="polite">
+                                {{ __('Caps Lock is on') }}
+                            </p>
+
                             @error('person_password')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p id="person_password_error" class="mt-2 text-sm text-red-600 dark:text-red-300" role="alert">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -220,9 +228,9 @@
                 <div class="mb-8">
                     <div
                         class="w-40 h-40 bg-gray-100 dark:bg-slate-900 rounded-full flex items-center justify-center shadow-md dark:shadow-[0_0_40px_rgba(16,185,129,0.2)] border border-gray-200 dark:border-emerald-500/30 overflow-hidden ring-4 ring-transparent dark:ring-emerald-500/10">
-                        <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora Scout') }}"
+                        <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora Scout') }}"
                             class="h-24 w-24 object-contain dark:hidden">
-                        <img src="{{ asset('img/shamandora-dark.png') }}" alt="{{ __('Shamandora Scout') }}"
+                        <img src="{{ asset('img/shamandora-dark.webp') }}" alt="{{ __('Shamandora Scout') }}"
                             class="h-24 w-24 object-contain hidden dark:block">
                     </div>
                 </div>
@@ -242,7 +250,11 @@
         const form = document.getElementById('loginForm');
         const submitButton = document.getElementById('submit-button');
         const personIdInput = document.getElementById('person_id');
+        const passwordInput = document.getElementById('person_password');
+        const capsLockWarning = document.getElementById('capsLockWarning');
         const loggingInText = @json(__('Logging in...'));
+        const pleaseEnterPersonId = @json(__('Please enter your person ID.'));
+        const pleaseEnterPassword = @json(__('Please enter your password.'));
 
         document.getElementById('themeToggle')?.addEventListener('click', () => {
             const root = document.documentElement;
@@ -250,6 +262,21 @@
             root.classList.toggle('dark', nextDark);
             try { localStorage.setItem('theme', nextDark ? 'dark' : 'light'); } catch (e) {}
         });
+
+        function setCapsLockWarning(event) {
+            if (!capsLockWarning || !event.getModifierState) return;
+            const on = event.getModifierState('CapsLock');
+            capsLockWarning.classList.toggle('hidden', !on);
+        }
+
+        if (passwordInput) {
+            ['keydown', 'keyup', 'click', 'focus'].forEach((type) => {
+                passwordInput.addEventListener(type, setCapsLockWarning);
+            });
+            passwordInput.addEventListener('blur', () => {
+                capsLockWarning?.classList.add('hidden');
+            });
+        }
 
         if (personIdInput) {
             personIdInput.addEventListener('input', function() {
@@ -264,9 +291,26 @@
         }
 
         if (form && submitButton) {
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function(e) {
                 if (personIdInput) {
                     personIdInput.value = personIdInput.value.replace(/\D+/g, '');
+                }
+
+                const personId = personIdInput ? personIdInput.value.trim() : '';
+                const password = passwordInput ? passwordInput.value : '';
+
+                if (!personId || !password) {
+                    e.preventDefault();
+                    if (!personId && personIdInput) {
+                        personIdInput.setCustomValidity(pleaseEnterPersonId);
+                        personIdInput.reportValidity();
+                        personIdInput.setCustomValidity('');
+                    } else if (passwordInput) {
+                        passwordInput.setCustomValidity(pleaseEnterPassword);
+                        passwordInput.reportValidity();
+                        passwordInput.setCustomValidity('');
+                    }
+                    return;
                 }
 
                 submitButton.disabled = true;
@@ -275,16 +319,16 @@
         }
 
         function togglePassword() {
-            const passwordInput = document.getElementById('person_password');
+            const input = document.getElementById('person_password');
             const eyeOpen = document.getElementById('eye-open');
             const eyeClosed = document.getElementById('eye-closed');
 
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
+            if (input.type === 'password') {
+                input.type = 'text';
                 eyeOpen.classList.add('hidden');
                 eyeClosed.classList.remove('hidden');
             } else {
-                passwordInput.type = 'password';
+                input.type = 'password';
                 eyeOpen.classList.remove('hidden');
                 eyeClosed.classList.add('hidden');
             }

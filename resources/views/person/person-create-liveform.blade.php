@@ -40,7 +40,7 @@
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -192,7 +192,7 @@
 
             <div class="px-6 md:px-10 py-8 border-b border-teal-100 bg-gradient-to-b from-teal-50/80 to-white">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
-                    <img src="{{ asset('img/shamandora.png') }}" alt="{{ __('Shamandora') }}"
+                    <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora') }}"
                         class="h-20 w-20 object-contain drop-shadow-md" />
                     <div>
                         <h1 class="text-2xl md:text-3xl font-extrabold text-brand-900">{{ __('New enrolment application') }}</h1>

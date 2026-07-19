@@ -19,7 +19,7 @@
         <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
     </style>
-    <link rel="icon" type="image/x-icon" href={{ asset('img/shamandora.png') }}>
+    <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
     <!-- Custom styles for this template-->
     <link href="css/sb-admin-2.css" rel="stylesheet">
     <link href="css/sb-admin-2.min.css" rel="stylesheet">

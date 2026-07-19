@@ -14,7 +14,7 @@
     <!-- Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/shamandora.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 
     <style>
         body {
@@ -69,7 +69,7 @@
             <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
                 <div class="flex flex-col items-center justify-center gap-4 text-center">
                     <!-- Logo -->
-                    <img src="{{ asset('img/shamandora.png') }}" alt="Logo" class="h-20 w-20 object-contain" />
+                    <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="h-20 w-20 object-contain" />
 
                     <!-- Title -->
                     <div>
