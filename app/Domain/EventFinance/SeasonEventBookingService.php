@@ -2,8 +2,11 @@
 
 namespace App\Domain\EventFinance;
 
+use App\Jobs\SendAttendanceQrWhatsApp;
+use App\Services\AttendanceQrService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -26,7 +29,8 @@ class SeasonEventBookingService
                 'e.EventName',
                 'e.EventStartDate',
                 'e.EventEndDate',
-                'et.EventTypeName'
+                'et.EventTypeName',
+                'et.TakesReservation'
             )
             ->first();
     }
@@ -184,7 +188,7 @@ class SeasonEventBookingService
         }
 
         try {
-            $paymentID = (int) DB::transaction(function () use (
+            $result = DB::transaction(function () use (
                 $seasonEventId,
                 $personID,
                 $guestID,
@@ -247,14 +251,66 @@ class SeasonEventBookingService
                         'ReceiptNumber' => 'REC-'.now()->format('i-H-d-m-y').'-'.$receiptID,
                     ]);
 
-                return $paymentID;
+                return [
+                    'payment_id' => (int) $paymentID,
+                    'booking_id' => (int) $bookingID,
+                ];
             });
 
-            return ['ok' => true, 'payment_id' => $paymentID];
+            $this->queueAttendanceQrIfReservation(
+                $seasonEventId,
+                $personID,
+                $guestID,
+                $familyID
+            );
+
+            return [
+                'ok' => true,
+                'payment_id' => $result['payment_id'],
+                'booking_id' => $result['booking_id'],
+            ];
         } catch (Throwable $e) {
             report($e);
 
             return ['ok' => false, 'field' => 'general', 'message' => 'حدث خطأ أثناء إنشاء الحجز.'];
+        }
+    }
+
+    private function queueAttendanceQrIfReservation(
+        int $seasonEventId,
+        ?int $personID,
+        ?int $guestID,
+        ?int $familyID,
+    ): void {
+        try {
+            $event = $this->getEventInfo($seasonEventId);
+            if (! $event || empty($event->TakesReservation)) {
+                return;
+            }
+
+            $entityType = null;
+            $entityId = null;
+            if ($personID) {
+                $entityType = AttendanceQrService::TYPE_PERSON;
+                $entityId = $personID;
+            } elseif ($guestID) {
+                $entityType = AttendanceQrService::TYPE_GUEST;
+                $entityId = $guestID;
+            } elseif ($familyID) {
+                $entityType = AttendanceQrService::TYPE_FAMILY;
+                $entityId = $familyID;
+            }
+
+            if (! $entityType || ! $entityId) {
+                return;
+            }
+
+            SendAttendanceQrWhatsApp::dispatch($entityType, $entityId, (string) $event->EventName);
+        } catch (Throwable $e) {
+            Log::warning('Failed to queue attendance QR after booking', [
+                'seasonEventId' => $seasonEventId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 

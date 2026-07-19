@@ -51,6 +51,7 @@
                             <option value="{{ $e->SeasonEventID }}"
                                 {{ ($seasonEventId ?? null) == $e->SeasonEventID ? 'selected' : '' }}>
                                 {{ $e->EventName }} - {{ $e->EventStartDate }}
+                                @if (!empty($e->TakesReservation)) ({{ __('Takes reservation') }}) @endif
                             </option>
                         @endforeach
                     </select>
@@ -62,6 +63,12 @@
         </form>
 
         @if (!empty($seasonEventId))
+            @if (!empty($takesReservation))
+                <div class="mb-4 text-center text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                    {{ __('Reservation event — mark Present, Absent, or Outside') }}
+                </div>
+            @endif
+
             <div class="mb-6 flex flex-wrap items-center justify-center gap-3">
                 <form method="POST" action="{{ route('attendance.send-qr-bulk') }}"
                     onsubmit="return confirm(@json(__('Confirm send QR codes to all people on this event roster via WhatsApp?')))">
@@ -93,8 +100,8 @@
                     <div class="mt-5 pt-5 border-t border-slate-200 dark:border-slate-700">
                         <label for="manualCode" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Or enter code manually') }}</label>
                         <div class="flex gap-2">
-                            <input id="manualCode" type="text" inputmode="numeric" autocomplete="off"
-                                placeholder="SHAM:123"
+                            <input id="manualCode" type="text" autocomplete="off"
+                                placeholder="{{ !empty($takesReservation) ? 'SHAM:123 / GUEST:5 / FAM:9' : 'SHAM:123' }}"
                                 class="flex-1 h-11 px-4 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none text-sm">
                             <button type="button" id="manualLookupBtn"
                                 class="h-11 px-4 text-sm font-medium rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 hover:opacity-90 transition">
@@ -118,6 +125,10 @@
                                 <span id="cardName" class="font-semibold text-slate-800 dark:text-slate-100 text-left"></span>
                             </div>
                             <div class="flex justify-between gap-3 text-sm">
+                                <span class="text-slate-500 dark:text-slate-400">{{ __('Type') }}</span>
+                                <span id="cardType" class="font-semibold text-slate-800 dark:text-slate-100 text-left"></span>
+                            </div>
+                            <div class="flex justify-between gap-3 text-sm">
                                 <span class="text-slate-500 dark:text-slate-400">{{ __('Phone') }}</span>
                                 <span id="cardPhone" class="font-semibold text-slate-800 dark:text-slate-100 text-left dir-ltr"></span>
                             </div>
@@ -134,27 +145,40 @@
                                 <span id="cardStatus" class="font-semibold text-slate-800 dark:text-slate-100 text-left"></span>
                             </div>
                             <div class="flex justify-between gap-3 text-sm">
-                                <span class="text-slate-500 dark:text-slate-400">{{ __('Person ID') }}</span>
+                                <span class="text-slate-500 dark:text-slate-400">{{ __('Code') }}</span>
                                 <span id="cardId" class="font-semibold text-slate-800 dark:text-slate-100 text-left"></span>
                             </div>
                         </div>
 
                         <p id="cardMessage" class="text-sm text-center font-medium"></p>
 
-                        <div class="flex flex-col sm:flex-row gap-3">
+                        <div id="reservationActions" class="{{ !empty($takesReservation) ? '' : 'hidden' }} grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button type="button" data-status="present" class="status-action h-12 rounded-full bg-green-600 text-white font-medium hover:bg-green-700 transition">
+                                {{ __('Present') }}
+                            </button>
+                            <button type="button" data-status="absent" class="status-action h-12 rounded-full bg-red-600 text-white font-medium hover:bg-red-700 transition">
+                                {{ __('Absent') }}
+                            </button>
+                            <button type="button" data-status="outside" class="status-action h-12 rounded-full bg-amber-500 text-white font-medium hover:bg-amber-600 transition">
+                                {{ __('Outside') }}
+                            </button>
+                        </div>
+
+                        <div id="attendanceActions" class="{{ empty($takesReservation) ? '' : 'hidden' }} flex flex-col sm:flex-row gap-3">
                             <button type="button" id="markPresentBtn"
                                 class="flex-1 h-12 rounded-full bg-green-600 text-white font-medium hover:bg-green-700 transition">
                                 {{ __('Mark present') }}
                             </button>
-                            <form id="sendQrForm" method="POST" action="#" class="flex-1">
-                                @csrf
-                                <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
-                                <button type="submit"
-                                    class="w-full h-12 rounded-full border border-emerald-600 text-emerald-700 dark:text-emerald-300 font-medium hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition">
-                                    {{ __('Send QR code via WhatsApp') }}
-                                </button>
-                            </form>
                         </div>
+
+                        <form id="sendQrForm" method="POST" action="#" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
+                            <button type="submit"
+                                class="w-full h-12 rounded-full border border-emerald-600 text-emerald-700 dark:text-emerald-300 font-medium hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition">
+                                {{ __('Send QR code via WhatsApp') }}
+                            </button>
+                        </form>
                     </div>
 
                     <div id="lookupError" class="hidden mt-4 p-3 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-sm text-center"></div>
@@ -165,19 +189,23 @@
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const seasonEventId = @json((int) $seasonEventId);
+                    const takesReservation = @json(!empty($takesReservation));
                     const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
                     const lookupUrl = @json(route('attendance.lookup'));
-                    const markUrl = @json(route('attendance.mark-present'));
-                    const sendQrUrlTemplate = @json(url('/attendance/send-qr'));
+                    const markUrl = @json(route('attendance.mark-status'));
+                    const sendEntityUrl = @json(url('/attendance/send-qr-entity'));
 
                     const statusLabels = {
-                        present: @json(__('✓ Present')),
-                        absent: @json(__('✗ Absent')),
+                        present: @json(__('Present')),
+                        absent: @json(__('Absent')),
+                        outside: @json(__('Outside')),
                         excused: @json(__('~ Excuse')),
                         none: '—',
                     };
 
                     let currentPersonId = null;
+                    let currentBookingId = null;
+                    let currentEntityType = 'PERSON';
                     let html5QrCode = null;
                     let lastScanAt = 0;
                     let lastCode = '';
@@ -191,6 +219,7 @@
                         personEmpty: document.getElementById('personEmpty'),
                         personCard: document.getElementById('personCard'),
                         cardName: document.getElementById('cardName'),
+                        cardType: document.getElementById('cardType'),
                         cardPhone: document.getElementById('cardPhone'),
                         cardQetaa: document.getElementById('cardQetaa'),
                         cardStage: document.getElementById('cardStage'),
@@ -207,29 +236,22 @@
                         els.lookupError.classList.toggle('hidden', !msg);
                     }
 
-                    function showPerson(person, status) {
+                    function showPerson(person, status, bookingId = null) {
                         currentPersonId = person.PersonID;
+                        currentBookingId = bookingId;
+                        currentEntityType = person.EntityType || 'PERSON';
                         els.personEmpty.classList.add('hidden');
                         els.personCard.classList.remove('hidden');
                         els.cardName.textContent = person.PersonName || '—';
+                        els.cardType.textContent = person.BookingTypeLabel || '—';
                         els.cardPhone.textContent = person.PhoneNumber || '—';
                         els.cardQetaa.textContent = person.QetaaName || '—';
                         els.cardStage.textContent = person.SanaMarhalaName || '—';
                         els.cardStatus.textContent = statusLabels[status] || statusLabels.none;
-                        els.cardId.textContent = String(person.PersonID);
-                        els.sendQrForm.action = sendQrUrlTemplate + '/' + person.PersonID;
-
-                        if (status === 'present') {
-                            els.cardMessage.textContent = @json(__('Already marked present'));
-                            els.cardMessage.className = 'text-sm text-center font-medium text-amber-700 dark:text-amber-300';
-                            els.markPresentBtn.disabled = true;
-                            els.markPresentBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                        } else {
-                            els.cardMessage.textContent = '';
-                            els.cardMessage.className = 'text-sm text-center font-medium';
-                            els.markPresentBtn.disabled = false;
-                            els.markPresentBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        }
+                        const prefix = currentEntityType === 'GUEST' ? 'GUEST:' : (currentEntityType === 'FAMILY' ? 'FAM:' : 'SHAM:');
+                        els.cardId.textContent = prefix + person.PersonID;
+                        els.sendQrForm.action = `${sendEntityUrl}/${currentEntityType}/${person.PersonID}`;
+                        els.cardMessage.textContent = '';
                     }
 
                     async function lookup(code) {
@@ -259,7 +281,7 @@
                                 els.personEmpty.classList.remove('hidden');
                                 return;
                             }
-                            showPerson(data.person, data.status);
+                            showPerson(data.person, data.status, data.booking_id || null);
                         } catch (e) {
                             showError(@json(__('Invalid QR code.')));
                         } finally {
@@ -267,10 +289,19 @@
                         }
                     }
 
-                    async function markPresent() {
-                        if (!currentPersonId) return;
+                    async function markStatus(status) {
                         showError('');
-                        els.markPresentBtn.disabled = true;
+                        const body = {
+                            season_event_id: seasonEventId,
+                            status,
+                        };
+                        if (takesReservation) {
+                            if (!currentBookingId) return;
+                            body.booking_id = currentBookingId;
+                        } else {
+                            if (!currentPersonId) return;
+                            body.person_id = currentPersonId;
+                        }
 
                         try {
                             const res = await fetch(markUrl, {
@@ -281,24 +312,18 @@
                                     'X-CSRF-TOKEN': csrf,
                                     'X-Requested-With': 'XMLHttpRequest',
                                 },
-                                body: JSON.stringify({
-                                    season_event_id: seasonEventId,
-                                    person_id: currentPersonId,
-                                }),
+                                body: JSON.stringify(body),
                             });
                             const data = await res.json();
                             if (!res.ok || !data.ok) {
                                 showError(data.error || @json(__('Not allowed to take attendance for this event')));
-                                els.markPresentBtn.disabled = false;
                                 return;
                             }
-                            els.cardStatus.textContent = statusLabels.present;
-                            els.cardMessage.textContent = data.message || @json(__('Marked present successfully.'));
+                            els.cardStatus.textContent = statusLabels[data.status] || data.status;
+                            els.cardMessage.textContent = data.message || @json(__('Attendance updated successfully.'));
                             els.cardMessage.className = 'text-sm text-center font-medium text-green-700 dark:text-green-300';
-                            els.markPresentBtn.classList.add('opacity-50', 'cursor-not-allowed');
                         } catch (e) {
                             showError(@json(__('Not allowed to take attendance for this event')));
-                            els.markPresentBtn.disabled = false;
                         }
                     }
 
@@ -346,7 +371,10 @@
 
                     els.startBtn?.addEventListener('click', startCamera);
                     els.stopBtn?.addEventListener('click', stopCamera);
-                    els.markPresentBtn?.addEventListener('click', markPresent);
+                    els.markPresentBtn?.addEventListener('click', () => markStatus('present'));
+                    document.querySelectorAll('.status-action').forEach((btn) => {
+                        btn.addEventListener('click', () => markStatus(btn.getAttribute('data-status')));
+                    });
                     els.manualLookupBtn?.addEventListener('click', () => lookup(els.manualCode.value));
                     els.manualCode?.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {

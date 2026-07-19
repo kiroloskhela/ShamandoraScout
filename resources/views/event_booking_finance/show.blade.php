@@ -36,6 +36,16 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
+                    @if ((int) ($booking->IsRefunded ?? 0) === 0)
+                        <form method="POST" action="{{ route('eventBookingFinance.sendQr', $booking->SeasonEventParticipantFinanceID) }}">
+                            @csrf
+                            <button type="submit"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                                {{ __('Send QR code via WhatsApp') }}
+                            </button>
+                        </form>
+                    @endif
+
                     @if ($canAddInstallment)
                         <a href="{{ route('eventBookingFinance.createInstallment', $booking->SeasonEventParticipantFinanceID) }}"
                             class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">

@@ -7,6 +7,7 @@ use App\Domain\EventFinance\SeasonEventBookingPaymentService;
 use App\Domain\EventFinance\SeasonEventBookingService;
 use App\Http\Requests\StoreBookingInstallmentRequest;
 use App\Http\Requests\StoreSeasonEventBookingRequest;
+use App\Services\AttendanceQrService;
 use App\Support\LikeSearch;
 use App\Support\TableColumnFilters;
 use Carbon\Carbon;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class SeasonEventBookingFinanceController extends Controller
 {
@@ -1203,6 +1205,42 @@ class SeasonEventBookingFinanceController extends Controller
             'canAddInstallment',
             'canRefund'
         ));
+    }
+
+    public function sendQr($bookingID, AttendanceQrService $qr)
+    {
+        $booking = DB::table('SeasonEventParticipantFinance as b')
+            ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
+            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->where('b.SeasonEventParticipantFinanceID', $bookingID)
+            ->select('b.*', 'e.EventName', 'et.TakesReservation')
+            ->first();
+
+        if (! $booking) {
+            abort(404);
+        }
+
+        if ((int) $booking->IsRefunded === 1) {
+            return back()->with('error', __('No active booking found for this QR code.'));
+        }
+
+        if (empty($booking->TakesReservation)) {
+            return back()->with('error', __('This event type does not take reservation QR codes.'));
+        }
+
+        $entity = $qr->entityFromBooking($booking);
+        if (! $entity) {
+            return back()->with('error', __('Person not found.'));
+        }
+
+        try {
+            $qr->sendEntityQrViaWhatsApp($entity['type'], $entity['id'], (string) $booking->EventName);
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', __('QR code sent via WhatsApp.'));
     }
 
     public function updateShirtSize(Request $request, $bookingID)

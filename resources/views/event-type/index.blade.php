@@ -21,6 +21,12 @@
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
+            [
+                'key' => 'TakesReservationLabel',
+                'label' => __('Takes reservation'),
+                'type' => 'label',
+                'cssClass' => 'text-sm font-semibold text-slate-700',
+            ],
         ]" :actions="[
             [
                 'name' => 'edit',
