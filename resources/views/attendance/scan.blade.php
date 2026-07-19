@@ -111,18 +111,24 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
+                <div id="personPanel" class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
                     <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">{{ __('Basic information') }}</h2>
+
+                    <div id="detectBanner" class="hidden mb-4 rounded-xl px-4 py-3 text-center font-bold text-base transition-all bg-emerald-600 text-white shadow-lg">
+                        <div id="detectBannerTitle">{{ __('Person detected') }}</div>
+                        <div id="detectBannerName" class="text-xl mt-1"></div>
+                        <div id="detectBannerHint" class="text-sm font-medium mt-1 opacity-90">{{ __('Detected successfully — choose a status below') }}</div>
+                    </div>
 
                     <div id="personEmpty" class="text-center text-slate-500 dark:text-slate-400 py-10">
                         {{ __('Scan QR for attendance') }}
                     </div>
 
                     <div id="personCard" class="hidden space-y-4">
-                        <div class="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-4 space-y-3">
+                        <div class="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-4 space-y-3 ring-2 ring-emerald-400">
                             <div class="flex justify-between gap-3 text-sm">
                                 <span class="text-slate-500 dark:text-slate-400">{{ __('Full name') }}</span>
-                                <span id="cardName" class="font-semibold text-slate-800 dark:text-slate-100 text-left"></span>
+                                <span id="cardName" class="font-semibold text-slate-800 dark:text-slate-100 text-left text-lg"></span>
                             </div>
                             <div class="flex justify-between gap-3 text-sm">
                                 <span class="text-slate-500 dark:text-slate-400">{{ __('Type') }}</span>
@@ -209,6 +215,7 @@
                     let html5QrCode = null;
                     let lastScanAt = 0;
                     let lastCode = '';
+                    let lookupInFlight = false;
 
                     const els = {
                         startBtn: document.getElementById('startCameraBtn'),
@@ -218,6 +225,10 @@
                         manualLookupBtn: document.getElementById('manualLookupBtn'),
                         personEmpty: document.getElementById('personEmpty'),
                         personCard: document.getElementById('personCard'),
+                        personPanel: document.getElementById('personPanel'),
+                        detectBanner: document.getElementById('detectBanner'),
+                        detectBannerName: document.getElementById('detectBannerName'),
+                        detectBannerTitle: document.getElementById('detectBannerTitle'),
                         cardName: document.getElementById('cardName'),
                         cardType: document.getElementById('cardType'),
                         cardPhone: document.getElementById('cardPhone'),
@@ -231,12 +242,37 @@
                         lookupError: document.getElementById('lookupError'),
                     };
 
+                    function beep() {
+                        try {
+                            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                            const o = ctx.createOscillator();
+                            const g = ctx.createGain();
+                            o.type = 'sine';
+                            o.frequency.value = 880;
+                            g.gain.value = 0.08;
+                            o.connect(g);
+                            g.connect(ctx.destination);
+                            o.start();
+                            setTimeout(() => { o.stop(); ctx.close(); }, 140);
+                        } catch (e) {}
+                    }
+
+                    function flashDetected() {
+                        els.detectBanner?.classList.remove('hidden');
+                        els.personPanel?.classList.remove('border-blue-300', 'dark:border-slate-700');
+                        els.personPanel?.classList.add('border-emerald-500', 'ring-4', 'ring-emerald-300');
+                        els.personPanel?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        setTimeout(() => {
+                            els.personPanel?.classList.remove('ring-4', 'ring-emerald-300');
+                        }, 1200);
+                    }
+
                     function showError(msg) {
                         els.lookupError.textContent = msg || '';
                         els.lookupError.classList.toggle('hidden', !msg);
                     }
 
-                    function showPerson(person, status, bookingId = null) {
+                    function showPerson(person, status, bookingId = null, { again = false } = {}) {
                         currentPersonId = person.PersonID;
                         currentBookingId = bookingId;
                         currentEntityType = person.EntityType || 'PERSON';
@@ -251,12 +287,20 @@
                         const prefix = currentEntityType === 'GUEST' ? 'GUEST:' : (currentEntityType === 'FAMILY' ? 'FAM:' : 'SHAM:');
                         els.cardId.textContent = prefix + person.PersonID;
                         els.sendQrForm.action = `${sendEntityUrl}/${currentEntityType}/${person.PersonID}`;
-                        els.cardMessage.textContent = '';
+                        els.detectBannerName.textContent = person.PersonName || '';
+                        els.detectBannerTitle.textContent = again
+                            ? @json(__('Same code scanned again'))
+                            : @json(__('Person detected'));
+                        els.cardMessage.textContent = @json(__('Detected successfully — choose a status below'));
+                        els.cardMessage.className = 'text-sm text-center font-bold text-emerald-700 dark:text-emerald-300';
+                        flashDetected();
+                        beep();
                     }
 
                     async function lookup(code) {
                         const value = (code || '').trim();
-                        if (!value) return;
+                        if (!value || lookupInFlight) return;
+                        lookupInFlight = true;
                         showError('');
                         els.scanStatus.textContent = @json(__('Scanning…'));
 
@@ -278,14 +322,18 @@
                             if (!res.ok || !data.ok) {
                                 showError(data.error || @json(__('Invalid QR code.')));
                                 els.personCard.classList.add('hidden');
+                                els.detectBanner?.classList.add('hidden');
                                 els.personEmpty.classList.remove('hidden');
                                 return;
                             }
-                            showPerson(data.person, data.status, data.booking_id || null);
+                            const again = String(data.person?.PersonID) === String(currentPersonId)
+                                && String(data.booking_id || '') === String(currentBookingId || '');
+                            showPerson(data.person, data.status, data.booking_id || null, { again });
                         } catch (e) {
                             showError(@json(__('Invalid QR code.')));
                         } finally {
-                            els.scanStatus.textContent = '';
+                            els.scanStatus.textContent = @json(__('Scanning…'));
+                            lookupInFlight = false;
                         }
                     }
 
@@ -329,9 +377,12 @@
 
                     async function onScanSuccess(decodedText) {
                         const now = Date.now();
-                        if (decodedText === lastCode && now - lastScanAt < 2500) return;
+                        // Faster re-scan: allow same code after 900ms; ignore while request in flight
+                        if (lookupInFlight) return;
+                        if (decodedText === lastCode && now - lastScanAt < 900) return;
                         lastCode = decodedText;
                         lastScanAt = now;
+                        els.scanStatus.textContent = @json(__('Person detected')) + ': ' + decodedText;
                         await lookup(decodedText);
                     }
 
@@ -346,7 +397,15 @@
                         try {
                             await html5QrCode.start(
                                 { facingMode: 'environment' },
-                                { fps: 10, qrbox: { width: 250, height: 250 } },
+                                {
+                                    fps: 20,
+                                    qrbox: (viewfinderWidth, viewfinderHeight) => {
+                                        const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+                                        return { width: edge, height: edge };
+                                    },
+                                    aspectRatio: 1.0,
+                                    disableFlip: false,
+                                },
                                 onScanSuccess,
                                 () => {}
                             );

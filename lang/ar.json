@@ -1039,5 +1039,14 @@
     "Reservation event — mark Present, Absent, or Outside": "فعالية حجز — سجّل حاضر أو غائب أو خارج",
     "Guests": "ضيوف",
     "Type": "النوع",
-    "This event type does not take reservation QR codes.": "نوع هذه الفعالية لا يستخدم رموز QR الخاصة بالحجز."
+    "This event type does not take reservation QR codes.": "نوع هذه الفعالية لا يستخدم رموز QR الخاصة بالحجز.",
+    "attendance_qr_whatsapp_greeting": "أستاذ/ة :name،\nتحية طيبة من كشافة شمندورة.\nده رمز الـ QR الرسمي بتاع حضورك.",
+    "attendance_qr_whatsapp_event": "الفعالية: :event",
+    "attendance_qr_whatsapp_code": "الكود: :code",
+    "attendance_qr_whatsapp_closing": "من فضلك احتفظ بالرسالة، وأظهر الرمز عند مدخل الفعالية.\nشكرًا لتعاونك، وربنا يبارك خدمتك.",
+    "Person detected": "تم التعرف على الشخص",
+    "Detected successfully — choose a status below": "تم المسح بنجاح — اختَر الحالة من الأزرار تحت",
+    "Same code scanned again": "نفس الرمز اتمسحه تاني",
+    "Filter by status": "تصفية حسب الحالة",
+    "Show only": "اعرض فقط"
 }

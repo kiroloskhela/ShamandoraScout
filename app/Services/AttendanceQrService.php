@@ -177,15 +177,18 @@ class AttendanceQrService
             throw new RuntimeException(__('No personal mobile number for this person.'));
         }
 
-        $caption = __('Hello :name, this is your Shamandora Scout attendance QR code. Show it at the event entrance.', [
-            'name' => $card['EntityName'] ?: ('#'.$id),
-        ]);
+        $name = $card['EntityName'] ?: ('#'.$id);
+        $caption = __('attendance_qr_whatsapp_greeting', ['name' => $name]);
 
         if ($eventName) {
-            $caption .= "\n".__('Event').': '.$eventName;
+            $caption .= "\n".__('attendance_qr_whatsapp_event', ['event' => $eventName]);
         }
 
-        $caption .= "\n".$card['BookingTypeLabel'].': '.$this->payloadForEntity($type, $id);
+        $caption .= "\n".__('attendance_qr_whatsapp_code', [
+            'code' => $this->payloadForEntity($type, $id),
+        ]);
+
+        $caption .= "\n\n".__('attendance_qr_whatsapp_closing');
 
         return $this->whatsApp->sendImage(
             $card['PhoneNumber'],
