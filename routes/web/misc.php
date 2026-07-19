@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AttendanceLiveController;
 use App\Http\Controllers\CurriculaController;
 use App\Http\Controllers\CustodyRequestController;
 use App\Http\Controllers\FeedbackController;
@@ -105,8 +106,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendance/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
     Route::post('/attendance/lookup', [AttendanceController::class, 'lookup'])->name('attendance.lookup');
     Route::post('/attendance/mark-present', [AttendanceController::class, 'markPresent'])->name('attendance.mark-present');
+    Route::post('/attendance/mark-status', [AttendanceController::class, 'markStatus'])->name('attendance.mark-status');
     Route::post('/attendance/send-qr/{personId}', [AttendanceController::class, 'sendQr'])->name('attendance.send-qr');
+    Route::post('/attendance/send-qr-entity/{type}/{id}', [AttendanceController::class, 'sendEntityQr'])->name('attendance.send-qr-entity');
     Route::post('/attendance/send-qr-bulk', [AttendanceController::class, 'sendQrBulk'])->name('attendance.send-qr-bulk');
+
+    Route::middleware('checkAuth:SuperAdmin|Secretary|AdminSecretary|Finance|AdminFinance')->group(function () {
+        Route::get('/attendance/live', [AttendanceLiveController::class, 'index'])->name('attendance.live');
+        Route::get('/attendance/live/snapshot', [AttendanceLiveController::class, 'snapshot'])->name('attendance.live.snapshot');
+    });
 
     // Place Bookings
     Route::get('/place-bookings/create', [PlaceBookingController::class, 'create'])->name('place_bookings.create');

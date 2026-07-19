@@ -62,7 +62,17 @@
             </div>
         </form>
 
-        @if (!empty($seasonEventId))
+        @if (!empty($seasonEventId) && !empty($takesReservation))
+            <div class="mb-6 p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 text-center font-semibold border border-amber-200 dark:border-amber-900">
+                {{ __('This is a reservation event. Use Scan attendance for Present / Absent / Outside.') }}
+                <div class="mt-3">
+                    <a href="{{ route('attendance.scan', ['season_id' => $seasonId, 'season_event_id' => $seasonEventId]) }}"
+                        class="inline-flex items-center h-10 px-4 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                        {{ __('Scan attendance') }}
+                    </a>
+                </div>
+            </div>
+        @elseif (!empty($seasonEventId))
             <div class="mb-6 flex flex-wrap items-center justify-center gap-3">
                 <form method="POST" action="{{ route('attendance.send-qr-bulk') }}"
                     onsubmit="return confirm(@json(__('Confirm send QR codes to all people on this event roster via WhatsApp?')))">

@@ -123,12 +123,22 @@ return [
         ],
         'attendance.scan' => [
             'title' => 'Scan attendance',
-            'intro' => 'Take attendance by scanning each person’s QR code at the event entrance.',
+            'intro' => 'Take attendance by scanning QR codes. Reservation events support person, guest, and family codes with Present / Absent / Outside.',
             'steps' => [
                 'Choose the season and event you are covering.',
-                'Optionally send QR codes via WhatsApp to the roster before the event.',
+                'For reservation events, QR codes are sent after first payment (SHAM / GUEST / FAM).',
                 'Start the camera and scan a QR, or type the code manually.',
-                'Check the name, phone, sector, and stage, then press Mark present.',
+                'Check the card, then set Present, Absent, or Outside (you can change it later).',
+            ],
+        ],
+        'attendance.live' => [
+            'title' => 'Live attendance',
+            'intro' => 'Live counters and feed for reservation event attendance (SuperAdmin, Secretary, Finance roles).',
+            'steps' => [
+                'Choose the season and a reservation event.',
+                'Watch present / absent / outside / not scanned counts update as scanners mark people.',
+                'Use the recent activity list to see who was marked and when.',
+                'Polling keeps the page live even if websockets are unavailable.',
             ],
         ],
         'audit-logs.index' => [

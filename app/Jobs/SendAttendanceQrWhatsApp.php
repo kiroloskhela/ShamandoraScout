@@ -18,19 +18,29 @@ class SendAttendanceQrWhatsApp implements ShouldQueue
     public int $tries = 3;
 
     public function __construct(
-        public int $personId,
+        public string $entityType,
+        public int $entityId,
         public ?string $eventName = null,
     ) {}
 
+    /**
+     * Backward-compatible factory for person-only callers.
+     */
+    public static function forPerson(int $personId, ?string $eventName = null): self
+    {
+        return new self(AttendanceQrService::TYPE_PERSON, $personId, $eventName);
+    }
+
     public function handle(AttendanceQrService $qr): void
     {
-        $qr->sendQrViaWhatsApp($this->personId, $this->eventName);
+        $qr->sendEntityQrViaWhatsApp($this->entityType, $this->entityId, $this->eventName);
     }
 
     public function failed(?Throwable $e): void
     {
         Log::warning('Attendance QR WhatsApp job failed', [
-            'personId' => $this->personId,
+            'entityType' => $this->entityType,
+            'entityId' => $this->entityId,
             'error' => $e?->getMessage(),
         ]);
     }
