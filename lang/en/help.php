@@ -118,6 +118,17 @@ return [
                 'Search by name, phone, sector, or stage if the list is long.',
                 'Set each person’s status, or use Mark all present/absent/excused.',
                 'Write an excuse when status is excused, then press Save attendance.',
+                'Use Send QR codes via WhatsApp to share personal QR codes before the event, or open Scan attendance at the door.',
+            ],
+        ],
+        'attendance.scan' => [
+            'title' => 'Scan attendance',
+            'intro' => 'Take attendance by scanning each person’s QR code at the event entrance.',
+            'steps' => [
+                'Choose the season and event you are covering.',
+                'Optionally send QR codes via WhatsApp to the roster before the event.',
+                'Start the camera and scan a QR, or type the code manually.',
+                'Check the name, phone, sector, and stage, then press Mark present.',
             ],
         ],
         'audit-logs.index' => [

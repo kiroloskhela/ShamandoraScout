@@ -79,4 +79,47 @@ class WhatsAppBridgeClient
 
         throw new RuntimeException('WhatsApp bridge error: ' . $res->body());
     }
+
+    /**
+     * @return array{ok: true, to: mixed, messageId: mixed}
+     */
+    public function sendImage(string $fullNumber, string $imageBase64, string $caption = '', string $mimeType = 'image/png'): array
+    {
+        $normalized = $this->normalizeEgNumber($fullNumber);
+        $url = (string) config('services.whatsapp.bridge_url');
+        $token = (string) config('services.whatsapp.bridge_token');
+
+        if ($url === '' || $token === '') {
+            throw new RuntimeException('WhatsApp bridge is not configured.');
+        }
+
+        $res = Http::timeout(45)
+            ->withHeaders(['X-Bridge-Token' => $token])
+            ->post($url, [
+                'full_number' => $normalized,
+                'image_base64' => $imageBase64,
+                'caption' => $caption,
+                'mime_type' => $mimeType,
+            ]);
+
+        if ($res->successful() && ($res->json('ok') === true)) {
+            Log::info('WhatsApp image sent', [
+                'to' => $res->json('to'),
+                'messageId' => $res->json('messageId'),
+            ]);
+
+            return [
+                'ok' => true,
+                'to' => $res->json('to'),
+                'messageId' => $res->json('messageId'),
+            ];
+        }
+
+        Log::warning('WhatsApp bridge image failed', [
+            'status' => $res->status(),
+            'body' => $res->body(),
+        ]);
+
+        throw new RuntimeException('WhatsApp bridge error: ' . $res->body());
+    }
 }

@@ -102,6 +102,11 @@ Route::middleware(['auth'])->group(function () {
     // Attendance
     Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
     Route::post('/attendance/save/{seasonEventId}', [AttendanceController::class, 'save'])->name('attendance.save');
+    Route::get('/attendance/scan', [AttendanceController::class, 'scan'])->name('attendance.scan');
+    Route::post('/attendance/lookup', [AttendanceController::class, 'lookup'])->name('attendance.lookup');
+    Route::post('/attendance/mark-present', [AttendanceController::class, 'markPresent'])->name('attendance.mark-present');
+    Route::post('/attendance/send-qr/{personId}', [AttendanceController::class, 'sendQr'])->name('attendance.send-qr');
+    Route::post('/attendance/send-qr-bulk', [AttendanceController::class, 'sendQrBulk'])->name('attendance.send-qr-bulk');
 
     // Place Bookings
     Route::get('/place-bookings/create', [PlaceBookingController::class, 'create'])->name('place_bookings.create');

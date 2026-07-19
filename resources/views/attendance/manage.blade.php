@@ -6,11 +6,22 @@
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">{{ __('Record attendance') }}</h1>
             <p class="text-gray-600 dark:text-slate-300">{{ __('Choose the season and authorized event, then record individual attendance') }}</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <a href="{{ route('attendance.scan', ['season_id' => $seasonId, 'season_event_id' => $seasonEventId]) }}"
+                    class="inline-flex items-center h-10 px-4 text-sm font-medium rounded-full bg-blue-600 text-white hover:bg-blue-700 transition">
+                    {{ __('Scan attendance') }}
+                </a>
+            </div>
         </div>
 
         @if (session('success'))
             <div class="mb-6 p-4 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-center font-semibold shadow dark:border dark:border-slate-700">
                 {{ session('success') }}
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-center font-semibold shadow dark:border dark:border-slate-700">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -52,6 +63,19 @@
         </form>
 
         @if (!empty($seasonEventId))
+            <div class="mb-6 flex flex-wrap items-center justify-center gap-3">
+                <form method="POST" action="{{ route('attendance.send-qr-bulk') }}"
+                    onsubmit="return confirm(@json(__('Confirm send QR codes to all people on this event roster via WhatsApp?')))">
+                    @csrf
+                    <input type="hidden" name="season_id" value="{{ $seasonId }}">
+                    <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
+                    <button type="submit"
+                        class="inline-flex items-center justify-center h-11 px-5 text-sm font-medium rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition">
+                        {{ __('Send QR codes via WhatsApp') }}
+                    </button>
+                </form>
+            </div>
+
             <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
                 <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm">
                     @csrf
@@ -114,6 +138,7 @@
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Stage') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center w-56">{{ __('Attendance section') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center">{{ __('QR') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,10 +224,18 @@
                                             <span class="text-slate-300 dark:text-slate-600 text-xs">—</span>
                                         </td>
 
+                                        <td class="px-4 py-3 text-center">
+                                            <button type="submit" form="sendQrForm{{ $pid }}"
+                                                class="px-2.5 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 text-xs font-semibold hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition"
+                                                title="{{ __('Send QR code via WhatsApp') }}">
+                                                {{ __('Send QR') }}
+                                            </button>
+                                        </td>
+
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600 dark:text-slate-300">{{ __('No people to display.') }}</td>
+                                        <td colspan="7" class="px-4 py-6 text-center text-slate-600 dark:text-slate-300">{{ __('No people to display.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -230,6 +263,13 @@
                             class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium tracking-wide rounded-full bg-green-600 text-white hover:bg-green-700 transition">{{ __('💾 Save attendance') }}</button>
                     </div>
                 </form>
+
+                @foreach ($tableRows as $r)
+                    <form id="sendQrForm{{ $r['PersonID'] }}" method="POST" action="{{ route('attendance.send-qr', $r['PersonID']) }}" class="hidden">
+                        @csrf
+                        <input type="hidden" name="season_event_id" value="{{ $seasonEventId }}">
+                    </form>
+                @endforeach
             </div>
 
             <script>
