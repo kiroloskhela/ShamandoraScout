@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                    @if ((int) ($booking->IsRefunded ?? 0) === 0)
+                    @if ((int) ($booking->IsRefunded ?? 0) === 0 && (int) ($booking->SendQrWhatsApp ?? 0) === 1)
                         <form method="POST" action="{{ route('eventBookingFinance.sendQr', $booking->SeasonEventParticipantFinanceID) }}">
                             @csrf
                             <button type="submit"

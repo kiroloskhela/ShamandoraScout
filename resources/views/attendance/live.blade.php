@@ -36,7 +36,7 @@
                         @endforeach
                     </select>
                     @if (($seasonId ?? null) && $events->isEmpty())
-                        <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">{{ __('No reservation events in this season.') }}</p>
+                        <p class="mt-2 text-xs text-amber-600 dark:text-amber-400">{{ __('No events with finance plan and WhatsApp QR in this season.') }}</p>
                     @endif
                 </div>
             </div>

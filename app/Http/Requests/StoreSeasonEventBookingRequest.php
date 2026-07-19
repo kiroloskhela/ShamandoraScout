@@ -19,10 +19,10 @@ class StoreSeasonEventBookingRequest extends FormRequest
             'guest_id' => ['nullable', 'integer', 'exists:Guests,GuestID'],
             'family_id' => ['nullable', 'integer', 'exists:FamilyMembers,FamilyID'],
             'first_payment_date' => ['required', 'date'],
-            'first_payment_amount' => ['required', 'numeric'],
+            'first_payment_amount' => ['required', 'integer', 'min:1'],
             'is_not_able_to_pay_all' => ['nullable', 'in:0,1'],
             'special_case_type' => ['nullable', 'in:NONE,AKHOH_RAB,HAS_BROTHERS,OTHER'],
-            'discount_amount' => ['nullable', 'numeric'],
+            'discount_amount' => ['nullable', 'integer', 'min:0'],
             'special_case_note' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -35,7 +35,9 @@ class StoreSeasonEventBookingRequest extends FormRequest
             'first_payment_date.required' => 'تاريخ أول دفعة مطلوب.',
             'first_payment_date.date' => 'تاريخ أول دفعة غير صحيح.',
             'first_payment_amount.required' => 'يجب إدخال مبلغ أول دفعة.',
+            'first_payment_amount.integer' => 'مبلغ أول دفعة يجب أن يكون رقمًا صحيحًا بدون قروش.',
             'first_payment_amount.min' => 'يجب أن يكون مبلغ أول دفعة أكبر من صفر.',
+            'discount_amount.integer' => 'الخصم يجب أن يكون رقمًا صحيحًا بدون قروش.',
             'discount_amount.min' => 'الخصم لا يمكن أن يكون أقل من صفر.',
             'special_case_note.max' => 'الملاحظات يجب ألا تتجاوز 500 حرف.',
         ];

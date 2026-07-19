@@ -90,8 +90,10 @@ class SeasonEventFinanceController extends Controller
 
         $events = DB::table('SeasonEvent as se')
             ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
             ->leftJoin('SeasonEventFinance as sef', 'se.SeasonEventID', '=', 'sef.SeasonEventID')
             ->where('se.SeasonID', $seasonID)
+            ->where('et.TakesReservation', 1)
             ->select(
                 'se.SeasonEventID',
                 'e.EventName',
@@ -110,15 +112,16 @@ class SeasonEventFinanceController extends Controller
         $validator = Validator::make($request->all(), [
             'season_event_id' => 'required|integer|exists:SeasonEvent,SeasonEventID',
             'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|numeric|min:0',
+            'minimum_deposit' => 'required|integer|min:0',
             'allow_below_minimum_deposit' => 'required|in:0,1',
             'have_shirt' => 'required|in:0,1',
+            'send_qr_whatsapp' => 'required|in:0,1',
             'start_date' => 'required|array|min:1',
             'start_date.*' => 'required|date',
             'end_date' => 'required|array|min:1',
             'end_date.*' => 'required|date',
             'price' => 'required|array|min:1',
-            'price.*' => 'required|numeric|min:0',
+            'price.*' => 'required|integer|min:0',
         ], [
             'season_event_id.required' => 'يجب اختيار الفعالية.',
             'season_event_id.exists' => 'الفعالية المختارة غير موجودة.',
@@ -128,6 +131,8 @@ class SeasonEventFinanceController extends Controller
             'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
             'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
             'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
+            'send_qr_whatsapp.required' => 'يجب تحديد هل يتم إرسال QR عبر واتساب أم لا.',
+            'send_qr_whatsapp.in' => 'قيمة إرسال QR عبر واتساب غير صحيحة.',
             'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
             'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
             'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
@@ -156,6 +161,17 @@ class SeasonEventFinanceController extends Controller
             ])->withInput();
         }
 
+        $takesReservation = DB::table('SeasonEvent as se')
+            ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->where('se.SeasonEventID', $seasonEventID)
+            ->value('et.TakesReservation');
+
+        if (empty($takesReservation)) {
+            return redirect()->back()->withErrors([
+                'season_event_id' => 'يمكن إنشاء خطة مالية فقط للفعاليات التي تقبل حجز.',
+            ])->withInput();
+        }
         $intervalsResult = $this->prepareAndValidateIntervals(
             $request->start_date,
             $request->end_date,
@@ -178,6 +194,7 @@ class SeasonEventFinanceController extends Controller
                 'MinimumDeposit' => $request->minimum_deposit,
                 'AllowBelowMinimumDeposit' => $request->allow_below_minimum_deposit,
                 'HaveShirt' => $request->have_shirt,
+                'SendQrWhatsApp' => $request->send_qr_whatsapp,
             ]);
 
             foreach ($intervalsResult['intervals'] as $interval) {
@@ -214,6 +231,7 @@ class SeasonEventFinanceController extends Controller
                 'sef.MinimumDeposit',
                 'sef.AllowBelowMinimumDeposit',
                 'sef.HaveShirt',
+                'sef.SendQrWhatsApp',
                 's.SeasonName',
                 's.SeasonYear',
                 'e.EventName',
@@ -258,15 +276,16 @@ class SeasonEventFinanceController extends Controller
 
         $validator = Validator::make($request->all(), [
             'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|numeric|min:0',
+            'minimum_deposit' => 'required|integer|min:0',
             'allow_below_minimum_deposit' => 'required|in:0,1',
             'have_shirt' => 'required|in:0,1',
+            'send_qr_whatsapp' => 'required|in:0,1',
             'start_date' => 'required|array|min:1',
             'start_date.*' => 'required|date',
             'end_date' => 'required|array|min:1',
             'end_date.*' => 'required|date',
             'price' => 'required|array|min:1',
-            'price.*' => 'required|numeric|min:0',
+            'price.*' => 'required|integer|min:0',
         ], [
             'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
             'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
@@ -274,6 +293,8 @@ class SeasonEventFinanceController extends Controller
             'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
             'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
             'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
+            'send_qr_whatsapp.required' => 'يجب تحديد هل يتم إرسال QR عبر واتساب أم لا.',
+            'send_qr_whatsapp.in' => 'قيمة إرسال QR عبر واتساب غير صحيحة.',
             'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
             'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
             'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
@@ -313,6 +334,7 @@ class SeasonEventFinanceController extends Controller
                     'MinimumDeposit' => $request->minimum_deposit,
                     'AllowBelowMinimumDeposit' => $request->allow_below_minimum_deposit,
                     'HaveShirt' => $request->have_shirt,
+                    'SendQrWhatsApp' => $request->send_qr_whatsapp,
                 ]);
 
             DB::table('SeasonEventFinancePrice')

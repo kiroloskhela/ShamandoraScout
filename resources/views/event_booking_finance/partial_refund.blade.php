@@ -44,7 +44,7 @@
 
                     <div>
                         <label for="deduction_amount" class="block mb-2 text-sm text-gray-700">{{ __('Deducted portion') }}</label>
-                        <input type="number" step="0.01" min="0" name="deduction_amount" id="deduction_amount"
+                        <input type="number" step="1" min="0" name="deduction_amount" id="deduction_amount"
                             value="{{ old('deduction_amount') }}"
                             class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-orange-500 focus:outline-none"
                             placeholder="{{ __('Enter the portion to deduct from the paid amount') }}">

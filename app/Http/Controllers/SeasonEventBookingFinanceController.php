@@ -54,6 +54,7 @@ class SeasonEventBookingFinanceController extends Controller
             ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
             ->join('SeasonEventFinance as sef', 'se.SeasonEventID', '=', 'sef.SeasonEventID')
             ->where('se.SeasonID', $seasonID)
+            ->where('et.TakesReservation', 1)
             ->select(
                 'se.SeasonEventID',
                 'e.EventName',
@@ -691,7 +692,7 @@ class SeasonEventBookingFinanceController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric',
+            'amount' => 'required|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -916,11 +917,11 @@ class SeasonEventBookingFinanceController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'deduction_amount' => 'required|numeric',
+            'deduction_amount' => 'required|integer|min:0',
             'notes' => 'nullable|string|max:500',
         ], [
             'deduction_amount.required' => 'يجب إدخال مبلغ الجزء المخصوم.',
-            'deduction_amount.numeric' => 'مبلغ الجزء المخصوم يجب أن يكون رقمًا.',
+            'deduction_amount.integer' => 'مبلغ الجزء المخصوم يجب أن يكون رقمًا صحيحًا بدون قروش.',
             'deduction_amount.min' => 'مبلغ الجزء المخصوم لا يمكن أن يكون أقل من صفر.',
             'notes.max' => 'الملاحظات يجب ألا تتجاوز 500 حرف.',
         ]);
@@ -1111,6 +1112,7 @@ class SeasonEventBookingFinanceController extends Controller
             ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
             ->join('Season as sn', 'se.SeasonID', '=', 'sn.SeasonID')
             ->join('Event as e', 'se.EventID', '=', 'e.EventID')
+            ->leftJoin('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'b.SeasonEventID')
             ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
             ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
@@ -1125,6 +1127,7 @@ class SeasonEventBookingFinanceController extends Controller
                 'e.EventName',
                 'e.EventStartDate',
                 'e.EventEndDate',
+                DB::raw('COALESCE(sef.SendQrWhatsApp, 0) as SendQrWhatsApp'),
                 DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
                 DB::raw("
                 CASE
@@ -1213,8 +1216,9 @@ class SeasonEventBookingFinanceController extends Controller
             ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
             ->join('Event as e', 'se.EventID', '=', 'e.EventID')
             ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->leftJoin('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'b.SeasonEventID')
             ->where('b.SeasonEventParticipantFinanceID', $bookingID)
-            ->select('b.*', 'e.EventName', 'et.TakesReservation')
+            ->select('b.*', 'e.EventName', 'et.TakesReservation', 'sef.SendQrWhatsApp')
             ->first();
 
         if (! $booking) {
@@ -1225,7 +1229,7 @@ class SeasonEventBookingFinanceController extends Controller
             return back()->with('error', __('No active booking found for this QR code.'));
         }
 
-        if (empty($booking->TakesReservation)) {
+        if (empty($booking->TakesReservation) || empty($booking->SendQrWhatsApp)) {
             return back()->with('error', __('This event type does not take reservation QR codes.'));
         }
 

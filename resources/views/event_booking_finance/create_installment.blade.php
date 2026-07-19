@@ -73,13 +73,13 @@
                         <label class="block mb-2 text-sm text-gray-700">{{ __('Amount') }}</label>
 
                         @if ($isLastInstallment)
-                            <input type="number" step="0.01" min="0.01" name="amount" id="amount"
+                            <input type="number" step="1" min="1" name="amount" id="amount"
                                 value="{{ number_format($booking->RemainingAmount, 2, '.', '') }}" readonly
                                 class="w-full h-12 px-4 border rounded-lg text-right bg-gray-100 border-slate-200 text-slate-600">
 
                             <p class="text-xs text-red-600 mt-2">{{ __('This is the last payment, so the amount was set automatically to the full remaining balance.') }}</p>
                         @else
-                            <input type="number" step="0.01" min="0.01" name="amount" id="amount"
+                            <input type="number" step="1" min="1" name="amount" id="amount"
                                 value="{{ old('amount') }}"
                                 class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
                         @endif

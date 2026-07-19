@@ -124,7 +124,7 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('First payment amount') }}</label>
-                        <input type="number" step="0.01" min="0.01" name="first_payment_amount"
+                        <input type="number" step="1" min="1" name="first_payment_amount"
                             value="{{ old('first_payment_amount') }}"
                             class="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none">
                         @error('first_payment_amount')
@@ -150,7 +150,7 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('Discount') }}</label>
-                        <input type="number" step="0.01" min="0" name="discount_amount"
+                        <input type="number" step="1" min="0" name="discount_amount"
                             value="{{ old('discount_amount', 0) }}"
                             class="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none">
                         @error('discount_amount')

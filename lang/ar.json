@@ -1048,5 +1048,7 @@
     "Detected successfully — choose a status below": "تم المسح بنجاح — اختَر الحالة من الأزرار تحت",
     "Same code scanned again": "نفس الرمز اتمسحه تاني",
     "Filter by status": "تصفية حسب الحالة",
-    "Show only": "اعرض فقط"
+    "Show only": "اعرض فقط",
+    "Send QR via WhatsApp?": "إرسال رمز QR عبر واتساب؟",
+    "No events with finance plan and WhatsApp QR in this season.": "لا توجد فعاليات بخطة مالية وإرسال QR واتساب في هذا الموسم."
 }
