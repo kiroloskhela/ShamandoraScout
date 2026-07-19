@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import pino from 'pino';
-import { getStatus, sendText, startWhatsApp } from './whatsapp.js';
+import { getStatus, sendImage, sendText, startWhatsApp } from './whatsapp.js';
 
 // Load sibling .env without a dotenv dependency (pm2 often omits env files).
 const envPath = join(dirname(fileURLToPath(import.meta.url)), '..', '.env');
@@ -65,16 +65,28 @@ app.get('/qr', (_req, res) => {
 app.post('/send', requireToken, async (req, res) => {
   const fullNumber = req.body?.full_number;
   const message = req.body?.message;
+  const imageBase64 = req.body?.image_base64;
+  const caption = req.body?.caption ?? message ?? '';
+  const mimeType = req.body?.mime_type || 'image/png';
 
-  if (!fullNumber || !message) {
+  if (!fullNumber) {
     return res.status(422).json({
       ok: false,
-      error: 'full_number and message are required',
+      error: 'full_number is required',
+    });
+  }
+
+  if (!imageBase64 && !message) {
+    return res.status(422).json({
+      ok: false,
+      error: 'message or image_base64 is required',
     });
   }
 
   try {
-    const result = await sendText(fullNumber, message);
+    const result = imageBase64
+      ? await sendImage(fullNumber, imageBase64, caption, mimeType)
+      : await sendText(fullNumber, message);
     return res.json(result);
   } catch (err) {
     const code = err?.code === 'NOT_CONNECTED' ? 503 : 500;

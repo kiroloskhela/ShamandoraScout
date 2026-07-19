@@ -52,6 +52,35 @@ export async function sendText(fullNumber, message) {
   };
 }
 
+/**
+ * Send an image (base64 PNG/JPEG) with optional caption.
+ */
+export async function sendImage(fullNumber, imageBase64, caption = '', mimeType = 'image/png') {
+  if (!sock || !connected) {
+    const err = new Error('WhatsApp not connected');
+    err.code = 'NOT_CONNECTED';
+    throw err;
+  }
+
+  const raw = String(imageBase64 || '').replace(/^data:[^;]+;base64,/, '');
+  if (!raw) {
+    throw new Error('image_base64 is required');
+  }
+
+  const jid = toJid(fullNumber);
+  const result = await sock.sendMessage(jid, {
+    image: Buffer.from(raw, 'base64'),
+    caption: caption ? String(caption) : undefined,
+    mimetype: mimeType || 'image/png',
+  });
+
+  return {
+    ok: true,
+    to: fullNumber,
+    messageId: result?.key?.id || null,
+  };
+}
+
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
