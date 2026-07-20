@@ -147,16 +147,6 @@ export async function sendImage(fullNumber, imageBase64, caption = '', mimeType 
     const jid = toJid(fullNumber);
     await prepareRecipient(jid);
 
-    // Text-only ping first establishes crypto; then send the image.
-    // Helps a lot with first contact + media "Waiting for this message".
-    try {
-      const ping = await sock.sendMessage(jid, { text: '.' });
-      rememberMessage(ping?.key, { text: '.' });
-      await sleep(350);
-    } catch (err) {
-      logger.warn({ err: err?.message, jid }, 'pre-image ping failed; sending image anyway');
-    }
-
     const content = {
       image: Buffer.from(raw, 'base64'),
       caption: caption ? String(caption) : undefined,
