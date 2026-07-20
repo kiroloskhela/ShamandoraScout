@@ -25,6 +25,8 @@ class PhaseASecurityTest extends TestCase
         Schema::dropIfExists('GroupQetaa');
         Schema::dropIfExists('PersonGroup');
         Schema::dropIfExists('SeasonEvent');
+        Schema::dropIfExists('Event');
+        Schema::dropIfExists('EventType');
         Schema::dropIfExists('PersonQetaa');
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
@@ -81,6 +83,18 @@ class PhaseASecurityTest extends TestCase
             $table->increments('GroupQetaaID');
             $table->unsignedInteger('GroupID');
             $table->unsignedInteger('QetaaID');
+        });
+
+        Schema::create('EventType', function (Blueprint $table) {
+            $table->increments('EventTypeID');
+            $table->string('EventTypeName')->nullable();
+            $table->boolean('TakesReservation')->default(false);
+        });
+
+        Schema::create('Event', function (Blueprint $table) {
+            $table->increments('EventID');
+            $table->string('EventName')->nullable();
+            $table->unsignedInteger('EventTypeID')->nullable();
         });
 
         Schema::create('SeasonEvent', function (Blueprint $table) {
@@ -228,6 +242,16 @@ class PhaseASecurityTest extends TestCase
         DB::table('GroupQetaa')->insert([
             'GroupID' => 1,
             'QetaaID' => 5,
+        ]);
+        DB::table('EventType')->insert([
+            'EventTypeID' => 1,
+            'EventTypeName' => 'يوم كشفي',
+            'TakesReservation' => 0,
+        ]);
+        DB::table('Event')->insert([
+            'EventID' => 3,
+            'EventName' => 'Test event',
+            'EventTypeID' => 1,
         ]);
         DB::table('SeasonEvent')->insert([
             'SeasonEventID' => 7,

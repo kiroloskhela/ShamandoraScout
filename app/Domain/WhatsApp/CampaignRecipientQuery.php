@@ -148,8 +148,6 @@ class CampaignRecipientQuery
     }
 
     /**
-     * @param  mixed  $list
-     * @param  mixed  $single
      * @return list<int>
      */
     private function normalizeIdList(mixed $list, mixed $single = null): array
