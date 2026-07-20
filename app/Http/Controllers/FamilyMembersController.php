@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\LikeSearch;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +12,6 @@ class FamilyMembersController extends Controller
 {
     public function index(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-
         $familyMembers = DB::table('FamilyMembers as fm')
             ->leftJoin('PersonFamily as pf', 'pf.FamilyID', '=', 'fm.FamilyID')
             ->leftJoin('PersonInformation as pi', 'pi.PersonID', '=', 'pf.PersonID')
@@ -34,20 +31,6 @@ class FamilyMembersController extends Controller
                 DB::raw("GROUP_CONCAT(DISTINCT CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName) SEPARATOR ' | ') as LinkedPersons"),
                 DB::raw("GROUP_CONCAT(DISTINCT r.RelationName SEPARATOR ' | ') as RelationNames")
             )
-            ->when($term !== null, function ($query) use ($term) {
-                $fields = LikeSearch::namedPartyFields('fm', 'FamilyID');
-                $query->where(function ($sub) use ($term, $fields) {
-                    LikeSearch::applyFlexibleOr(
-                        $sub,
-                        $term,
-                        array_merge($fields['columns'], ['fm.Email']),
-                        array_merge($fields['raw'], [
-                            "CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)",
-                        ]),
-                        ['fm.MobileNumber'],
-                    );
-                });
-            })
             ->groupBy(
                 'fm.FamilyID',
                 'fm.FirstName',
@@ -60,12 +43,10 @@ class FamilyMembersController extends Controller
                 'fm.RaqamQawmy'
             )
             ->orderBy('fm.FamilyID', 'DESC')
-            ->paginate(25)
-            ->appends($request->query());
+            ->get();
 
         return view('family-members.index', [
             'familyMembers' => $familyMembers,
-            'q' => $term ?? '',
         ]);
     }
 

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Enrolment\WaitingListService;
-use App\Support\LikeSearch;
-use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,9 +13,6 @@ class WaitingListController extends Controller
 {
     public function indexWaitingList(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-        $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
-
         $persons = DB::table('NewUsersInformationWaitinglist as nui')
             ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'nui.SanaMarhalaID')
             ->leftJoin('NewUsersPersonEntryQuestionsWaitinglist as nupq', 'nupq.PersonID', '=', 'nui.PersonID')
@@ -37,51 +32,13 @@ class WaitingListController extends Controller
                 DB::raw("IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions"),
                 DB::raw("DATE_FORMAT(nui.CreatedAt, '%Y-%m-%d %H:%i') AS CreatedAt")
             )
-            ->when($term !== null, function ($query) use ($term) {
-                $query->where(function ($sub) use ($term) {
-                    LikeSearch::applyFlexibleOr(
-                        $sub,
-                        $term,
-                        [
-                            'CAST(nui.PersonID AS CHAR)',
-                            'nui.ShamandoraCode',
-                            'nui.FirstName',
-                            'nui.SecondName',
-                            'nui.ThirdName',
-                            'nui.FourthName',
-                            'nui.QetaaName',
-                            'sm.SanaMarhalaName',
-                            'nui.RaqamQawmy',
-                            'nui.PersonPersonalMobileNumber',
-                        ],
-                        ["CONCAT_WS(' ', nui.FirstName, nui.SecondName, nui.ThirdName, nui.FourthName)"],
-                        ['nui.PersonPersonalMobileNumber'],
-                    );
-                });
-            })
-            ->when(isset($filters['QetaaName']), fn ($q) => $q->where('nui.QetaaName', $filters['QetaaName']))
-            ->when(isset($filters['SanaMarhalaName']), fn ($q) => $q->where('sm.SanaMarhalaName', $filters['SanaMarhalaName']))
             ->distinct()
             ->orderByDesc('nui.CreatedAt')
             ->orderByDesc('nui.PersonID')
-            ->paginate(25)
-            ->appends($request->query());
-
-        $filterOptions = [
-            'QetaaName' => DB::table('NewUsersInformationWaitinglist')
-                ->whereNotNull('QetaaName')->where('QetaaName', '<>', '')
-                ->distinct()->orderBy('QetaaName')->pluck('QetaaName')->map(fn ($v) => (string) $v)->values()->all(),
-            'SanaMarhalaName' => DB::table('NewUsersInformationWaitinglist as nui')
-                ->leftJoin('SanaMarhala as sm', 'nui.SanaMarhalaID', '=', 'sm.SanaMarhalaID')
-                ->whereNotNull('sm.SanaMarhalaName')->where('sm.SanaMarhalaName', '<>', '')
-                ->distinct()->orderBy('sm.SanaMarhalaName')->pluck('sm.SanaMarhalaName')->map(fn ($v) => (string) $v)->values()->all(),
-        ];
+            ->get();
 
         return view('person.waiting-list-index', [
             'persons' => $persons,
-            'q' => $term ?? '',
-            'filterOptions' => $filterOptions,
-            'activeServerFilters' => $filters,
         ]);
     }
 

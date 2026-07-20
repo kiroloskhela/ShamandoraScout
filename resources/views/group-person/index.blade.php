@@ -3,8 +3,7 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-table-server-search :q="$q ?? ''" placeholder="{{ __('Name / code / phone / ID') }}" />
-        <x-data-table :data="$groupPersons->items()" title="إدارة الأشخاص في المجموعة" :add-button="[
+        <x-data-table :data="$groupPersons" title="إدارة الأشخاص في المجموعة" :add-button="[
             'label' => 'إضافة شخص  جديد',
             'route' => route('group-person.create-khadem'),
             'cssClass' =>
@@ -58,9 +57,6 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200',
                 ],
-            ]" :searchable="false" :sortable="true" :pagination="false" :per-page="25" />
-        <div class="mt-4">
-            {{ $groupPersons->links() }}
-        </div>
+            ]" :searchable="true" :sortable="true" :pagination="true" :per-page="25" />
     </div>
 @endsection

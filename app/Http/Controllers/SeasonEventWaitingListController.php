@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Support\LikeSearch;
-use App\Support\TableColumnFilters;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,22 +54,12 @@ class SeasonEventWaitingListController extends Controller
             abort(404);
         }
 
-        $term = LikeSearch::fromRequest($request);
-        $filters = TableColumnFilters::fromRequest($request, ['QetaaName']);
-
         $waitingList = DB::table('SeasonEventWaitingList as wl')
             ->join('PersonInformation as p', 'wl.PersonID', '=', 'p.PersonID')
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
             ->leftJoin('Qetaa as q', 'wl.QetaaID', '=', 'q.QetaaID')
             ->leftJoin('PersonInformation as s', 'wl.ServentID', '=', 's.PersonID')
             ->where('wl.SeasonEventID', $seasonEventID)
-            ->when($term !== null, function ($query) use ($term) {
-                $query->where(function ($sub) use ($term) {
-                    LikeSearch::applyFlexiblePersonMatch($sub, $term, 'p', 'ppn');
-                    $sub->orWhere('q.QetaaName', 'like', LikeSearch::wildcard($term));
-                });
-            })
-            ->when(isset($filters['QetaaName']), fn ($q) => $q->where('q.QetaaName', $filters['QetaaName']))
             ->select(
                 'wl.SeasonEventWaitingListID',
                 'wl.SeasonEventID',
@@ -95,24 +84,11 @@ class SeasonEventWaitingListController extends Controller
                 )) as ServentFullName")
             )
             ->orderBy('wl.CreatedAt')
-            ->paginate(25)
-            ->appends($request->query());
-
-        $filterOptions = [
-            'QetaaName' => DB::table('SeasonEventWaitingList as wl')
-                ->leftJoin('Qetaa as q', 'wl.QetaaID', '=', 'q.QetaaID')
-                ->where('wl.SeasonEventID', $seasonEventID)
-                ->whereNotNull('q.QetaaName')->where('q.QetaaName', '<>', '')
-                ->distinct()->orderBy('q.QetaaName')->pluck('q.QetaaName')
-                ->map(fn ($v) => (string) $v)->values()->all(),
-        ];
+            ->get();
 
         return view('event_waiting_list.index', [
             'event' => $event,
             'waitingList' => $waitingList,
-            'q' => $term ?? '',
-            'filterOptions' => $filterOptions,
-            'activeServerFilters' => $filters,
         ]);
     }
 

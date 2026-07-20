@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CurriculaCategoryController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FamilyMembersController;
@@ -16,6 +15,7 @@ use App\Http\Controllers\PersonSpecialCaseController;
 use App\Http\Controllers\PersonTreeController;
 use App\Http\Controllers\SeasonEventServantFollowupController;
 use App\Http\Controllers\WaitingListController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function () {
 
@@ -49,14 +49,13 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::post('/personexammark/destroy/{id}', [PersonExamMarkController::class, 'destroy'])->name('personexammark.destroy');
     Route::get('/personexammark/search-persons', [PersonExamMarkController::class, 'searchPersons'])->name('personexammark.searchPersons');
 
-        // Season Event Servant Followup
+    // Season Event Servant Followup
     Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
-    Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
-    Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
-    Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
+        Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
+        Route::get('/get-events-with-plan', [SeasonEventServantFollowupController::class, 'getEventsWithPlan'])->name('getEventsWithPlan');
+        Route::get('/event/{seasonEventID}', [SeasonEventServantFollowupController::class, 'index'])->name('index');
 
     });
-
 
     // Group Person (normal)
     Route::get('/group-person', [GroupPersonController::class, 'index'])->name('group-person.index');
@@ -75,24 +74,19 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::get('/person/edit/{id}', [PersonDirectoryController::class, 'edit'])->name('person.edit');
     Route::patch('/person/update/{id}', [PersonDirectoryController::class, 'updates'])->name('person.update');
 
-
-
     // Delete Persons
     Route::get('/person/delete/{id}', [PersonDirectoryController::class, 'deletes'])->name('person.delete');
     Route::delete('/person/destroy/{id}', [PersonDirectoryController::class, 'destroy'])->name('person.destroy');
 
-
     // Waiting List Management
-    Route::get('/persons/waiting-list',                   [WaitingListController::class, 'indexWaitingList'])   ->name('person.waiting-list-index');
-    Route::get('/persons/waiting-list/{id}',              [WaitingListController::class, 'showWaitingList'])    ->name('person.waiting-list-show');
-    Route::get('/persons/waiting-list/{id}/migrate',      [WaitingListController::class, 'migrateWaitingList']) ->name('person.waiting-list-migrate');
-    Route::get('/persons/waiting-list/{id}/decline',      [WaitingListController::class, 'declineWaitingList']) ->name('person.waiting-list-decline');
-    
+    Route::get('/persons/waiting-list', [WaitingListController::class, 'indexWaitingList'])->name('person.waiting-list-index');
+    Route::get('/persons/waiting-list/{id}', [WaitingListController::class, 'showWaitingList'])->name('person.waiting-list-show');
+    Route::get('/persons/waiting-list/{id}/migrate', [WaitingListController::class, 'migrateWaitingList'])->name('person.waiting-list-migrate');
+    Route::get('/persons/waiting-list/{id}/decline', [WaitingListController::class, 'declineWaitingList'])->name('person.waiting-list-decline');
+
     // Export Scouts Excel
-   Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
-     ->name('export.scouts.excel');
-
-
+    Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
+        ->name('export.scouts.excel');
 
     // CurriculaCategory
     Route::get('/CurriculaCategory', [CurriculaCategoryController::class, 'index'])->name('CurriculaCategory.index');
@@ -106,17 +100,14 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
 });
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
-Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
+    Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
 
-Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
-Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
-Route::get('/new-enrolments/person/approve/{id}', [NewEnrolmentAdminController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
-Route::get('/new-enrolments/person/approve-again/{id}', [NewEnrolmentAdminController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
-Route::get('/new-enrolments/person/delete/{id}', [NewEnrolmentAdminController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
-Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
-
-
-
+    Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
+    Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
+    Route::get('/new-enrolments/person/approve/{id}', [NewEnrolmentAdminController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
+    Route::get('/new-enrolments/person/approve-again/{id}', [NewEnrolmentAdminController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
+    Route::get('/new-enrolments/person/delete/{id}', [NewEnrolmentAdminController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
+    Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
 
     // New Enrolments (admin lists)
     Route::get('/new-enrolments', [NewEnrolmentAdminController::class, 'indexNewEnrolments'])->name('person.new-enrolments-index');
@@ -126,10 +117,9 @@ Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminControlle
     Route::get('/new-enrolments/count/qetaat', [NewEnrolmentAdminController::class, 'countNewEnrolmentsQetaat'])->name('person.new-enrolments-qetaat-count');
 
     Route::get('/new-enrolments/edit/{id}', [NewEnrolmentAdminController::class, 'editNewEnrolments'])->name('person.new-enrolments-edit');
-    Route::put('/new-enrolments/update/{id}', [NewEnrolmentAdminController::class, 'updateNewEnrolments']) ->name('person.new-enrolments-update');
+    Route::put('/new-enrolments/update/{id}', [NewEnrolmentAdminController::class, 'updateNewEnrolments'])->name('person.new-enrolments-update');
 
-
-      // Max Limits (duplicate existing routes in your file; keep only one set in your real file)
+    // Max Limits
     Route::get('/max-limits', [LiveFormMaxLimitsController::class, 'index'])->name('max-limits.index');
     Route::get('/max-limits/add', [LiveFormMaxLimitsController::class, 'create'])->name('max-limits.create');
     Route::post('/max-limits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('max-limits.insert');
@@ -138,8 +128,7 @@ Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminControlle
     Route::get('/max-limits/delete/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('max-limits.delete');
     Route::delete('/max-limits/destroy/{id}/{sana_id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('max-limits.destroy');
 
-
-       // Entry Questions
+    // Entry Questions
     Route::get('/entry-questions', [MarhalaEntryQuestionsController::class, 'index'])->name('entry-questions.index');
     Route::get('/entry-questions/add', [MarhalaEntryQuestionsController::class, 'create'])->name('entry-questions.create');
     Route::post('/entry-questions/insert', [MarhalaEntryQuestionsController::class, 'insert'])->name('entry-questions.insert');
@@ -155,10 +144,7 @@ Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminControlle
 |--------------------------------------------------------------------------
 */
 
-
-
 Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance|Secretary|AdminSecretary'])->group(function () {
-
 
     // Guests
     Route::get('/guests', [GuestsController::class, 'index'])->name('guests.index');
@@ -169,7 +155,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance|Secretary|
     Route::post('/guests/update/{id}', [GuestsController::class, 'update'])->name('guests.update');
     Route::get('/guests/delete/{id}', [GuestsController::class, 'delete'])->name('guests.delete');
     Route::post('/guests/destroy/{id}', [GuestsController::class, 'destroy'])->name('guests.destroy');
-
 
     // Family Members
     Route::get('/family-members', [FamilyMembersController::class, 'index'])->name('family-members.index');
@@ -183,6 +168,5 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance|Secretary|
 
     // Person Tree
     Route::get('/person-tree', [PersonTreeController::class, 'index'])->name('person-tree.index');
-
 
 });

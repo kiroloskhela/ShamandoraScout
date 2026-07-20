@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
-use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 
 class AuditLogController extends Controller
@@ -20,11 +19,6 @@ class AuditLogController extends Controller
             $query->where('method', strtoupper((string) $request->input('method')));
         }
 
-        $term = LikeSearch::fromRequest($request);
-        if ($term !== null) {
-            LikeSearch::applyOr($query, $term, ['path', 'action', 'route_name', 'actor_name']);
-        }
-
         if ($request->filled('from')) {
             $query->whereDate('created_at', '>=', $request->input('from'));
         }
@@ -33,7 +27,18 @@ class AuditLogController extends Controller
             $query->whereDate('created_at', '<=', $request->input('to'));
         }
 
-        $logs = $query->paginate(50)->appends($request->query());
+        $logs = $query->get()->map(function ($log) {
+            return [
+                'id' => $log->id,
+                'created_at' => optional($log->created_at)->format('Y-m-d H:i:s'),
+                'actor_name' => $log->actor_name ?: '—',
+                'person_id' => $log->person_id ?: '—',
+                'action' => $log->action,
+                'path' => $log->path,
+                'response_status' => $log->response_status ?? '—',
+                'ip' => $log->ip,
+            ];
+        });
 
         return view('audit-logs.index', compact('logs'));
     }

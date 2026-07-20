@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
@@ -14,9 +13,7 @@ class AdminPasswordController extends Controller
 {
     public function index(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-
-        $query = DB::table('PersonInformation as pi')
+        $users = DB::table('PersonInformation as pi')
             ->leftJoin('PersonPhoneNumbers as ppn', 'ppn.PersonID', '=', 'pi.PersonID')
             ->select(
                 'pi.PersonID',
@@ -26,20 +23,13 @@ class AdminPasswordController extends Controller
                 'pi.FourthName',
                 'pi.ShamandoraCode',
                 'ppn.PersonPersonalMobileNumber',
+                DB::raw("TRIM(CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)) AS FullName"),
             )
-            ->orderBy('pi.PersonID');
-
-        if ($term !== null) {
-            $query->where(function ($sub) use ($term) {
-                LikeSearch::applyFlexiblePersonMatch($sub, $term, 'pi', 'ppn');
-            });
-        }
-
-        $users = $query->paginate(50)->appends($request->query());
+            ->orderBy('pi.PersonID')
+            ->get();
 
         return view('admin.passwords-index', [
             'users' => $users,
-            'q' => $term ?? '',
         ]);
     }
 

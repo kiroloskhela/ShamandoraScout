@@ -9,7 +9,6 @@ use App\Http\Requests\StoreBookingInstallmentRequest;
 use App\Http\Requests\StoreSeasonEventBookingRequest;
 use App\Services\AttendanceQrService;
 use App\Support\LikeSearch;
-use App\Support\TableColumnFilters;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -127,13 +126,6 @@ class SeasonEventBookingFinanceController extends Controller
                 ->sum('p.Amount'),
         ];
 
-        $filters = TableColumnFilters::fromRequest($request, [
-            'QetaaNames',
-            'ShirtSize',
-            'BookingStatusText',
-            'RemainingAmountFormatted',
-        ]);
-
         $bookings = DB::table('SeasonEventParticipantFinance as b')
             ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
@@ -143,55 +135,6 @@ class SeasonEventBookingFinanceController extends Controller
             ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
             ->where('b.SeasonEventID', $seasonEventID)
-            ->when(isset($filters['ShirtSize']), function ($query) use ($filters) {
-                if ($filters['ShirtSize'] === '-') {
-                    $query->where(function ($sub) {
-                        $sub->whereNull('b.ShirtSize')->orWhere('b.ShirtSize', '');
-                    });
-                } else {
-                    $query->where('b.ShirtSize', $filters['ShirtSize']);
-                }
-            })
-            ->when(isset($filters['QetaaNames']), function ($query) use ($filters) {
-                $value = $filters['QetaaNames'];
-                if ($value === 'اهالي') {
-                    $query->whereNotNull('b.FamilyID');
-                } elseif ($value === 'ضيوف') {
-                    $query->whereNotNull('b.GuestID');
-                } elseif ($value === '-') {
-                    $query->whereNull('b.PersonID')->whereNull('b.FamilyID')->whereNull('b.GuestID');
-                } else {
-                    $query->where('q.QetaaName', $value);
-                }
-            })
-            ->when(isset($filters['BookingStatusText']), function ($query) use ($filters) {
-                $status = $filters['BookingStatusText'];
-                $isRefunded = str_contains($status, 'مسترد');
-                $base = trim(str_replace(' - مسترد', '', $status));
-
-                $query->where('b.IsRefunded', $isRefunded ? 1 : 0);
-
-                match ($base) {
-                    'أخوه رب' => $query->where(function ($sub) {
-                        $sub->where('b.SpecialCaseType', 'AKHOH_RAB')
-                            ->orWhere('b.HasPersonSpecialCase', 1);
-                    }),
-                    'له إخوة' => $query->where('b.SpecialCaseType', 'HAS_BROTHERS'),
-                    'أخرى' => $query->where('b.SpecialCaseType', 'OTHER'),
-                    'عادي' => $query->where(function ($sub) {
-                        $sub->where(function ($inner) {
-                            $inner->whereNull('b.SpecialCaseType')->orWhere('b.SpecialCaseType', '');
-                        })->where(function ($inner) {
-                            $inner->whereNull('b.HasPersonSpecialCase')->orWhere('b.HasPersonSpecialCase', 0);
-                        });
-                    }),
-                    default => null,
-                };
-            })
-            ->when(isset($filters['RemainingAmountFormatted']), function ($query) use ($filters) {
-                $amount = (float) str_replace(',', '', $filters['RemainingAmountFormatted']);
-                $query->whereRaw('ROUND(b.RemainingAmount, 2) = ?', [round($amount, 2)]);
-            })
             ->select(
                 'b.SeasonEventParticipantFinanceID',
                 'b.PersonID',
@@ -372,51 +315,6 @@ class SeasonEventBookingFinanceController extends Controller
             ->orderBy('QetaaName')
             ->get();
 
-        $shirtSizes = DB::table('SeasonEventParticipantFinance')
-            ->where('SeasonEventID', $seasonEventID)
-            ->selectRaw("DISTINCT COALESCE(NULLIF(ShirtSize, ''), '-') as v")
-            ->orderBy('v')
-            ->pluck('v')
-            ->map(fn ($v) => (string) $v)
-            ->values()
-            ->all();
-
-        $qetaaFilterOptions = collect(['اهالي', 'ضيوف'])
-            ->merge(
-                DB::table('SeasonEventParticipantFinance as b')
-                    ->join('PersonQetaa as pq', 'b.PersonID', '=', 'pq.PersonID')
-                    ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
-                    ->where('b.SeasonEventID', $seasonEventID)
-                    ->distinct()
-                    ->orderBy('q.QetaaName')
-                    ->pluck('q.QetaaName')
-            )
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        $remainingOptions = DB::table('SeasonEventParticipantFinance')
-            ->where('SeasonEventID', $seasonEventID)
-            ->distinct()
-            ->orderBy('RemainingAmount')
-            ->pluck('RemainingAmount')
-            ->map(fn ($v) => number_format((float) $v, 2))
-            ->unique()
-            ->values()
-            ->all();
-
-        $statusOptions = [
-            'عادي',
-            'أخوه رب',
-            'له إخوة',
-            'أخرى',
-            'عادي - مسترد',
-            'أخوه رب - مسترد',
-            'له إخوة - مسترد',
-            'أخرى - مسترد',
-        ];
-
         return view('event_booking_finance.index', [
             'event' => $event,
             'bookings' => $bookings,
@@ -425,13 +323,6 @@ class SeasonEventBookingFinanceController extends Controller
             'selectedDaySummary' => $selectedDaySummary,
             'totalSummary' => $totalSummary,
             'qetaaCounts' => $qetaaCounts,
-            'filterOptions' => [
-                'QetaaNames' => $qetaaFilterOptions,
-                'ShirtSize' => $shirtSizes,
-                'BookingStatusText' => $statusOptions,
-                'RemainingAmountFormatted' => $remainingOptions,
-            ],
-            'activeServerFilters' => $filters,
         ]);
     }
 

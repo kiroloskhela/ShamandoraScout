@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Support\LikeSearch;
-use App\Support\SqlPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -148,32 +147,7 @@ class PersonExamMarkController extends Controller
     public function index(Request $request)
     {
         $userId = Auth::id();
-        $term = LikeSearch::fromRequest($request);
         $bindings = [$userId];
-        $searchSql = '';
-        if ($term !== null) {
-            $fragment = LikeSearch::sqlFlexibleOr(
-                [
-                    'CAST(em.PersonID AS CHAR)',
-                    'em.Note',
-                    'q.QetaaName',
-                    'sm.SanaMarhalaName',
-                    'p.FirstName',
-                    'p.SecondName',
-                    'p.ThirdName',
-                    'p.FourthName',
-                    "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
-                    "CONCAT_WS(' ', s.FirstName, s.SecondName, s.ThirdName, s.FourthName)",
-                    'ppn.PersonPersonalMobileNumber',
-                    'ppn.FatherMobileNumber',
-                    'ppn.MotherMobileNumber',
-                ],
-                $term,
-                LikeSearch::personPhoneColumns('ppn'),
-            );
-            $searchSql = ' AND '.$fragment['sql'];
-            $bindings = array_merge($bindings, $fragment['bindings']);
-        }
 
         $sql = "
             SELECT
@@ -207,15 +181,13 @@ class PersonExamMarkController extends Controller
             LEFT JOIN Qetaa q ON q.QetaaID = em.QetaaID
             LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = em.SanaMarhalaID
             WHERE em.PersonID IN ({$this->allowedPersonIdsSql()})
-            {$searchSql}
             ORDER BY em.ExamDate DESC, em.ExamMarkID DESC
         ";
 
-        $marks = SqlPaginator::paginate($sql, $bindings, 25);
+        $marks = collect(DB::select($sql, $bindings));
 
         return view('personexammark.index', [
             'marks' => $marks,
-            'q' => $term ?? '',
         ]);
     }
 
