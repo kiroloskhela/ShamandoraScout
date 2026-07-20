@@ -40,6 +40,16 @@ class SeasonEventBookingFinanceController extends Controller
         );
     }
 
+    private function authorizeFinanceUpdate(): void
+    {
+        $this->authorize('eventBooking.update');
+    }
+
+    private function authorizeFinanceDelete(): void
+    {
+        $this->authorize('eventBooking.delete');
+    }
+
     public function getEventsWithPlan(Request $request)
     {
         $seasonID = $request->query('seasonID');
@@ -538,6 +548,8 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function updateLastPayment(Request $request, $paymentID)
     {
+        $this->authorizeFinanceUpdate();
+
         $payment = $this->bookings->getPaymentWithBooking($paymentID);
         if (! $payment) {
             abort(404);
@@ -622,6 +634,8 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function refundStore(Request $request, $bookingID)
     {
+        $this->authorizeFinanceUpdate();
+
         $booking = $this->bookings->getBookingDetails($bookingID);
         if (! $booking) {
             abort(404);
@@ -758,6 +772,8 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function partialRefundStore(Request $request, $bookingID)
     {
+        $this->authorizeFinanceUpdate();
+
         $booking = $this->bookings->getBookingDetails($bookingID);
         if (! $booking) {
             abort(404);
@@ -1069,6 +1085,8 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function sendQr($bookingID, AttendanceQrService $qr)
     {
+        $this->authorizeFinanceUpdate();
+
         $booking = DB::table('SeasonEventParticipantFinance as b')
             ->join('SeasonEvent as se', 'b.SeasonEventID', '=', 'se.SeasonEventID')
             ->join('Event as e', 'se.EventID', '=', 'e.EventID')
@@ -1106,6 +1124,8 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function updateShirtSize(Request $request, $bookingID)
     {
+        $this->authorizeFinanceUpdate();
+
         $validator = Validator::make($request->all(), [
             'shirt_size' => 'required|in:XS,S,M,L,XL,2XL,3XL,4XL,5XL,6XL',
         ], [
@@ -1137,7 +1157,7 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function deletePage($bookingID)
     {
-        $this->ensureSuperAdmin();
+        $this->authorizeFinanceDelete();
 
         $booking = $this->bookings->getBookingDetails((int) $bookingID);
         if (! $booking) {
@@ -1158,7 +1178,7 @@ class SeasonEventBookingFinanceController extends Controller
 
     public function destroy($bookingID)
     {
-        $this->ensureSuperAdmin();
+        $this->authorizeFinanceDelete();
 
         $booking = $this->bookings->deleteBooking((int) $bookingID);
         if (! $booking) {
@@ -1168,13 +1188,5 @@ class SeasonEventBookingFinanceController extends Controller
         return redirect()
             ->route('eventBookingFinance.index', $booking->SeasonEventID)
             ->with('success', __('Booking deleted successfully. All related payments and receipts were removed.'));
-    }
-
-    private function ensureSuperAdmin(): void
-    {
-        $user = Auth::user();
-        if (! $user || ! $user->role()->where('RoleName', 'SuperAdmin')->exists()) {
-            abort(403);
-        }
     }
 }

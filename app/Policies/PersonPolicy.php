@@ -20,6 +20,11 @@ class PersonPolicy
         return $this->ownsOrElevated($user, $person);
     }
 
+    public function delete(User $user, User $person): bool
+    {
+        return $this->ownsOrElevated($user, $person);
+    }
+
     private function ownsOrElevated(User $user, User $person): bool
     {
         if ((int) $user->PersonID === (int) $person->PersonID) {

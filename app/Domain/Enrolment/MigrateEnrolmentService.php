@@ -11,7 +11,7 @@ use Throwable;
 
 class MigrateEnrolmentService
 {
-    public function migrateApprovedForQetaa(int $qetaaId): void
+    public function migrateApprovedForQetaa(int $qetaaId): MigrateEnrolmentResult
     {
         $personIds = DB::table('NewUsersInformation')
             ->where('IsApproved', 1)
@@ -19,10 +19,10 @@ class MigrateEnrolmentService
             ->orderBy('PersonID')
             ->pluck('PersonID');
 
-        $this->migratePersonIds($personIds);
+        return $this->migratePersonIds($personIds);
     }
 
-    public function migrateAllApproved(): void
+    public function migrateAllApproved(): MigrateEnrolmentResult
     {
         $personIds = DB::table('NewUsersInformation')
             ->where('IsApproved', 1)
@@ -30,25 +30,41 @@ class MigrateEnrolmentService
             ->orderBy('PersonID')
             ->pluck('PersonID');
 
-        $this->migratePersonIds($personIds);
+        return $this->migratePersonIds($personIds);
     }
 
     /**
      * @param  Collection<int, mixed>|array<int, mixed>  $personIds
      */
-    private function migratePersonIds($personIds): void
+    private function migratePersonIds($personIds): MigrateEnrolmentResult
     {
+        $result = new MigrateEnrolmentResult;
+
         foreach ($personIds as $personId) {
+            $personId = (int) $personId;
+
             try {
-                $this->migrateOneById((int) $personId);
+                $newPersonId = $this->migrateOneById($personId);
+
+                if ($newPersonId > 0) {
+                    $result->migrated_count++;
+                }
             } catch (Throwable $e) {
                 Log::error('New enrolment migration failed', [
                     'new_user_person_id' => $personId,
                     'message' => $e->getMessage(),
+                    'exception' => $e,
                 ]);
-                throw $e;
+
+                $result->failed_count++;
+                $result->failures[] = [
+                    'person_id' => $personId,
+                    'message' => $e->getMessage(),
+                ];
             }
         }
+
+        return $result;
     }
 
     /**
