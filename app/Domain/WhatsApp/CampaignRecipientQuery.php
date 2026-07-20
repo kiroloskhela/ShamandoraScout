@@ -45,14 +45,18 @@ class CampaignRecipientQuery
             $bindings[] = $filters['gender'];
         }
 
-        if (! empty($filters['qetaa_id'])) {
-            $wheres[] = 'EXISTS (SELECT 1 FROM PersonQetaa pq2 WHERE pq2.PersonID = pi.PersonID AND pq2.QetaaID = ?)';
-            $bindings[] = (int) $filters['qetaa_id'];
+        $qetaaIds = $this->normalizeIdList($filters['qetaa_ids'] ?? null, $filters['qetaa_id'] ?? null);
+        if ($qetaaIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($qetaaIds), '?'));
+            $wheres[] = "EXISTS (SELECT 1 FROM PersonQetaa pq2 WHERE pq2.PersonID = pi.PersonID AND pq2.QetaaID IN ({$placeholders}))";
+            $bindings = array_merge($bindings, $qetaaIds);
         }
 
-        if (! empty($filters['group_id'])) {
-            $wheres[] = 'EXISTS (SELECT 1 FROM PersonGroup pg2 WHERE pg2.PersonID = pi.PersonID AND pg2.GroupID = ?)';
-            $bindings[] = (int) $filters['group_id'];
+        $groupIds = $this->normalizeIdList($filters['group_ids'] ?? null, $filters['group_id'] ?? null);
+        if ($groupIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+            $wheres[] = "EXISTS (SELECT 1 FROM PersonGroup pg2 WHERE pg2.PersonID = pi.PersonID AND pg2.GroupID IN ({$placeholders}))";
+            $bindings = array_merge($bindings, $groupIds);
         }
 
         if (! empty($filters['manteqa_id'])) {
@@ -141,6 +145,23 @@ class CampaignRecipientQuery
     public function count(array $filters = []): int
     {
         return $this->search($filters, 2000)->count();
+    }
+
+    /**
+     * @param  mixed  $list
+     * @param  mixed  $single
+     * @return list<int>
+     */
+    private function normalizeIdList(mixed $list, mixed $single = null): array
+    {
+        $ids = [];
+        if (is_array($list)) {
+            $ids = $list;
+        } elseif ($single !== null && $single !== '' && $single !== false) {
+            $ids = [$single];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids), fn ($id) => $id > 0)));
     }
 
     /**

@@ -1,13 +1,13 @@
 @extends('layouts.app', ['pageTitle' => __('Create WhatsApp campaign')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8 max-w-5xl" dir="rtl">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
         <div class="mb-8">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300 mb-1">{{ __('WhatsApp campaigns') }}</p>
-                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ __('Create WhatsApp campaign') }}</h1>
-                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ __('Build a draft from the member directory, then review and send.') }}</p>
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ __('Create a new campaign') }}</h1>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ __('Choose recipients, write one message, then save a draft to review before sending.') }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <a href="{{ route('whatsapp.campaigns.create-csv') }}"

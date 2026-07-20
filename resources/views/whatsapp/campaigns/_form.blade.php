@@ -15,6 +15,8 @@
         variables: @js($variables),
         highCount: {{ (int) $highCountThreshold }},
         initialTemplate: @js($initialTemplate),
+        allGroups: @js($groups),
+        allQetaat: @js($qetaat->map(fn ($q) => ['QetaaID' => (int) $q->QetaaID, 'QetaaName' => $q->QetaaName])->values()),
         labels: {
             allMatching: @js(__('All matching')),
             searching: @js(__('Searching…')),
@@ -22,10 +24,14 @@
             searchHint: @js(__('Type a name, phone, or code to search')),
             missingPrefix: @js(__('Missing variables:')),
             friend: @js(__('Our friend')),
+            chooseGroup: @js(__('Choose groups')),
+            chooseSectorFirst: @js(__('Choose a sector first')),
+            allSectors: @js(__('All sectors')),
+            selectedCount: @js(__(':count selected')),
         }
     })"
     @submit="prepareSubmit()"
-    class="space-y-6" dir="rtl">
+    class="space-y-6">
     @csrf
     @if ($isEdit)
         @method('PUT')
@@ -37,21 +43,21 @@
     <input type="hidden" name="select_all" :value="selectAll ? '1' : '0'">
     <input type="hidden" name="filter_q" :value="filters.q">
     <input type="hidden" name="filter_gender" :value="filters.gender">
-    <input type="hidden" name="filter_qetaa_id" :value="filters.qetaa_id">
-    <input type="hidden" name="filter_group_id" :value="filters.group_id">
-    <input type="hidden" name="filter_manteqa_id" :value="filters.manteqa_id">
-    <input type="hidden" name="filter_district_id" :value="filters.district_id">
-    <template x-if="filters.has_whatsapp">
-        <input type="hidden" name="filter_has_whatsapp" value="1">
+    <template x-for="id in filters.qetaa_ids" :key="'fq-' + id">
+        <input type="hidden" name="filter_qetaa_ids[]" :value="id">
     </template>
+    <template x-for="id in filters.group_ids" :key="'fg-' + id">
+        <input type="hidden" name="filter_group_ids[]" :value="id">
+    </template>
+    <input type="hidden" name="filter_has_whatsapp" value="1">
 
     {{-- Step 1 --}}
     <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
         <header class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/80 dark:bg-slate-800/40">
             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold">1</span>
             <div>
-                <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Campaign details') }}</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Name and send-rate limits') }}</p>
+                <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Campaign settings') }}</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Set the campaign name and safe sending pace') }}</p>
             </div>
         </header>
         <div class="p-6 space-y-5">
@@ -90,8 +96,8 @@
             <div class="flex items-center gap-3">
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold">2</span>
                 <div>
-                    <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Choose recipients') }}</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Search and select people with a phone number') }}</p>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Select recipients') }}</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Find members by sector or group, then pick who receives the message') }}</p>
                 </div>
             </div>
             <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 px-3 py-1.5 text-sm font-bold">
@@ -102,55 +108,81 @@
 
         <div class="p-6 space-y-4">
             <div class="relative">
-                <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <svg class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m21 21-4.3-4.3m0-6.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" />
                 </svg>
                 <input type="search" x-model="filters.q" @input.debounce.350ms="search()"
                     placeholder="{{ __('Search by name / phone / code') }}"
-                    class="w-full h-12 pr-11 pl-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition"
+                    class="w-full h-12 ps-11 pe-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition"
                     autocomplete="off">
             </div>
 
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <select x-model="filters.gender" @change="search()"
-                    class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none">
-                    <option value="">{{ __('Gender (all)') }}</option>
-                    <option value="Male">{{ __('Male') }}</option>
-                    <option value="Female">{{ __('Female') }}</option>
-                </select>
-                <select x-model="filters.qetaa_id" @change="search()"
-                    class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none">
-                    <option value="">{{ __('Sector') }}</option>
-                    @foreach ($qetaat as $q)
-                        <option value="{{ $q->QetaaID }}">{{ $q->QetaaName }}</option>
-                    @endforeach
-                </select>
-                <select x-model="filters.group_id" @change="search()"
-                    class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none">
-                    <option value="">{{ __('Group / service') }}</option>
-                    @foreach ($groups as $g)
-                        <option value="{{ $g->GroupID }}">{{ $g->GroupName }}</option>
-                    @endforeach
-                </select>
-                <select x-model="filters.manteqa_id" @change="search()"
-                    class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none">
-                    <option value="">{{ __('Area') }}</option>
-                    @foreach ($manteqat as $m)
-                        <option value="{{ $m->ManteqaID }}">{{ $m->ManteqaName }}</option>
-                    @endforeach
-                </select>
-                <select x-model="filters.district_id" @change="search()"
-                    class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none">
-                    <option value="">{{ __('District') }}</option>
-                    @foreach ($districts as $d)
-                        <option value="{{ $d->DistrictID }}">{{ $d->DistrictName }}</option>
-                    @endforeach
-                </select>
-                <label class="h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 inline-flex items-center gap-2 cursor-pointer hover:border-emerald-400 transition">
-                    <input type="checkbox" x-model="filters.has_whatsapp" @change="search()"
-                        class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                    {{ __('Has WhatsApp only') }}
-                </label>
+            <div class="grid sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">{{ __('Gender') }}</label>
+                    <button type="button" @click="genderOpen = !genderOpen; qetaaOpen = false; groupOpen = false"
+                        class="relative w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-start">
+                        <span class="block truncate ps-3 pe-10" x-text="genderLabel()"></span>
+                        <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div x-show="genderOpen" x-cloak @click.outside="genderOpen = false"
+                        class="relative z-30">
+                        <div class="absolute inset-x-0 mt-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg overflow-hidden">
+                            <button type="button" @click="filters.gender = ''; genderOpen = false; search()"
+                                class="w-full text-start px-3 py-2.5 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40">{{ __('All genders') }}</button>
+                            <button type="button" @click="filters.gender = 'Male'; genderOpen = false; search()"
+                                class="w-full text-start px-3 py-2.5 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border-t border-slate-100 dark:border-slate-800">{{ __('Male') }}</button>
+                            <button type="button" @click="filters.gender = 'Female'; genderOpen = false; search()"
+                                class="w-full text-start px-3 py-2.5 text-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border-t border-slate-100 dark:border-slate-800">{{ __('Female') }}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">{{ __('Sector') }}</label>
+                    <button type="button" @click="qetaaOpen = !qetaaOpen; groupOpen = false; genderOpen = false"
+                        class="relative w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-start">
+                        <span class="block truncate ps-3 pe-10" x-text="qetaaLabel()"></span>
+                        <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div x-show="qetaaOpen" x-cloak @click.outside="qetaaOpen = false"
+                        class="relative z-30">
+                        <div class="absolute inset-x-0 mt-1 max-h-64 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-2 space-y-1">
+                            <template x-for="q in allQetaat" :key="q.QetaaID">
+                                <label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                        :checked="filters.qetaa_ids.includes(String(q.QetaaID))"
+                                        @change="toggleQetaa(q.QetaaID, $event.target.checked)">
+                                    <span x-text="q.QetaaName"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">{{ __('Group') }}</label>
+                    <button type="button" @click="if (filters.qetaa_ids.length) { groupOpen = !groupOpen; qetaaOpen = false; genderOpen = false }"
+                        :disabled="!filters.qetaa_ids.length"
+                        class="relative w-full h-11 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none text-start disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="block truncate ps-3 pe-10" x-text="groupLabel()"></span>
+                        <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div x-show="groupOpen" x-cloak @click.outside="groupOpen = false"
+                        class="relative z-30">
+                        <div class="absolute inset-x-0 mt-1 max-h-64 overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-2 space-y-1">
+                            <p class="px-2 py-1 text-xs text-slate-500" x-show="!filteredGroups.length">{{ __('No groups for selected sectors') }}</p>
+                            <template x-for="g in filteredGroups" :key="g.GroupID">
+                                <label class="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer text-sm text-slate-700 dark:text-slate-200">
+                                    <input type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                        :checked="filters.group_ids.includes(String(g.GroupID))"
+                                        @change="toggleGroup(g.GroupID, $event.target.checked)">
+                                    <span x-text="g.GroupName"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -218,8 +250,8 @@
         <header class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/80 dark:bg-slate-800/40">
             <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold">3</span>
             <div>
-                <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Message') }}</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __("Type { to insert a variable. Available: {name}") }}</p>
+                <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Message template') }}</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Write your WhatsApp text. Type { to insert {name}') }}</p>
             </div>
         </header>
         <div class="p-6 space-y-4 relative">
@@ -239,13 +271,16 @@
             </div>
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{{ __('Missing variable behavior') }}</label>
-                    <select name="missing_variable_behavior" x-ref="missingBehavior"
-                        class="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none">
-                        @foreach (['fallback' => __('Fallback value'), 'empty' => __('Empty'), 'skip' => __('Skip recipient'), 'warn' => __('Warn before send')] as $val => $label)
-                            <option value="{{ $val }}" @selected(old('missing_variable_behavior', $campaign->missing_variable_behavior ?? 'fallback') === $val)>{{ $label }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{{ __('If a name is missing') }}</label>
+                    <div class="relative">
+                        <select name="missing_variable_behavior" x-ref="missingBehavior"
+                            class="w-full h-12 ps-4 pe-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none appearance-none">
+                            @foreach (['fallback' => __('Use fallback name'), 'empty' => __('Leave empty'), 'skip' => __('Skip recipient'), 'warn' => __('Warn before send')] as $val => $label)
+                                <option value="{{ $val }}" @selected(old('missing_variable_behavior', $campaign->missing_variable_behavior ?? 'fallback') === $val)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">{{ __('Fallback name') }}</label>
@@ -263,7 +298,7 @@
             <div class="flex items-center gap-3">
                 <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold">4</span>
                 <div>
-                    <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Preview') }}</h2>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Message preview') }}</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">{{ __('Estimated messages:') }} <strong x-text="estimated"></strong></p>
                 </div>
             </div>
@@ -314,7 +349,9 @@ function waCampaignForm(cfg) {
         variables: cfg.variables || ['name'],
         highCount: cfg.highCount || 100,
         labels: cfg.labels || {},
-        filters: { q: '', gender: '', qetaa_id: '', group_id: '', manteqa_id: '', district_id: '', has_whatsapp: false },
+        allGroups: cfg.allGroups || [],
+        allQetaat: cfg.allQetaat || [],
+        filters: { q: '', gender: '', qetaa_ids: [], group_ids: [], has_whatsapp: true },
         people: [],
         selected: (cfg.initialSelected || []).map(String),
         selectAll: false,
@@ -327,9 +364,72 @@ function waCampaignForm(cfg) {
         hasSearched: false,
         resultCount: null,
         searchSeq: 0,
+        genderOpen: false,
+        qetaaOpen: false,
+        groupOpen: false,
+
+        get filteredGroups() {
+            const selected = new Set((this.filters.qetaa_ids || []).map(String));
+            if (!selected.size) return [];
+            const seen = new Set();
+            return this.allGroups.filter((g) => {
+                if (!selected.has(String(g.QetaaID))) return false;
+                if (seen.has(String(g.GroupID))) return false;
+                seen.add(String(g.GroupID));
+                return true;
+            });
+        },
 
         init() {
-            // Load a first page so the table is not empty on open.
+            this.search();
+        },
+
+        genderLabel() {
+            if (this.filters.gender === 'Male') return @js(__('Male'));
+            if (this.filters.gender === 'Female') return @js(__('Female'));
+            return @js(__('All genders'));
+        },
+
+        qetaaLabel() {
+            const ids = this.filters.qetaa_ids || [];
+            if (!ids.length) return this.labels.allSectors || 'All sectors';
+            if (ids.length === 1) {
+                const hit = this.allQetaat.find((q) => String(q.QetaaID) === String(ids[0]));
+                return hit ? hit.QetaaName : (this.labels.selectedCount || ':count selected').replace(':count', '1');
+            }
+            return (this.labels.selectedCount || ':count selected').replace(':count', String(ids.length));
+        },
+
+        groupLabel() {
+            if (!(this.filters.qetaa_ids || []).length) return this.labels.chooseSectorFirst || 'Choose a sector first';
+            const ids = this.filters.group_ids || [];
+            if (!ids.length) return this.labels.chooseGroup || 'Choose groups';
+            if (ids.length === 1) {
+                const hit = this.filteredGroups.find((g) => String(g.GroupID) === String(ids[0]));
+                return hit ? hit.GroupName : (this.labels.selectedCount || ':count selected').replace(':count', '1');
+            }
+            return (this.labels.selectedCount || ':count selected').replace(':count', String(ids.length));
+        },
+
+        toggleQetaa(id, checked) {
+            const key = String(id);
+            if (checked) {
+                if (!this.filters.qetaa_ids.includes(key)) this.filters.qetaa_ids.push(key);
+            } else {
+                this.filters.qetaa_ids = this.filters.qetaa_ids.filter((x) => x !== key);
+            }
+            const allowed = new Set(this.filteredGroups.map((g) => String(g.GroupID)));
+            this.filters.group_ids = this.filters.group_ids.filter((gid) => allowed.has(String(gid)));
+            this.search();
+        },
+
+        toggleGroup(id, checked) {
+            const key = String(id);
+            if (checked) {
+                if (!this.filters.group_ids.includes(key)) this.filters.group_ids.push(key);
+            } else {
+                this.filters.group_ids = this.filters.group_ids.filter((x) => x !== key);
+            }
             this.search();
         },
 
@@ -358,10 +458,11 @@ function waCampaignForm(cfg) {
             this.hasSearched = true;
             try {
                 const params = new URLSearchParams();
-                Object.entries(this.filters).forEach(([k, v]) => {
-                    if (v === '' || v === false || v === null || v === undefined) return;
-                    params.set(k, v === true ? '1' : String(v));
-                });
+                if (this.filters.q) params.set('q', this.filters.q);
+                if (this.filters.gender) params.set('gender', this.filters.gender);
+                (this.filters.qetaa_ids || []).forEach((id) => params.append('qetaa_ids[]', id));
+                (this.filters.group_ids || []).forEach((id) => params.append('group_ids[]', id));
+                params.set('has_whatsapp', '1');
                 params.set('limit', '100');
                 const res = await fetch(this.searchUrl + '?' + params.toString(), {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
