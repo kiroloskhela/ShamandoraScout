@@ -24,14 +24,7 @@ class WhatsAppCampaignController extends Controller
 
     public function create(CampaignRecipientQuery $query)
     {
-        return view('whatsapp.campaigns.create', [
-            'qetaat' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
-            'groups' => DB::table('GroupTable')->orderBy('GroupName')->limit(500)->get(),
-            'manteqat' => DB::table('Manteqa')->orderBy('ManteqaName')->get(),
-            'districts' => DB::table('Districts')->orderBy('DistrictName')->get(),
-            'variables' => MessagePersonalizer::availableVariables(),
-            'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,
-        ]);
+        return view('whatsapp.campaigns.create', $this->formViewData());
     }
 
     public function createCsv()
@@ -112,16 +105,10 @@ class WhatsAppCampaignController extends Controller
 
         $selectedIds = $campaign->recipients()->pluck('person_id')->all();
 
-        return view('whatsapp.campaigns.edit', [
+        return view('whatsapp.campaigns.edit', array_merge($this->formViewData(), [
             'campaign' => $campaign,
             'selectedIds' => $selectedIds,
-            'qetaat' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
-            'groups' => DB::table('GroupTable')->orderBy('GroupName')->limit(500)->get(),
-            'manteqat' => DB::table('Manteqa')->orderBy('ManteqaName')->get(),
-            'districts' => DB::table('Districts')->orderBy('DistrictName')->get(),
-            'variables' => MessagePersonalizer::availableVariables(),
-            'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,
-        ]);
+        ]));
     }
 
     public function update(Request $request, WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
@@ -143,13 +130,10 @@ class WhatsAppCampaignController extends Controller
         $filters = [
             'q' => $request->input('q'),
             'gender' => $request->input('gender'),
-            'qetaa_id' => $request->integer('qetaa_id') ?: null,
-            'group_id' => $request->integer('group_id') ?: null,
-            'manteqa_id' => $request->integer('manteqa_id') ?: null,
-            'district_id' => $request->integer('district_id') ?: null,
-            'has_whatsapp' => $request->has('has_whatsapp')
-                ? filter_var($request->input('has_whatsapp'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
-                : null,
+            'qetaa_ids' => $this->intList($request->input('qetaa_ids', $request->input('qetaa_id'))),
+            'group_ids' => $this->intList($request->input('group_ids', $request->input('group_id'))),
+            // Campaigns always target WhatsApp-capable numbers only.
+            'has_whatsapp' => true,
             'exclude_blocked' => true,
         ];
 
@@ -260,29 +244,67 @@ class WhatsAppCampaignController extends Controller
             'select_all' => ['nullable', 'boolean'],
             'filter_q' => ['nullable', 'string', 'max:120'],
             'filter_gender' => ['nullable', 'string', 'max:20'],
-            'filter_qetaa_id' => ['nullable', 'integer'],
-            'filter_group_id' => ['nullable', 'integer'],
-            'filter_manteqa_id' => ['nullable', 'integer'],
-            'filter_district_id' => ['nullable', 'integer'],
-            'filter_has_whatsapp' => ['nullable', 'boolean'],
+            'filter_qetaa_ids' => ['nullable', 'array'],
+            'filter_qetaa_ids.*' => ['integer'],
+            'filter_group_ids' => ['nullable', 'array'],
+            'filter_group_ids.*' => ['integer'],
         ]);
 
         if ($request->boolean('select_all')) {
             $data['select_all_filters'] = [
                 'q' => $data['filter_q'] ?? null,
                 'gender' => $data['filter_gender'] ?? null,
-                'qetaa_id' => $data['filter_qetaa_id'] ?? null,
-                'group_id' => $data['filter_group_id'] ?? null,
-                'manteqa_id' => $data['filter_manteqa_id'] ?? null,
-                'district_id' => $data['filter_district_id'] ?? null,
-                'has_whatsapp' => array_key_exists('filter_has_whatsapp', $data)
-                    ? (bool) $data['filter_has_whatsapp']
-                    : null,
+                'qetaa_ids' => $this->intList($data['filter_qetaa_ids'] ?? []),
+                'group_ids' => $this->intList($data['filter_group_ids'] ?? []),
+                'has_whatsapp' => true,
                 'exclude_blocked' => true,
             ];
             unset($data['person_ids']);
         }
 
         return $data;
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return list<int>
+     */
+    private function intList(mixed $value): array
+    {
+        if ($value === null || $value === '' || $value === false) {
+            return [];
+        }
+        if (! is_array($value)) {
+            $value = [$value];
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $value), fn ($id) => $id > 0)));
+    }
+
+    /**
+     * Shared create/edit form datasets.
+     *
+     * @return array<string, mixed>
+     */
+    private function formViewData(): array
+    {
+        $groups = DB::table('GroupTable as gt')
+            ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')
+            ->select('gt.GroupID', 'gt.GroupName', 'gq.QetaaID')
+            ->orderBy('gt.GroupName')
+            ->get()
+            ->map(fn ($g) => [
+                'GroupID' => (int) $g->GroupID,
+                'GroupName' => $g->GroupName,
+                'QetaaID' => (int) $g->QetaaID,
+            ])
+            ->values();
+
+        return [
+            'qetaat' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
+            'groups' => $groups,
+            'variables' => MessagePersonalizer::availableVariables(),
+            'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,
+        ];
     }
 }

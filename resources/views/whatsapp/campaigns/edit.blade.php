@@ -1,13 +1,13 @@
 @extends('layouts.app', ['pageTitle' => __('Edit WhatsApp campaign draft')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8 max-w-5xl" dir="rtl">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
         <div class="mb-8">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300 mb-1">{{ __('WhatsApp campaigns') }}</p>
-                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ __('Edit draft') }}: {{ $campaign->name }}</h1>
-                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ __('Update the draft before confirming send.') }}</p>
+                    <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{{ __('Edit campaign draft') }}: {{ $campaign->name }}</h1>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ __('Update recipients or message text, then save before sending.') }}</p>
                 </div>
                 <a href="{{ route('whatsapp.campaigns.show', $campaign) }}"
                     class="inline-flex items-center h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
