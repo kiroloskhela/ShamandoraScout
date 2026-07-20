@@ -9,10 +9,18 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('SeasonEventFinance')) {
+            return;
+        }
+
         if (! Schema::hasColumn('SeasonEventFinance', 'SendQrWhatsApp')) {
             Schema::table('SeasonEventFinance', function (Blueprint $table) {
                 $table->unsignedTinyInteger('SendQrWhatsApp')->default(0)->after('HaveShirt');
             });
+        }
+
+        if (! Schema::hasTable('EventType') || ! Schema::hasColumn('EventType', 'TakesReservation')) {
+            return;
         }
 
         // Enable QR WhatsApp for existing finance plans on reservation event types.
@@ -32,6 +40,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('SeasonEventFinance')) {
+            return;
+        }
+
         if (Schema::hasColumn('SeasonEventFinance', 'SendQrWhatsApp')) {
             Schema::table('SeasonEventFinance', function (Blueprint $table) {
                 $table->dropColumn('SendQrWhatsApp');
