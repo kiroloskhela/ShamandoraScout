@@ -5,8 +5,8 @@
 
         {{-- Header --}}
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">طلب عهدة</h1>
-            <p class="text-gray-600">حدد التاريخ ثم اختر الأصناف والكميات وأرسل الطلب</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ __('Custody request') }}</h1>
+            <p class="text-gray-600">{{ __('Select dates then choose items and quantities and submit') }}</p>
         </div>
 
         {{-- Alerts --}}
@@ -28,8 +28,8 @@
         {{-- Step 1: Dates --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">١) التاريخ</h2>
-                <span class="text-xs text-gray-500">اختر من / إلى</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('1) Date') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Choose from / to') }}</span>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6 items-end">
@@ -47,18 +47,18 @@
 
                 <div class="flex items-center gap-3">
                     <input type="checkbox" id="same_day" class="w-5 h-5">
-                    <label for="same_day" class="text-sm text-gray-700">نفس اليوم</label>
+                    <label for="same_day" class="text-sm text-gray-700">{{ __('Same day') }}</label>
                 </div>
             </div>
 
-            <p class="mt-3 text-xs text-gray-500">عند اختيار "نفس اليوم" سيتم تعطيل تاريخ (إلى) تلقائيًا.</p>
+            <p class="mt-3 text-xs text-gray-500">{{ __('When "Same day" is selected, the to date will be disabled automatically.') }}</p>
         </div>
 
         {{-- Optional Info --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-blue-200">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-800">{{ __('Additional info (optional)') }}</h2>
-                <span class="text-xs text-gray-500">القطاع / نوع الفعالية</span>
+                <span class="text-xs text-gray-500">{{ __('Sector / event type') }}</span>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6">
@@ -66,7 +66,7 @@
                     <label class="block mb-2 text-sm text-gray-700">{{ __('Sector') }}</label>
                     <select id="qetaa_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="">-- بدون --</option>
+                        <option value="">-- {{ __('None') }} --</option>
                         @foreach ($qetaat as $q)
                             <option value="{{ $q->QetaaID }}" {{ old('qetaa_id') == $q->QetaaID ? 'selected' : '' }}>
                                 {{ $q->QetaaName }}
@@ -76,10 +76,10 @@
                 </div>
 
                 <div>
-                    <label class="block mb-2 text-sm text-gray-700">نوع الفعالية</label>
+                    <label class="block mb-2 text-sm text-gray-700">{{ __('Event type') }}</label>
                     <select id="event_type_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="">-- بدون --</option>
+                        <option value="">-- {{ __('None') }} --</option>
                         @foreach ($eventTypes as $e)
                             <option value="{{ $e->EventTypeID }}"
                                 {{ old('event_type_id') == $e->EventTypeID ? 'selected' : '' }}>
@@ -94,13 +94,13 @@
         {{-- Step 2: Search Inventory --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-green-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٢) اختيار الأصناف</h2>
-                <span class="text-xs text-gray-500">ابحث ثم أضف</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('2) Select items') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Search then add') }}</span>
             </div>
 
             <div class="relative">
-                <label class="block mb-2 text-sm text-gray-700">ابحث عن الصنف</label>
-                <input type="text" id="itemSearch" placeholder="اكتب اسم الصنف..."
+                <label class="block mb-2 text-sm text-gray-700">{{ __('Search for item') }}</label>
+                <input type="text" id="itemSearch" placeholder="{{ __('Type item name...') }}"
                     class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-green-500 focus:outline-none"
                     autocomplete="off">
 
@@ -108,15 +108,15 @@
                     class="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto hidden">
                 </div>
 
-                <p class="mt-2 text-xs text-gray-500">اكتب حرفين على الأقل لعرض النتائج</p>
+                <p class="mt-2 text-xs text-gray-500">{{ __('Type at least two characters to show results') }}</p>
             </div>
         </div>
 
         {{-- Step 3: Selected Items --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-yellow-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٣) الأصناف المختارة</h2>
-                <span id="itemsCount" class="text-xs text-gray-500">0 صنف</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('3) Selected items') }}</h2>
+                <span id="itemsCount" class="text-xs text-gray-500">{{ __('0 items') }}</span>
             </div>
 
             <div class="overflow-x-auto">
@@ -124,10 +124,10 @@
                     id="selectedItemsTable">
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
-                            <th class="p-3 border-b">م</th>
+                            <th class="p-3 border-b">{{ __('#') }}</th>
                             <th class="p-3 border-b">{{ __('Item') }}</th>
                             <th class="p-3 border-b">{{ __('Unit') }}</th>
-                            <th class="p-3 border-b">الكمية المطلوبة</th>
+                            <th class="p-3 border-b">{{ __('Requested quantity') }}</th>
                             <th class="p-3 border-b">{{ __('Delete') }}</th>
                         </tr>
                     </thead>
@@ -135,7 +135,7 @@
                 </table>
             </div>
 
-            <p id="emptyHint" class="mt-4 text-sm text-gray-500 text-center">لم يتم اختيار أي صنف بعد.</p>
+            <p id="emptyHint" class="mt-4 text-sm text-gray-500 text-center">{{ __('No item selected yet.') }}</p>
         </div>
 
         {{-- Note --}}
@@ -165,10 +165,10 @@
                 <button type="submit"
                     class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
                        bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                    إرسال الطلب
+                    {{ __('Send request') }}
                 </button>
 
-                <p class="mt-3 text-xs text-gray-500">سيتم إرسال الطلب بحالة <span class="font-bold">{{ __('Pending review') }}</span>.
+                <p class="mt-3 text-xs text-gray-500">{{ __('The request will be submitted with status') }} <span class="font-bold">{{ __('Pending review') }}</span>.
                 </p>
             </form>
         </div>
@@ -220,7 +220,7 @@
             }
 
             function updateCounts() {
-                itemsCountEl.textContent = `${selectedItems.length} صنف`;
+                itemsCountEl.textContent = @json(__(':count item(s)')).replace(':count', selectedItems.length);
                 emptyHintEl.classList.toggle('hidden', selectedItems.length > 0);
             }
 
@@ -264,7 +264,7 @@
 
                     matches.forEach(item => {
                         const qtyHint = (item.ItemQuantity === null || item.ItemQuantity ===
-                            undefined) ? '' : ` • المتاح: ${item.ItemQuantity}`;
+                            undefined) ? '' : ` • {{ __('Available:') }} ${item.ItemQuantity}`;
 
                         const row = document.createElement('button');
                         row.type = 'button';
@@ -358,12 +358,12 @@
             requestForm.addEventListener('submit', function(e) {
                 if (!dateFrom.value || !dateTo.value) {
                     e.preventDefault();
-                    alert('من فضلك اختر التاريخ (من / إلى).');
+                    alert(@json(__('Please select dates (from / to).')));
                     return;
                 }
                 if (selectedItems.length === 0) {
                     e.preventDefault();
-                    alert('من فضلك اختر صنف واحد على الأقل.');
+                    alert(@json(__('Please select at least one item.')));
                     return;
                 }
 

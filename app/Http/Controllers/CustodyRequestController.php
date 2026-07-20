@@ -18,6 +18,8 @@ class CustodyRequestController extends Controller
     // صفحة إنشاء طلب
     public function create()
     {
+        $this->authorize('custody.create');
+
         $inventory = DB::table('Inventory')->orderBy('ItemName')->get();
         $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
         $eventTypes = DB::table('EventType')->orderBy('EventTypeName')->get();
@@ -28,6 +30,8 @@ class CustodyRequestController extends Controller
     // حفظ الطلب
     public function store(Request $request, CustodyRequestService $custodyRequests)
     {
+        $this->authorize('custody.create');
+
         $personId = $this->currentPersonId();
         if (! $personId) {
             return back()->with('error', __('Cannot determine current user (PersonID).'))->withInput();
@@ -215,6 +219,8 @@ class CustodyRequestController extends Controller
     // عرض تفاصيل طلب واحد (مع sector/eventType/reviewer)
     public function show($id)
     {
+        $this->authorize('custody.view', (int) $id);
+
         $personId = $this->currentPersonId();
         if (! $personId) {
             return redirect()->back()->with('error', __('Cannot determine current user (PersonID).'));
@@ -248,6 +254,8 @@ class CustodyRequestController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('custody.update', (int) $id);
+
         $personId = auth()->user()->PersonID ?? null;
         if (! $personId) {
             return redirect()->route('custody_requests.my')->with('error', __('Cannot determine current user.'));
@@ -316,6 +324,8 @@ class CustodyRequestController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorize('custody.update', (int) $id);
+
         $personId = auth()->user()->PersonID ?? null;
         if (! $personId) {
             return redirect()->route('custody_requests.my')->with('error', __('Cannot determine current user.'));
@@ -437,6 +447,8 @@ class CustodyRequestController extends Controller
 
     public function destroy($id)
     {
+        $this->authorize('custody.delete', (int) $id);
+
         $personId = auth()->user()->PersonID ?? null;
         if (! $personId) {
             return back()->with('error', __('Cannot determine current user.'));

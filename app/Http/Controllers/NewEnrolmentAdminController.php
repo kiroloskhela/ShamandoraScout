@@ -92,6 +92,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function indexNewEnrolmentsAndMigrations()
     {
+        $this->authorize('enrolment.migrate');
+
         $qetaas = DB::table('Qetaa')
             ->orderBy('QetaaID')
             ->get(['QetaaID', 'QetaaName']);
@@ -118,6 +120,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function indexNewEnrolments(Request $request)
     {
+        $this->authorize('enrolment.viewAny');
+
         return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-index', true);
     }
 
@@ -143,6 +147,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function showNewEnrolments($id)
     {
+        $this->authorize('enrolment.view', (int) $id);
+
         $person = DB::table('NewUsersInformation')->where('PersonID', $id)
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'NewUsersInformation.BloodTypeID')
             ->leftJoin('Qetaa', 'Qetaa.QetaaID', '=', 'NewUsersInformation.QetaaID')
@@ -162,6 +168,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function deleteNewEnrolments($id)
     {
+        $this->authorize('enrolment.delete', (int) $id);
+
         $person = DB::table('NewUsersInformation')->where('PersonID', '=', $id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.ShamandoraCode', DB::raw("CONCAT(FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) as FullName"))->first();
 
         return view('person.new-enrolments-delete', ['person' => $person]);
@@ -169,6 +177,7 @@ class NewEnrolmentAdminController extends Controller
 
     public function destroyNewEnrolments($id)
     {
+        $this->authorize('enrolment.delete', (int) $id);
 
         $person = DB::table('NewUsersInformation')->where('PersonID', '=', $id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.QetaaID')->first();
 
@@ -184,21 +193,25 @@ class NewEnrolmentAdminController extends Controller
 
     public function approveNewEnrolments($id)
     {
+        $this->authorize('enrolment.approve', (int) $id);
+
         DB::table('NewUsersInformation')
             ->where('PersonID', $id)
             ->update(['IsApproved' => 1]);
 
-        return redirect()->back()->with('success', 'تمت الموافقة بنجاح');
+        return redirect()->back()->with('success', __('Approved successfully'));
     }
 
     public function approveAgainNewEnrolments($id)
     {
+        $this->authorize('enrolment.approve', (int) $id);
+
         DB::table('NewUsersInformation')
             ->where('PersonID', $id)
             ->update(['IsApproved' => 1]);
 
         return redirect()->route('person.new-enrolments-index')
-            ->with('success', 'تمت إعادة الموافقة بنجاح');
+            ->with('success', __('Re-approved successfully'));
     }
 
     public function countNewEnrolmentsMarahel()
@@ -232,6 +245,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function editNewEnrolments($id)
     {
+        $this->authorize('enrolment.update', (int) $id);
+
         $person = DB::table('NewUsersInformation')
             ->where('PersonID', $id)
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'NewUsersInformation.BloodTypeID')
@@ -277,6 +292,8 @@ class NewEnrolmentAdminController extends Controller
 
     public function updateNewEnrolments(Request $request, $id)
     {
+        $this->authorize('enrolment.update', (int) $id);
+
         $exists = DB::selectOne(
             'SELECT COUNT(*) as count FROM NewUsersInformation WHERE RaqamQawmy = ? AND PersonID != ?',
             [$request->input_raqam_qawmy, $id]

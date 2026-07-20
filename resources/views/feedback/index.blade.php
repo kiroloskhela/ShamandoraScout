@@ -11,8 +11,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
-    <title>تقييم معسكر مجمع 2025</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>{{ __('Combined camp evaluation 2025') }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
     :root {
         --primary-color: #333;
@@ -37,11 +37,10 @@
     }
 
     body {
-        font-family: 'Cairo', sans-serif;
+        font-family: {{ $locale === 'ar' ? "'Cairo'" : "'Source Sans 3', system-ui, sans-serif" }};
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         min-height: 100vh;
         padding: 20px;
-        direction: rtl;
         color: var(--primary-color);
         line-height: 1.6;
     }
@@ -244,7 +243,6 @@
 
     /* Rating System */
     .rating-stars {
-        direction: rtl;
         unicode-bidi: bidi-override;
         display: inline-block;
         font-size: 2rem;
@@ -470,46 +468,45 @@
     <div class="container">
         <!-- Header Section -->
         <header class="header">
-            <img src={{ asset('img/shamandora.webp') }} alt="شعار المعسكر" class="header__logo">
-            <h1 class="header__title">تقييم معسكر مجمع 2025 - مربوط بكيفي</h1>
-            <p class="header__subtitle">ربنا يعوضكم على تعبكم وخدمتكم خلال المعسكر</p>
+            <img src={{ asset('img/shamandora.webp') }} alt="{{ __('Camp logo') }}" class="header__logo">
+            <h1 class="header__title">{{ __('Combined camp evaluation 2025 - Keffi') }}</h1>
+            <p class="header__subtitle">{{ __('May God reward you for your effort and service during the camp') }}</p>
             <p class="header__description">
-                وجودكم كان بركة حقيقية، ومجهودكم هو اللي صنع الفرق. علشان نستفيد فعلاً من تجربة المعسكر وننمو كفريق،
-                بنطلب منكم تشاركونا آرائكم الصادقة عن كل حاجة حصلت — الإيجابي، والتحديات، وكل التفاصيل اللي تهم.
+                {{ __('Feedback intro paragraph') }}
             </p>
 
             <div class="info-section">
                 <h3 class="info-section__title">
                     <span class="info-section__icon">🎯</span>
-                    هدف التقييم
+                    {{ __('Evaluation purpose') }}
                 </h3>
                 <ul class="info-section__list">
-                    <li class="info-section__item">إننا نتعلم من التجربة دي ونبني عليها</li>
-                    <li class="info-section__item">نتجنب أي تقصير حصل خلال المعسكر</li>
-                    <li class="info-section__item">نسجل النقاط المهمة علشان تكون مرجعية لينا بعد كده</li>
-                    <li class="info-section__item">ونوفر وقت لما نقعد مع بعض نراجع ونخطط للجايات</li>
+                    <li class="info-section__item">{{ __('Learn from this experience and build on it') }}</li>
+                    <li class="info-section__item">{{ __('Avoid any shortcomings during the camp') }}</li>
+                    <li class="info-section__item">{{ __('Record important points for future reference') }}</li>
+                    <li class="info-section__item">{{ __('Save time when we review and plan together') }}</li>
                 </ul>
             </div>
 
             <div class="info-section">
                 <h3 class="info-section__title">
                     <span class="info-section__icon">📝</span>
-                    رجاء خاص
+                    {{ __('Special request') }}
                 </h3>
                 <ul class="info-section__list">
-                    <li class="info-section__item">اكتب رأيك بموضوعية</li>
-                    <li class="info-section__item">كن صادق وبنّاء في ملاحظاتك</li>
-                    <li class="info-section__item">الهدف مش اللوم، الهدف هو دايمًا التطوير والتحسين</li>
+                    <li class="info-section__item">{{ __('Write your opinion objectively') }}</li>
+                    <li class="info-section__item">{{ __('Be honest and constructive in your notes') }}</li>
+                    <li class="info-section__item">{{ __('The goal is improvement, not blame') }}</li>
                 </ul>
             </div>
 
             <p class="header__description">
-                شكراً ليك من القلب — وجودك فرق معانا ❤<br>
-                وبإذن الله المعسكر الجاي يكون أقوى وأجمل بينا كلنا
+                {{ __('Thank you from the heart — your presence made a difference ❤') }}<br>
+                {{ __('Next camp will be stronger and better, God willing') }}
             </p>
 
             <div class="notice">
-                يرجى العلم أن اغلب الحقول في هذا النموذج اختيارية. يمكنك ملء ما تراه مناسباً وإرسال النموذج في أي وقت.
+                {{ __('Most fields in this form are optional. Fill what you see fit and submit anytime.') }}
             </div>
         </header>
 
@@ -518,40 +515,40 @@
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <!-- Personal Information -->
             <div class="form-group">
-                <label for="participantName" class="label">الاسم الثلاثي بالعربي</label>
+                <label for="participantName" class="label">{{ __('Full Arabic name (three parts)') }}</label>
                 <input type="text" id="participantName" name="participant_name" class="input"
-                    placeholder="أدخل اسمك الثلاثي">
+                    placeholder="{{ __('Enter your full name') }}">
             </div>
 
             <div class="form-group form-group--inline">
                 <div>
-                    <label for="mainTeam" class="label">الفريق الأساسي</label>
+                    <label for="mainTeam" class="label">{{ __('Main team') }}</label>
                     <select id="mainTeam" name="main_team" class="select">
-                        <option value="">اختر الفريق الأساسي</option>
-                        <option value="braem">براعم</option>
-                        <option value="ashbal">أشبال</option>
-                        <option value="zahrat">زهرات</option>
-                        <option value="kashafa">كشافة</option>
-                        <option value="morshedat">مرشدات</option>
-                        <option value="motakadem">متقدم</option>
-                        <option value="raedat">رائدات</option>
-                        <option value="jawala">جوالة</option>
-                        <option value="edareat">اداريات</option>
+                        <option value="">{{ __('Choose main team') }}</option>
+                        <option value="braem">{{ __('Cubs (Baraem)') }}</option>
+                        <option value="ashbal">{{ __('Cubs (Ashbal)') }}</option>
+                        <option value="zahrat">{{ __('Flowers (Zahrat)') }}</option>
+                        <option value="kashafa">{{ __('Scouts (Kashafa)') }}</option>
+                        <option value="morshedat">{{ __('Guides (Morshedat)') }}</option>
+                        <option value="motakadem">{{ __('Advanced (Motakadem)') }}</option>
+                        <option value="raedat">{{ __('Pioneers (Raedat)') }}</option>
+                        <option value="jawala">{{ __('Rovers (Jawala)') }}</option>
+                        <option value="edareat">{{ __('Administrative (Edareat)') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label for="subTeam" class="label">الفريق الفرعي</label>
+                    <label for="subTeam" class="label">{{ __('Sub team') }}</label>
                     <select id="subTeam" name="sub_team" class="select">
-                        <option value="">اختر الفريق الفرعي</option>
-                        <option value="media">ميديا</option>
-                        <option value="ohda">عهدة</option>
-                        <option value="esafate">إسعافات</option>
-                        <option value="secretary">سكرتارية</option>
-                        <option value="moshtaryat">مشتريات</option>
-                        <option value="malia">مالية</option>
-                        <option value="matbakh">مطبخ</option>
-                        <option value="tawselhadaf">توصيل هدف</option>
-                        <option value="bernameg">برنامج</option>
+                        <option value="">{{ __('Choose sub team') }}</option>
+                        <option value="media">{{ __('Media team') }}</option>
+                        <option value="ohda">{{ __('Custody team') }}</option>
+                        <option value="esafate">{{ __('First aid team') }}</option>
+                        <option value="secretary">{{ __('Secretary team') }}</option>
+                        <option value="moshtaryat">{{ __('Purchasing team') }}</option>
+                        <option value="malia">{{ __('Finance team') }}</option>
+                        <option value="matbakh">{{ __('Kitchen team') }}</option>
+                        <option value="tawselhadaf">{{ __('Goal delivery team') }}</option>
+                        <option value="bernameg">{{ __('Program team') }}</option>
                     </select>
                 </div>
             </div>
@@ -561,15 +558,14 @@
 
                 <h2 class="section__title">
 
-                    🗓️ البرنامج العام
+                    {{ __('General program') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم البرنامج العام للمعسكر، من حيث التنظيم، المحتوى، وعدد الفقرات، ومواعيد الفقرات
-                    خلال اليوم والفعاليات المقدمة.
+                    {{ __('General program section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="program{{ $i }}" name="program_rating" value="{{ $i }}" required>
@@ -579,15 +575,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="programPros" class="label">الإيجابيات</label>
+                    <label for="programPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="programPros" name="program_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في البرنامج..."></textarea>
+                        placeholder="{{ __('Mention program positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="programCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="programCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="programCons" name="program_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -596,15 +592,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    👥 توزيع القادة
+                    {{ __('Leader distribution') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم عملية توزيع القادة على الفرق، ومدى فعالية كل قائد في إدارة فريقه، والتواصل مع
-                    الأعضاء، وتقديم الدعم اللازم.
+                    {{ __('Leader distribution section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="leaders{{ $i }}" name="leaders_rating" value="{{ $i }}" required>
@@ -614,15 +609,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="leadersPros" class="label">الإيجابيات</label>
+                    <label for="leadersPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="leadersPros" name="leaders_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في توزيع القادة..."></textarea>
+                        placeholder="{{ __('Mention leader distribution positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="leadersCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="leadersCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="leadersCons" name="leaders_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -631,15 +626,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🎮 الألعاب
+                    {{ __('Games') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم الألعاب والأنشطة الترفيهية المقدمة من لجنة الألعاب خلال المعسكر، من حيث انواع
-                    الألعاب، الفائدة، والتنظيم.
+                    {{ __('Games section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="games{{ $i }}" name="games_rating" value="{{ $i }}" required>
@@ -649,15 +643,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="gamesPros" class="label">الإيجابيات</label>
+                    <label for="gamesPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="gamesPros" name="games_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في الالعاب..."></textarea>
+                        placeholder="{{ __('Mention games positives... (alt)') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="gamesCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="gamesCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="gamesCons" name="games_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -666,15 +660,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🎯 توصيل الهدف
+                    {{ __('Goal delivery') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم طريقة توصيل هدف المعسكر، المحتوى، أماكن المحاضرات، مدة الفقرة، الأنشطة المقدمة
-                    فى توصيل الهدف
+                    {{ __('Goal delivery section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="goal_delivery{{ $i }}" name="goal_delivery_rating" value="{{ $i }}"
@@ -685,15 +678,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="goal_deliveryPros" class="label">الإيجابيات</label>
+                    <label for="goal_deliveryPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="goal_deliveryPros" name="goal_delivery_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في توصيل الهدف..."></textarea>
+                        placeholder="{{ __('Mention goal delivery positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="goal_deliveryCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="goal_deliveryCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="goal_deliveryCons" name="goal_delivery_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -702,14 +695,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🎵 الشعار
+                    {{ __('Camp anthem') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم الشعار الخاص بالمعسكر أو الفعالية، من حيث الكلمات، اللحن، الوضوح، والجاذبية.
+                    {{ __('Camp anthem section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="logo{{ $i }}" name="logo_rating" value="{{ $i }}" required>
@@ -719,15 +712,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="logoPros" class="label">الإيجابيات</label>
+                    <label for="logoPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="logoPros" name="logo_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في الشعار..."></textarea>
+                        placeholder="{{ __('Mention anthem positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="logoCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="logoCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="logoCons" name="logo_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -735,14 +728,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🎁 الهدايا
+                    {{ __('Gifts') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم الهدايا المقدمة، من حيث الجودة، الملائمة، والقيمة.
+                    {{ __('Gifts section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="gift{{ $i }}" name="gift_rating" value="{{ $i }}" required>
@@ -752,15 +745,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="giftPros" class="label">الإيجابيات</label>
+                    <label for="giftPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="giftPros" name="gift_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في الهدايا..."></textarea>
+                        placeholder="{{ __('Mention gifts positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="giftCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="giftCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="giftCons" name="gift_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -768,15 +761,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    📋 السكرتارية
+                    {{ __('Secretariat') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم أعمال السكرتارية، من حيث توزيع الخيم، والرهوط، والباصات، الدقة، وسرعة الإنجاز،
-                    ومرونة القادة خلال الحجز والتوزيع والتغيرات.
+                    {{ __('Secretariat section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="secretary{{ $i }}" name="secretary_rating" value="{{ $i }}" required>
@@ -786,15 +778,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="secretaryPros" class="label">الإيجابيات</label>
+                    <label for="secretaryPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="secretaryPros" name="secretary_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في السكرتارية..."></textarea>
+                        placeholder="{{ __('Mention secretariat positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="secretaryCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="secretaryCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="secretaryCons" name="secretary_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -802,14 +794,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    📱 الميديا
+                    {{ __('Media') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم التغطية الإعلامية، من حيث الجودة، التنوع، والانتشار.
+                    {{ __('Media section description (feedback)') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="media{{ $i }}" name="media_rating" value="{{ $i }}" required>
@@ -819,15 +811,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="mediaPros" class="label">الإيجابيات</label>
+                    <label for="mediaPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="mediaPros" name="media_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في الميديا..."></textarea>
+                        placeholder="{{ __('Mention media positives... (feedback)') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="mediaCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="mediaCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="mediaCons" name="media_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -835,15 +827,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🚑 الاسعافات
+                    {{ __('First aid') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم خدمات الإسعافات الأولية، من حيث الاستجابة، التجهيزات، وكفاءة الفريق،
-                    والانتشار.
+                    {{ __('First aid section description (feedback)') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="emergency{{ $i }}" name="emergency_rating" value="{{ $i }}" required>
@@ -853,15 +844,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="emergencyPros" class="label">الإيجابيات</label>
+                    <label for="emergencyPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="emergencyPros" name="emergency_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في الاسعافات..."></textarea>
+                        placeholder="{{ __('Mention first aid positives... (feedback)') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="emergencyCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="emergencyCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="emergencyCons" name="emergency_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -869,14 +860,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🍽️ المطبخ
+                    {{ __('Kitchen') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم خدمات المطبخ والطعام، من حيث الجودة، النظافة، والتنوع، والكميات.
+                    {{ __('Kitchen section description (feedback)') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="kitchen{{ $i }}" name="kitchen_rating" value="{{ $i }}" required>
@@ -886,15 +877,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="kitchenPros" class="label">الإيجابيات</label>
+                    <label for="kitchenPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="kitchenPros" name="kitchen_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في المطبخ..."></textarea>
+                        placeholder="{{ __('Mention kitchen positives... (feedback)') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="kitchenCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="kitchenCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="kitchenCons" name="kitchen_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -902,14 +893,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    💰 المالية
+                    {{ __('Finance') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم قطاع المالية، من حيث التنظيم، الكفاءة، ومرونة القادة خلال الحجز.
+                    {{ __('Finance section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="finance{{ $i }}" name="finance_rating" value="{{ $i }}" required>
@@ -919,15 +910,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="financePros" class="label">الإيجابيات</label>
+                    <label for="financePros" class="label">{{ __('Pros') }}</label>
                     <textarea id="financePros" name="finance_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في المالية..."></textarea>
+                        placeholder="{{ __('Mention finance positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="financeCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="financeCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="financeCons" name="finance_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -935,14 +926,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    📦 العهدة
+                    {{ __('Custody/inventory') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم قطاع العهدة، من حيث التنظيم، والتسليم والتسلم، الإنتشار، وسرعة الإستجابة.
+                    {{ __('Custody section description (feedback)') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="custody{{ $i }}" name="custody_rating" value="{{ $i }}" required>
@@ -952,15 +943,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="custodyPros" class="label">الإيجابيات</label>
+                    <label for="custodyPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="custodyPros" name="custody_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في العهدة..."></textarea>
+                        placeholder="{{ __('Mention custody positives... (feedback)') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="custodyCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="custodyCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="custodyCons" name="custody_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -968,14 +959,14 @@
             <div class="section">
                 <h2 class="section__title">
 
-                    🛒 المشتريات
+                    {{ __('Purchasing') }}
                 </h2>
                 <p class="section__description">
-                    هذا القسم مخصص لتقييم عملية المشتريات، من حيث الكفاءة، الجودة، وتلبية الاحتياجات.
+                    {{ __('Purchasing section description') }}
                 </p>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="purchase{{ $i }}" name="purchase_rating" value="{{ $i }}" required>
@@ -985,15 +976,15 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="purchasePros" class="label">الإيجابيات</label>
+                    <label for="purchasePros" class="label">{{ __('Pros') }}</label>
                     <textarea id="purchasePros" name="purchase_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في المشتريات..."></textarea>
+                        placeholder="{{ __('Mention purchasing positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="purchaseCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="purchaseCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="purchaseCons" name="purchase_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
@@ -1001,11 +992,11 @@
             <div class="section">
                 <h2 class="section__title">
                     <span class="section__icon"></span>
-                    🚌 المواصلات
+                    {{ __('Transportation') }}
                 </h2>
 
                 <div class="form-group">
-                    <label class="label label--required">التقييم العام (1-10)</label>
+                    <label class="label label--required">{{ __('Overall rating (1-10)') }}</label>
                     <div class="rating-stars">
                         @for ($i = 10; $i >= 1; $i--)
                         <input type="radio" id="transportation{{ $i }}" name="transportation_rating" value="{{ $i }}"
@@ -1016,29 +1007,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="transportationPros" class="label">الإيجابيات</label>
+                    <label for="transportationPros" class="label">{{ __('Pros') }}</label>
                     <textarea id="transportationPros" name="transportation_pros" class="textarea"
-                        placeholder="اذكر النقاط الإيجابية في المواصلات..."></textarea>
+                        placeholder="{{ __('Mention transportation positives...') }}"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="transportationCons" class="label">السلبيات والتحسينات المقترحة</label>
+                    <label for="transportationCons" class="label">{{ __('Cons and suggested improvements') }}</label>
                     <textarea id="transportationCons" name="transportation_cons" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
             <div class="section">
                 <div class="form-group">
-                    <label for="generalSuggestions" class="label">هل لديك اي اقتراحات عامة؟ من فضلك اكتبها هنا</label>
+                    <label for="generalSuggestions" class="label">{{ __('Do you have any general suggestions? Please write them here') }}</label>
                     <textarea id="generalSuggestions" name="general_suggestions" class="textarea"
-                        placeholder="اذكر النقاط التي تحتاج تحسين واقتراحاتك..."></textarea>
+                        placeholder="{{ __('Mention improvements and suggestions...') }}"></textarea>
                 </div>
             </div>
 
             <!-- Submit Section -->
             <div class="submit-section">
-                <button type="submit" class="btn btn--primary">إرسال التقييم</button>
+                <button type="submit" class="btn btn--primary">{{ __('Submit evaluation') }}</button>
             </div>
         </form>
     </div>
@@ -1049,10 +1040,9 @@
             <div class="modal__icon">
                 <img src="img/shamandora.webp" alt="Success Icon" style="max-width: 100px; height: auto;">
             </div>
-            <h2 class="modal__title" id="modalTitle">تم الإرسال بنجاح!</h2>
-            <p class="modal__text" id="modalText">شكراً لك على وقتك ومشاركتك الصادقة. تقييمك سيساعدنا في تطوير المعسكرات
-                القادمة.</p>
-            <button class="btn btn--primary" onclick="closeModal()">إغلاق</button>
+            <h2 class="modal__title" id="modalTitle">{{ __('Submitted successfully!') }}</h2>
+            <p class="modal__text" id="modalText">{{ __('Thank you for your time and honest feedback. Your evaluation will help us improve future camps.') }}</p>
+            <button class="btn btn--primary" onclick="closeModal()">{{ __('Close') }}</button>
         </div>
     </div>
 
@@ -1076,7 +1066,7 @@
         const form = this;
         const submitBtn = form.querySelector('.btn--primary');
         const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'جاري الإرسال...';
+        submitBtn.textContent = @json(__('Submitting...'));
         submitBtn.disabled = true;
 
         const formData = new FormData(form);
@@ -1095,10 +1085,10 @@
                 showModal();
                 form.reset();
             } else {
-                alert('حدث خطأ أثناء الإرسال. حاول مرة أخرى.');
+                alert(@json(__('An error occurred while submitting. Please try again.')));
             }
         } catch (error) {
-            alert('فشل الاتصال بالخادم.');
+            alert(@json(__('Failed to connect to the server.')));
         }
 
         submitBtn.textContent = originalText;
@@ -1114,13 +1104,11 @@
         const modalText = document.getElementById('modalText');
 
         if (participantName) {
-            modalTitle.textContent = `شكراً يا ${participantName} ❤️`;
-            modalText.textContent =
-                `تم تقديم رأيك بنجاح! شكراً لك على وقتك ومشاركتك الصادقة. تقييمك سيساعدنا في تطوير المعسكرات القادمة.`;
+            modalTitle.textContent = @json(__('Thank you :name ❤️')).replace(':name', participantName);
+            modalText.textContent = @json(__('Your feedback was submitted successfully! Thank you for your time and honest feedback. Your evaluation will help us improve future camps.'));
         } else {
-            modalTitle.textContent = `شكراً لك ❤️`;
-            modalText.textContent =
-                `تم تقديم رأيك بنجاح! شكراً لك على وقتك ومشاركتك الصادقة. تقييمك سيساعدنا في تطوير المعسكرات القادمة.`;
+            modalTitle.textContent = @json(__('Thank you ❤️'));
+            modalText.textContent = @json(__('Your feedback was submitted successfully! Thank you for your time and honest feedback. Your evaluation will help us improve future camps.'));
         }
 
         document.getElementById('successModal').classList.add('modal--visible');

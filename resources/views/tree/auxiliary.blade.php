@@ -3,7 +3,7 @@
 @section('content')
     @php
         $totalPeople = $talaea->sum(fn($taleia) => $taleia->people->count());
-        $initials = fn($name) => mb_substr($name ?: '؟', 0, 1, 'UTF-8');
+        $initials = fn($name) => mb_substr($name ?: '?', 0, 1, 'UTF-8');
         $palette = [
             ['accent' => '#2563eb', 'soft' => '#eff6ff', 'border' => '#bfdbfe', 'avatar' => '#dbeafe'],
             ['accent' => '#16a34a', 'soft' => '#f0fdf4', 'border' => '#bbf7d0', 'avatar' => '#dcfce7'],
@@ -17,9 +17,9 @@
     <div class="aux-root">
         <header class="aux-header">
             <div>
-                <p class="aux-eyebrow">بيانات الفريق</p>
-                <h1>عرض الطلائع</h1>
-                <p>اختار القطاع ثم الفريق أو الطلائع المباشرة لعرض الأشخاص داخل كل طليعة.</p>
+                <p class="aux-eyebrow">{{ __('Team data') }}</p>
+                <h1>{{ __('View patrols') }}</h1>
+                <p>{{ __('Select sector then team or direct patrols to view people in each patrol.') }}</p>
             </div>
 
             <form method="GET" action="{{ route('qetaa.auxiliary') }}" class="aux-filters">
@@ -27,7 +27,7 @@
                     <span>{{ __('Sector') }}</span>
                     <select name="qetaa" onchange="this.form.submit()">
                         @if ($servedQetaas->count() !== 1)
-                            <option value="">اختر القطاع</option>
+                            <option value="">{{ __('Choose sector') }}</option>
                         @endif
                         @foreach ($servedQetaas as $qetaa)
                             <option value="{{ $qetaa->QetaaID }}"
@@ -39,12 +39,12 @@
                 </label>
 
                 <label class="aux-select {{ !$selectedQetaaId ? 'is-disabled' : '' }}">
-                    <span>الفريق</span>
+                    <span>{{ __('Team') }}</span>
                     <select name="team" onchange="this.form.submit()" {{ !$selectedQetaaId ? 'disabled' : '' }}>
-                        <option value="">اختر الفريق</option>
+                        <option value="">{{ __('Choose team') }}</option>
                         @if (($directTalaeaCount ?? 0) > 0)
                             <option value="direct" {{ (string) $selectedTeamId === 'direct' ? 'selected' : '' }}>
-                                الطلائع المباشرة
+                                {{ __('Direct patrols') }}
                             </option>
                         @endif
                         @foreach ($teams as $team)
@@ -61,35 +61,35 @@
         <section class="aux-stats">
             <div>
                 <strong>{{ $servedQetaas->count() }}</strong>
-                <span>قطاع متاح</span>
+                <span>{{ __('Available sector') }}</span>
             </div>
             <div>
                 <strong>{{ $teams->count() }}</strong>
-                <span>فريق</span>
+                <span>{{ __('Team') }}</span>
             </div>
             <div>
                 <strong>{{ $talaea->count() }}</strong>
-                <span>طليعة</span>
+                <span>{{ __('patrol') }}</span>
             </div>
             <div>
                 <strong>{{ $totalPeople }}</strong>
-                <span>شخص</span>
+                <span>{{ __('person') }}</span>
             </div>
         </section>
 
         @if (!$selectedQetaaId)
-            <div class="aux-empty">اختار القطاع أولاً لعرض الفرق المتاحة.</div>
+            <div class="aux-empty">{{ __('Select a sector first to view available teams.') }}</div>
         @elseif (!$selectedTeamId)
-            <div class="aux-empty">اختار الفريق أو الطلائع المباشرة لعرض الطلائع التابعة له.</div>
+            <div class="aux-empty">{{ __('Select a team or direct patrols to view their patrols.') }}</div>
         @elseif ($talaea->isEmpty())
-            <div class="aux-empty">لا توجد طلايع مسجلة داخل {{ $selectedTeam->GroupName ?? 'هذا الاختيار' }}.</div>
+            <div class="aux-empty">{{ __('No patrols registered in :name.', ['name' => $selectedTeam->GroupName ?? __('this selection')]) }}</div>
         @else
             <section class="aux-team-band">
                 <div>
-                    <span>الفريق المختار</span>
+                    <span>{{ __('Selected team') }}</span>
                     <strong>{{ $selectedTeam->GroupName }}</strong>
                 </div>
-                <div class="aux-team-count">{{ $talaea->count() }} طليعة</div>
+                <div class="aux-team-count">{{ __(':count patrol(s)', ['count' => $talaea->count()]) }}</div>
             </section>
 
             <section class="aux-talaea">
@@ -101,14 +101,14 @@
                         style="--aux-accent: {{ $colors['accent'] }}; --aux-soft: {{ $colors['soft'] }}; --aux-border: {{ $colors['border'] }}; --aux-avatar: {{ $colors['avatar'] }};">
                         <div class="aux-taleia-head">
                             <div>
-                                <span class="aux-badge">طليعة</span>
+                                <span class="aux-badge">{{ __('Patrol') }}</span>
                                 <h2>{{ $taleia->GroupName }}</h2>
                             </div>
                             <strong>{{ $taleia->people->count() }}</strong>
                         </div>
 
                         @if ($taleia->people->isEmpty())
-                            <p class="aux-card-empty">لا يوجد أشخاص داخل هذه الطليعة.</p>
+                            <p class="aux-card-empty">{{ __('No people in this patrol.') }}</p>
                         @else
                             <div class="aux-people">
                                 @foreach ($taleia->people as $person)

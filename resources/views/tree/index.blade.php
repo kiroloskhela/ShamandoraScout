@@ -3,7 +3,7 @@
 
 @section('content')
     @php
-        $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
+        $typeLabel = [2 => __('Team'), 3 => __('Patrol')];
         $typeBadgeClass = [2 => 'badge--fareeq', 3 => 'badge--taleia'];
         $pageTitle = $pageTitle ?? __('Team structure');
         $servedQetaas = $servedQetaas ?? collect();
@@ -25,7 +25,7 @@
                 </svg>
                 <div>
                     <h1 class="qt-topbar__title">{{ $pageTitle }}</h1>
-                    <p class="qt-topbar__subtitle">القطاعات والمجموعات المرتبطة بالفريق الذي تخدم فيه</p>
+                    <p class="qt-topbar__subtitle">{{ __('Sectors and groups linked to the team you serve') }}</p>
                 </div>
             </div>
 
@@ -37,7 +37,7 @@
                     <label class="qt-select-wrap qt-select-wrap--strong">
                         <span class="qt-select-wrap__label">{{ __('Sector') }}</span>
                         <select name="qetaa" class="qt-select" onchange="document.getElementById('season-form').submit()">
-                            <option value="">كل القطاعات</option>
+                            <option value="">{{ __('All sectors') }}</option>
                             @foreach ($servedQetaas as $qetaaOption)
                                 <option value="{{ $qetaaOption->QetaaID }}"
                                     {{ (string) $qetaaOption->QetaaID === (string) $selectedQetaaId ? 'selected' : '' }}>
@@ -75,19 +75,19 @@
         <div class="qt-stats">
             <div class="qt-stat">
                 <span class="qt-stat__num">{{ $tree->count() }}</span>
-                <span class="qt-stat__lbl">قطاع</span>
+                <span class="qt-stat__lbl">{{ __('sector') }}</span>
             </div>
             <div class="qt-stat qt-stat--accent">
                 <span class="qt-stat__num">{{ $servedCount }}</span>
-                <span class="qt-stat__lbl">تخدمها</span>
+                <span class="qt-stat__lbl">{{ __('You serve') }}</span>
             </div>
             <div class="qt-stat">
                 <span class="qt-stat__num">{{ $totalGroups }}</span>
-                <span class="qt-stat__lbl">مجموعة</span>
+                <span class="qt-stat__lbl">{{ __('group') }}</span>
             </div>
             <div class="qt-stat">
                 <span class="qt-stat__num">{{ $totalPeople }}</span>
-                <span class="qt-stat__lbl">شخص</span>
+                <span class="qt-stat__lbl">{{ __('person') }}</span>
             </div>
         </div>
 
@@ -96,21 +96,21 @@
                 <div class="qt-qetaa-overview__stats">
                     <div class="qt-overview-stat">
                         <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['total_people'] }}</span>
-                        <span class="qt-overview-stat__lbl">إجمالي أشخاص القطاع</span>
+                        <span class="qt-overview-stat__lbl">{{ __('Sector total people') }}</span>
                     </div>
                     <div class="qt-overview-stat qt-overview-stat--ok">
                         <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['people_in_groups'] }}</span>
-                        <span class="qt-overview-stat__lbl">داخل مجموعة</span>
+                        <span class="qt-overview-stat__lbl">{{ __('Inside a group') }}</span>
                     </div>
                     <div class="qt-overview-stat qt-overview-stat--warn">
                         <span class="qt-overview-stat__num">{{ $qetaaPeopleOverview['remaining_people'] }}</span>
-                        <span class="qt-overview-stat__lbl">متبقي بدون مجموعة</span>
+                        <span class="qt-overview-stat__lbl">{{ __('Remaining without group') }}</span>
                     </div>
                 </div>
 
                 @if ($ungroupedPeople->isNotEmpty())
                     <button class="qt-mini-btn qt-qetaa-overview__toggle" type="button" onclick="toggleUngroupedPeople()">
-                        عرض الأشخاص بدون مجموعة
+                        {{ __('Show people without a group') }}
                     </button>
                     <div id="qt-ungrouped-panel" class="qt-ungrouped-panel" style="display:none">
                         @foreach ($ungroupedPeople as $person)
@@ -142,7 +142,7 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="qt-qetaa-overview__done">كل أشخاص القطاع داخل مجموعات.</p>
+                    <p class="qt-qetaa-overview__done">{{ __('All people in the sector are in groups.') }}</p>
                 @endif
             </section>
         @endif
@@ -153,12 +153,12 @@
                     <circle cx="6.5" cy="6.5" r="5" />
                     <path d="M10.5 10.5l3.5 3.5" />
                 </svg>
-                <input type="search" id="qt-tree-search" placeholder="ابحث باسم القطاع أو المجموعة أو الشخص"
+                <input type="search" id="qt-tree-search" placeholder="{{ __('Search by sector, group or person name') }}"
                     oninput="qtFilterTree(this.value)">
             </label>
             <div class="qt-tool-actions">
-                <button class="qt-mini-btn" type="button" onclick="qtSetAll(true)">فتح الكل</button>
-                <button class="qt-mini-btn" type="button" onclick="qtSetAll(false)">غلق الكل</button>
+                <button class="qt-mini-btn" type="button" onclick="qtSetAll(true)">{{ __('Expand all') }}</button>
+                <button class="qt-mini-btn" type="button" onclick="qtSetAll(false)">{{ __('Close all') }}</button>
             </div>
         </div>
 
@@ -185,7 +185,7 @@
                         <div class="qt-qetaa__info">
                             <span class="qt-qetaa__name">{{ $q->QetaaName }}</span>
                             @if ($node['is_served'])
-                                <span class="qt-pill qt-pill--blue">تخدمها</span>
+                                <span class="qt-pill qt-pill--blue">{{ __('You serve') }}</span>
                             @endif
                         </div>
 
@@ -205,14 +205,14 @@
                                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 2v8M2 6h8" />
                                         </svg>
-                                        فريق
+                                        {{ __('Team') }}
                                     </button>
                                     <button class="qt-action-btn qt-action-btn--taleia"
                                         onclick="openGroupModal({{ $q->QetaaID }}, 3, 0)" :title="__('Add patrol directly')">
                                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 2v8M2 6h8" />
                                         </svg>
-                                        طليعة
+                                        {{ __('Patrol') }}
                                     </button>
                                 </div>
                             @endif
@@ -222,7 +222,7 @@
                     {{-- Qetaa body --}}
                     <div class="qt-qetaa__body">
                         @if ($node['groups']->isEmpty())
-                            <p class="qt-empty">لا توجد مجموعات في هذا القطاع</p>
+                            <p class="qt-empty">{{ __('No groups in this sector') }}</p>
                         @else
                             <div class="qt-groups">
                                 @foreach ($node['groups'] as $group)
@@ -239,7 +239,7 @@
                 </div>
             @empty
                 <div class="qt-empty-panel">
-                    لا يوجد هيكل فريق مرتبط بحسابك حالياً
+                    {{ __('No team structure linked to your account currently') }}
                 </div>
             @endforelse
         </div>
@@ -250,7 +250,7 @@
         <div id="modal-group" class="qt-overlay" onclick="if(event.target===this)closeModal('modal-group')">
             <div class="qt-modal">
                 <div class="qt-modal__header">
-                    <span id="modal-group-title">إضافة مجموعة</span>
+                    <span id="modal-group-title">{{ __('Add group') }}</span>
                     <button class="qt-modal__close" onclick="closeModal('modal-group')">
                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 1l10 10M11 1L1 11" />
@@ -263,7 +263,7 @@
                     <input type="hidden" id="m-parent-id">
                     <label class="qt-field">
                         <span class="qt-field__label">{{ __('Group name') }}</span>
-                        <input type="text" id="m-group-name" class="qt-input" placeholder="أدخل الاسم…">
+                        <input type="text" id="m-group-name" class="qt-input" placeholder="{{ __('Enter name…') }}">
                     </label>
                 </div>
                 <div class="qt-modal__footer">
@@ -277,7 +277,7 @@
         <div id="modal-person" class="qt-overlay" onclick="if(event.target===this)closeModal('modal-person')">
             <div class="qt-modal qt-modal--wide">
                 <div class="qt-modal__header">
-                    <span>إضافة أشخاص</span>
+                    <span>{{ __('Add persons') }}</span>
                     <button class="qt-modal__close" onclick="closeModal('modal-person')">
                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 1l10 10M11 1L1 11" />
@@ -288,7 +288,7 @@
                     <input type="hidden" id="m-person-group-id">
 
                     <label class="qt-field">
-                        <span class="qt-field__label">ابحث عن شخص</span>
+                        <span class="qt-field__label">{{ __('Search for a person') }}</span>
                         <div class="qt-search-wrap">
                             <svg class="qt-search-wrap__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor"
                                 stroke-width="1.8">
@@ -296,7 +296,7 @@
                                 <path d="M10.5 10.5l3.5 3.5" />
                             </svg>
                             <input type="text" id="m-person-search" class="qt-input qt-input--search"
-                                placeholder="اسم أو كود شمندورة…" autocomplete="off" oninput="searchPersons(this.value)">
+                                placeholder="{{ __('Name or Shamandora code…') }}" autocomplete="off" oninput="searchPersons(this.value)">
                         </div>
                         <div id="person-suggestions" class="qt-suggestions" style="display:none"></div>
                     </label>
@@ -316,7 +316,7 @@
         <div id="modal-rotba" class="qt-overlay" onclick="if(event.target===this)closeModal('modal-rotba')">
             <div class="qt-modal">
                 <div class="qt-modal__header">
-                    <span>تعديل الرتبة</span>
+                    <span>{{ __('Edit rank') }}</span>
                     <button class="qt-modal__close" onclick="closeModal('modal-rotba')">
                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M1 1l10 10M11 1L1 11" />
@@ -327,9 +327,9 @@
                     <input type="hidden" id="edit-rotba-person-id">
                     <input type="hidden" id="edit-rotba-group-id">
                     <label class="qt-field">
-                        <span class="qt-field__label">الرتبة</span>
+                        <span class="qt-field__label">{{ __('Rank') }}</span>
                         <select id="edit-rotba-id" class="qt-select qt-select--field">
-                            <option value="">بدون رتبة</option>
+                            <option value="">{{ __('No rank') }}</option>
                         </select>
                     </label>
                 </div>
@@ -384,7 +384,6 @@
 
         .qt-root {
             font-family: 'IBM Plex Sans Arabic', sans-serif;
-            direction: rtl;
             background: var(--qt-bg);
             min-height: 100vh;
             padding: 24px 20px 48px;
@@ -473,7 +472,6 @@
             outline: none;
             cursor: pointer;
             padding: 0;
-            direction: rtl;
         }
 
         .qt-link-btn {
@@ -1421,7 +1419,6 @@
             width: 100%;
             background: var(--qt-surface);
             color: var(--qt-text);
-            direction: rtl;
         }
 
         .qt-select--field:focus {
@@ -1781,7 +1778,7 @@
             document.getElementById('m-group-type').value = typeId;
             document.getElementById('m-parent-id').value = parentId;
             document.getElementById('m-group-name').value = '';
-            document.getElementById('modal-group-title').textContent = typeId == 2 ? 'إضافة فريق' : 'إضافة طليعة';
+            document.getElementById('modal-group-title').textContent = typeId == 2 ? @json(__('Add team')) : @json(__('Add patrol'));
             showModal('modal-group');
             setTimeout(() => document.getElementById('m-group-name').focus(), 80);
         }
@@ -1827,12 +1824,12 @@
                 closeModal('modal-group');
                 window.location.reload();
             } catch (e) {
-                alert(e.message || 'حدث خطأ');
+                alert(e.message || @json(__('An error occurred')));
             }
         }
 
         async function deleteGroup(groupId) {
-            if (!confirm('هل تريد حذف هذه المجموعة؟')) return;
+            if (!confirm(@json(__('Delete this group?')))) return;
             const url = '{{ route('qetaa.deleteGroup', ['groupId' => '__GROUP_ID__']) }}'.replace('__GROUP_ID__', groupId);
             await fetch(url, {
                 method: 'DELETE',
@@ -1850,7 +1847,7 @@
 
         function personInitials(name) {
             const cleanName = String(name || '').trim();
-            return cleanName ? cleanName.slice(0, 1) : '؟';
+            return cleanName ? cleanName.slice(0, 1) : '?';
         }
 
         const defaultAvatarMale = @json(asset(\App\Support\PersonAvatar::MALE_ASSET));
@@ -2031,7 +2028,7 @@
 
                 const rankSelect = document.createElement('select');
                 rankSelect.className = 'qt-select qt-select--field qt-selected-card__rank';
-                rankSelect.innerHTML = '<option value="">— لا تغيير —</option>';
+                rankSelect.innerHTML = '<option value="">' + @json(__('No change')) + '</option>';
                 (_rotbaList || []).forEach(rotba => {
                     const opt = document.createElement('option');
                     opt.value = rotba.RotbaID;
@@ -2068,7 +2065,7 @@
             }));
 
             if (!personIds.length) {
-                alert('اختر شخصاً واحداً على الأقل');
+                alert(@json(__('Select at least one person')));
                 return;
             }
 
@@ -2092,7 +2089,7 @@
                 closeModal('modal-person');
                 window.location.reload();
             } catch (e) {
-                alert(e.message || 'حدث خطأ');
+                alert(e.message || @json(__('An error occurred')));
             }
         }
 
@@ -2101,7 +2098,7 @@
             document.getElementById('edit-rotba-group-id').value = groupId;
 
             try {
-                await loadRotbaOptions('edit-rotba-id', 'بدون رتبة', currentRotbaId || '');
+                await loadRotbaOptions('edit-rotba-id', @json(__('No rank')), currentRotbaId || '');
             } catch {}
 
             showModal('modal-rotba');
@@ -2132,12 +2129,12 @@
                 closeModal('modal-rotba');
                 window.location.reload();
             } catch (e) {
-                alert(e.message || 'حدث خطأ');
+                alert(e.message || @json(__('An error occurred')));
             }
         }
 
         async function removePerson(personId, groupId) {
-            if (!confirm('إزالة هذا الشخص من المجموعة؟')) return;
+            if (!confirm(@json(__('Remove this person from the group?')))) return;
             await fetch('{{ route('qetaa.removePerson') }}', {
                 method: 'POST',
                 headers: {

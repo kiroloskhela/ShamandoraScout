@@ -17,6 +17,8 @@ class AdminCustodyRequestController extends Controller
 
     public function index()
     {
+        $this->authorize('custody.viewAdmin');
+
         $requests = DB::table('CustodyRequests as R')
             ->leftJoin('Qetaa as Q', 'R.QetaaID', '=', 'Q.QetaaID')
             ->leftJoin('EventType as E', 'R.EventTypeID', '=', 'E.EventTypeID')
@@ -38,6 +40,9 @@ class AdminCustodyRequestController extends Controller
 
     public function show($id)
     {
+        $this->authorize('custody.viewAdmin');
+        $this->authorize('custody.view', (int) $id);
+
         $requestRow = DB::table('CustodyRequests as R')
             ->leftJoin('Qetaa as Q', 'R.QetaaID', '=', 'Q.QetaaID')
             ->leftJoin('EventType as E', 'R.EventTypeID', '=', 'E.EventTypeID')
@@ -65,6 +70,8 @@ class AdminCustodyRequestController extends Controller
 
     public function approve(Request $request, $id)
     {
+        $this->authorize('custody.review');
+
         $adminPersonId = $this->currentAdminPersonId();
         if (! $adminPersonId) {
             return back()->with('error', __('Cannot determine current admin (PersonID).'));
@@ -203,6 +210,8 @@ class AdminCustodyRequestController extends Controller
 
     public function reject(Request $request, $id)
     {
+        $this->authorize('custody.review');
+
         $adminPersonId = $this->currentAdminPersonId();
         if (! $adminPersonId) {
             return back()->with('error', __('Cannot determine current admin (PersonID).'));

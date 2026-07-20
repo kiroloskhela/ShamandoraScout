@@ -8,6 +8,8 @@ class MigrateNewEnrolments extends Controller
 {
     public function migrateAll(MigrateEnrolmentService $service)
     {
+        $this->authorize('enrolment.migrate');
+
         $result = $service->migrateAllApproved();
 
         return view('person.migrate-new-enrolments-status', [
@@ -17,6 +19,8 @@ class MigrateNewEnrolments extends Controller
 
     public function migrate($qetaaID, MigrateEnrolmentService $service)
     {
+        $this->authorize('enrolment.migrate');
+
         $result = $service->migrateApprovedForQetaa((int) $qetaaID);
 
         return view('person.migrate-new-enrolments-status', [
