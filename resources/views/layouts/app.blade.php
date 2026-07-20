@@ -112,7 +112,7 @@
                 <div class="flex flex-col items-center p-6 border-b border-gray-200 dark:border-slate-800 shrink-0 bg-gradient-to-b from-transparent to-transparent dark:from-teal-950/30 dark:to-transparent">
                     <div class=" relative mb-3">
                         <img src="{{ Auth::user()->avatar_url }}" alt="User Avatar"
-                            class="w-16 h-16 rounded-full border-2 border-white dark:border-slate-700 shadow-sm ring-2 ring-emerald-500/20 dark:ring-emerald-400/30">
+                            class="w-16 h-16 rounded-full object-cover object-[center_20%] border-2 border-white dark:border-slate-700 shadow-sm ring-2 ring-emerald-500/20 dark:ring-emerald-400/30">
 
                         <span
                             class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full shadow-[0_0_0_2px_rgba(52,211,153,0.25)]"></span>

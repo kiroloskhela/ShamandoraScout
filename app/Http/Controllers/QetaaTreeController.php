@@ -148,6 +148,7 @@ class QetaaTreeController extends Controller
                             'pi.SecondName',
                             'pi.ThirdName',
                             'pi.FourthName',
+                            'pi.Gender',
                             'pi.ShamandoraCode',
                             'ri.RotbaID',
                             'ri.RotbaName',
@@ -159,6 +160,14 @@ class QetaaTreeController extends Controller
                         ->orderBy('ri.RotbaID')
                         ->orderBy('pi.ShamandoraCode')
                         ->get()
+                        ->map(function ($person) {
+                            $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                                $person->PersonSystemImagePath ?? null,
+                                $person->Gender ?? null
+                            );
+
+                            return $person;
+                        })
                         ->groupBy('GroupID');
 
                 $talaea = $talaea->map(function ($taleia) use ($peopleByTaleia) {
@@ -249,6 +258,7 @@ class QetaaTreeController extends Controller
                 'pi.SecondName',
                 'pi.ThirdName',
                 'pi.FourthName',
+                'pi.Gender',
                 'pi.ShamandoraCode',
                 'ri.RotbaName',
                 'pim.PersonSystemImagePath',
@@ -256,7 +266,15 @@ class QetaaTreeController extends Controller
             )
             ->distinct()
             ->orderBy('pi.ShamandoraCode')
-            ->get();
+            ->get()
+            ->map(function ($person) {
+                $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                    $person->PersonSystemImagePath ?? null,
+                    $person->Gender ?? null
+                );
+
+                return $person;
+            });
 
         return [
             'qetaa_id' => $qetaaId,
@@ -305,6 +323,7 @@ class QetaaTreeController extends Controller
                     'pi.SecondName',
                     'pi.ThirdName',
                     'pi.FourthName',
+                    'pi.Gender',
                     'pi.ShamandoraCode',
                     'ri.RotbaID',
                     'ri.RotbaName',
@@ -313,7 +332,15 @@ class QetaaTreeController extends Controller
                 )
                 ->distinct()
                 ->orderBy('pi.ShamandoraCode')
-                ->get();
+                ->get()
+                ->map(function ($person) {
+                    $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                        $person->PersonSystemImagePath ?? null,
+                        $person->Gender ?? null
+                    );
+
+                    return $person;
+                });
 
         $groupsByQetaa = $groups->groupBy('QetaaID');
         $peopleByGroup = $people->groupBy('GroupID');
@@ -383,6 +410,7 @@ class QetaaTreeController extends Controller
                 'pi.SecondName',
                 'pi.ThirdName',
                 'pi.FourthName',
+                'pi.Gender',
                 'pi.ShamandoraCode',
                 'ri.RotbaID',
                 'ri.RotbaName',
@@ -394,9 +422,10 @@ class QetaaTreeController extends Controller
             ->limit(20)
             ->get()
             ->map(function ($person) {
-                $person->AvatarUrl = $person->PersonSystemImagePath
-                    ? asset('storage/'.$person->PersonSystemImagePath)
-                    : null;
+                $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                    $person->PersonSystemImagePath ?? null,
+                    $person->Gender ?? null
+                );
 
                 return $person;
             });

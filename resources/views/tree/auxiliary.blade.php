@@ -113,17 +113,16 @@
                             <div class="aux-people">
                                 @foreach ($taleia->people as $person)
                                     @php
-                                        $imagePath = $person->PersonSystemImagePath ?? null;
-                                        $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                                        $imageSrc = $person->AvatarUrl
+                                            ?? \App\Support\PersonAvatar::url(
+                                                $person->PersonSystemImagePath ?? null,
+                                                $person->Gender ?? null
+                                            );
                                     @endphp
                                     <div class="aux-person">
                                         <div class="aux-avatar">
-                                            @if ($imageSrc)
-                                                <img src="{{ $imageSrc }}"
-                                                    alt="{{ $person->FirstName }} {{ $person->SecondName }}">
-                                            @else
-                                                {{ $initials($person->FirstName ?? '') }}
-                                            @endif
+                                            <img src="{{ $imageSrc }}"
+                                                alt="{{ $person->FirstName }} {{ $person->SecondName }}">
                                         </div>
                                         <div class="aux-person-info">
                                             <span>{{ $person->FirstName }} {{ $person->SecondName }}</span>
@@ -362,6 +361,7 @@
             height: 100%;
             display: block;
             object-fit: cover;
+            object-position: center 18%;
         }
 
         .aux-person-info {

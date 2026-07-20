@@ -101,16 +101,15 @@
                                     @foreach ($child->people as $person)
                                         @php
                                             $personFullName = $fullName($person);
-                                            $imagePath = $person->PersonSystemImagePath ?? null;
-                                            $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                                            $imageSrc = $person->AvatarUrl
+                                                ?? \App\Support\PersonAvatar::url(
+                                                    $person->PersonSystemImagePath ?? null,
+                                                    $person->Gender ?? null
+                                                );
                                         @endphp
                                         <div class="qt-person">
                                             <div class="qt-person__avatar">
-                                                @if ($imageSrc)
-                                                    <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
-                                                @else
-                                                    {{ $initials($person->FirstName ?? '؟') }}
-                                                @endif
+                                                <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
                                             </div>
                                             <div class="qt-person__info">
                                                 <div class="qt-person__name">
@@ -156,16 +155,15 @@
                 @foreach ($group->people as $person)
                     @php
                         $personFullName = $fullName($person);
-                        $imagePath = $person->PersonSystemImagePath ?? null;
-                        $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
+                        $imageSrc = $person->AvatarUrl
+                            ?? \App\Support\PersonAvatar::url(
+                                $person->PersonSystemImagePath ?? null,
+                                $person->Gender ?? null
+                            );
                     @endphp
                     <div class="qt-person">
                         <div class="qt-person__avatar">
-                            @if ($imageSrc)
-                                <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
-                            @else
-                                {{ $initials($person->FirstName ?? '؟') }}
-                            @endif
+                            <img src="{{ $imageSrc }}" alt="{{ $personFullName }}">
                         </div>
                         <div class="qt-person__info">
                             <div class="qt-person__name">

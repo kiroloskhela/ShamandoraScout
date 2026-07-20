@@ -141,6 +141,7 @@ class QetaaTreeApiController extends Controller
                     'pi.PersonID',
                     'pi.FirstName',
                     'pi.SecondName',
+                    'pi.Gender',
                     'pi.ShamandoraCode',
                     'ri.RotbaID',
                     'ri.RotbaName',
@@ -157,17 +158,18 @@ class QetaaTreeApiController extends Controller
         $taleaWithPeople = $talaea->map(function ($taleia) use ($peopleByTaleia) {
             $people = $peopleByTaleia
                 ->get($taleia->GroupID, collect())
-                ->map(fn($p) => [
-                    'person_id'       => $p->PersonID,
-                    'first_name'      => $p->FirstName,
-                    'second_name'     => $p->SecondName,
-                    'full_name'       => trim("{$p->FirstName} {$p->SecondName}"),
+                ->map(fn ($p) => [
+                    'person_id' => $p->PersonID,
+                    'first_name' => $p->FirstName,
+                    'second_name' => $p->SecondName,
+                    'full_name' => trim("{$p->FirstName} {$p->SecondName}"),
                     'shamandora_code' => $p->ShamandoraCode,
-                    'rotba_id'        => $p->RotbaID,
-                    'rotba_name'      => $p->RotbaName,
-                    'avatar_url'      => $p->PersonSystemImagePath
-                                            ? asset('storage/' . $p->PersonSystemImagePath)
-                                            : null,
+                    'rotba_id' => $p->RotbaID,
+                    'rotba_name' => $p->RotbaName,
+                    'avatar_url' => \App\Support\PersonAvatar::url(
+                        $p->PersonSystemImagePath ?? null,
+                        $p->Gender ?? null
+                    ),
                 ]);
 
             return [

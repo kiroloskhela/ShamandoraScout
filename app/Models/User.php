@@ -2,11 +2,11 @@
 // app/Models/User.php
 namespace App\Models;
 
+use App\Support\PersonAvatar;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -53,26 +53,13 @@ class User extends Authenticatable
         return $this->belongsToMany(SanaMarhala::class, 'PersonSanaMarhala', 'PersonID', 'SanaMarhalaID');
     }
 
-public function getAvatarUrlAttribute(): string
-{
-    $path = $this->image?->PersonSystemImageThumbnailPath
-        ?: $this->image?->PersonSystemImagePath;
+    public function getAvatarUrlAttribute(): string
+    {
+        $path = $this->image?->PersonSystemImageThumbnailPath
+            ?: $this->image?->PersonSystemImagePath;
 
-    if (!$path) {
-        return 'https://i.pravatar.cc/60?img=7';
+        return PersonAvatar::url($path, $this->Gender ?? null);
     }
-
-    // If DB already has a full URL
-    if (preg_match('/^https?:\/\//i', $path)) {
-        return $path;
-    }
-
-    // normalize if someone saved "storage/..." in DB
-    $path = preg_replace('#^storage/#', '', ltrim($path, '/'));
-
-    // This returns "/storage/person_images/xxx.jpg"
-return asset('storage/' . ltrim($path, '/'));
-}
 
     // Make sure the Password model exists & matches your real table/columns.
     // Example:

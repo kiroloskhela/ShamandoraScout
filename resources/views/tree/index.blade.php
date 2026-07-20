@@ -115,17 +115,16 @@
                     <div id="qt-ungrouped-panel" class="qt-ungrouped-panel" style="display:none">
                         @foreach ($ungroupedPeople as $person)
                             @php
-                                $imagePath = $person->PersonSystemImagePath ?? null;
-                                $imageSrc = $imagePath ? asset('storage/' . $imagePath) : null;
                                 $personName = $person->FullName ?: trim(($person->FirstName ?? '') . ' ' . ($person->SecondName ?? ''));
+                                $imageSrc = $person->AvatarUrl
+                                    ?? \App\Support\PersonAvatar::url(
+                                        $person->PersonSystemImagePath ?? null,
+                                        $person->Gender ?? null
+                                    );
                             @endphp
                             <div class="qt-ungrouped-person">
                                 <div class="qt-ungrouped-person__avatar">
-                                    @if ($imageSrc)
-                                        <img src="{{ $imageSrc }}" alt="{{ $personName }}">
-                                    @else
-                                        {{ mb_substr($personName ?: '؟', 0, 1, 'UTF-8') }}
-                                    @endif
+                                    <img src="{{ $imageSrc }}" alt="{{ $personName }}">
                                 </div>
                                 <div class="qt-ungrouped-person__info">
                                     <span class="qt-ungrouped-person__name">{{ $personName }}</span>
@@ -663,6 +662,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 18%;
             display: block;
         }
 
@@ -1214,6 +1214,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center 18%;
             display: block;
         }
 
@@ -1852,18 +1853,23 @@
             return cleanName ? cleanName.slice(0, 1) : '؟';
         }
 
+        const defaultAvatarMale = @json(asset(\App\Support\PersonAvatar::MALE_ASSET));
+        const defaultAvatarFemale = @json(asset(\App\Support\PersonAvatar::FEMALE_ASSET));
+
+        function defaultAvatarForGender(gender) {
+            const g = String(gender || '').trim().toLowerCase();
+            const female = ['f', 'female', 'انثى', 'أنثى', 'اثنى', 'أنثي', 'انثي', 'fem', 'بنات', 'فتاة', 'بنت'];
+            return female.includes(g) ? defaultAvatarFemale : defaultAvatarMale;
+        }
+
         function createPersonAvatar(person, className) {
             const avatar = document.createElement('span');
             avatar.className = className;
 
-            if (person.AvatarUrl) {
-                const img = document.createElement('img');
-                img.src = person.AvatarUrl;
-                img.alt = person.FullName || '';
-                avatar.appendChild(img);
-            } else {
-                avatar.textContent = personInitials(person.FullName);
-            }
+            const img = document.createElement('img');
+            img.src = person.AvatarUrl || defaultAvatarForGender(person.Gender);
+            img.alt = person.FullName || '';
+            avatar.appendChild(img);
 
             return avatar;
         }
