@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'تأكيد حذف الربط'])
+@extends('layouts.app', ['pageTitle' => __('Confirm delete link')])
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12" dir="rtl">
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
 
     <div class="bg-white shadow-lg rounded-xl p-8 w-full max-w-xl border border-red-300">
         <h2 class="text-2xl font-extrabold text-red-700 mb-6 text-center">⚠️ تأكيد حذف الربط</h2>

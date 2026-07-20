@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل بيانات الملتحق'])
+@extends('layouts.app', ['pageTitle' => __('Edit enrollee data')])
 
 @section('content')
     <style>

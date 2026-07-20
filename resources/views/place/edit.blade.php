@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل مكان'])
+@extends('layouts.app', ['pageTitle' => __('Edit place')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-emerald-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-emerald-300">
             <!-- Title -->
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">تعديل مكان</h2>

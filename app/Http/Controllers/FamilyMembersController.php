@@ -107,14 +107,14 @@ class FamilyMembersController extends Controller
                 }
 
                 if ($personEmpty xor $relationEmpty) {
-                    $validator->errors()->add("assignment_$i", 'يجب اختيار الشخص وصلة القرابة معًا في كل صف.');
+                    $validator->errors()->add("assignment_$i", __('Person and relationship must both be selected in each row.'));
                 }
 
                 if (! $personEmpty && ! $relationEmpty) {
                     $pairKey = $personId.'-'.$relationId;
 
                     if (in_array($pairKey, $pairs)) {
-                        $validator->errors()->add("assignment_duplicate_$i", 'لا يمكن تكرار نفس الشخص ونفس صلة القرابة أكثر من مرة.');
+                        $validator->errors()->add("assignment_duplicate_$i", __('The same person and relationship cannot be repeated more than once.'));
                     }
 
                     $pairs[] = $pairKey;
@@ -133,7 +133,7 @@ class FamilyMembersController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر',
+                    'raqam_qawmy' => __('National ID already exists for another family member'),
                 ])->withInput();
             }
         }
@@ -186,7 +186,7 @@ class FamilyMembersController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'حدث خطأ أثناء حفظ فرد الأسرة')->withInput();
+            return redirect()->back()->with('error', __('An error occurred while saving the family member'))->withInput();
         }
     }
 
@@ -288,14 +288,14 @@ class FamilyMembersController extends Controller
                 }
 
                 if ($personEmpty xor $relationEmpty) {
-                    $validator->errors()->add("assignment_$i", 'يجب اختيار الشخص وصلة القرابة معًا في كل صف.');
+                    $validator->errors()->add("assignment_$i", __('Person and relationship must both be selected in each row.'));
                 }
 
                 if (! $personEmpty && ! $relationEmpty) {
                     $pairKey = $personId.'-'.$relationId;
 
                     if (in_array($pairKey, $pairs)) {
-                        $validator->errors()->add("assignment_duplicate_$i", 'لا يمكن تكرار نفس الشخص ونفس صلة القرابة أكثر من مرة.');
+                        $validator->errors()->add("assignment_duplicate_$i", __('The same person and relationship cannot be repeated more than once.'));
                     }
 
                     $pairs[] = $pairKey;
@@ -315,7 +315,7 @@ class FamilyMembersController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لفرد أسرة آخر',
+                    'raqam_qawmy' => __('National ID already exists for another family member'),
                 ])->withInput();
             }
         }
@@ -373,7 +373,7 @@ class FamilyMembersController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل فرد الأسرة')->withInput();
+            return redirect()->back()->with('error', __('An error occurred while updating the family member'))->withInput();
         }
     }
 
@@ -415,7 +415,7 @@ class FamilyMembersController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'لا يمكن حذف فرد الأسرة');
+            return redirect()->back()->with('error', __('Family member cannot be deleted'));
         }
     }
 }

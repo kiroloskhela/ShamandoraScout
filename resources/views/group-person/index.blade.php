@@ -1,35 +1,35 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة الأشخاص في المجموعة' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Manage group members')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$groupPersons" title="إدارة الأشخاص في المجموعة" :add-button="[
-            'label' => 'إضافة شخص  جديد',
+        <x-data-table :data="$groupPersons" :title="__('Manage group members')" :add-button="[
+            'label' => __('Add new person (2)'),
             'route' => route('group-person.create-khadem'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'ShamandoraCode',
-                'label' => 'رقم الشمندورة',
+                'label' => __('Shamandora code (2)'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'PersonFullName',
-                'label' => 'اسم الشخص',
+                'label' => __('Person name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'GroupRoleName',
-                'label' => 'اسم الدور',
+                'label' => __('Role name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'GroupID',
-                'label' => 'رقم المجموعة',
+                'label' => __('Group ID'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

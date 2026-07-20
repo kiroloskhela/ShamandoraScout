@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة الأسئلة' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Manage questions')])
 
 @section('content')
     @php
@@ -19,21 +19,21 @@
     @endphp
 
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$rows" title="إدارة الأسئلة" :add-button="[
-            'label' => 'إضافة سؤال جديد',
+        <x-data-table :data="$rows" :title="__('Manage questions')" :add-button="[
+            'label' => __('Add new question'),
             'route' => route('entry-questions.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'QuestionID',
-                'label' => 'رقم السؤال',
+                'label' => __('Question ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'QuestionTypeInArabicWords',
-                'label' => 'نوع السؤال',
+                'label' => __('Question type'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
@@ -52,19 +52,19 @@
             ],
             [
                 'key' => 'MCAnswerDisplay',
-                'label' => 'الاختيارات المتاحة',
+                'label' => __('Available choices'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'NotToBeShownText',
-                'label' => 'إخفاء السؤال؟',
+                'label' => __('Hide question?'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
             [
                 'key' => 'IsRequiredText',
-                'label' => 'السؤال مطلوب؟',
+                'label' => __('Question required?'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],

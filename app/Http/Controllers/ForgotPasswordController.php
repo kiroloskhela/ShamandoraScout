@@ -68,18 +68,18 @@ class ForgotPasswordController extends Controller
 
         if ($matches->isEmpty()) {
             if ($nid) {
-                return back()->with('error', 'البيانات لا تطابق أي مستخدم. يرجى التحقق من الرقم القومي.')
+                return back()->with('error', __('Data does not match any user. Please verify the national ID.'))
                     ->withInput();
             }
 
-            return back()->with('error', 'لم يتم العثور على مستخدم يطابق رقم الهاتف وتاريخ الميلاد.')
+            return back()->with('error', __('No user found matching phone number and date of birth.'))
                 ->withInput();
         }
 
-        if ($matches->count() > 1 && !$nid) {
+        if ($matches->count() > 1 && ! $nid) {
             return back()
                 ->with('need_raqam_qawmy', true)
-                ->with('info', 'يرجى إدخال الرقم القومي لتأكيد الهوية.')
+                ->with('info', __('Please enter your national ID to confirm identity.'))
                 ->withInput();
         }
 
@@ -98,10 +98,10 @@ class ForgotPasswordController extends Controller
         $resetUrl = $resets->issueResetUrl($tokenKey);
         $expireMinutes = $resets->expireMinutes();
 
-        $waMessage = "مرحباً {$fullName} ♡\n"
-            . "لإعادة تعيين كلمة السر افتح الرابط التالي خلال {$expireMinutes} دقيقة:\n"
-            . "{$resetUrl}\n"
-            . 'إذا لم تطلب ذلك تجاهل هذه الرسالة.';
+        $waMessage = __('Hello :name ♡', ['name' => $fullName])."\n"
+            .__('To reset your password, open the following link within :minutes minutes:', ['minutes' => $expireMinutes])."\n"
+            ."{$resetUrl}\n"
+            .__('If you did not request this, ignore this message.');
 
         try {
             $whatsapp->sendText($phone, $waMessage);
@@ -114,11 +114,11 @@ class ForgotPasswordController extends Controller
             if (app()->environment('local')) {
                 return back()->with(
                     'error',
-                    'فشل إرسال واتساب. للاختبار المحلي استخدم هذا الرابط: ' . $resetUrl
+                    __('WhatsApp send failed. For local testing use this link: ').$resetUrl
                 )->withInput();
             }
 
-            return back()->with('error', 'فشل إرسال رابط إعادة التعيين على واتساب. لم يتم تغيير كلمة السر.')
+            return back()->with('error', __('Failed to send reset link via WhatsApp. Password was not changed.'))
                 ->withInput();
         }
 
@@ -141,16 +141,16 @@ class ForgotPasswordController extends Controller
             }
         }
 
-        return back()->with('success', 'تم إرسال رابط إعادة تعيين كلمة السر على واتساب.');
+        return back()->with('success', __('Password reset link sent via WhatsApp.'));
     }
 
     public function showResetForm(Request $request, string $token, PasswordResetLinkService $resets)
     {
         $email = strtolower(trim((string) $request->query('email', '')));
 
-        if ($email === '' || !$resets->tokenIsValid($email, $token)) {
+        if ($email === '' || ! $resets->tokenIsValid($email, $token)) {
             return redirect()->route('forgot-password.form')
-                ->with('error', 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطاً جديداً.');
+                ->with('error', __('Reset link is invalid or expired. Request a new link.'));
         }
 
         return view('forgot-password.reset', [
@@ -166,15 +166,15 @@ class ForgotPasswordController extends Controller
             'email' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
-            'password.min' => 'كلمة السر يجب ألا تقل عن 8 أحرف.',
-            'password.confirmed' => 'تأكيد كلمة السر غير متطابق.',
+            'password.min' => __('Password must be at least 8 characters.'),
+            'password.confirmed' => __('Password confirmation does not match.'),
         ]);
 
         $email = strtolower(trim($data['email']));
 
-        if (!$resets->tokenIsValid($email, $data['token'])) {
+        if (! $resets->tokenIsValid($email, $data['token'])) {
             return redirect()->route('forgot-password.form')
-                ->with('error', 'رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطاً جديداً.');
+                ->with('error', __('Reset link is invalid or expired. Request a new link.'));
         }
 
         $personId = null;
@@ -186,9 +186,9 @@ class ForgotPasswordController extends Controller
                 ->value('PersonID');
         }
 
-        if (!$personId) {
+        if (! $personId) {
             return redirect()->route('forgot-password.form')
-                ->with('error', 'تعذر العثور على الحساب المرتبط بهذا الرابط.');
+                ->with('error', __('Could not find the account linked to this reset link.'));
         }
 
         DB::table('PersonSystemPassword')->updateOrInsert(
@@ -199,6 +199,6 @@ class ForgotPasswordController extends Controller
         $resets->consumeToken($email);
 
         return redirect('/login-auth')
-            ->with('success', 'تم تعيين كلمة السر الجديدة. يمكنك تسجيل الدخول الآن.');
+            ->with('success', __('New password set. You can log in now.'));
     }
 }

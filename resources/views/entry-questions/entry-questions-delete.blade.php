@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'حذف سؤال'])
+@extends('layouts.app', ['pageTitle' => __('Delete question')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-red-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-red-300">
 
             <!-- Title -->
             <div class="mb-6 text-center">

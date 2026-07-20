@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة حي سكني' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Add residential district')])
 @section('content')
-    <x-form-card title="إضافة حي سكني جديد" :action="route('district.insert')" method="POST" inputPlaceholder="ادخل اسم الحي السكني"
-        inputLabel="ادخل اسم الحي السكني" submitText="إضافة الحي السكني" submitColor="blue" inputName="district_name" />
+    <x-form-card title="{{ __('Add new residential district') }}" :action="route('district.insert')" method="POST" inputPlaceholder="{{ __('Enter district name') }}"
+        inputLabel="{{ __('Enter district name') }}" submitText="{{ __('Form label ca4fdbef') }}" submitColor="blue" inputName="district_name" />
 @endsection

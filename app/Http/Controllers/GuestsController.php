@@ -72,7 +72,7 @@ class GuestsController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر',
+                    'raqam_qawmy' => __('National ID already exists for another guest'),
                 ])->withInput();
             }
         }
@@ -104,7 +104,7 @@ class GuestsController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'حدث خطأ أثناء حفظ الضيف')->withInput();
+            return redirect()->back()->with('error', __('An error occurred while saving the guest'))->withInput();
         }
     }
 
@@ -167,7 +167,7 @@ class GuestsController extends Controller
 
             if ($exists) {
                 return redirect()->back()->withErrors([
-                    'raqam_qawmy' => 'الرقم القومي موجود بالفعل لضيف آخر',
+                    'raqam_qawmy' => __('National ID already exists for another guest'),
                 ])->withInput();
             }
         }
@@ -200,7 +200,7 @@ class GuestsController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'حدث خطأ أثناء تعديل الضيف')->withInput();
+            return redirect()->back()->with('error', __('An error occurred while updating the guest'))->withInput();
         }
     }
 
@@ -234,7 +234,7 @@ class GuestsController extends Controller
                 'message' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'لا يمكن حذف الضيف');
+            return redirect()->back()->with('error', __('Guest cannot be deleted'));
         }
     }
 }

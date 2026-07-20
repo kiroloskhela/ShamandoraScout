@@ -1,17 +1,17 @@
-@extends('layouts.app', ['pageTitle' => 'الكليات'])
+@extends('layouts.app', ['pageTitle' => __('Faculties')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$faculty->toArray()" title="إدارة الكليات" :add-button="[
-            'label' => 'إضافة كلية جديدة',
+        <x-data-table :data="$faculty->toArray()" :title="__('Manage faculties')" :add-button="[
+            'label' => __('Add new faculty (2)'),
             'route' => route('faculty.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'FacultyID',
-                'label' => 'رقم الكلية',
+                'label' => __('Faculty ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],

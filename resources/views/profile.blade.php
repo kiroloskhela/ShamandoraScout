@@ -82,7 +82,7 @@
     }
 </style>
 
-<div class="profile-page -mx-2 sm:mx-0" dir="rtl" x-data="{ tab: 'personal' }">
+<div class="profile-page -mx-2 sm:mx-0" x-data="{ tab: 'personal' }">
     @if (session('success'))
         <div class="mb-4 rounded-2xl border border-emerald-200 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/40 px-4 py-3 text-emerald-800 dark:text-emerald-200 text-sm font-semibold">
             {{ session('success') }}

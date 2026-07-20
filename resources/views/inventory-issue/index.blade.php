@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Print custody')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="mb-8 text-center">
             <h1 class="mb-2 text-3xl font-bold text-gray-800">{{ __('Print custody') }}</h1>
             <p class="text-gray-600">{{ __('Choose season and event, add items and quantities, then print professionally') }}</p>
@@ -409,7 +409,7 @@
             }) {
                 return `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <title>${@json(__('Print custody'))} - ${escapeHtml(eventName)}</title>

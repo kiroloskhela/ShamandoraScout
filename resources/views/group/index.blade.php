@@ -1,16 +1,16 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة المجموعات'])
+@extends('layouts.app', ['pageTitle' => __('Manage groups')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$groups" title="إدارة المجموعات" :add-button="[
-            'label' => 'إضافة مجموعة جديدة',
+        <x-data-table :data="$groups" :title="__('Manage groups')" :add-button="[
+            'label' => __('Add new group'),
             'route' => route('group.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'GroupID1',
-                'label' => 'رقم المجموعة',
+                'label' => __('Group ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
@@ -22,13 +22,13 @@
             ],
             [
                 'key' => 'GroupTypeName',
-                'label' => 'نوع المجموعة',
+                'label' => __('Group type'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],
             [
                 'key' => 'IncludedUnderGroupName',
-                'label' => 'اسم المجموعة الأب',
+                'label' => __('Parent group name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],

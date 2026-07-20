@@ -26,7 +26,7 @@
         <div class="qt-group__actions" onclick="event.stopPropagation()">
             @if ($isServed)
                 @if ($isFareeq)
-                    <button class="qt-icon-btn" title="إضافة طليعة داخل الفريق"
+                    <button class="qt-icon-btn" :title="__('Add patrol inside team')"
                         onclick="openGroupModal({{ $qetaaId }}, 3, {{ $group->GroupID }})">
                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M6 2v8M2 6h8" />
@@ -34,7 +34,7 @@
                     </button>
                 @endif
                 @if ($isTaleia)
-                    <button class="qt-icon-btn" title="إضافة شخص" onclick="openPersonModal({{ $group->GroupID }})">
+                    <button class="qt-icon-btn" :title="__('Add person')" onclick="openPersonModal({{ $group->GroupID }})">
                         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
                             <circle cx="6" cy="4" r="3" />
                             <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
@@ -42,7 +42,7 @@
                         </svg>
                     </button>
                 @endif
-                <button class="qt-icon-btn qt-icon-btn--danger" title="حذف المجموعة"
+                <button class="qt-icon-btn qt-icon-btn--danger" :title="__('Delete group (tree)')"
                     onclick="deleteGroup({{ $group->GroupID }})">
                     <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8">
                         <path d="M1 3h10M4 3V2h4v1M2 3l1 9h6l1-9" />
@@ -73,7 +73,7 @@
 
                             @if ($isServed && (int) $child->GroupTypeID === 3)
                                 <div class="qt-group__actions" onclick="event.stopPropagation()">
-                                    <button class="qt-icon-btn" title="إضافة شخص"
+                                    <button class="qt-icon-btn" :title="__('Add person')"
                                         onclick="openPersonModal({{ $child->GroupID }})">
                                         <svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
                                             stroke-width="1.8">
@@ -123,7 +123,7 @@
                                                 <span class="qt-person__rotba">{{ $person->RotbaName }}</span>
                                             @endif
                                             @if ($isServed)
-                                                <button class="qt-icon-btn" title="تعديل الرتبة"
+                                                <button class="qt-icon-btn" :title="__('Edit rank (tree)')"
                                                     onclick="openRotbaModal({{ $person->PersonID }}, {{ $child->GroupID }}, {{ $person->RotbaID ? (int) $person->RotbaID : 'null' }})">
                                                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
                                                         stroke-width="1.8">
@@ -177,7 +177,7 @@
                             <span class="qt-person__rotba">{{ $person->RotbaName }}</span>
                         @endif
                         @if ($isServed)
-                            <button class="qt-icon-btn" title="تعديل الرتبة"
+                            <button class="qt-icon-btn" :title="__('Edit rank (tree)')"
                                 onclick="openRotbaModal({{ $person->PersonID }}, {{ $group->GroupID }}, {{ $person->RotbaID ? (int) $person->RotbaID : 'null' }})">
                                 <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
                                     <path d="M7 2h5M7 7h5M7 12h5" />

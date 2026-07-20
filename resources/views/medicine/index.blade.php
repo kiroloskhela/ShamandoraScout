@@ -3,13 +3,13 @@
 @section('content')
     <div class="container mx-auto px-4 py-8">
         @if (session('status'))
-            <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm text-center" dir="rtl">
+            <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm text-center">
                 {{ session('status') }}
             </div>
         @endif
 
         @if (session('error'))
-            <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm text-center" dir="rtl">
+            <div class="mb-4 p-3 rounded-lg bg-red-100 text-red-800 text-sm text-center">
                 {{ session('error') }}
             </div>
         @endif

@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة مكان جديد'])
+@extends('layouts.app', ['pageTitle' => __('Add new place')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300">
             <!-- Title -->
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">إضافة مكان جديد</h2>

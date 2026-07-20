@@ -1,14 +1,14 @@
-@extends('layouts.app', ['pageTitle' => 'سجل صرف الأدوية'])
+@extends('layouts.app', ['pageTitle' => __('Medicine dispense log')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
         @if (session('status'))
-            <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm text-center" dir="rtl">
+            <div class="mb-4 p-3 rounded-lg bg-green-100 text-green-800 text-sm text-center">
                 {{ session('status') }}
             </div>
         @endif
 
-        <x-data-table :data="$records->toArray()" title="سجل صرف الأدوية" :header-buttons="[
+        <x-data-table :data="$records->toArray()" :title="__('Medicine dispense log')" :header-buttons="[
             [
                 'label' => __('Dispense medicine'),
                 'route' => route('medicine.dispense'),
@@ -24,7 +24,7 @@
         ]" :columns="[
             [
                 'key' => 'MedicineDispenseID',
-                'label' => 'رقم',
+                'label' => __('Number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -49,14 +49,14 @@
             ],
             [
                 'key' => 'LocationName',
-                'label' => 'مكان الصرف',
+                'label' => __('Dispense location'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
                 'filter' => true,
             ],
             [
                 'key' => 'GiverName',
-                'label' => 'تم الصرف بواسطة',
+                'label' => __('Dispensed by'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],
@@ -68,7 +68,7 @@
             ],
             [
                 'key' => 'DispensedAtText',
-                'label' => 'وقت الصرف',
+                'label' => __('Dispense time'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800',
             ],

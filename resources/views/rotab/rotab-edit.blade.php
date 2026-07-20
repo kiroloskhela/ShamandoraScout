@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل الرتبة'])
+@extends('layouts.app', ['pageTitle' => __('Edit rank (tree)')])
 @section('content')
-    <x-form-card title="تعديل الرتبه" :action="route('rotab.update', $rotab->RotbaID)" method="PATCH" :inputValue="$rotab->RotbaName" inputPlaceholder="ادخل اسم الرتبه"
-        inputLabel="تعديل اسم الرتبه" submitText="تعديل" submitColor="emerald" inputName="rotba_name" />
+    <x-form-card title="{{ __('Edit rank') }}" :action="route('rotab.update', $rotab->RotbaID)" method="PATCH" :inputValue="$rotab->RotbaName" inputPlaceholder="{{ __('Enter rank name') }}"
+        inputLabel="{{ __('Form label 30e0998f') }}" submitText="{{ __('Edit') }}" submitColor="emerald" inputName="rotba_name" />
 @endsection

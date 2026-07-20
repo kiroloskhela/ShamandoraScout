@@ -1,9 +1,9 @@
 {{-- resources/views/entry-questions/entry-questions-edit.blade.php --}}
-@extends('layouts.app', ['pageTitle' => 'تعديل سؤال'])
+@extends('layouts.app', ['pageTitle' => __('Edit question')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-emerald-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-emerald-300">
 
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">تعديل سؤال</h2>

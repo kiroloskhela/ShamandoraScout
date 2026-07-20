@@ -1,6 +1,6 @@
-@extends('layouts.app', ['pageTitle' => 'انواع المجموعات الكشفية'])
+@extends('layouts.app', ['pageTitle' => __('Scout group types')])
 @section('content')
-    <x-form-card title="إضافة نوع مجموعة كشفية جديد" :action="route('group-type.insert')" method="POST"
-        inputPlaceholder="ادخل اسم نوع المجموعة الكشفية" inputLabel="ادخل اسم نوع المجموعة الكشفية"
-        submitText="إضافة نوع مجموعة كشفية" submitColor="blue" inputName="group_type_name" />
+    <x-form-card title="{{ __('Form label 486bdcb2') }}" :action="route('group-type.insert')" method="POST"
+        inputPlaceholder="{{ __('Form label 022739ff') }}" inputLabel="{{ __('Form label 022739ff') }}"
+        submitText="{{ __('Form label a3243970') }}" submitColor="blue" inputName="group_type_name" />
 @endsection

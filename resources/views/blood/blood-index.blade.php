@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'فصائل الدم'])
+@extends('layouts.app', ['pageTitle' => __('Blood types')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$blood->toArray()" title="إدارة فصائل الدم" :add-button="[
-            'label' => 'إضافة فصيلة دم جديدة',
+        <x-data-table :data="$blood->toArray()" :title="__('Manage blood types')" :add-button="[
+            'label' => __('Add new blood type'),
             'route' => route('blood.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'BloodTypeID',
-                'label' => 'رقم الفصيلة',
+                'label' => __('Blood type ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'BloodTypeName',
-                'label' => 'اسم فصيلة الدم',
+                'label' => __('Blood type name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

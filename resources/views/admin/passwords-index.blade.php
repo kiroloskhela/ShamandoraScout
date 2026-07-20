@@ -1,11 +1,11 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة كلمات المرور'])
+@extends('layouts.app', ['pageTitle' => __('Password management')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$users" title="إدارة كلمات المرور" tableId="PasswordsTable" :columns="[
+        <x-data-table :data="$users" :title="__('Password management')" tableId="PasswordsTable" :columns="[
             [
                 'key' => 'PersonID',
-                'label' => 'رقم المستخدم',
+                'label' => __('User ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 text-center',
             ],
@@ -30,7 +30,7 @@
         ]" :actions="[
             [
                 'name' => 'edit',
-                'label' => 'تعديل كلمة السر',
+                'label' => __('Edit password'),
                 'route' => route('admin.passwords.edit', ':id'),
                 'idField' => 'PersonID',
                 'cssClass' =>

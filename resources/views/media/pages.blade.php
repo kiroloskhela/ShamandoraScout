@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'معرض الصور'])
+@extends('layouts.app', ['pageTitle' => __('Photo gallery')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">معرض الصور</h1>

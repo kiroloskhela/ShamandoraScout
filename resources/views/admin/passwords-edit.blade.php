@@ -1,8 +1,10 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل كلمة السر'])
+@extends('layouts.app', ['pageTitle' => __('Edit password')])
 
 @section('content')
     <x-form-card
-        title="تعديل كلمة السر للمستخدم:{{ $user->FirstName }} {{ $user->SecondName }} {{ $user->ThirdName }} {{ $user->FourthName }}"
-        :action="route('admin.passwords.update', $user->PersonID)" method="POST" inputType="password" :inputValue="''" inputPlaceholder="ادخل كلمة سر جديدة"
-        inputLabel="كلمة السر الجديدة" submitText="تعديل كلمة السر" submitColor="emerald" inputName="password" />
+        title="{{ __('Edit password for user: :name', ['name' => trim(($user->FirstName ?? '') . ' ' . ($user->SecondName ?? '') . ' ' . ($user->ThirdName ?? '') . ' ' . ($user->FourthName ?? ''))]) }}"
+        :action="route('admin.passwords.update', $user->PersonID)" method="POST" inputType="password" :inputValue="''"
+        inputPlaceholder="{{ __('Enter new password') }}"
+        inputLabel="{{ __('New password') }}" submitText="{{ __('Edit password') }}" submitColor="emerald"
+        inputName="password" />
 @endsection

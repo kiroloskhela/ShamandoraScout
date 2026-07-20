@@ -1,23 +1,23 @@
-@extends('layouts.app', ['pageTitle' => 'الجامعات'])
+@extends('layouts.app', ['pageTitle' => __('Universities')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$university->toArray()" title="إدارة الجامعات" :add-button="[
-            'label' => 'إضافة جامعه جديدة',
+        <x-data-table :data="$university->toArray()" :title="__('Manage universities')" :add-button="[
+            'label' => __('Add new university'),
             'route' => route('university.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'UniversityID',
-                'label' => 'رقم الجامعة',
+                'label' => __('University ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'UniversityName',
-                'label' => 'اسم الجامعة',
+                'label' => __('University name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

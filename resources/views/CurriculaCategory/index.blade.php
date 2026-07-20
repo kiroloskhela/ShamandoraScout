@@ -1,23 +1,23 @@
-@extends('layouts.app', ['pageTitle' => 'اقسام المناهج'])
+@extends('layouts.app', ['pageTitle' => __('Curriculum categories')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$CurriculaCategory" title="إدارة الأقسام" :add-button="[
-            'label' => 'إضافة قسم جديد',
+        <x-data-table :data="$CurriculaCategory" :title="__('Manage categories')" :add-button="[
+            'label' => __('Add new category'),
             'route' => route('CurriculaCategory.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'CurriculaCategoryID',
-                'label' => 'رقم القسم',
+                'label' => __('Category ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'CurriculaCategoryName',
-                'label' => 'اسم القسم',
+                'label' => __('Category name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'انواع المجموعات الكشفية'])
+@extends('layouts.app', ['pageTitle' => __('Scout group types')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$groupTypes->toArray()" title="إدارة انواع المجموعات الكشفية" :add-button="[
-            'label' => 'إضافة مجموعة كشفية',
+        <x-data-table :data="$groupTypes->toArray()" :title="__('Manage scout group types')" :add-button="[
+            'label' => __('Add scout group type'),
             'route' => route('group-type.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'GroupTypeID',
-                'label' => 'رقم مجموعة كشفية',
+                'label' => __('Scout group type ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'GroupTypeName',
-                'label' => 'اسم مجموعة كشفية',
+                'label' => __('Scout group type name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

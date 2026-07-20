@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'مسح قسم'])
+@extends('layouts.app', ['pageTitle' => __('Delete category')])
 
 @section('content')
-    <x-form-card title="مسح القسم" :action="route('CurriculaCategory.destroy', $CurriculaCategory->CurriculaCategoryID)" method="DELETE" :inputValue="$CurriculaCategory->CurriculaCategoryName" inputPlaceholder="ادخل اسم القسم"
-        inputLabel="مسح اسم القسم" submitText="مسح" submitColor="red" pageTitle="اقسام المناهج"
+    <x-form-card title="{{ __('Delete category') }}" :action="route('CurriculaCategory.destroy', $CurriculaCategory->CurriculaCategoryID)" method="DELETE" :inputValue="$CurriculaCategory->CurriculaCategoryName" inputPlaceholder="{{ __('Enter category name') }}"
+        inputLabel="{{ __('Form label 946a609e') }}" submitText="{{ __('Delete') }}" submitColor="red" pageTitle="__('Curriculum categories')"
         inputName="CurriculaCategoryName" />
 @endsection

@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'حذف الخطة المالية'])
+@extends('layouts.app', ['pageTitle' => __('Delete finance plan')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-red-700">حذف الخطة المالية</h2>
             </div>

@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'المراحل الدراسية'])
+@extends('layouts.app', ['pageTitle' => __('Academic stages')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$marhala->toArray()" title="إدارة المراحل الدراسية" :add-button="[
-            'label' => 'إضافة مرحلة دراسية',
+        <x-data-table :data="$marhala->toArray()" :title="__('Manage academic stages')" :add-button="[
+            'label' => __('Add academic stage'),
             'route' => route('marhala.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'MarhalaID',
-                'label' => 'رقم المرحلة',
+                'label' => __('Stage ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'MarhalaName',
-                'label' => 'اسم  المرحلة',
+                'label' => __('Stage name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

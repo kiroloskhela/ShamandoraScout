@@ -14,7 +14,7 @@
         ];
     @endphp
 
-    <div class="aux-root" dir="rtl">
+    <div class="aux-root">
         <header class="aux-header">
             <div>
                 <p class="aux-eyebrow">بيانات الفريق</p>

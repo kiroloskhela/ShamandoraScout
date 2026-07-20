@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'اقسام المناهج'])
+@extends('layouts.app', ['pageTitle' => __('Curriculum categories')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$curricula" title="إدارة المناهج" :add-button="[
-            'label' => 'إضافة محاضرة جديدة',
+        <x-data-table :data="$curricula" :title="__('Manage curricula')" :add-button="[
+            'label' => __('Add new lecture'),
             'route' => route('curricula.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'CurriculaID',
-                'label' => 'رقم محاضرة',
+                'label' => __('Lecture ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'CurriculaName',
-                'label' => 'اسم محاضرة',
+                'label' => __('Lecture name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -28,20 +28,20 @@
             ],
             [
                 'key' => 'CurriculaCategoryName',
-                'label' => 'التصنيف',
+                'label' => __('Classification'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'FullName',
-                'label' => 'اسم الخادم',
+                'label' => __('Servant name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
         ]" :actions="[
             [
                 'name' => 'download',
-                'label' => 'تحميل',
+                'label' => __('Download'),
                 'route' => route('curricula.download', ':id'),
                 'idField' => 'CurriculaID',
                 'cssClass' =>

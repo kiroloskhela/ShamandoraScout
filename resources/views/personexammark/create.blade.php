@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'تسجيل درجة امتحان'])
+@extends('layouts.app', ['pageTitle' => __('Record exam mark')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg border-2 border-blue-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg border-2 border-blue-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">تسجيل درجات الامتحان</h2>
                 <p class="text-sm text-gray-500 mt-2">الدرجات أرقام صحيحة فقط (من غير كسور)، ويمكن أن تتجاوز 100.</p>

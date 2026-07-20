@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 class PlaceController extends Controller
@@ -16,36 +16,37 @@ class PlaceController extends Controller
             ->select('Place.*', 'Locations.LocationName as LocationName')
             ->get();
 
-        return view("place.index", ['places' => $places]);
+        return view('place.index', ['places' => $places]);
     }
 
     public function create()
     {
         $locations = DB::table('Locations')->get();
-        return view("place.create", ['locations' => $locations]);
+
+        return view('place.create', ['locations' => $locations]);
     }
 
     public function insert(Request $request)
     {
         $request->validate([
-            'place_name'  => 'required|string|max:100',
-            'location_id' => 'required|integer'
+            'place_name' => 'required|string|max:100',
+            'location_id' => 'required|integer',
         ]);
 
         // Check location exists
         $loc = DB::table('Locations')->where('LocationID', $request->location_id)->first();
         if ($loc == null) {
-            return redirect()->back()->with('status', 'الموقع غير موجود');
+            return redirect()->back()->with('status', __('Location not found'));
         }
 
         DB::table('Place')->insert([
-            'PlaceID' => \App\Support\ManualPrimaryKey::next('Place', 'PlaceID'),
+            'PlaceID' => ManualPrimaryKey::next('Place', 'PlaceID'),
             'PlaceName' => $request->place_name,
             'LocationID' => $request->location_id,
         ]);
 
         return redirect()->route('place.index')
-            ->with('status', 'تم ادخال المكان بنجاح: ' . $request->place_name);
+            ->with('status', __('Place added successfully: ').$request->place_name);
     }
 
     public function edit($id)
@@ -53,41 +54,42 @@ class PlaceController extends Controller
         $place = DB::table('Place')->where('PlaceID', $id)->first();
         $locations = DB::table('Locations')->get();
 
-        return view("place.edit", [
-            'place'     => $place,
+        return view('place.edit', [
+            'place' => $place,
             'locations' => $locations,
-            'title'     => "تعديل مكان"
+            'title' => __('Edit place'),
         ]);
     }
 
     public function updates(Request $request, $id)
     {
         $request->validate([
-            'place_name'  => 'required|string|max:100',
-            'location_id' => 'required|integer'
+            'place_name' => 'required|string|max:100',
+            'location_id' => 'required|integer',
         ]);
 
         // Check location exists
         $loc = DB::table('Locations')->where('LocationID', $request->location_id)->first();
         if ($loc == null) {
-            return redirect()->back()->with('status', 'الموقع غير موجود');
+            return redirect()->back()->with('status', __('Location not found'));
         }
 
         DB::table('Place')
             ->where('PlaceID', $id)
             ->update([
-                'PlaceName'  => $request->place_name,
-                'LocationID' => $request->location_id
+                'PlaceName' => $request->place_name,
+                'LocationID' => $request->location_id,
             ]);
 
         return redirect()->route('place.index')
-            ->with('status', 'تم تعديل المكان بنجاح: ' . $request->place_name);
+            ->with('status', __('Place updated successfully: ').$request->place_name);
     }
 
     public function deletes($id)
     {
         $place = DB::table('Place')->where('PlaceID', $id)->first();
-        return view("place.delete", ['place' => $place, 'title' => "حذف مكان"]);
+
+        return view('place.delete', ['place' => $place, 'title' => __('Delete place')]);
     }
 
     public function destroy($id)
@@ -95,6 +97,6 @@ class PlaceController extends Controller
         DB::table('Place')->where('PlaceID', $id)->delete();
 
         return redirect()->route('place.index')
-            ->with('status', 'تم حذف المكان بنجاح');
+            ->with('status', __('Place deleted successfully'));
     }
 }

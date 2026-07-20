@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Confirm delete booking')])
 
 @section('content')
-    <div class="flex place-content-center" dir="rtl">
+    <div class="flex place-content-center">
         <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-red-300 dark:border-red-800">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-red-700 dark:text-red-300">{{ __('Confirm delete booking') }}</h2>

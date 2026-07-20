@@ -1,9 +1,9 @@
-@extends('layouts.app' , ['pageTitle' => "إدارة روابط Drive"])
+@extends('layouts.app' , ['pageTitle' => __('Manage Drive links')])
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <x-data-table :data="$media" title="إدارة روابط Drive" :add-button="[
-        'label' => 'إضافة رابط',
+    <x-data-table :data="$media" :title="__('Manage Drive links')" :add-button="[
+        'label' => __('Add link'),
             'route' => route('media.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
@@ -22,13 +22,13 @@
             ],
               [
                 'key' => 'EventName',
-                'label' => 'الفعالية ',
+                'label' => __('Event'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium'
             ],
             [
                 'key' => 'DriveLink',
-                'label' => 'رابط Drive',
+                'label' => __('Drive link'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm'
             ]

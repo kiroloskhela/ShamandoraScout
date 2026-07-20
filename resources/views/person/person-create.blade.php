@@ -1,4 +1,4 @@
-@extends('layouts.app' , ['pageTitle' => __('Add new person')?? ''])
+@extends('layouts.app' , ['pageTitle' => __('Add new person')])
 
 
 @section('content')
@@ -59,7 +59,7 @@
                                             style="font-family: 'Cairo', sans-serif; font-size: medium"
                                             value="{{Auth()->user()->PersonID}}" hidden>
                                     </div>
-                                    <div class="form-group row" dir="rtl">
+                                    <div class="form-group row">
                                         <div class="col-sm-3 mb-3 mb-sm-0">
                                             <input type="text" class="form-control form-control-user" name="first_name"
                                                 id="first_name"
@@ -91,7 +91,7 @@
                                                 placeholder="{{ __('Fourth name') }}">
                                         </div>
                                     </div>
-                                    <div class="form-group row text-center" dir="rtl">
+                                    <div class="form-group row text-center">
                                         <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر نوع
                                             الملتحق<strong>(ذكر أم أنثى)</strong> **</label>
                                         <br />
@@ -107,16 +107,16 @@
                                                 value="Female">{{ __('Female') }}</option>
                                         </select>
                                     </div>
-                                    <div class="form-group text-center" dir="rtl">
+                                    <div class="form-group text-center">
                                         <label class="text-center" for="email_input"
                                             style="font-family: 'Cairo', sans-serif;">البريد الالكتروني</label>
-                                        <input dir="rtl" type="email" name="email_input" id="email_input"
+                                        <input type="email" name="email_input" id="email_input"
                                             class="form-control form-control-user"
                                             style="font-family: 'Cairo', sans-serif; font-size: large"
                                             placeholder="أدخل البريد الالكتروني للملتحق بشكل صحيح">
                                     </div>
 
-                                    <div class="form-group row text-center" dir="rtl">
+                                    <div class="form-group row text-center">
                                         <div class="col-sm-6 mb-3 mb-sm-0">
                                             <label class="text-center" for="birthdate_input"
                                                 style="font-family: 'Cairo', sans-serif;">تاريخ الميلاد **</label>
@@ -146,10 +146,10 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="form-group text-center" dir="rtl">
+                                    <div class="form-group text-center">
                                         <label for="joindate" style="font-family: 'Cairo', sans-serif;">الرقم القومي
                                             **</label>
-                                        <input dir="rtl" type="number" class="form-control form-control-user"
+                                        <input type="number" class="form-control form-control-user"
                                             id="input_raqam_qawmy" name="input_raqam_qawmy"
                                             style="font-family: 'Cairo', sans-serif; font-size: large"
                                             placeholder="أدخل الرقم القومي المكون من 14 رقماً"
@@ -157,26 +157,26 @@
                                             onfocusout="validate('input_raqam_qawmy')">
 
                                     </div>
-                                    <div class="form-group text-center" dir="rtl">
+                                    <div class="form-group text-center">
                                         <label for="inputFacebookLink"
                                             style="font-family: 'Cairo', sans-serif;">Facebook Account URL/Link (if
                                             Found)</label>
-                                        <input dir="rtl" type="text" class="form-control form-control-user"
+                                        <input type="text" class="form-control form-control-user"
                                             name="inputFacebookLink" id="inputFacebookLink"
                                             style="font-family: 'Cairo', sans-serif; font-size: large"
                                             placeholder="أدخل لينك حساب الفيسبوك الخاص بالمتلحق (إن وُجِد)">
 
                                     </div>
-                                    <div class="form-group text-center" dir="rtl">
+                                    <div class="form-group text-center">
                                         <label for="instagramLink" style="font-family: 'Cairo', sans-serif;">Instagram
                                             Account URL/Link (if Found)</label>
-                                        <input dir="rtl" type="text" class="form-control form-control-user"
+                                        <input type="text" class="form-control form-control-user"
                                             name="inputInstagramLink" id="inputInstagramLink"
                                             style="font-family: 'Cairo', sans-serif; font-size: large"
                                             placeholder="أدخل لينك حساب انستجرام الخاص بالمتلحق (إن وُجِد)">
 
                                     </div>
-                                    <div class="form-group row text-center" dir="rtl">
+                                    <div class="form-group row text-center">
                                         <label for="joindate" style="font-family: 'Cairo', sans-serif;">اختر فصيلة الدم
                                             الصحيحة <strong>(اختر "غير محدد" عند عدم التأكد)</strong> **</label>
                                         <br />
@@ -214,7 +214,7 @@
                                     <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
                                         الثاني: بيانات التواصل</h2>
                                 </div>
-                                <div class="form-group row text-center" dir="rtl">
+                                <div class="form-group row text-center">
                                     <div class="col-sm-3 mb-3 mb-sm-0">
                                         <label class="text-center" for="personal_phone_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم موبايل الملتحق (الأساسي)
@@ -227,7 +227,7 @@
                                             onfocusout="validate('personal_phone_number')">
                                     </div>
 
-                                    <div class="col-sm-3 text-center" dir="rtl">
+                                    <div class="col-sm-3 text-center">
                                         <label class="text-center" for="father_phone_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم موبايل الأب (إن وُجِد)</label>
                                         <input type="number" class="form-control form-control-user"
@@ -236,7 +236,7 @@
                                             placeholder="رقم موبايل الأب">
                                     </div>
 
-                                    <div class="col-sm-3 text-center" dir="rtl">
+                                    <div class="col-sm-3 text-center">
                                         <label class="text-center" for="mother_phone_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم موبايل الأم (إن وُجِد)</label>
                                         <input type="text" class="form-control form-control-user"
@@ -245,7 +245,7 @@
                                             placeholder="رقم موبايل الأم">
                                     </div>
 
-                                    <div class="col-sm-3 text-center" dir="rtl">
+                                    <div class="col-sm-3 text-center">
                                         <label class="text-center" for="home_phone_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم التليفون الأرضي (إن
                                             وُجِد)</label>
@@ -255,7 +255,7 @@
                                             placeholder="رقم التليفون الأرضي">
                                     </div>
                                 </div>
-                                <div class="form-group row text-center" dir="rtl">
+                                <div class="form-group row text-center">
                                     <label for="has_whatsapp"
                                         style="font-family: 'Cairo', sans-serif; margin-top: 5px;">هل رقم الموبايل
                                         الأساسي للملتحق عليه برنامج Whatsapp<strong>(نعم أم لا)</strong></label>
@@ -272,8 +272,8 @@
                                 </div>
                                 <br />
                                 <hr>
-                                <div class="form-group row text-center" dir="rtl">
-                                    <div class="col-sm-4 mb-3 mb-sm-0" dir="rtl">
+                                <div class="form-group row text-center">
+                                    <div class="col-sm-4 mb-3 mb-sm-0">
                                         <label class="text-center" for="building_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم العمارة **</label>
                                         <input type="number" class="form-control form-control-user"
@@ -283,7 +283,7 @@
                                             onfocusout="validate('building_number')">
                                     </div>
 
-                                    <div class="col-sm-4 mb-3 mb-sm-0 text-center" dir="rtl">
+                                    <div class="col-sm-4 mb-3 mb-sm-0 text-center">
                                         <label class="text-center" for="floor_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم الدور **</label>
                                         <input type="number" class="form-control form-control-user" name="floor_number"
@@ -292,7 +292,7 @@
                                             placeholder="أدخل رقم الدور">
                                     </div>
 
-                                    <div class="col-sm-4 mb-3 mb-sm-0 text-center" dir="rtl">
+                                    <div class="col-sm-4 mb-3 mb-sm-0 text-center">
                                         <label class="text-center" for="appartment_number"
                                             style="font-family: 'Cairo', sans-serif;">رقم الشقة **</label>
                                         <input type="number" class="form-control form-control-user"
@@ -302,7 +302,7 @@
                                     </div>
 
                                 </div>
-                                <div class="form-group row text-center" dir="rtl">
+                                <div class="form-group row text-center">
                                     <div class="col-sm-6 mb-5 mb-sm-0">
                                         <label class="text-center" for="sub_street_name"
                                             style="font-family: 'Cairo', sans-serif;">اسم الشارع **</label>
@@ -313,7 +313,7 @@
                                             onfocusout="validate('sub_street_name')">
                                     </div>
 
-                                    <div class="col-sm-6 mb-5 mb-sm-0 text-center" dir="rtl">
+                                    <div class="col-sm-6 mb-5 mb-sm-0 text-center">
                                         <label class="text-center" for="main_street_name"
                                             style="font-family: 'Cairo', sans-serif;">اسم أقرب شارع رئيسي **</label>
                                         <input type="text" class="livesearch form-control form-control-user"
@@ -322,16 +322,16 @@
                                             placeholder="أدخل اسم أقرب شارع رئيسي للمنزل">
                                     </div>
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="nearest_landmark"
                                         style="font-family: 'Cairo', sans-serif;">{{ __('Nearest landmark') }}</label>
-                                    <input dir="rtl" type="text" name="nearest_landmark" id="nearest_landmark"
+                                    <input type="text" name="nearest_landmark" id="nearest_landmark"
                                         class="form-control form-control-user" id="nearest_landmark"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل أقرب علامة مميزة لعنوان الملتحق">
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
-                                    <div class="col-sm-6" dir="rtl">
+                                <div class="form-group text-center">
+                                    <div class="col-sm-6">
                                         <label for="manteqa_id" style="font-family: 'Cairo', sans-serif;">المنطقة
                                             **</label>
                                         <br />
@@ -347,7 +347,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-sm-6 text-center" dir="rtl">
+                                    <div class="col-sm-6 text-center">
                                         <label for="district_id" style="font-family: 'Cairo', sans-serif;">الحي
                                             **</label>
                                         <br />
@@ -381,7 +381,7 @@
                                     <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
                                         الثالث: البيانات الدراسية والكنسية</h2>
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label for="sana_marhala_id" style="font-family: 'Cairo', sans-serif;">السنة
                                         والمرحلة الدراسية</label>
                                     <br />
@@ -400,10 +400,10 @@
                                 </div>
                                 <br />
 
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label for="person_school" style="font-family: 'Cairo', sans-serif;">اسم
                                         المدرسة</label>
-                                    <input dir="rtl" type="text" name="person_school" id="person_school"
+                                    <input type="text" name="person_school" id="person_school"
                                         class="form-control form-control-user"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل اسم المدرسة">
@@ -426,7 +426,7 @@
                                     </select>
                                 </div>
 
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="person_faculty"
                                         style="font-family: 'Cairo', sans-serif;">{{ __('Faculty name') }}</label>
                                     <select class="form-control" style="margin-top: 8px;" name="person_faculty"
@@ -440,7 +440,7 @@
                                     </select>
                                 </div>
                                 </br>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="person_university"
                                         style="font-family: 'Cairo', sans-serif;">اسم الجامعة</label>
                                     <select class="form-control" style="margin-top: 8px;" name="person_university"
@@ -471,38 +471,38 @@
                                     </select>
                                 </div>
 
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="person_job"
                                         style="font-family: 'Cairo', sans-serif;">نوع الوظيفة</label>
-                                    <input dir="rtl" type="text" name="person_job" id="person_job"
+                                    <input type="text" name="person_job" id="person_job"
                                         class="form-control form-control-user"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل الوظيفة للخريجين">
                                 </div>
 
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="person_job_place"
                                         style="font-family: 'Cairo', sans-serif;">مكان العمل الحالي</label>
-                                    <input dir="rtl" type="text" name="person_job_place" id="person_job_place"
+                                    <input type="text" name="person_job_place" id="person_job_place"
                                         class="form-control form-control-user"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل مكان العمل الحالي للخريجين">
                                 </div>
 
                                 <hr>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="spiritual_father"
                                         style="font-family: 'Cairo', sans-serif;">الأب الروحي / أب الاعتراف</label>
-                                    <input dir="rtl" type="text" name="spiritual_father" id="spiritual_father"
+                                    <input type="text" name="spiritual_father" id="spiritual_father"
                                         class="form-control form-control-user"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل اسم أب الاعتراف أو الأب الروحي للملتحق">
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label class="text-center" for="spiritual_father_church"
                                         style="font-family: 'Cairo', sans-serif;">كنيسة الأب الروحي / أب
                                         الاعتراف</label>
-                                    <input dir="rtl" type="text" name="spiritual_father_church"
+                                    <input type="text" name="spiritual_father_church"
                                         id="spiritual_father_church" class="form-control form-control-user"
                                         style="font-family: 'Cairo', sans-serif; font-size: large"
                                         placeholder="أدخل كنيسة أب الاعتراف أو الأب الروحي للملتحق">
@@ -523,7 +523,7 @@
                                     <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> الجزء
                                         الرابع: البيانات الكشفية</h2>
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label style="font-family: 'Cairo', sans-serif;">{{ __('Scout rank') }}</label>
                                     <br />
                                     <select class="form-control" style="margin-top: 8px;" name="rotba_kashfeyya_id"
@@ -538,7 +538,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label style="font-family: 'Cairo', sans-serif;">ايجازة بطاقة التقدم</label>
                                     <br />
                                     <select class="form-control" style="margin-top: 8px;" name="betaka_id"
@@ -553,7 +553,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="form-group text-center" dir="rtl">
+                                <div class="form-group text-center">
                                     <label style="font-family: 'Cairo', sans-serif;">{{ __('Scout sector') }}</label>
                                     <br />
                                     <select class="form-control" style="margin-top: 8px;" name="qetaa_id" id="qetaa_id"

@@ -1,23 +1,23 @@
-@extends('layouts.app', ['pageTitle' => 'المناطق السكنية'])
+@extends('layouts.app', ['pageTitle' => __('Residential areas')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$manateq->toArray()" title="إدارة المناطق السكنية" :add-button="[
-            'label' => 'إضافة منطقة سكنية',
+        <x-data-table :data="$manateq->toArray()" :title="__('Manage residential areas')" :add-button="[
+            'label' => __('Add residential area'),
             'route' => route('manteqa.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'ManteqaID',
-                'label' => 'رقم المنطقة السكنية',
+                'label' => __('District ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'ManteqaName',
-                'label' => 'اسم المنطقة السكنية',
+                'label' => __('District name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

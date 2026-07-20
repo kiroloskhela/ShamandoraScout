@@ -1,6 +1,6 @@
-@extends('layouts.app', ['pageTitle' => 'مسح المستند'])
+@extends('layouts.app', ['pageTitle' => __('Delete document')])
 
 @section('content')
-    <x-form-card title="مسح المستند" :action="route('secretary.destroy', $document->DocumentID)" method="DELETE" :inputValue="$document->DocumentName" inputPlaceholder="ادخل المستند"
-        inputLabel="مسح اسم المستند" submitText="مسح" submitColor="red" inputName="document_name" />
+    <x-form-card :title="__('Delete document')" :action="route('secretary.destroy', $document->DocumentID)" method="DELETE" :inputValue="$document->DocumentName" inputPlaceholder="{{ __('Form label f0dc4572') }}"
+        inputLabel="{{ __('Form label b1920f67') }}" submitText="{{ __('Delete') }}" submitColor="red" inputName="document_name" />
 @endsection

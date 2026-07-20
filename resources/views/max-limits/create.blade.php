@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar">
+@php
+    $locale = app()->getLocale();
+    $isRtl = $locale === 'ar';
+    $dir = $isRtl ? 'rtl' : 'ltr';
+@endphp
+<html lang="{{ $locale }}">
 
 <head>
 
@@ -333,7 +338,7 @@
 
                                         <br>
                                         
-                                    <div class="form-group row text-center" dir="rtl">
+                                    <div class="form-group row text-center" dir="{{ $dir }}">
                                             <label for="joindate" style="font-family: 'Cairo', sans-serif;">سنة</label>
                                             <br />
                                             <select class="form-control col-sm-4" style="margin-right: 20px;" name="year" id="year" onChange="" placeholder="اختار سنة الالتحاق">

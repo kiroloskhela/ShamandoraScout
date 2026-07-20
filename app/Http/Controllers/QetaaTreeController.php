@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\OrgTree\GroupTreeService;
 use App\Support\LikeSearch;
+use App\Support\PersonAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -161,7 +162,7 @@ class QetaaTreeController extends Controller
                         ->orderBy('pi.ShamandoraCode')
                         ->get()
                         ->map(function ($person) {
-                            $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                            $person->AvatarUrl = PersonAvatar::url(
                                 $person->PersonSystemImagePath ?? null,
                                 $person->Gender ?? null
                             );
@@ -268,7 +269,7 @@ class QetaaTreeController extends Controller
             ->orderBy('pi.ShamandoraCode')
             ->get()
             ->map(function ($person) {
-                $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                $person->AvatarUrl = PersonAvatar::url(
                     $person->PersonSystemImagePath ?? null,
                     $person->Gender ?? null
                 );
@@ -334,7 +335,7 @@ class QetaaTreeController extends Controller
                 ->orderBy('pi.ShamandoraCode')
                 ->get()
                 ->map(function ($person) {
-                    $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                    $person->AvatarUrl = PersonAvatar::url(
                         $person->PersonSystemImagePath ?? null,
                         $person->Gender ?? null
                     );
@@ -422,7 +423,7 @@ class QetaaTreeController extends Controller
             ->limit(20)
             ->get()
             ->map(function ($person) {
-                $person->AvatarUrl = \App\Support\PersonAvatar::url(
+                $person->AvatarUrl = PersonAvatar::url(
                     $person->PersonSystemImagePath ?? null,
                     $person->Gender ?? null
                 );
@@ -457,14 +458,14 @@ class QetaaTreeController extends Controller
         ]);
 
         if (! $this->servedQetaaIds(Auth::id())->contains((int) $request->QetaaID)) {
-            return response()->json(['error' => 'لا يمكنك تعديل هذا القطاع.'], 403);
+            return response()->json(['error' => __('You cannot edit this sector.')], 403);
         }
 
         if ($request->IncludedUnderGroupID > 0) {
             $parent = DB::table('GroupTable')->where('GroupID', $request->IncludedUnderGroupID)->first();
 
             if (! $parent) {
-                return response()->json(['error' => 'المجموعة الرئيسية غير موجودة.'], 422);
+                return response()->json(['error' => __('Parent group not found.')], 422);
             }
 
             $parentInQetaa = DB::table('GroupQetaa')
@@ -473,14 +474,14 @@ class QetaaTreeController extends Controller
                 ->exists();
 
             if (! $parentInQetaa) {
-                return response()->json(['error' => 'المجموعة الرئيسية لا تتبع هذا القطاع.'], 422);
+                return response()->json(['error' => __('Parent group does not belong to this sector.')], 422);
             }
 
             if ((int) $parent->GroupTypeID !== 2 || (int) $request->GroupTypeID !== 3) {
-                return response()->json(['error' => 'يمكن إضافة طليعة فقط داخل فريق.'], 422);
+                return response()->json(['error' => __('Patrols can only be added inside a team.')], 422);
             }
         } elseif (! in_array((int) $request->GroupTypeID, [2, 3], true)) {
-            return response()->json(['error' => 'نوع المجموعة غير صحيح.'], 422);
+            return response()->json(['error' => __('Invalid group type.')], 422);
         }
 
         $newId = $this->groups->createGroup(
@@ -502,7 +503,7 @@ class QetaaTreeController extends Controller
             ->exists();
 
         if (! $canAccessGroup) {
-            return response()->json(['error' => 'لا يمكنك حذف هذه المجموعة.'], 403);
+            return response()->json(['error' => __('You cannot delete this group.')], 403);
         }
 
         $groupIds = collect([$groupId])
@@ -533,7 +534,7 @@ class QetaaTreeController extends Controller
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
         if (! $group || (int) $group->GroupTypeID !== 3) {
-            return response()->json(['error' => 'يمكن إضافة الأشخاص داخل طليعة فقط.'], 422);
+            return response()->json(['error' => __('People can only be added inside a patrol.')], 422);
         }
 
         $canAccessGroup = DB::table('GroupQetaa')
@@ -542,11 +543,11 @@ class QetaaTreeController extends Controller
             ->exists();
 
         if (! $canAccessGroup) {
-            return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
+            return response()->json(['error' => __('You cannot edit this group.')], 403);
         }
 
         if ($request->filled('RotbaID') && ! $this->rotbaExists($request->RotbaID)) {
-            return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
+            return response()->json(['error' => __('Selected rank does not exist.')], 422);
         }
 
         $qetaaId = $this->qetaaIdForGroup($request->GroupID);
@@ -563,7 +564,7 @@ class QetaaTreeController extends Controller
             ->count('PersonID');
 
         if ($validPersonCount !== $personIds->count()) {
-            return response()->json(['error' => 'يوجد شخص غير تابع للقطاع الخاص بهذه الطليعة.'], 422);
+            return response()->json(['error' => __('A person is not in the sector for this patrol.')], 422);
         }
 
         $rotbaByPerson = collect($request->input('PersonRotbas', []))
@@ -585,7 +586,7 @@ class QetaaTreeController extends Controller
                 ->count('RotbaID');
 
             if ($validRotbaCount !== $rotbaIds->count()) {
-                return response()->json(['error' => 'يوجد رتبة مختارة غير موجودة.'], 422);
+                return response()->json(['error' => __('A selected rank does not exist.')], 422);
             }
         }
 
@@ -619,12 +620,12 @@ class QetaaTreeController extends Controller
             ->exists();
 
         if (! $group || (int) $group->GroupTypeID !== 3 || ! $canAccessGroup || ! $personInGroup) {
-            return response()->json(['error' => 'لا يمكنك تعديل رتبة هذا الشخص.'], 403);
+            return response()->json(['error' => __("You cannot edit this person's rank.")], 403);
         }
 
         if ($request->filled('RotbaID')) {
             if (! $this->rotbaExists($request->RotbaID)) {
-                return response()->json(['error' => 'الرتبة المختارة غير موجودة.'], 422);
+                return response()->json(['error' => __('Selected rank does not exist.')], 422);
             }
 
             $this->groups->updatePersonRotba((int) $request->PersonID, $request->RotbaID);
@@ -644,7 +645,7 @@ class QetaaTreeController extends Controller
             ->exists();
 
         if (! $group || (int) $group->GroupTypeID !== 3 || ! $canAccessGroup) {
-            return response()->json(['error' => 'لا يمكنك تعديل هذه المجموعة.'], 403);
+            return response()->json(['error' => __('You cannot edit this group.')], 403);
         }
 
         $this->groups->removePersonFromGroup((int) $request->PersonID, (int) $request->GroupID);

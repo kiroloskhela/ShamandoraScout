@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Event bookings')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-6" dir="rtl">
+    <div class="container mx-auto px-4 py-6">
         @if (session('success'))
             <div class="mb-4 rounded-lg bg-green-100 dark:bg-green-900/40 border border-green-300 dark:border-slate-700 text-green-800 dark:text-green-200 px-4 py-3">
                 {{ session('success') }}

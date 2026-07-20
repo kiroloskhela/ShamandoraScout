@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة دور/مهمة' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Add role/duty')])
 @section('content')
-    <x-form-card title="إضافة دور/مهمة" :action="route('role.insert')" method="POST" inputPlaceholder="ادخل اسم الدور/المهمة"
-        inputLabel="اسم الدور/المهمة" submitText="إضافة دور/مهمة" submitColor="blue" inputName="role_name" />
+    <x-form-card :title="__('Add role/duty')" :action="route('role.insert')" method="POST" inputPlaceholder="{{ __('Form label f9e93980') }}"
+        inputLabel="{{ __('Role/task name') }}" submitText="{{ __('Add role/duty') }}" submitColor="blue" inputName="role_name" />
 @endsection

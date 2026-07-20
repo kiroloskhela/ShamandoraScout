@@ -26,7 +26,7 @@
     }
 </style>
 
-<div class="profile-edit -mx-2 sm:mx-0" dir="rtl">
+<div class="profile-edit -mx-2 sm:mx-0">
     @if ($errors->any())
         <div class="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800 text-sm">
             <div class="font-bold mb-1">{{ __('Please check the following fields:') }}</div>

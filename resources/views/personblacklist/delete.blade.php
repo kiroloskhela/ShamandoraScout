@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'مسح من القائمة السوداء'])
+@extends('layouts.app', ['pageTitle' => __('Remove from blacklist (alt)')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">مسح من القائمة السوداء</h2>
             </div>

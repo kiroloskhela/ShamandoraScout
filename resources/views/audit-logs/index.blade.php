@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'سجل التدقيق'])
+@extends('layouts.app', ['pageTitle' => __('Audit log')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">سجل التدقيق</h1>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ __('Audit log') }}</h1>
 
         <form method="GET" action="{{ route('audit-logs.index') }}" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
             <div>
@@ -35,7 +35,7 @@
             </div>
         </form>
 
-        <x-data-table :data="$logs" title="سجل التدقيق" tableId="AuditLogsTable" :columns="[
+        <x-data-table :data="$logs" :title="__('Audit log')" tableId="AuditLogsTable" :columns="[
             [
                 'key' => 'id',
                 'label' => '#',
@@ -44,13 +44,13 @@
             ],
             [
                 'key' => 'created_at',
-                'label' => 'الوقت',
+                'label' => __('Time'),
                 'type' => 'text',
                 'cssClass' => 'text-sm whitespace-nowrap text-gray-900',
             ],
             [
                 'key' => 'actor_name',
-                'label' => 'الفاعل',
+                'label' => __('Actor'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900',
             ],
@@ -62,13 +62,13 @@
             ],
             [
                 'key' => 'action',
-                'label' => 'الإجراء',
+                'label' => __('Action'),
                 'type' => 'text',
                 'cssClass' => 'text-sm font-semibold text-gray-900',
             ],
             [
                 'key' => 'path',
-                'label' => 'المسار',
+                'label' => __('Path'),
                 'type' => 'text',
                 'cssClass' => 'text-xs font-mono text-gray-500 break-all',
             ],

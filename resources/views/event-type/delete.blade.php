@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'مسح نوع المناسبة' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Delete event type')])
 
 @section('content')
-    <x-form-card title="مسح نوع المناسبة" :action="route('event-type.destroy', $eventType->EventTypeID)" method="DELETE" :inputValue="$eventType->EventTypeName"
-        inputPlaceholder="ادخل اسم نوع المناسبة" inputLabel="مسح اسم نوع المناسبة" submitText="مسح" submitColor="red"
-        pageTitle="المناسبات" />
+    <x-form-card :title="__('Delete event type')" :action="route('event-type.destroy', $eventType->EventTypeID)" method="DELETE" :inputValue="$eventType->EventTypeName"
+        inputPlaceholder="{{ __('Enter event type name') }}" inputLabel="{{ __('Form label 06f024e7') }}" submitText="{{ __('Delete') }}" submitColor="red"
+        pageTitle="__('Manage occasions')" />
 @endsection

@@ -3,7 +3,7 @@
 @section('content')
     <div class="container-fluid">
         <div class="flex place-content-center mb-8">
-            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl border-2 border-blue-300" dir="rtl">
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-4xl border-2 border-blue-300">
                 <!-- Title -->
                 <div class="mb-6 text-center">
                     <h2 class="text-xl font-bold text-gray-800" style="font-family: 'Cairo', sans-serif;">{{ __('Add new event/occasion') }}</h2>

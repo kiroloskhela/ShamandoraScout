@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل طلب عهدة'])
+@extends('layouts.app', ['pageTitle' => __('Edit custody request')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
 
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">تعديل طلب عهدة</h1>
