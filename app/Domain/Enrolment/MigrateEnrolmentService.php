@@ -3,6 +3,7 @@
 namespace App\Domain\Enrolment;
 
 use App\Support\ShamandoraCode;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +34,7 @@ class MigrateEnrolmentService
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, mixed>|array<int, mixed>  $personIds
+     * @param  Collection<int, mixed>|array<int, mixed>  $personIds
      */
     private function migratePersonIds($personIds): void
     {
