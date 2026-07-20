@@ -4,11 +4,16 @@ namespace App\Providers;
 
 use App\Models\Game;
 use App\Models\User;
+use App\Models\WhatsAppCampaign;
 use App\Policies\CurriculaPolicy;
+use App\Policies\CustodyPolicy;
+use App\Policies\EnrolmentPolicy;
 use App\Policies\EventBookingPolicy;
 use App\Policies\GamePolicy;
+use App\Policies\MedicinePolicy;
 use App\Policies\PersonPolicy;
 use App\Policies\TreePolicy;
+use App\Policies\WhatsAppCampaignPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -22,6 +27,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         User::class => PersonPolicy::class,
         Game::class => GamePolicy::class,
+        WhatsAppCampaign::class => WhatsAppCampaignPolicy::class,
     ];
 
     /**
@@ -52,5 +58,23 @@ class AuthServiceProvider extends ServiceProvider
 
         Gate::define('tree.manageQetaa', fn (?User $user, int $qetaaId) => $user !== null && (new TreePolicy)->manageQetaa($user, $qetaaId));
         Gate::define('tree.manageGroup', fn (?User $user, int $groupId) => $user !== null && (new TreePolicy)->manageGroup($user, $groupId));
+
+        Gate::define('medicine.viewAny', fn (?User $user) => $user !== null && (new MedicinePolicy)->viewAny($user));
+        Gate::define('medicine.manage', fn (?User $user) => $user !== null && (new MedicinePolicy)->manage($user));
+        Gate::define('medicine.dispense', fn (?User $user) => $user !== null && (new MedicinePolicy)->dispense($user));
+
+        Gate::define('custody.create', fn (?User $user) => $user !== null && (new CustodyPolicy)->create($user));
+        Gate::define('custody.view', fn (?User $user, int $requestId) => $user !== null && (new CustodyPolicy)->view($user, $requestId));
+        Gate::define('custody.update', fn (?User $user, int $requestId) => $user !== null && (new CustodyPolicy)->update($user, $requestId));
+        Gate::define('custody.delete', fn (?User $user, int $requestId) => $user !== null && (new CustodyPolicy)->delete($user, $requestId));
+        Gate::define('custody.viewAdmin', fn (?User $user) => $user !== null && (new CustodyPolicy)->viewAdmin($user));
+        Gate::define('custody.review', fn (?User $user) => $user !== null && (new CustodyPolicy)->review($user));
+
+        Gate::define('enrolment.viewAny', fn (?User $user) => $user !== null && (new EnrolmentPolicy)->viewAny($user));
+        Gate::define('enrolment.view', fn (?User $user, int $id) => $user !== null && (new EnrolmentPolicy)->view($user, $id));
+        Gate::define('enrolment.update', fn (?User $user, int $id) => $user !== null && (new EnrolmentPolicy)->update($user, $id));
+        Gate::define('enrolment.approve', fn (?User $user, int $id) => $user !== null && (new EnrolmentPolicy)->approve($user, $id));
+        Gate::define('enrolment.delete', fn (?User $user, int $id) => $user !== null && (new EnrolmentPolicy)->delete($user, $id));
+        Gate::define('enrolment.migrate', fn (?User $user) => $user !== null && (new EnrolmentPolicy)->migrate($user));
     }
 }

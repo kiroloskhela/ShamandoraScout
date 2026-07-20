@@ -14,6 +14,8 @@ class WhatsAppCampaignController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', WhatsAppCampaign::class);
+
         $campaigns = WhatsAppCampaign::query()
             ->withCount('recipients')
             ->orderByDesc('id')
@@ -24,11 +26,15 @@ class WhatsAppCampaignController extends Controller
 
     public function create(CampaignRecipientQuery $query)
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         return view('whatsapp.campaigns.create', $this->formViewData());
     }
 
     public function createCsv()
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         return view('whatsapp.campaigns.create-csv', [
             'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,
         ]);
@@ -36,6 +42,8 @@ class WhatsAppCampaignController extends Controller
 
     public function downloadCsvTemplate()
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         $filename = 'whatsapp-campaign-template.csv';
 
         return response()->streamDownload(function () {
@@ -53,6 +61,8 @@ class WhatsAppCampaignController extends Controller
 
     public function storeCsv(Request $request, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:180'],
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
@@ -76,6 +86,8 @@ class WhatsAppCampaignController extends Controller
 
     public function store(Request $request, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         $data = $this->validated($request);
         $campaign = $campaigns->createDraft($data, (int) auth()->id());
 
@@ -86,6 +98,8 @@ class WhatsAppCampaignController extends Controller
 
     public function show(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('view', $campaign);
+
         $campaign->load(['recipients' => fn ($q) => $q->orderBy('id')]);
         $counts = $campaigns->statusCounts($campaign);
 
@@ -98,6 +112,8 @@ class WhatsAppCampaignController extends Controller
 
     public function edit(WhatsAppCampaign $campaign)
     {
+        $this->authorize('update', $campaign);
+
         if (! $campaign->isEditable()) {
             return redirect()->route('whatsapp.campaigns.show', $campaign)
                 ->with('error', __('Cannot edit a non-draft campaign.'));
@@ -113,6 +129,8 @@ class WhatsAppCampaignController extends Controller
 
     public function update(Request $request, WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('update', $campaign);
+
         try {
             $data = $this->validated($request);
             $campaigns->updateDraft($campaign, $data);
@@ -127,6 +145,8 @@ class WhatsAppCampaignController extends Controller
 
     public function searchContacts(Request $request, CampaignRecipientQuery $query)
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         $filters = [
             'q' => $request->input('q'),
             'gender' => $request->input('gender'),
@@ -155,6 +175,8 @@ class WhatsAppCampaignController extends Controller
 
     public function preview(Request $request, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('create', WhatsAppCampaign::class);
+
         $data = $request->validate([
             'message_template' => ['required', 'string', 'max:4000'],
             'person_ids' => ['required', 'array', 'min:1'],
@@ -179,6 +201,8 @@ class WhatsAppCampaignController extends Controller
 
     public function confirm(Request $request, WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('manage', $campaign);
+
         try {
             $campaigns->confirmAndStart(
                 $campaign,
@@ -195,6 +219,8 @@ class WhatsAppCampaignController extends Controller
 
     public function pause(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('manage', $campaign);
+
         try {
             $campaigns->pause($campaign);
         } catch (RuntimeException $e) {
@@ -206,6 +232,8 @@ class WhatsAppCampaignController extends Controller
 
     public function resume(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('manage', $campaign);
+
         try {
             $campaigns->resume($campaign);
         } catch (RuntimeException $e) {
@@ -217,6 +245,8 @@ class WhatsAppCampaignController extends Controller
 
     public function cancel(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
+        $this->authorize('manage', $campaign);
+
         try {
             $campaigns->cancel($campaign);
         } catch (RuntimeException $e) {

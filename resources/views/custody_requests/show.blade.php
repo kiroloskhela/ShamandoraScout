@@ -4,8 +4,8 @@
     <div class="container mx-auto px-4 py-8">
 
         <div class="mb-6 text-center">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">تفاصيل الطلب رقم #{{ $requestRow->RequestID }}</h1>
-            <p class="text-gray-600">من {{ $requestRow->DateFrom }} إلى {{ $requestRow->DateTo }}</p>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">{{ __('Request details #:id', ['id' => $requestRow->RequestID]) }}</h1>
+            <p class="text-gray-600">{{ __('From :from to :to', ['from' => $requestRow->DateFrom, 'to' => $requestRow->DateTo]) }}</p>
         </div>
 
         @if (session('success'))
@@ -25,11 +25,9 @@
                     <span class="font-bold text-gray-700">{{ __('Status:') }}</span>
                     @if ($requestRow->Status === 'pending')
                         <span
-                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">قيد
-                            المراجعة</span>
+                            class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200">{{ __('Pending review') }}</span>
                     @elseif ($requestRow->Status === 'approved')
-                        <span class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">تمت
-                            الموافقة</span>
+                        <span class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200">{{ __('Approved') }}</span>
                     @else
                         <span
                             class="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">{{ __('Rejected') }}</span>
@@ -45,7 +43,7 @@
                             class="px-4 py-2 text-xs rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">{{ __('Edit') }}</a>
 
                         <form method="POST" action="{{ route('custody_requests.destroy', $requestRow->RequestID) }}"
-                            onsubmit="return confirm('هل أنت متأكد من حذف الطلب؟');">
+                            onsubmit="return confirm(@json(__('Are you sure you want to delete this request?')));">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -58,20 +56,20 @@
             {{-- Badges --}}
             <div class="mt-4 flex flex-wrap gap-2">
                 <span class="px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200">
-                    القطاع: {{ $requestRow->QetaaName ?? '—' }}
+                    {{ __('Sector:') }} {{ $requestRow->QetaaName ?? '—' }}
                 </span>
                 <span class="px-3 py-1 rounded-full text-xs bg-slate-50 text-slate-700 border border-slate-200">
-                    نوع الفعالية: {{ $requestRow->EventTypeName ?? '—' }}
+                    {{ __('Event type') }}: {{ $requestRow->EventTypeName ?? '—' }}
                 </span>
                 <span class="px-3 py-1 rounded-full text-xs bg-purple-50 text-purple-700 border border-purple-200">
-                    المراجع: {{ $requestRow->ReviewerName ?? '—' }}
+                    {{ __('Reviewer') }}: {{ $requestRow->ReviewerName ?? '—' }}
                 </span>
             </div>
 
             {{-- Notes --}}
             @if (!empty($requestRow->UserNote))
                 <div class="mt-5 p-3 rounded-lg bg-slate-50 border border-slate-200 text-sm text-slate-700">
-                    <div class="font-bold mb-1">ملاحظتك:</div>
+                    <div class="font-bold mb-1">{{ __('Your note:') }}</div>
                     <div class="leading-6">{{ $requestRow->UserNote }}</div>
                 </div>
             @endif
@@ -79,7 +77,7 @@
             @if (!empty($requestRow->AdminNote))
                 <div
                     class="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-800 whitespace-pre-line">
-                    <div class="font-bold mb-1">ملاحظة :</div>
+                    <div class="font-bold mb-1">{{ __('Note:') }}</div>
                     {{ $requestRow->AdminNote }}
                 </div>
             @endif
@@ -88,19 +86,19 @@
         {{-- Items --}}
         <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-yellow-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">الأصناف</h2>
-                <span class="text-xs text-gray-500">{{ count($items) }} صنف</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('Items') }}</h2>
+                <span class="text-xs text-gray-500">{{ __(':count item(s)', ['count' => count($items)]) }}</span>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-center border border-slate-200 rounded-lg overflow-hidden">
                     <thead class="bg-slate-50">
                         <tr class="text-sm text-slate-700">
-                            <th class="p-3 border-b">م</th>
+                            <th class="p-3 border-b">{{ __('#') }}</th>
                             <th class="p-3 border-b">{{ __('Item') }}</th>
                             <th class="p-3 border-b">{{ __('Unit') }}</th>
-                            <th class="p-3 border-b">المطلوب</th>
-                            <th class="p-3 border-b">المعتمد</th>
+                            <th class="p-3 border-b">{{ __('Required amount') }}</th>
+                            <th class="p-3 border-b">{{ __('Approved amount') }}</th>
                             <th class="p-3 border-b">{{ __('Note') }}</th>
                         </tr>
                     </thead>
@@ -117,7 +115,7 @@
                                 <td class="p-3 text-right font-medium text-slate-900">
                                     {{ $it->ItemNameSnapshot }}
                                     @if ($reduced)
-                                        <div class="text-xs text-yellow-700 mt-1">تم تقليل الكمية</div>
+                                        <div class="text-xs text-yellow-700 mt-1">{{ __('Quantity reduced') }}</div>
                                     @endif
                                 </td>
                                 <td class="p-3">{{ $it->ItemUnitSnapshot }}</td>
@@ -133,14 +131,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="p-8 text-gray-500" colspan="6">لا توجد أصناف داخل هذا الطلب.</td>
+                                <td class="p-8 text-gray-500" colspan="6">{{ __('No items in this request.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <p class="mt-4 text-xs text-gray-500">الصفوف باللون الأصفر تعني أن الكمية المعتمدة أقل من المطلوبة.</p>
+            <p class="mt-4 text-xs text-gray-500">{{ __('Yellow rows mean the approved quantity is less than requested.') }}</p>
         </div>
 
     </div>

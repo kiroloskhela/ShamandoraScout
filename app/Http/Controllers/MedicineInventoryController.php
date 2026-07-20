@@ -20,6 +20,8 @@ class MedicineInventoryController extends Controller
 
     public function index()
     {
+        $this->authorize('medicine.viewAny');
+
         $medicines = DB::table('MedicineInventory')
             ->orderBy('ExpirationDate')
             ->orderBy('MedicineName')
@@ -31,6 +33,8 @@ class MedicineInventoryController extends Controller
 
     public function create()
     {
+        $this->authorize('medicine.manage');
+
         $types = MedicineInventoryService::MEDICINE_TYPES;
         $locations = $this->medicineInventory->activeLocations();
 
@@ -39,6 +43,8 @@ class MedicineInventoryController extends Controller
 
     public function insert(Request $request)
     {
+        $this->authorize('medicine.manage');
+
         $data = $this->validateMedicine($request, true);
 
         DB::transaction(function () use ($data) {
@@ -68,6 +74,8 @@ class MedicineInventoryController extends Controller
 
     public function edit($id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -86,6 +94,8 @@ class MedicineInventoryController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -120,6 +130,8 @@ class MedicineInventoryController extends Controller
 
     public function delete($id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -142,6 +154,8 @@ class MedicineInventoryController extends Controller
 
     public function destroy($id)
     {
+        $this->authorize('medicine.manage');
+
         $dispenseCount = DB::table('MedicineDispenseRecords')
             ->where('MedicineID', $id)
             ->count();
@@ -166,6 +180,8 @@ class MedicineInventoryController extends Controller
 
     public function dispense()
     {
+        $this->authorize('medicine.dispense');
+
         $medicines = DB::table('MedicineInventory')
             ->orderBy('MedicineName')
             ->get()
@@ -176,6 +192,8 @@ class MedicineInventoryController extends Controller
 
     public function storeDispense(Request $request)
     {
+        $this->authorize('medicine.dispense');
+
         $data = $request->validate([
             'medicine_id' => 'required|integer|exists:MedicineInventory,MedicineID',
             'location_id' => 'required|integer|exists:MedicineLocations,LocationID',
@@ -200,6 +218,8 @@ class MedicineInventoryController extends Controller
 
     public function records()
     {
+        $this->authorize('medicine.viewAny');
+
         $records = DB::table('MedicineDispenseRecords as mdr')
             ->join('MedicineInventory as mi', 'mi.MedicineID', '=', 'mdr.MedicineID')
             ->leftJoin('MedicineLocations as ml', 'ml.LocationID', '=', 'mdr.LocationID')
@@ -236,6 +256,8 @@ class MedicineInventoryController extends Controller
 
     public function stock($id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -252,6 +274,8 @@ class MedicineInventoryController extends Controller
 
     public function updateStock(Request $request, $id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -274,6 +298,8 @@ class MedicineInventoryController extends Controller
 
     public function restock($id)
     {
+        $this->authorize('medicine.manage');
+
         $medicine = DB::table('MedicineInventory')
             ->where('MedicineID', $id)
             ->first();
@@ -297,6 +323,8 @@ class MedicineInventoryController extends Controller
 
     public function locations()
     {
+        $this->authorize('medicine.viewAny');
+
         $locations = DB::table('MedicineLocations')
             ->orderByDesc('IsActive')
             ->orderBy('LocationName')
@@ -307,6 +335,8 @@ class MedicineInventoryController extends Controller
 
     public function storeLocation(Request $request)
     {
+        $this->authorize('medicine.manage');
+
         $data = $request->validate([
             'location_name' => 'required|string|max:255|unique:MedicineLocations,LocationName',
         ], [], [
@@ -325,6 +355,8 @@ class MedicineInventoryController extends Controller
 
     public function updateLocation(Request $request, $id)
     {
+        $this->authorize('medicine.manage');
+
         $location = DB::table('MedicineLocations')
             ->where('LocationID', $id)
             ->first();
@@ -362,6 +394,8 @@ class MedicineInventoryController extends Controller
 
     public function destroyLocation($id)
     {
+        $this->authorize('medicine.manage');
+
         $location = DB::table('MedicineLocations')
             ->where('LocationID', $id)
             ->first();
@@ -410,6 +444,8 @@ class MedicineInventoryController extends Controller
 
     public function locks()
     {
+        $this->authorize('medicine.viewAny');
+
         $medicines = DB::table('MedicineInventory')
             ->orderBy('MedicineName')
             ->get()
@@ -450,6 +486,8 @@ class MedicineInventoryController extends Controller
 
     public function storeLock(Request $request)
     {
+        $this->authorize('medicine.manage');
+
         $data = $request->validate([
             'medicine_id' => 'required|integer|exists:MedicineInventory,MedicineID',
             'location_id' => 'required|integer|exists:MedicineLocations,LocationID',
@@ -524,6 +562,8 @@ class MedicineInventoryController extends Controller
 
     public function releaseLock($id)
     {
+        $this->authorize('medicine.manage');
+
         DB::table('MedicineStockLocks')
             ->where('MedicineStockLockID', $id)
             ->whereNull('ReleasedAt')
@@ -537,6 +577,8 @@ class MedicineInventoryController extends Controller
 
     public function searchPersons(Request $request, PersonSearchService $personSearch)
     {
+        $this->authorize('medicine.dispense');
+
         $term = LikeSearch::fromRequest($request, ['search', 'q'], 2);
 
         return response()->json($personSearch->typeaheadWithPhone($term));

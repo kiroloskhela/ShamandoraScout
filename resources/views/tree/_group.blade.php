@@ -1,6 +1,6 @@
 {{-- resources/views/tree/_group.blade.php --}}
 @php
-    $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
+    $typeLabel = [2 => __('Team'), 3 => __('Patrol')];
     $badgeClass = [2 => 'qt-pill--green', 3 => 'qt-pill--blue'];
     $initials = fn($name) => mb_substr($name, 0, 1, 'UTF-8');
     $fullName = fn($person) => trim(collect([$person->FirstName ?? null, $person->SecondName ?? null, $person->ThirdName ?? null, $person->FourthName ?? null])->filter()->implode(' '));
@@ -95,7 +95,7 @@
 
                         <div class="qt-subgroup__body">
                             @if ($child->people->isEmpty())
-                                <p class="qt-empty">لا أعضاء في هذه الطليعة</p>
+                                <p class="qt-empty">{{ __('No members in this patrol') }}</p>
                             @else
                                 <div class="qt-people">
                                     @foreach ($child->people as $person)
@@ -197,7 +197,7 @@
         @endif
 
         @if ($group->children->isEmpty() && (!$isTaleia || $group->people->isEmpty()))
-            <p class="qt-empty">{{ $isFareeq ? 'لا توجد طلايع داخل هذا الفريق' : 'لا أعضاء في هذه الطليعة' }}</p>
+            <p class="qt-empty">{{ $isFareeq ? __('No patrols in this team') : __('No members in this patrol') }}</p>
         @endif
     </div>
 </div>

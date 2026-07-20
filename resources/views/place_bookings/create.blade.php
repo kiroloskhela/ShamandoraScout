@@ -5,8 +5,8 @@
 
         {{-- Header --}}
         <div class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">طلب حجز مكان</h1>
-            <p class="text-gray-600">اختر الموقع ثم المكان ثم التاريخ والوقت وأرسل الطلب</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ __('Place booking request') }}</h1>
+            <p class="text-gray-600">{{ __('Select location then place then date and time and submit') }}</p>
         </div>
 
         {{-- Alerts --}}
@@ -28,8 +28,8 @@
         {{-- Step 1: Location + Place --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-green-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">١) اختيار المكان</h2>
-                <span class="text-xs text-gray-500">الموقع → المكان</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('1) Select place') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Location → Place') }}</span>
             </div>
 
             <div class="grid md:grid-cols-2 gap-6">
@@ -45,7 +45,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <p class="mt-2 text-xs text-gray-500">اختر الموقع أولاً لإظهار الأماكن التابعة له.</p>
+                    <p class="mt-2 text-xs text-gray-500">{{ __('Choose location first to show places under it.') }}</p>
                 </div>
 
                 <div>
@@ -55,7 +55,7 @@
                         disabled>
                         <option value="" selected disabled>{{ __('Choose place') }}</option>
                     </select>
-                    <p class="mt-2 text-xs text-gray-500">سيتم تحميل الأماكن تلقائيًا بعد اختيار الموقع.</p>
+                    <p class="mt-2 text-xs text-gray-500">{{ __('Places will load automatically after selecting a location.') }}</p>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
                     <label class="block mb-2 text-sm text-gray-700">{{ __('Sector') }}</label>
                     <select id="qetaa_id"
                         class="w-full h-12 border rounded-lg px-4 text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="">-- بدون --</option>
+                        <option value="">-- {{ __('None') }} --</option>
                         @foreach ($qetaat as $q)
                             <option value="{{ $q->QetaaID }}" {{ old('qetaa_id') == $q->QetaaID ? 'selected' : '' }}>
                                 {{ $q->QetaaName }}
@@ -86,8 +86,8 @@
         {{-- Step 2: Date + Time --}}
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-2 border-yellow-300">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-gray-800">٢) التاريخ والوقت</h2>
-                <span class="text-xs text-gray-500">التاريخ + من/إلى</span>
+                <h2 class="text-lg font-bold text-gray-800">{{ __('2) Date and time') }}</h2>
+                <span class="text-xs text-gray-500">{{ __('Date + from/to') }}</span>
             </div>
 
             <div class="grid md:grid-cols-3 gap-6 items-end">
@@ -111,7 +111,7 @@
             </div>
 
             <p class="mt-3 text-xs text-gray-500">
-                ملاحظة: يمكن وجود أكثر من طلب في نفس الوقت، والإدارة ستقوم بتوزيع الأماكن عند الاعتماد إذا لزم.
+                {{ __('Note: Multiple requests can exist at the same time; admin will assign places on approval if needed.') }}
             </p>
         </div>
 
@@ -145,11 +145,11 @@
                 <button type="submit"
                     class="inline-flex items-center justify-center h-12 px-10 text-sm font-medium rounded-full
                        bg-green-50 text-green-700 hover:bg-green-100 transition border border-green-200">
-                    إرسال الطلب
+                    {{ __('Send request') }}
                 </button>
 
                 <p class="mt-3 text-xs text-gray-500">
-                    سيتم إرسال الطلب بحالة <span class="font-bold">{{ __('Pending review') }}</span>.
+                    {{ __('The request will be submitted with status') }} <span class="font-bold">{{ __('Pending review') }}</span>.
                 </p>
             </form>
         </div>
@@ -201,7 +201,7 @@
 
                     if (!Array.isArray(data) || data.length === 0) {
                         placeSelect.innerHTML =
-                            '<option value="" selected disabled>لا توجد أماكن لهذا الموقع</option>';
+                            '<option value="" selected disabled>' + @json(__('No places for this location')) + '</option>';
                         placeSelect.setAttribute('disabled', 'disabled');
                         return;
                     }
@@ -219,7 +219,7 @@
                     placeSelect.removeAttribute('disabled');
                 } catch (e) {
                     placeSelect.innerHTML =
-                        '<option value="" selected disabled>تعذر تحميل الأماكن</option>';
+                        '<option value="" selected disabled>' + @json(__('Failed to load places')) + '</option>';
                     placeSelect.setAttribute('disabled', 'disabled');
                 }
             }
@@ -240,27 +240,27 @@
             form.addEventListener('submit', function(e) {
                 if (!locationSelect.value) {
                     e.preventDefault();
-                    alert('من فضلك اختر الموقع.');
+                    alert(@json(__('Please select a location.')));
                     return;
                 }
                 if (!placeSelect.value) {
                     e.preventDefault();
-                    alert('من فضلك اختر المكان.');
+                    alert(@json(__('Please select a place.')));
                     return;
                 }
                 if (!bookingDate.value) {
                     e.preventDefault();
-                    alert('من فضلك اختر التاريخ.');
+                    alert(@json(__('Please select a date.')));
                     return;
                 }
                 if (!timeFrom.value || !timeTo.value) {
                     e.preventDefault();
-                    alert('من فضلك اختر الوقت (من / إلى).');
+                    alert(@json(__('Please select time (from / to).')));
                     return;
                 }
                 if (timeFrom.value >= timeTo.value) {
                     e.preventDefault();
-                    alert('وقت (إلى) يجب أن يكون بعد وقت (من).');
+                    alert(@json(__('End time must be after start time.')));
                     return;
                 }
 

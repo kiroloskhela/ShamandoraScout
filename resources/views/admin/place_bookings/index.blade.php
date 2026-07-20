@@ -6,7 +6,7 @@
         {{-- Header --}}
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2">{{ __('Place booking requests') }}</h1>
-            <p class="text-gray-600 dark:text-slate-300">مراجعة واعتماد/رفض طلبات المستخدمين</p>
+            <p class="text-gray-600 dark:text-slate-300">{{ __('Review and approve/reject user requests') }}</p>
         </div>
 
         {{-- Alerts --}}
@@ -65,7 +65,7 @@
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'all']) }}"
                         class="px-4 py-2 text-xs rounded-full border transition
                                {{ $filter === 'all' ? 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 border-blue-200 dark:border-slate-700' : 'bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800' }}">
-                        الكل
+                        {{ __('All') }}
                     </a>
                     <a href="{{ route('admin.place_bookings.index', ['status' => 'pending']) }}"
                         class="px-4 py-2 text-xs rounded-full border transition
@@ -80,7 +80,7 @@
             </div>
 
             <p class="mt-3 text-xs text-gray-500 dark:text-slate-400">
-                ملاحظة: يمكنك فتح أي طلب للموافقة/الرفض أو الموافقة مع تعديل المكان/الوقت مع إضافة ملاحظات.
+                {{ __('Note: You can open any request to approve/reject or approve with place/time changes and notes.') }}
             </p>
         </div>
 
@@ -91,14 +91,14 @@
                     <thead class="bg-slate-50 dark:bg-slate-800">
                         <tr class="text-sm text-slate-700 dark:text-slate-200">
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Request number') }}</th>
-                            <th class="p-3 border-b dark:border-slate-700">المستخدم</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('User') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Location') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Place') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Date') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('From') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('To') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Status') }}</th>
-                            <th class="p-3 border-b dark:border-slate-700">تاريخ الإرسال</th>
+                            <th class="p-3 border-b dark:border-slate-700">{{ __('Sent at') }}</th>
                             <th class="p-3 border-b dark:border-slate-700">{{ __('Details') }}</th>
                         </tr>
                     </thead>
@@ -138,13 +138,13 @@
                                     <a href="{{ route('admin.place_bookings.show', $r->BookingID) }}"
                                         class="inline-flex items-center justify-center px-4 py-2 text-xs rounded-lg
                                                bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition border border-blue-200 dark:border-slate-700">
-                                        فتح
+                                        {{ __('Open') }}
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td class="p-8 text-gray-500 dark:text-slate-400" colspan="10">لا توجد طلبات مطابقة للفلتر.</td>
+                                <td class="p-8 text-gray-500 dark:text-slate-400" colspan="10">{{ __('No requests match the filter.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
