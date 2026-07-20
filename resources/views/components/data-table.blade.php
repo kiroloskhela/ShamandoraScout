@@ -158,16 +158,20 @@
 
     <!-- TABLE -->
     <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-[640px] md:min-w-0">
             <thead class="bg-gray-100 dark:bg-slate-800">
                 <tr>
-                    <template x-for="column in columns" :key="column.key">
-                        <th class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                            <div class="flex items-center justify-between">
+                    <template x-for="(column, colIndex) in columns" :key="column.key">
+                        <th
+                            :class="[
+                                'px-3 md:px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider',
+                                colIndex === 0 ? 'sticky start-0 z-20 bg-gray-100 dark:bg-slate-800 border-e border-slate-200/80 dark:border-slate-700 md:static md:border-e-0' : ''
+                            ]">
+                            <div class="flex items-center justify-between gap-1">
                                 <span x-text="column.label"></span>
 
                                 <button x-show="sortable && column.sortable !== false" @click="sort(column.key)"
-                                    class="mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200">
+                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 shrink-0">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             :class="sortColumn === column.key ? 'text-blue-500 dark:text-teal-400' : ''"
@@ -184,15 +188,22 @@
                     </template>
 
                     <th x-show="actions.length > 0"
-                        class="px-6 py-3 text-start text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">{{ __('Actions') }}</th>
+                        class="sticky end-0 z-20 px-2 md:px-6 py-3 text-center md:text-start text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider bg-gray-100 dark:bg-slate-800 border-s border-slate-200/80 dark:border-slate-700 md:static md:border-s-0 w-14 md:w-auto">
+                        <span class="sr-only md:not-sr-only">{{ __('Actions') }}</span>
+                        <span class="md:hidden" aria-hidden="true">⋯</span>
+                    </th>
                 </tr>
             </thead>
 
             <tbody class="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-700">
-                <template x-for="(item, index) in paginatedData" :key="index">
-                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-colors duration-200">
-                        <template x-for="column in columns" :key="column.key">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                <template x-for="(item, index) in paginatedData" :key="rowKey(item, index)">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-800/80 transition-colors duration-200 group/row">
+                        <template x-for="(column, colIndex) in columns" :key="column.key">
+                            <td
+                                :class="[
+                                    'px-3 md:px-6 py-3 md:py-4 whitespace-nowrap',
+                                    colIndex === 0 ? 'sticky start-0 z-10 bg-white dark:bg-slate-900 group-hover/row:bg-gray-50 dark:group-hover/row:bg-slate-800/80 border-e border-slate-200/70 dark:border-slate-700 md:static md:border-e-0' : ''
+                                ]">
                                 <div x-show="column.type === 'text' || !column.type">
                                     <span x-text="getNestedValue(item, column.key)"
                                         :class="column.cssClass || 'text-sm text-gray-900 dark:text-slate-100'"></span>
@@ -213,33 +224,108 @@
                         </template>
 
                         <td x-show="actions.length > 0"
-                            class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-reverse space-x-2">
+                            class="sticky end-0 z-10 px-2 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm font-medium bg-white dark:bg-slate-900 group-hover/row:bg-gray-50 dark:group-hover/row:bg-slate-800/80 border-s border-slate-200/70 dark:border-slate-700 md:static md:border-s-0">
 
-                            <template x-for="action in actions" :key="action.name">
-                                <template x-if="!isActionDisabled(action, item)">
-                                    <a :href="buildActionRoute(action, item)"
-                                        :class="action.cssClass ||
-                                            'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
-                                        x-text="action.label">
-                                    </a>
+                            {{-- Desktop: inline action buttons --}}
+                            <div class="hidden md:flex md:flex-wrap md:items-center md:gap-2">
+                                <template x-for="action in actions" :key="action.name">
+                                    <template x-if="!isActionDisabled(action, item)">
+                                        <a :href="buildActionRoute(action, item)"
+                                            :class="action.cssClass ||
+                                                'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
+                                            x-text="action.label">
+                                        </a>
+                                    </template>
                                 </template>
-                            </template>
 
-                            <template x-for="action in actions" :key="action.name + '-disabled'">
-                                <template x-if="isActionDisabled(action, item)">
-                                    <span
-                                        :class="action.disabledClass ||
-                                            'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed ml-2'"
-                                        x-text="action.disabledLabel || action.label">
-                                    </span>
+                                <template x-for="action in actions" :key="action.name + '-disabled'">
+                                    <template x-if="isActionDisabled(action, item)">
+                                        <span
+                                            :class="action.disabledClass ||
+                                                'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed'"
+                                            x-text="action.disabledLabel || action.label">
+                                        </span>
+                                    </template>
                                 </template>
-                            </template>
+                            </div>
+
+                            {{-- Mobile: ⋯ opens a bottom action sheet (avoids overflow clipping) --}}
+                            <div class="md:hidden flex justify-center">
+                                <button type="button"
+                                    @click="openMobileActions(item, index)"
+                                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500/40"
+                                    :aria-expanded="(mobileActionKey === rowKey(item, index)).toString()"
+                                    aria-haspopup="dialog"
+                                    aria-label="{{ __('More actions') }}">
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </template>
             </tbody>
         </table>
     </div>
+
+    {{-- Mobile action sheet (teleported so table overflow cannot clip it) --}}
+    <template x-teleport="body">
+        <div x-show="mobileActionItem" x-cloak class="fixed inset-0 z-[80] md:hidden" role="dialog"
+            aria-modal="true" aria-label="{{ __('Actions') }}"
+            @keydown.escape.window="closeMobileActions()">
+            <div class="absolute inset-0 bg-slate-900/40" @click="closeMobileActions()"
+                x-show="mobileActionItem"
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"></div>
+
+            <div
+                class="absolute inset-x-0 bottom-0 rounded-t-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl pb-[max(1rem,env(safe-area-inset-bottom))]"
+                x-show="mobileActionItem"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="translate-y-full"
+                x-transition:enter-end="translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="translate-y-0"
+                x-transition:leave-end="translate-y-full">
+                <div class="flex justify-center pt-3 pb-2">
+                    <span class="h-1.5 w-10 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                </div>
+                <div class="px-4 pb-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+                    {{ __('Actions') }}
+                </div>
+                <div class="px-2 pb-2" role="menu">
+                    <template x-for="action in actions" :key="'sheet-' + action.name">
+                        <template x-if="mobileActionItem && !isActionDisabled(action, mobileActionItem)">
+                            <a :href="buildActionRoute(action, mobileActionItem)"
+                                @click="closeMobileActions()"
+                                role="menuitem"
+                                class="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                x-text="action.label">
+                            </a>
+                        </template>
+                    </template>
+
+                    <template x-for="action in actions" :key="'sheet-d-' + action.name">
+                        <template x-if="mobileActionItem && isActionDisabled(action, mobileActionItem)">
+                            <span role="menuitem" aria-disabled="true"
+                                class="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                x-text="action.disabledLabel || action.label">
+                            </span>
+                        </template>
+                    </template>
+                </div>
+                <button type="button" @click="closeMobileActions()"
+                    class="mx-4 mb-2 w-[calc(100%-2rem)] rounded-xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    {{ __('Cancel') }}
+                </button>
+            </div>
+        </div>
+    </template>
 
     <!-- EMPTY -->
     <div x-show="paginatedData.length === 0" class="text-center py-12">
@@ -324,6 +410,8 @@
             sortDirection: 'asc',
             currentPage: 1,
             activeFilters: options.activeServerFilters || {},
+            mobileActionItem: null,
+            mobileActionKey: null,
 
             get filterableColumns() {
                 return this.columns.filter(c => c.filter === true);
@@ -600,6 +688,7 @@
                 const fieldValue = this.getNestedValue(item, action.disableWhen.field);
                 return String(fieldValue) === String(action.disableWhen.value);
             },
+
             buildActionRoute(action, item) {
                 if (!action.route) return '#';
 
@@ -615,6 +704,29 @@
                 }
 
                 return url;
+            },
+
+            rowKey(item, index) {
+                const candidates = [
+                    'PersonID', 'GuestID', 'FamilyMemberID', 'BookingID',
+                    'WaitingListID', 'id', 'ID', 'PersonBlackListID',
+                ];
+                for (const key of candidates) {
+                    if (item && item[key] != null && item[key] !== '') {
+                        return String(key) + '-' + String(item[key]);
+                    }
+                }
+                return 'row-' + index;
+            },
+
+            openMobileActions(item, index) {
+                this.mobileActionItem = item;
+                this.mobileActionKey = this.rowKey(item, index);
+            },
+
+            closeMobileActions() {
+                this.mobileActionItem = null;
+                this.mobileActionKey = null;
             },
 
             getNestedValue(obj, path) {
