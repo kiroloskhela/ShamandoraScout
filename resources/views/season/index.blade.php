@@ -1,21 +1,21 @@
-@extends('layouts.app' , ['pageTitle' => 'موسم'])
+@extends('layouts.app' , ['pageTitle' => __('Season')])
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <x-data-table :data="$seasons" title="إدارة المواسم" :add-button="[
-            'label' => 'إضافة موسم جديدة',
+    <x-data-table :data="$seasons" :title="__('Manage seasons')" :add-button="[
+            'label' => __('Add new season'),
             'route' => route('season.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
             [
                 'key' => 'SeasonID',
-                'label' => 'رقم موسم',
+                'label' => __('Season ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],
             [
                 'key' => 'SeasonName',
-                'label' => 'اسم موسم',
+                'label' => __('Season name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],

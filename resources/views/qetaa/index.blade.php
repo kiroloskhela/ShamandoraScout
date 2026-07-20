@@ -1,15 +1,15 @@
-@extends('layouts.app', ['pageTitle' => 'القطاعات الكشفية'])
+@extends('layouts.app', ['pageTitle' => __('Scout sectors')])
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-     <x-data-table :data="$qetaat ? $qetaat->toArray() : []" title="إدارة القطاعات الكشفية" :add-button="[
-            'label' => 'إضافة  قطاع',
+     <x-data-table :data="$qetaat ? $qetaat->toArray() : []" :title="__('Manage scout sectors')" :add-button="[
+            'label' => __('Add sector'),
             'route' => route('qetaa.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
             [
                 'key' => 'QetaaID',
-                'label' => 'رقم ',
+                'label' => __('Number'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium'
             ],

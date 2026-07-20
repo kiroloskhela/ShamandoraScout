@@ -1,6 +1,6 @@
-@extends('layouts.app', ['pageTitle' => 'حذف حي سكني' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Delete residential district')])
 @section('content')
-    <x-form-card title="حذف حي سكني" :action="route('district.destroy', $district->DistrictID)" method="DELETE" inputPlaceholder="ادخل اسم الحي السكني"
-        inputLabel="ادخل اسم الحي السكني" submitText="حذف الحي السكني" submitColor="red" inputName="district_name"
+    <x-form-card :title="__('Delete residential district')" :action="route('district.destroy', $district->DistrictID)" method="DELETE" inputPlaceholder="{{ __('Enter district name') }}"
+        inputLabel="{{ __('Enter district name') }}" submitText="{{ __('Form label ad13252d') }}" submitColor="red" inputName="district_name"
         :inputValue="$district->DistrictName" />
 @endsection

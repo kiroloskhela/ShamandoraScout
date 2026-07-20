@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'متابعة حجوزات المخدومين'])
+@extends('layouts.app', ['pageTitle' => __('Follow up member bookings')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
             <h2 class="text-xl font-bold text-gray-800 mb-4">بيانات الفعالية</h2>
 
@@ -29,7 +29,7 @@
         </div>
 
         <div class="mb-8">
-            <x-data-table :data="$booked" title="المحجوزين" :columns="[
+            <x-data-table :data="$booked" :title="__('Booked members')" :columns="[
                 [
                     'key' => 'ShamandoraCode',
                     'label' => __('Code'),
@@ -50,19 +50,19 @@
                 ],
                 [
                     'key' => 'SanaMarhalaName',
-                    'label' => 'سنة / مرحلة',
+                    'label' => __('Year / stage (2)'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],
                 [
                     'key' => 'FinalRequiredAmount',
-                    'label' => 'المطلوب',
+                    'label' => __('Required amount'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-blue-700 font-medium',
                 ],
                 [
                     'key' => 'AmountPaid',
-                    'label' => 'المدفوع',
+                    'label' => __('Paid'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-green-700 font-medium',
                 ],
@@ -98,7 +98,7 @@
                 ],
                 [
                     'key' => 'SanaMarhalaName',
-                    'label' => 'سنة / مرحلة',
+                    'label' => __('Year / stage (2)'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900',
                 ],

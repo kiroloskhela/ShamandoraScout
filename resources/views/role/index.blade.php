@@ -1,23 +1,23 @@
-@extends('layouts.app', ['pageTitle' => 'الأدوار والمهام' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Roles & duties')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$roles->toArray()" title="إدارة الأدوار والمهام" :add-button="[
-            'label' => 'إضافة دور/مهمة جديدة',
+        <x-data-table :data="$roles->toArray()" :title="__('Manage roles and duties')" :add-button="[
+            'label' => __('Add new role/task'),
             'route' => route('role.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'RoleID',
-                'label' => 'رقم الدور/المهمة',
+                'label' => __('Role/task ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'RoleName',
-                'label' => 'اسم الدور/المهمة',
+                'label' => __('Role/task name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

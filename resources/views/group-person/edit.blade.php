@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة الأشخاص في المجموعة'])
+@extends('layouts.app', ['pageTitle' => __('Manage group members')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-emerald-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-emerald-300">
 
             <!-- Title -->
             <div class="mb-6 text-center">

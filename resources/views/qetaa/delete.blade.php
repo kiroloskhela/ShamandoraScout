@@ -1,9 +1,9 @@
-@extends('layouts.app', ['pageTitle' => 'حذف قطاع كشفي'])
+@extends('layouts.app', ['pageTitle' => __('Delete scout sector')])
 @section('content')
 
 
-<x-form-card title="حذف قطاع كشفي" :action="route('qetaa.destroy', $qetaa->QetaaID)" method="DELETE"
-    inputPlaceholder="ادخل اسم القطاع" inputLabel="اسم القطاع" submitText="حذف" submitColor="red" inputName="qetaa_name"
+<x-form-card :title="__('Delete scout sector')" :action="route('qetaa.destroy', $qetaa->QetaaID)" method="DELETE"
+    inputPlaceholder="{{ __('Form label 724e6476') }}" inputLabel="{{ __('Sector name') }}" submitText="{{ __('Form label 3b9854e1') }}" submitColor="red" inputName="qetaa_name"
     :inputValue="$qetaa->QetaaName" />
 
 

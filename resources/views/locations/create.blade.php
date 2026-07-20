@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة منطقة'])
+@extends('layouts.app', ['pageTitle' => __('Add location')])
 @section('content')
-    <x-form-card title="إضافة منطقة" :action="route('locations.insert')" method="POST" inputPlaceholder="ادخل اسم المنطقة"
-        inputLabel="اسم المنطقة" submitText="إضافة منطقة" submitColor="blue" inputName="LocationName" />
+    <x-form-card :title="__('Add location')" :action="route('locations.insert')" method="POST" inputPlaceholder="{{ __('Form label 3752defe') }}"
+        inputLabel="{{ __('Area name') }}" submitText="{{ __('Add area') }}" submitColor="blue" inputName="LocationName" />
 @endsection

@@ -1,16 +1,16 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة القائمة السوداء'])
+@extends('layouts.app', ['pageTitle' => __('Manage blacklist')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$blacklist" title="إدارة القائمة السوداء" :add-button="[
-            'label' => 'إضافة إلى القائمة السوداء',
+        <x-data-table :data="$blacklist" :title="__('Manage blacklist')" :add-button="[
+            'label' => __('Add to blacklist'),
             'route' => route('personblacklist.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'BlackListID',
-                'label' => 'رقم الحالة',
+                'label' => __('Case ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -28,7 +28,7 @@
             ],
             [
                 'key' => 'ServentName',
-                'label' => 'بواسطة',
+                'label' => __('By (2)'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],

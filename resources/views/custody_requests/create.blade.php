@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'طلب عهدة'])
+@extends('layouts.app', ['pageTitle' => __('Custody request')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
 
         {{-- Header --}}
         <div class="mb-8 text-center">

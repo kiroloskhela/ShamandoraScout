@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'اقسام المناهج'])
+@extends('layouts.app', ['pageTitle' => __('Curriculum categories')])
 
 @section('content')
     {{-- CREATE FORM - resources/views/faculty/create.blade.php --}}
-    <x-form-card title="اضافة قسم جديد" :action="route('CurriculaCategory.insert')" method="POST" inputPlaceholder="ادخل اسم القسم"
-        inputLabel="اسم القسم" submitText="إضافة قسم" submitColor="blue" inputName="CurriculaCategoryName"
+    <x-form-card title="{{ __('Add a new category') }}" :action="route('CurriculaCategory.insert')" method="POST" inputPlaceholder="{{ __('Enter category name') }}"
+        inputLabel="{{ __('Category name') }}" submitText="{{ __('Form label ee55255e') }}" submitColor="blue" inputName="CurriculaCategoryName"
         {{-- THIS MUST BE SET --}} />
 @endsection

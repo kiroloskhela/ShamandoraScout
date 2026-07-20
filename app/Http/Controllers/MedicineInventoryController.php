@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Medicine\MedicineInventoryService;
+use App\Domain\Person\PersonSearchService;
+use App\Support\LikeSearch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +16,7 @@ class MedicineInventoryController extends Controller
 {
     public function __construct(
         private MedicineInventoryService $medicineInventory
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -62,7 +63,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.index')
-            ->with('status', 'تمت إضافة الدواء بنجاح.');
+            ->with('status', __('Medicine added successfully.'));
     }
 
     public function edit($id)
@@ -71,10 +72,10 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
+        if (! $medicine) {
             return redirect()
                 ->route('medicine.index')
-                ->with('error', 'الدواء غير موجود.');
+                ->with('error', __('Medicine not found.'));
         }
 
         $medicine = $this->medicineInventory->decorateMedicine($medicine);
@@ -89,10 +90,10 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
+        if (! $medicine) {
             return redirect()
                 ->route('medicine.index')
-                ->with('error', 'الدواء غير موجود.');
+                ->with('error', __('Medicine not found.'));
         }
 
         $data = $this->validateMedicine($request, false, true);
@@ -114,7 +115,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.index')
-            ->with('status', 'تم تحديث بيانات الدواء بنجاح.');
+            ->with('status', __('Medicine updated successfully.'));
     }
 
     public function delete($id)
@@ -123,10 +124,10 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
+        if (! $medicine) {
             return redirect()
                 ->route('medicine.index')
-                ->with('error', 'الدواء غير موجود.');
+                ->with('error', __('Medicine not found.'));
         }
 
         $dispenseCount = DB::table('MedicineDispenseRecords')
@@ -151,7 +152,7 @@ class MedicineInventoryController extends Controller
         if ($dispenseCount > 0 || $lockCount > 0) {
             return redirect()
                 ->route('medicine.index')
-                ->with('error', 'لا يمكن حذف دواء له سجل صرف أو حجز. يمكن جعل الكمية صفر بدل الحذف.');
+                ->with('error', __('Cannot delete medicine with dispense or lock records. Set quantity to zero instead.'));
         }
 
         DB::table('MedicineInventory')
@@ -160,7 +161,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.index')
-            ->with('status', 'تم حذف الدواء بنجاح.');
+            ->with('status', __('Medicine deleted successfully.'));
     }
 
     public function dispense()
@@ -182,11 +183,11 @@ class MedicineInventoryController extends Controller
             'quantity' => 'required|integer|min:1',
             'notes' => 'nullable|string|max:2000',
         ], [], [
-            'medicine_id' => 'الدواء',
-            'location_id' => 'مكان الدواء',
-            'person_id' => 'الشخص',
-            'quantity' => 'الكمية',
-            'notes' => 'ملاحظات',
+            'medicine_id' => __('Medicine'),
+            'location_id' => __('Medicine location'),
+            'person_id' => __('Person'),
+            'quantity' => __('Quantity'),
+            'notes' => __('Notes'),
         ]);
 
         $givenByPersonId = (int) (Auth::user()->PersonID ?? Auth::id());
@@ -194,7 +195,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.records')
-            ->with('status', 'تم تسجيل صرف الدواء وخصم الكمية من المكان المختار.');
+            ->with('status', __('Medicine dispensed and quantity deducted from selected location.'));
     }
 
     public function records()
@@ -220,7 +221,7 @@ class MedicineInventoryController extends Controller
             ->get()
             ->map(function ($record) {
                 $record->MedicineTypeLabel = $this->medicineInventory->typeLabel($record->MedicineType);
-                $record->QuantityText = $record->Quantity . ' ' . $record->QuantityUnit;
+                $record->QuantityText = $record->Quantity.' '.$record->QuantityUnit;
                 $record->DispensedAtText = Carbon::parse($record->DispensedAt)->format('Y-m-d H:i');
                 $record->LocationName = $record->LocationName ?: '-';
                 $record->Notes = $record->Notes ?: '-';
@@ -239,8 +240,8 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
-            return redirect()->route('medicine.index')->with('error', 'الدواء غير موجود.');
+        if (! $medicine) {
+            return redirect()->route('medicine.index')->with('error', __('Medicine not found.'));
         }
 
         $medicine = $this->medicineInventory->decorateMedicine($medicine);
@@ -255,8 +256,8 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
-            return redirect()->route('medicine.index')->with('error', 'الدواء غير موجود.');
+        if (! $medicine) {
+            return redirect()->route('medicine.index')->with('error', __('Medicine not found.'));
         }
 
         $data = $request->validate([
@@ -268,7 +269,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.stock', $id)
-            ->with('status', 'تم تحديث توزيع المخزون بنجاح.');
+            ->with('status', __('Stock distribution updated successfully.'));
     }
 
     public function restock($id)
@@ -277,8 +278,8 @@ class MedicineInventoryController extends Controller
             ->where('MedicineID', $id)
             ->first();
 
-        if (!$medicine) {
-            return redirect()->route('medicine.index')->with('error', 'الدواء غير موجود.');
+        if (! $medicine) {
+            return redirect()->route('medicine.index')->with('error', __('Medicine not found.'));
         }
 
         $error = $this->medicineInventory->restockToStockLocation((int) $id);
@@ -291,7 +292,7 @@ class MedicineInventoryController extends Controller
 
         return redirect()
             ->route('medicine.stock', $id)
-            ->with('status', 'تم عمل Restock ونقل كل الكمية إلى ستوك.');
+            ->with('status', __('Restock completed and all quantity moved to stock.'));
     }
 
     public function locations()
@@ -309,7 +310,7 @@ class MedicineInventoryController extends Controller
         $data = $request->validate([
             'location_name' => 'required|string|max:255|unique:MedicineLocations,LocationName',
         ], [], [
-            'location_name' => 'اسم المكان',
+            'location_name' => __('Location name'),
         ]);
 
         DB::table('MedicineLocations')->insert([
@@ -319,7 +320,7 @@ class MedicineInventoryController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('medicine.locations')->with('status', 'تمت إضافة المكان بنجاح.');
+        return redirect()->route('medicine.locations')->with('status', __('Location added successfully.'));
     }
 
     public function updateLocation(Request $request, $id)
@@ -328,12 +329,12 @@ class MedicineInventoryController extends Controller
             ->where('LocationID', $id)
             ->first();
 
-        if (!$location) {
-            return redirect()->route('medicine.locations')->with('error', 'المكان غير موجود.');
+        if (! $location) {
+            return redirect()->route('medicine.locations')->with('error', __('Location not found.'));
         }
 
         if ($this->medicineInventory->isStockLocation($location)) {
-            return redirect()->route('medicine.locations')->with('error', 'مكان ستوك ثابت ولا يمكن تعديله.');
+            return redirect()->route('medicine.locations')->with('error', __('Stock location is fixed and cannot be edited.'));
         }
 
         $data = $request->validate([
@@ -345,7 +346,7 @@ class MedicineInventoryController extends Controller
             ],
             'is_active' => 'nullable|boolean',
         ], [], [
-            'location_name' => 'اسم المكان',
+            'location_name' => __('Location name'),
         ]);
 
         DB::table('MedicineLocations')
@@ -356,7 +357,7 @@ class MedicineInventoryController extends Controller
                 'updated_at' => now(),
             ]);
 
-        return redirect()->route('medicine.locations')->with('status', 'تم تحديث المكان بنجاح.');
+        return redirect()->route('medicine.locations')->with('status', __('Location updated successfully.'));
     }
 
     public function destroyLocation($id)
@@ -365,12 +366,12 @@ class MedicineInventoryController extends Controller
             ->where('LocationID', $id)
             ->first();
 
-        if (!$location) {
-            return redirect()->route('medicine.locations')->with('error', 'المكان غير موجود.');
+        if (! $location) {
+            return redirect()->route('medicine.locations')->with('error', __('Location not found.'));
         }
 
         if ($this->medicineInventory->isStockLocation($location)) {
-            return redirect()->route('medicine.locations')->with('error', 'مكان ستوك ثابت ولا يمكن حذفه.');
+            return redirect()->route('medicine.locations')->with('error', __('Stock location is fixed and cannot be deleted.'));
         }
 
         $stockAmount = (int) DB::table('MedicineStock')
@@ -380,7 +381,7 @@ class MedicineInventoryController extends Controller
         if ($stockAmount > 0) {
             return redirect()
                 ->route('medicine.locations')
-                ->with('error', "لا يمكن حذف {$location->LocationName}. من فضلك فضي كل الأدوية من هذا المكان قبل الحذف.");
+                ->with('error', __('Cannot delete :location. Please empty all medicines from this location before deleting.'));
         }
 
         $lockCount = DB::table('MedicineStockLocks')
@@ -390,7 +391,7 @@ class MedicineInventoryController extends Controller
         if ($lockCount > 0) {
             return redirect()
                 ->route('medicine.locations')
-                ->with('error', "لا يمكن حذف {$location->LocationName} لأن له سجلات حجز.");
+                ->with('error', __('Cannot delete :location because it has lock records.'));
         }
 
         DB::transaction(function () use ($id) {
@@ -404,7 +405,7 @@ class MedicineInventoryController extends Controller
                 ->delete();
         });
 
-        return redirect()->route('medicine.locations')->with('status', 'تم حذف المكان بنجاح.');
+        return redirect()->route('medicine.locations')->with('status', __('Location deleted successfully.'));
     }
 
     public function locks()
@@ -435,7 +436,7 @@ class MedicineInventoryController extends Controller
             ->orderByDesc('msl.StartsAt')
             ->get()
             ->map(function ($lock) {
-                $lock->QuantityText = $lock->Quantity . ' ' . $lock->QuantityUnit;
+                $lock->QuantityText = $lock->Quantity.' '.$lock->QuantityUnit;
                 $lock->StatusLabel = $this->medicineInventory->lockStatus($lock);
                 $lock->LockReason = $lock->LockReason ?: '-';
                 $lock->Notes = $lock->Notes ?: '-';
@@ -458,11 +459,11 @@ class MedicineInventoryController extends Controller
             'lock_reason' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
         ], [], [
-            'medicine_id' => 'الدواء',
-            'location_id' => 'المكان',
-            'quantity' => 'الكمية',
-            'starts_at' => 'تاريخ البداية',
-            'ends_at' => 'تاريخ النهاية',
+            'medicine_id' => __('Medicine'),
+            'location_id' => __('Location'),
+            'quantity' => __('Quantity'),
+            'starts_at' => __('Start date'),
+            'ends_at' => __('End date'),
         ]);
 
         DB::transaction(function () use ($data) {
@@ -471,12 +472,12 @@ class MedicineInventoryController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$medicine) {
-                throw ValidationException::withMessages(['medicine_id' => 'الدواء غير موجود.']);
+            if (! $medicine) {
+                throw ValidationException::withMessages(['medicine_id' => __('Medicine not found.')]);
             }
 
             if (Carbon::parse($medicine->ExpirationDate)->isBefore(today())) {
-                throw ValidationException::withMessages(['medicine_id' => 'لا يمكن حجز دواء منتهي الصلاحية.']);
+                throw ValidationException::withMessages(['medicine_id' => __('Cannot lock expired medicine.')]);
             }
 
             $stock = DB::table('MedicineStock')
@@ -485,8 +486,8 @@ class MedicineInventoryController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$stock) {
-                throw ValidationException::withMessages(['location_id' => 'هذا الدواء غير موجود في المكان المختار.']);
+            if (! $stock) {
+                throw ValidationException::withMessages(['location_id' => __('This medicine is not available at the selected location.')]);
             }
 
             $locked = $this->medicineInventory->lockedAmountForRange(
@@ -499,7 +500,7 @@ class MedicineInventoryController extends Controller
 
             if ($available < (int) $data['quantity']) {
                 throw ValidationException::withMessages([
-                    'quantity' => 'الكمية المطلوبة أكبر من المتاح في هذا المكان بعد خصم المحجوز.',
+                    'quantity' => __('Requested quantity exceeds available amount at this location after locked quantity.'),
                 ]);
             }
 
@@ -518,7 +519,7 @@ class MedicineInventoryController extends Controller
             ]);
         });
 
-        return redirect()->route('medicine.locks')->with('status', 'تم حجز كمية الدواء بنجاح.');
+        return redirect()->route('medicine.locks')->with('status', __('Medicine quantity locked successfully.'));
     }
 
     public function releaseLock($id)
@@ -531,12 +532,12 @@ class MedicineInventoryController extends Controller
                 'updated_at' => now(),
             ]);
 
-        return redirect()->route('medicine.locks')->with('status', 'تم فك الحجز بنجاح.');
+        return redirect()->route('medicine.locks')->with('status', __('Lock released successfully.'));
     }
 
-    public function searchPersons(Request $request, \App\Domain\Person\PersonSearchService $personSearch)
+    public function searchPersons(Request $request, PersonSearchService $personSearch)
     {
-        $term = \App\Support\LikeSearch::fromRequest($request, ['search', 'q'], 2);
+        $term = LikeSearch::fromRequest($request, ['search', 'q'], 2);
 
         return response()->json($personSearch->typeaheadWithPhone($term));
     }
@@ -559,12 +560,12 @@ class MedicineInventoryController extends Controller
         }
 
         return $request->validate($rules, [], [
-            'medicine_name' => 'اسم الدواء',
-            'medicine_type' => 'نوع الدواء',
-            'expiration_date' => 'تاريخ انتهاء الصلاحية',
-            'amount' => 'الكمية',
-            'location_id' => 'مكان الدواء',
-            'notes' => 'ملاحظات',
+            'medicine_name' => __('Medicine name'),
+            'medicine_type' => __('Medicine type'),
+            'expiration_date' => __('Expiration date'),
+            'amount' => __('Quantity'),
+            'location_id' => __('Medicine location'),
+            'notes' => __('Notes'),
         ]);
     }
 }

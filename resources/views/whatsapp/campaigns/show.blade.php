@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('WhatsApp campaign')])
 
 @section('content')
-<div class="container mx-auto px-4 py-8" dir="rtl">
+<div class="container mx-auto px-4 py-8">
     <div class="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">{{ $campaign->name }}</h1>

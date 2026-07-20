@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل قسم'])
+@extends('layouts.app', ['pageTitle' => __('Edit category')])
 @section('content')
-    <x-form-card title="تعديل قسم" :action="route('CurriculaCategory.update', $CurriculaCategory->CurriculaCategoryID)" method="PATCH" :inputValue="$CurriculaCategory->CurriculaCategoryName" inputPlaceholder="ادخل اسم القسم"
-        inputLabel="تعديل اسم القسم" submitText="تعديل" submitColor="emerald" inputName="CurriculaCategoryName" />
+    <x-form-card :title="__('Edit category')" :action="route('CurriculaCategory.update', $CurriculaCategory->CurriculaCategoryID)" method="PATCH" :inputValue="$CurriculaCategory->CurriculaCategoryName" inputPlaceholder="{{ __('Enter category name') }}"
+        inputLabel="{{ __('Form label ba040185') }}" submitText="{{ __('Edit') }}" submitColor="emerald" inputName="CurriculaCategoryName" />
 @endsection

@@ -16,7 +16,7 @@ class PlaceBookingController extends Controller
     public function create()
     {
         $locations = DB::table('Locations')->orderBy('LocationName')->get();
-        $qetaat    = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
 
         return view('place_bookings.create', compact('locations', 'qetaat'));
     }
@@ -35,32 +35,34 @@ class PlaceBookingController extends Controller
     public function store(Request $request, PlaceBookingService $placeBookings)
     {
         $personId = $this->currentPersonId();
-        if (!$personId) {
-            return back()->with('error', '❌ لا يمكن تحديد المستخدم الحالي (PersonID).')->withInput();
+        if (! $personId) {
+            return back()->with('error', __('Cannot determine current user (PersonID).'))->withInput();
         }
 
         $request->validate([
-            'location_id'  => 'required|integer',
-            'place_id'     => 'required|integer',
-            'qetaa_id'     => 'nullable|integer',
+            'location_id' => 'required|integer',
+            'place_id' => 'required|integer',
+            'qetaa_id' => 'nullable|integer',
 
             'booking_date' => 'required|date',
-            'time_from'    => 'required|date_format:H:i',
-            'time_to'      => 'required|date_format:H:i|after:time_from',
+            'time_from' => 'required|date_format:H:i',
+            'time_to' => 'required|date_format:H:i|after:time_from',
 
-            'user_note'    => 'nullable|string|max:500',
+            'user_note' => 'nullable|string|max:500',
         ]);
 
         // Place exists + belongs to location
         $place = DB::table('Place')->where('PlaceID', $request->place_id)->first();
-        if (!$place) return back()->with('error', '❌ المكان غير موجود.')->withInput();
-        if ((int)$place->LocationID !== (int)$request->location_id) {
-            return back()->with('error', '❌ المكان لا يتبع هذا الموقع.')->withInput();
+        if (! $place) {
+            return back()->with('error', __('Place not found.'))->withInput();
+        }
+        if ((int) $place->LocationID !== (int) $request->location_id) {
+            return back()->with('error', __('Place does not belong to this location.'))->withInput();
         }
 
         // optional qetaa exists
-        if ($request->filled('qetaa_id') && !DB::table('Qetaa')->where('QetaaID', $request->qetaa_id)->exists()) {
-            return back()->with('error', '❌ القطاع غير صحيح.')->withInput();
+        if ($request->filled('qetaa_id') && ! DB::table('Qetaa')->where('QetaaID', $request->qetaa_id)->exists()) {
+            return back()->with('error', __('Invalid sector.'))->withInput();
         }
 
         // NOTE: As requested, we allow multiple pending even if same time/place.
@@ -77,19 +79,21 @@ class PlaceBookingController extends Controller
         );
 
         NotificationController::sendToRoles(
-                 ['SuperAdmin', 'Secretary', 'AdminSecretary'],
-                'Room Booking',
-                $request->user()->FirstName . ' ' . $request->user()->SecondName . ' has requested a room booking on ' . $request->booking_date . ' from ' . $request->time_from . ' to ' . $request->time_to . '. Please review the request.'
-            );
-        
+            ['SuperAdmin', 'Secretary', 'AdminSecretary'],
+            'Room Booking',
+            $request->user()->FirstName.' '.$request->user()->SecondName.' has requested a room booking on '.$request->booking_date.' from '.$request->time_from.' to '.$request->time_to.'. Please review the request.'
+        );
+
         return redirect()->route('place_bookings.my')
-            ->with('success', '✅ تم إرسال طلب الحجز وهو الآن قيد المراجعة.');
+            ->with('success', __('Booking request submitted successfully and is now under review.'));
     }
 
     public function my()
     {
         $personId = $this->currentPersonId();
-        if (!$personId) return back()->with('error', '❌ لا يمكن تحديد المستخدم الحالي.');
+        if (! $personId) {
+            return back()->with('error', __('Cannot determine current user.'));
+        }
 
         $rows = DB::table('PlaceBookings as B')
             ->join('Place as P', 'B.PlaceID', '=', 'P.PlaceID')
@@ -113,7 +117,9 @@ class PlaceBookingController extends Controller
     public function show($id)
     {
         $personId = $this->currentPersonId();
-        if (!$personId) return back()->with('error', '❌ لا يمكن تحديد المستخدم الحالي.');
+        if (! $personId) {
+            return back()->with('error', __('Cannot determine current user.'));
+        }
 
         $booking = DB::table('PlaceBookings as B')
             ->join('Place as P', 'B.PlaceID', '=', 'P.PlaceID')
@@ -131,8 +137,9 @@ class PlaceBookingController extends Controller
             ])
             ->first();
 
-        if (!$booking) return redirect()->route('place_bookings.my')->with('error', '❌ الطلب غير موجود.');
-    
+        if (! $booking) {
+            return redirect()->route('place_bookings.my')->with('error', __('Request not found.'));
+        }
 
         return view('place_bookings.show', compact('booking'));
     }
@@ -140,7 +147,9 @@ class PlaceBookingController extends Controller
     public function edit($id)
     {
         $personId = $this->currentPersonId();
-        if (!$personId) return redirect()->route('place_bookings.my')->with('error', '❌ لا يمكن تحديد المستخدم الحالي.');
+        if (! $personId) {
+            return redirect()->route('place_bookings.my')->with('error', __('Cannot determine current user.'));
+        }
 
         $booking = DB::table('PlaceBookings as B')
             ->join('Place as P', 'B.PlaceID', '=', 'P.PlaceID')
@@ -157,12 +166,15 @@ class PlaceBookingController extends Controller
             ])
             ->first();
 
-
-        if (!$booking) return redirect()->route('place_bookings.my')->with('error', '❌ الطلب غير موجود.');
-        if ($booking->Status !== 'pending') return redirect()->route('place_bookings.show', $id)->with('error', '❌ لا يمكن تعديل الطلب بعد المراجعة.');
+        if (! $booking) {
+            return redirect()->route('place_bookings.my')->with('error', __('Request not found.'));
+        }
+        if ($booking->Status !== 'pending') {
+            return redirect()->route('place_bookings.show', $id)->with('error', __('Request cannot be edited after review.'));
+        }
 
         $locations = DB::table('Locations')->orderBy('LocationName')->get();
-        $qetaat    = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
 
         // to pre-load places for selected location:
         $selectedPlace = DB::table('Place')->where('PlaceID', $booking->PlaceID)->first();
@@ -170,43 +182,51 @@ class PlaceBookingController extends Controller
             ? DB::table('Place')->where('LocationID', $selectedPlace->LocationID)->orderBy('PlaceName')->get()
             : collect([]);
 
-        return view('place_bookings.edit', compact('booking','locations','qetaat','places','selectedPlace'));
+        return view('place_bookings.edit', compact('booking', 'locations', 'qetaat', 'places', 'selectedPlace'));
     }
 
     public function update(Request $request, $id)
     {
         $personId = $this->currentPersonId();
-        if (!$personId) return redirect()->route('place_bookings.my')->with('error', '❌ لا يمكن تحديد المستخدم الحالي.');
+        if (! $personId) {
+            return redirect()->route('place_bookings.my')->with('error', __('Cannot determine current user.'));
+        }
 
         $booking = DB::table('PlaceBookings')
             ->where('BookingID', $id)
             ->where('PersonID', $personId)
             ->first();
 
-        if (!$booking) return redirect()->route('place_bookings.my')->with('error', '❌ الطلب غير موجود.');
-        if ($booking->Status !== 'pending') return redirect()->route('place_bookings.show', $id)->with('error', '❌ لا يمكن تعديل الطلب بعد المراجعة.');
+        if (! $booking) {
+            return redirect()->route('place_bookings.my')->with('error', __('Request not found.'));
+        }
+        if ($booking->Status !== 'pending') {
+            return redirect()->route('place_bookings.show', $id)->with('error', __('Request cannot be edited after review.'));
+        }
 
         $request->validate([
-            'location_id'  => 'required|integer',
-            'place_id'     => 'required|integer',
-            'qetaa_id'     => 'nullable|integer',
+            'location_id' => 'required|integer',
+            'place_id' => 'required|integer',
+            'qetaa_id' => 'nullable|integer',
 
             'booking_date' => 'required|date',
-            'time_from'    => 'required|date_format:H:i',
-            'time_to'      => 'required|date_format:H:i|after:time_from',
+            'time_from' => 'required|date_format:H:i',
+            'time_to' => 'required|date_format:H:i|after:time_from',
 
-            'user_note'    => 'nullable|string|max:500',
+            'user_note' => 'nullable|string|max:500',
         ]);
 
         // Place exists + belongs to location
         $place = DB::table('Place')->where('PlaceID', $request->place_id)->first();
-        if (!$place) return back()->with('error', '❌ المكان غير موجود.')->withInput();
-        if ((int)$place->LocationID !== (int)$request->location_id) {
-            return back()->with('error', '❌ المكان لا يتبع هذا الموقع.')->withInput();
+        if (! $place) {
+            return back()->with('error', __('Place not found.'))->withInput();
+        }
+        if ((int) $place->LocationID !== (int) $request->location_id) {
+            return back()->with('error', __('Place does not belong to this location.'))->withInput();
         }
 
-        if ($request->filled('qetaa_id') && !DB::table('Qetaa')->where('QetaaID', $request->qetaa_id)->exists()) {
-            return back()->with('error', '❌ القطاع غير صحيح.')->withInput();
+        if ($request->filled('qetaa_id') && ! DB::table('Qetaa')->where('QetaaID', $request->qetaa_id)->exists()) {
+            return back()->with('error', __('Invalid sector.'))->withInput();
         }
 
         // Still allow overlap with pending (as requested). We do not block.
@@ -214,32 +234,39 @@ class PlaceBookingController extends Controller
         DB::table('PlaceBookings')
             ->where('BookingID', $id)
             ->update([
-                'PlaceID'     => $request->place_id,
-                'QetaaID'     => $request->qetaa_id ?: null,
+                'PlaceID' => $request->place_id,
+                'QetaaID' => $request->qetaa_id ?: null,
                 'BookingDate' => $request->booking_date,
-                'TimeFrom'    => $request->time_from,
-                'TimeTo'      => $request->time_to,
-                'UserNote'    => $request->user_note,
-                'updated_at'  => now(),
+                'TimeFrom' => $request->time_from,
+                'TimeTo' => $request->time_to,
+                'UserNote' => $request->user_note,
+                'updated_at' => now(),
             ]);
 
-        return redirect()->route('place_bookings.show', $id)->with('success', '✅ تم تحديث الطلب بنجاح.');
+        return redirect()->route('place_bookings.show', $id)->with('success', __('Request updated successfully.'));
     }
 
     public function destroy($id)
     {
         $personId = $this->currentPersonId();
-        if (!$personId) return back()->with('error', '❌ لا يمكن تحديد المستخدم الحالي.');
+        if (! $personId) {
+            return back()->with('error', __('Cannot determine current user.'));
+        }
 
         $booking = DB::table('PlaceBookings')
             ->where('BookingID', $id)
             ->where('PersonID', $personId)
             ->first();
 
-        if (!$booking) return redirect()->route('place_bookings.my')->with('error', '❌ الطلب غير موجود.');
-        if ($booking->Status !== 'pending') return redirect()->route('place_bookings.show', $id)->with('error', '❌ لا يمكن حذف الطلب بعد المراجعة.');
+        if (! $booking) {
+            return redirect()->route('place_bookings.my')->with('error', __('Request not found.'));
+        }
+        if ($booking->Status !== 'pending') {
+            return redirect()->route('place_bookings.show', $id)->with('error', __('Request cannot be deleted after review.'));
+        }
 
         DB::table('PlaceBookings')->where('BookingID', $id)->delete();
-        return redirect()->route('place_bookings.my')->with('success', '🗑️ تم حذف الطلب بنجاح.');
+
+        return redirect()->route('place_bookings.my')->with('success', __('Request deleted successfully.'));
     }
 }

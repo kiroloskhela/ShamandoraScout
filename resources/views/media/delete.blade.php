@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'حذف رابط الوسائط'])
+@extends('layouts.app', ['pageTitle' => __('Delete media link')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-red-300">
             <!-- Title -->
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-red-600">تأكيد حذف رابط الوسائط</h2>

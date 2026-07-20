@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Waiting person details')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
 
         {{-- Back Button --}}
         <div class="mb-6">

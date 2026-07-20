@@ -1,9 +1,9 @@
-@extends('layouts.app', ['pageTitle' => 'إدارة أفراد الأسرة'])
+@extends('layouts.app', ['pageTitle' => __('Manage family members')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$familyMembers" title="إدارة أفراد الأسرة" :add-button="[
-            'label' => 'إضافة فرد أسرة',
+        <x-data-table :data="$familyMembers" :title="__('Manage family members')" :add-button="[
+            'label' => __('Add family member'),
             'route' => route('family-members.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
@@ -34,13 +34,13 @@
             ],
             [
                 'key' => 'LinkedPersonsCount',
-                'label' => 'عدد الأشخاص المرتبطين',
+                'label' => __('Linked people count'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-blue-700 font-medium',
             ],
             [
                 'key' => 'LinkedPersons',
-                'label' => 'الأشخاص المرتبطون',
+                'label' => __('Linked people'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-700',
             ],

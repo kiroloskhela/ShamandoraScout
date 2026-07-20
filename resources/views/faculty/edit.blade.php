@@ -1,5 +1,5 @@
-@extends('layouts.app', ['pageTitle' => 'الكليات'])
+@extends('layouts.app', ['pageTitle' => __('Faculties')])
 @section('content')
-    <x-form-card title="تعديل كليه" :action="route('faculty.update', $faculty->FacultyID)" method="PATCH" :inputValue="$faculty->FacultyName" inputPlaceholder="ادخل اسم الكلية"
-        inputLabel="تعديل اسم الكلية" submitText="تعديل" submitColor="emerald" pageTitle="الكليات" inputName="faculty_name" />
+    <x-form-card :title="__('Edit faculty name')" :action="route('faculty.update', $faculty->FacultyID)" method="PATCH" :inputValue="$faculty->FacultyName" inputPlaceholder="{{ __('Form label 044d0538') }}"
+        inputLabel="{{ __('Form label f7280b7f') }}" submitText="{{ __('Edit') }}" submitColor="emerald" pageTitle="__('Faculties')" inputName="faculty_name" />
 @endsection

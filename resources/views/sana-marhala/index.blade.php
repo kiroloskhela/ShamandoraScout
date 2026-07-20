@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'المراحل الدراسية مفصله'])
+@extends('layouts.app', ['pageTitle' => __('Detailed academic stages')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$sana->toArray()" title=" إدارة المراحل الدراسية مفصله" :add-button="[
-            'label' => 'إضافة مرحلة دراسية',
+        <x-data-table :data="$sana->toArray()" :title="__('Manage detailed academic stages')" :add-button="[
+            'label' => __('Add academic stage'),
             'route' => route('sana-marhala.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'SanaMarhalaID',
-                'label' => 'رقم المرحلة',
+                'label' => __('Stage ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'اسم المرحلة',
+                'label' => __('Stage name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],

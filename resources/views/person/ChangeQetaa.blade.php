@@ -4,7 +4,7 @@
 @section('title', 'تغيير القطاع')
 
 @section('content')
-    <div class="cq-wrapper" dir="rtl">
+    <div class="cq-wrapper">
 
         {{-- ── Header ── --}}
         <div class="cq-header">

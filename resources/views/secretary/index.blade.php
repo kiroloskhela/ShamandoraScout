@@ -1,29 +1,29 @@
-@extends('layouts.app', ['pageTitle' => 'محضر الاجتماعات'])
+@extends('layouts.app', ['pageTitle' => __('Meeting minutes')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$documents" title="إدارة الوثائق" :add-button="[
-            'label' => 'إضافة وثيقة جديدة',
+        <x-data-table :data="$documents" :title="__('Manage documents')" :add-button="[
+            'label' => __('Add new document'),
             'route' => route('secretary.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'DocumentID',
-                'label' => 'رقم المستند',
+                'label' => __('Document ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'DocumentName',
-                'label' => 'اسم المستند',
+                'label' => __('Document name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
         ]" :actions="[
             [
                 'name' => 'download',
-                'label' => 'تحميل',
+                'label' => __('Download'),
                 'route' => route('secretary.download', ':id'),
                 'idField' => 'DocumentID',
                 'cssClass' =>

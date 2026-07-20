@@ -1,14 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Game;
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use \Illuminate\Http\Response;
-use Session;
 
 class GamesController extends Controller
 {
@@ -17,22 +14,24 @@ class GamesController extends Controller
      *
      * @return Response
      */
- public function index()
-{
-    $this->authorize('viewAny', \App\Models\Game::class);
-    $games = DB::table('Games')->get();
-    return view('games.index', compact('games'));
-}
+    public function index()
+    {
+        $this->authorize('viewAny', Game::class);
+        $games = DB::table('Games')->get();
+
+        return view('games.index', compact('games'));
+    }
 
     public function create()
     {
-        $this->authorize('create', \App\Models\Game::class);
-        return view("games.create");
+        $this->authorize('create', Game::class);
+
+        return view('games.create');
     }
 
     public function insert(Request $request)
     {
-        $this->authorize('create', \App\Models\Game::class);
+        $this->authorize('create', Game::class);
         // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
         DB::table('Games')->insert([
             'Title' => $request->title,
@@ -45,7 +44,7 @@ class GamesController extends Controller
             'ReferenceLink' => $request->reference_link,
         ]);
 
-        return redirect()->route('games.index')->with('status', 'تم ادخال اللعبة بنجاح: ' . $request->title);
+        return redirect()->route('games.index')->with('status', __('Game added successfully: ').$request->title);
     }
 
     /**
@@ -54,13 +53,13 @@ class GamesController extends Controller
      * @param  int  $id
      * @return Response
      */
-     public function show($id)
+    public function show($id)
     {
-        $this->authorize('viewAny', \App\Models\Game::class);
+        $this->authorize('viewAny', Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
-        return view("games.show", array('game' => $game, 'title' => "تفاصيل اللعبة"));
-    }
 
+        return view('games.show', ['game' => $game, 'title' => __('Game details')]);
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -70,14 +69,15 @@ class GamesController extends Controller
      */
     public function edit($id)
     {
-        $this->authorize('create', \App\Models\Game::class);
+        $this->authorize('create', Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
-        return view("games.edit", array('game' => $game, 'title' => "تعديل لعبة"));
+
+        return view('games.edit', ['game' => $game, 'title' => __('Edit game')]);
     }
 
     public function updates(Request $request, $id)
     {
-        $this->authorize('create', \App\Models\Game::class);
+        $this->authorize('create', Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         $affected = DB::table('Games')->where('GameID', $id)->update([
@@ -89,25 +89,25 @@ class GamesController extends Controller
             'Target' => $request->target,
             'RequireCustody' => $request->require_custody,
             'ReferenceLink' => $request->reference_link,
-           
+
         ]);
 
-        return redirect()->route('games.index')->with('status', 'تم تعديل اللعبة بنجاح: ' . $request->title);
+        return redirect()->route('games.index')->with('status', __('Game updated successfully: ').$request->title);
     }
 
-   
     public function deletes($id)
     {
-        $this->authorize('create', \App\Models\Game::class);
+        $this->authorize('create', Game::class);
         $game = DB::table('Games')->where('GameID', $id)->first();
-        return view("games.delete", array('game' => $game, 'title' => "حذف لعبة"));
+
+        return view('games.delete', ['game' => $game, 'title' => __('Delete game')]);
     }
 
     public function destroy($id)
     {
-        $this->authorize('create', \App\Models\Game::class);
+        $this->authorize('create', Game::class);
         $deleted = DB::table('Games')->where('GameID', $id)->delete();
 
-        return redirect()->route('games.index')->with('status', 'تم حذف اللعبة بنجاح');
+        return redirect()->route('games.index')->with('status', __('Game deleted successfully'));
     }
 }

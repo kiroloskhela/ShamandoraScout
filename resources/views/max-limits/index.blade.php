@@ -1,16 +1,16 @@
-@extends('layouts.app', ['pageTitle' => 'الأعداد المطلوبة في فورم الالتحاق '])
+@extends('layouts.app', ['pageTitle' => __('Enrolment form limits')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$marahelLimits->toArray()" title="إدارة الأعداد المطلوبة في فورم الالتحاق" :add-button="[
-            'label' => 'إضافة  ',
+        <x-data-table :data="$marahelLimits->toArray()" :title="__('Manage enrolment form limits')" :add-button="[
+            'label' => __('Add'),
             'route' => route('max-limits.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'QetaaID',
-                'label' => 'رقم القطاع',
+                'label' => __('Sector ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
@@ -24,13 +24,13 @@
         
             [
                 'key' => 'SanaMarhalaName',
-                'label' => 'رقم المرحلة',
+                'label' => __('Stage ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'MaxLimit',
-                'label' => 'العدد المطلوب',
+                'label' => __('Required count'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

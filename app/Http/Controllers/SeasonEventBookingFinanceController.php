@@ -350,7 +350,7 @@ class SeasonEventBookingFinanceController extends Controller
         $plan = DB::table('SeasonEventFinance')->where('SeasonEventID', $seasonEventID)->first();
         if (! $plan) {
             return redirect()->route('eventBookingFinance.selector')->withErrors([
-                'general' => 'لا توجد خطة مالية لهذه الفعالية.',
+                'general' => __('No finance plan exists for this event.'),
             ]);
         }
 
@@ -380,7 +380,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ($filledCount !== 1) {
             return redirect()->back()->withErrors([
-                'general' => 'يجب اختيار شخص واحد فقط من نوع واحد فقط.',
+                'general' => __('You must select exactly one person of one type only.'),
             ])->withInput();
         }
 
@@ -397,7 +397,7 @@ class SeasonEventBookingFinanceController extends Controller
         }
 
         return redirect()->route('eventBookingFinance.printReceipt', $result['payment_id'])
-            ->with('success', 'تم إنشاء الحجز بنجاح.');
+            ->with('success', __('Booking created successfully.'));
     }
 
     public function createGuestFamily($seasonEventID)
@@ -410,7 +410,7 @@ class SeasonEventBookingFinanceController extends Controller
         $plan = DB::table('SeasonEventFinance')->where('SeasonEventID', $seasonEventID)->first();
         if (! $plan) {
             return redirect()->route('eventBookingFinance.selector')->withErrors([
-                'general' => 'لا توجد خطة مالية لهذه الفعالية.',
+                'general' => __('No finance plan exists for this event.'),
             ]);
         }
 
@@ -426,12 +426,12 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ((int) $booking->IsRefunded === 1) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يمكن إضافة دفعة لحجز تم استرداده.']);
+                ->withErrors(['general' => __('Cannot add a payment to a refunded booking.')]);
         }
 
         if ((float) $booking->RemainingAmount <= 0) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يوجد مبلغ متبقٍ لإضافة دفعة جديدة.']);
+                ->withErrors(['general' => __('No remaining amount to add a new payment.')]);
         }
 
         $paymentsCount = $this->bookings->countPayments($bookingID);
@@ -479,12 +479,12 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ((int) $booking->IsRefunded === 1) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يمكن إضافة دفعة لحجز تم استرداده.']);
+                ->withErrors(['general' => __('Cannot add a payment to a refunded booking.')]);
         }
 
         if ((float) $booking->RemainingAmount <= 0) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يوجد مبلغ متبقٍ لإضافة دفعة جديدة.']);
+                ->withErrors(['general' => __('No remaining amount to add a new payment.')]);
         }
 
         $paymentsCount = $this->bookings->countPayments($bookingID);
@@ -500,7 +500,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ($amount > $remaining) {
             return redirect()->back()->withErrors([
-                'amount' => 'لا يمكن أن تكون الدفعة أكبر من المبلغ المتبقي.',
+                'amount' => __('Payment cannot exceed the remaining amount.'),
             ])->withInput();
         }
 
@@ -513,10 +513,10 @@ class SeasonEventBookingFinanceController extends Controller
             );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', 'تم تسجيل الدفعة وإصدار الإيصال بنجاح.');
+                ->with('success', __('Payment recorded and receipt issued successfully.'));
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء تسجيل الدفعة.',
+                'general' => __('An error occurred while recording the payment.'),
             ])->withInput();
         }
     }
@@ -530,7 +530,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         if (! $this->bookings->isLastPayment($payment->SeasonEventParticipantFinanceID, $paymentID)) {
             return redirect()->route('eventBookingFinance.index', $payment->SeasonEventID)
-                ->withErrors(['general' => 'يمكن تعديل آخر دفعة فقط.']);
+                ->withErrors(['general' => __('Only the last payment can be edited.')]);
         }
 
         return view('event_booking_finance.edit_last_payment', compact('payment'));
@@ -545,7 +545,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         if (! $this->bookings->isLastPayment($payment->SeasonEventParticipantFinanceID, $paymentID)) {
             return redirect()->route('eventBookingFinance.index', $payment->SeasonEventID)
-                ->withErrors(['general' => 'يمكن تعديل آخر دفعة فقط.']);
+                ->withErrors(['general' => __('Only the last payment can be edited.')]);
         }
 
         $validator = Validator::make($request->all(), [
@@ -581,13 +581,13 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ($newAmount > $maxAllowed) {
             return redirect()->back()->withErrors([
-                'amount' => 'المبلغ الجديد أكبر من المتبقي المسموح.',
+                'amount' => __('The new amount exceeds the allowed remaining balance.'),
             ])->withInput();
         }
 
         if (! $isSpecialBehavior && $isLastInstallment && abs($newAmount - $maxAllowed) > 0.009) {
             return redirect()->back()->withErrors([
-                'amount' => 'لأنها آخر دفعة، يجب أن تساوي كل المتبقي.',
+                'amount' => __('Because this is the last payment, it must equal the full remaining balance.'),
             ])->withInput();
         }
 
@@ -602,10 +602,10 @@ class SeasonEventBookingFinanceController extends Controller
             );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', 'تم تعديل مبلغ آخر دفعة بنجاح.');
+                ->with('success', __('Last payment amount updated successfully.'));
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء تعديل آخر دفعة.',
+                'general' => __('An error occurred while updating the last payment.'),
             ])->withInput();
         }
     }
@@ -629,12 +629,12 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ((int) $booking->IsRefunded === 1) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'تم استرداد هذا الحجز مسبقًا.']);
+                ->withErrors(['general' => __('This booking has already been refunded.')]);
         }
 
         if ((float) $booking->AmountPaid <= 0) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يوجد مبلغ مدفوع لاسترداده.']);
+                ->withErrors(['general' => __('No paid amount to refund.')]);
         }
 
         try {
@@ -646,10 +646,10 @@ class SeasonEventBookingFinanceController extends Controller
             );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', 'تم استرداد كل المبلغ المدفوع بنجاح.');
+                ->with('success', __('Full paid amount refunded successfully.'));
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء الاسترداد.',
+                'general' => __('An error occurred during refund.'),
             ]);
         }
     }
@@ -745,12 +745,12 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ((int) $booking->IsRefunded === 1) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'تم استرداد هذا الحجز مسبقًا.']);
+                ->withErrors(['general' => __('This booking has already been refunded.')]);
         }
 
         if ((float) $booking->AmountPaid <= 0) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يوجد مبلغ مدفوع لاسترداده.']);
+                ->withErrors(['general' => __('No paid amount to refund.')]);
         }
 
         return view('event_booking_finance.partial_refund', compact('booking'));
@@ -765,22 +765,22 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ((int) $booking->IsRefunded === 1) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'تم استرداد هذا الحجز مسبقًا.']);
+                ->withErrors(['general' => __('This booking has already been refunded.')]);
         }
 
         if ((float) $booking->AmountPaid <= 0) {
             return redirect()->route('eventBookingFinance.index', $booking->SeasonEventID)
-                ->withErrors(['general' => 'لا يوجد مبلغ مدفوع لاسترداده.']);
+                ->withErrors(['general' => __('No paid amount to refund.')]);
         }
 
         $validator = Validator::make($request->all(), [
             'deduction_amount' => 'required|integer|min:0',
             'notes' => 'nullable|string|max:500',
         ], [
-            'deduction_amount.required' => 'يجب إدخال مبلغ الجزء المخصوم.',
-            'deduction_amount.integer' => 'مبلغ الجزء المخصوم يجب أن يكون رقمًا صحيحًا بدون قروش.',
-            'deduction_amount.min' => 'مبلغ الجزء المخصوم لا يمكن أن يكون أقل من صفر.',
-            'notes.max' => 'الملاحظات يجب ألا تتجاوز 500 حرف.',
+            'deduction_amount.required' => __('Deduction amount is required.'),
+            'deduction_amount.integer' => __('Deduction amount must be a whole number without cents.'),
+            'deduction_amount.min' => __('Deduction amount cannot be less than zero.'),
+            'notes.max' => __('Notes must not exceed 500 characters.'),
         ]);
 
         if ($validator->fails()) {
@@ -792,7 +792,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         if ($deductionAmount > $amountPaid) {
             return redirect()->back()->withErrors([
-                'deduction_amount' => 'الجزء المخصوم يجب أن يكون أقل من المبلغ المدفوع.',
+                'deduction_amount' => __('Deduction amount must be less than the paid amount.'),
             ])->withInput();
         }
 
@@ -807,10 +807,10 @@ class SeasonEventBookingFinanceController extends Controller
             );
 
             return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', 'تم استرداد المبلغ بعد خصم جزء منه بنجاح.');
+                ->with('success', __('Amount refunded successfully after partial deduction.'));
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء تنفيذ الاسترداد مع خصم جزء.',
+                'general' => __('An error occurred while processing partial refund.'),
             ])->withInput();
         }
     }
@@ -1109,8 +1109,8 @@ class SeasonEventBookingFinanceController extends Controller
         $validator = Validator::make($request->all(), [
             'shirt_size' => 'required|in:XS,S,M,L,XL,2XL,3XL,4XL,5XL,6XL',
         ], [
-            'shirt_size.required' => 'يجب اختيار مقاس القميص.',
-            'shirt_size.in' => 'مقاس القميص غير صحيح.',
+            'shirt_size.required' => __('Shirt size is required.'),
+            'shirt_size.in' => __('Invalid shirt size.'),
         ]);
 
         if ($validator->fails()) {
@@ -1132,7 +1132,7 @@ class SeasonEventBookingFinanceController extends Controller
             ]);
 
         return redirect()->route('eventBookingFinance.show', $bookingID)
-            ->with('success', 'تم تحديث مقاس القميص بنجاح.');
+            ->with('success', __('Shirt size updated successfully.'));
     }
 
     public function deletePage($bookingID)

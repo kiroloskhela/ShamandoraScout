@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Dispense medicine')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto border-2 border-emerald-300">
             <div class="mb-6 text-center">
                 <h1 class="text-2xl font-bold text-gray-800">{{ __('Dispense medicine') }}</h1>

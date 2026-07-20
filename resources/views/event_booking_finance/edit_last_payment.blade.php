@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Edit last payment')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl mx-auto border-2 border-green-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">{{ __('Edit last payment') }}</h2>

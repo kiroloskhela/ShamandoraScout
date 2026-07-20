@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar">
+@php
+    $locale = app()->getLocale();
+    $isRtl = $locale === 'ar';
+    $dir = $isRtl ? 'rtl' : 'ltr';
+@endphp
+<html lang="{{ $locale }}">
 
 <head>
 
@@ -377,7 +382,7 @@
                                                 value="{{ $marhalaSelected->SanaMarhalaName }}" disabled></input>
                                             <br>
                                         </div>
-                                        <div class="form-group row text-center" dir="rtl">
+                                        <div class="form-group row text-center" dir="{{ $dir }}">
                                             <label for="joindate"
                                                 style="font-family: 'Cairo', sans-serif;">سنة</label>
                                             <br />

@@ -1,6 +1,6 @@
-@extends('layouts.app', ['pageTitle' => 'مسح اسم الرتبة'])
+@extends('layouts.app', ['pageTitle' => __('Delete rank name')])
 
 @section('content')
-    <x-form-card title="مسح اسم الرتبة" :action="route('rotab.destroy', $rotab->RotbaID)" method="DELETE" :inputValue="$rotab->RotbaName" inputPlaceholder="ادخل اسم الرتبة"
-        inputLabel="مسح اسم الرتبة" submitText="مسح" submitColor="red" inputName="rotba_name" />
+    <x-form-card :title="__('Delete rank name')" :action="route('rotab.destroy', $rotab->RotbaID)" method="DELETE" :inputValue="$rotab->RotbaName" inputPlaceholder="{{ __('Enter rank name') }}"
+        inputLabel="{{ __('Delete rank name') }}" submitText="{{ __('Delete') }}" submitColor="red" inputName="rotba_name" />
 @endsection

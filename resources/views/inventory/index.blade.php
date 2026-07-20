@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => 'العهده' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Inventory')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$inventory->toArray()" title="إدارة العهده" :add-button="[
-            'label' => 'إضافة عنصر جديد',
+        <x-data-table :data="$inventory->toArray()" :title="__('Manage inventory')" :add-button="[
+            'label' => __('Add new item'),
             'route' => route('inventory.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'InventoryID',
-                'label' => 'رقم العنصر',
+                'label' => __('Item ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'ItemName',
-                'label' => 'اسم العنصر',
+                'label' => __('Item name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 dark:text-blue-300 font-bold text-sm',
             ],
@@ -28,13 +28,13 @@
             ],
             [
                 'key' => 'ItemMeasuringUnit',
-                'label' => 'وحدة القياس',
+                'label' => __('Unit of measure'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],
             [
                 'key' => 'Category',
-                'label' => 'الفئة',
+                'label' => __('Category'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-800 dark:text-slate-200',
             ],

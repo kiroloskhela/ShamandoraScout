@@ -108,19 +108,19 @@ class SeasonEventFinanceController extends Controller
             'price' => 'required|array|min:1',
             'price.*' => 'required|integer|min:0',
         ], [
-            'season_event_id.required' => 'يجب اختيار الفعالية.',
-            'season_event_id.exists' => 'الفعالية المختارة غير موجودة.',
-            'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
-            'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
-            'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
-            'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
-            'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
-            'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
-            'send_qr_whatsapp.required' => 'يجب تحديد هل يتم إرسال QR عبر واتساب أم لا.',
-            'send_qr_whatsapp.in' => 'قيمة إرسال QR عبر واتساب غير صحيحة.',
-            'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+            'season_event_id.required' => __('Event is required.'),
+            'season_event_id.exists' => __('Selected event does not exist.'),
+            'max_installments_number.required' => __('Maximum number of installments is required.'),
+            'max_installments_number.min' => __('Number of installments must be at least 1.'),
+            'minimum_deposit.required' => __('Minimum deposit is required.'),
+            'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
+            'have_shirt.required' => __('You must specify whether a shirt is included.'),
+            'have_shirt.in' => __('Invalid shirt value.'),
+            'send_qr_whatsapp.required' => __('You must specify whether to send QR via WhatsApp.'),
+            'send_qr_whatsapp.in' => __('Invalid send QR via WhatsApp value.'),
+            'start_date.required' => __('At least one price interval is required.'),
+            'end_date.required' => __('At least one price interval is required.'),
+            'price.required' => __('At least one price interval is required.'),
         ]);
 
         if ($validator->fails()) {
@@ -135,14 +135,14 @@ class SeasonEventFinanceController extends Controller
 
         if ($existingPlan) {
             return redirect()->back()->withErrors([
-                'season_event_id' => 'هذه الفعالية لها إعداد مالي بالفعل.',
+                'season_event_id' => __('This event already has a finance plan.'),
             ])->withInput();
         }
 
         $event = $this->getSeasonEventDetails($seasonEventID);
         if (! $event) {
             return redirect()->back()->withErrors([
-                'season_event_id' => 'تعذر العثور على بيانات الفعالية.',
+                'season_event_id' => __('Could not find event data.'),
             ])->withInput();
         }
 
@@ -154,7 +154,7 @@ class SeasonEventFinanceController extends Controller
 
         if (empty($takesReservation)) {
             return redirect()->back()->withErrors([
-                'season_event_id' => 'يمكن إنشاء خطة مالية فقط للفعاليات التي تقبل حجز.',
+                'season_event_id' => __('Finance plans can only be created for events that accept bookings.'),
             ])->withInput();
         }
         $intervalsResult = $this->prepareAndValidateIntervals(
@@ -193,12 +193,12 @@ class SeasonEventFinanceController extends Controller
 
             DB::commit();
 
-            return redirect()->route('finance.index')->with('success', 'تم إضافة الخطة المالية بنجاح.');
+            return redirect()->route('finance.index')->with('success', __('Finance plan added successfully.'));
         } catch (Exception $e) {
             DB::rollBack();
 
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء حفظ الخطة المالية.',
+                'general' => __('An error occurred while saving the finance plan.'),
             ])->withInput();
         }
     }
@@ -231,7 +231,7 @@ class SeasonEventFinanceController extends Controller
 
         if ($this->hasPayments($id)) {
             return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.',
+                'general' => __('This plan cannot be edited because it has linked payments.'),
             ]);
         }
 
@@ -255,7 +255,7 @@ class SeasonEventFinanceController extends Controller
 
         if ($this->hasPayments($id)) {
             return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن تعديل هذه الخطة لوجود مدفوعات مرتبطة بها.',
+                'general' => __('This plan cannot be edited because it has linked payments.'),
             ]);
         }
 
@@ -272,17 +272,17 @@ class SeasonEventFinanceController extends Controller
             'price' => 'required|array|min:1',
             'price.*' => 'required|integer|min:0',
         ], [
-            'max_installments_number.required' => 'يجب إدخال الحد الأقصى لعدد الأقساط.',
-            'max_installments_number.min' => 'عدد الأقساط يجب أن يكون 1 على الأقل.',
-            'minimum_deposit.required' => 'يجب إدخال الحد الأدنى للمقدم.',
-            'minimum_deposit.min' => 'الحد الأدنى للمقدم لا يمكن أن يكون أقل من 0.',
-            'have_shirt.required' => 'يجب تحديد هل يوجد تيشيرت أم لا.',
-            'have_shirt.in' => 'قيمة التيشيرت غير صحيحة.',
-            'send_qr_whatsapp.required' => 'يجب تحديد هل يتم إرسال QR عبر واتساب أم لا.',
-            'send_qr_whatsapp.in' => 'قيمة إرسال QR عبر واتساب غير صحيحة.',
-            'start_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'end_date.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
-            'price.required' => 'يجب إضافة فترة سعرية واحدة على الأقل.',
+            'max_installments_number.required' => __('Maximum number of installments is required.'),
+            'max_installments_number.min' => __('Number of installments must be at least 1.'),
+            'minimum_deposit.required' => __('Minimum deposit is required.'),
+            'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
+            'have_shirt.required' => __('You must specify whether a shirt is included.'),
+            'have_shirt.in' => __('Invalid shirt value.'),
+            'send_qr_whatsapp.required' => __('You must specify whether to send QR via WhatsApp.'),
+            'send_qr_whatsapp.in' => __('Invalid send QR via WhatsApp value.'),
+            'start_date.required' => __('At least one price interval is required.'),
+            'end_date.required' => __('At least one price interval is required.'),
+            'price.required' => __('At least one price interval is required.'),
         ]);
 
         if ($validator->fails()) {
@@ -292,7 +292,7 @@ class SeasonEventFinanceController extends Controller
         $event = $this->getSeasonEventDetails($id);
         if (! $event) {
             return redirect()->back()->withErrors([
-                'general' => 'تعذر العثور على بيانات الفعالية.',
+                'general' => __('Could not find event data.'),
             ])->withInput();
         }
 
@@ -337,12 +337,12 @@ class SeasonEventFinanceController extends Controller
 
             DB::commit();
 
-            return redirect()->route('finance.index')->with('success', 'تم تعديل الخطة المالية بنجاح.');
+            return redirect()->route('finance.index')->with('success', __('Finance plan updated successfully.'));
         } catch (Exception $e) {
             DB::rollBack();
 
             return redirect()->back()->withErrors([
-                'general' => 'حدث خطأ أثناء تعديل الخطة المالية.',
+                'general' => __('An error occurred while updating the finance plan.'),
             ])->withInput();
         }
     }
@@ -370,7 +370,7 @@ class SeasonEventFinanceController extends Controller
 
         if ($this->hasPayments($id)) {
             return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن حذف هذه الخطة لوجود مدفوعات مرتبطة بها.',
+                'general' => __('This plan cannot be deleted because it has linked payments.'),
             ]);
         }
 
@@ -389,7 +389,7 @@ class SeasonEventFinanceController extends Controller
 
         if ($this->hasPayments($id)) {
             return redirect()->route('finance.index')->withErrors([
-                'general' => 'لا يمكن حذف هذه الخطة لوجود مدفوعات مرتبطة بها.',
+                'general' => __('This plan cannot be deleted because it has linked payments.'),
             ]);
         }
 
@@ -406,12 +406,12 @@ class SeasonEventFinanceController extends Controller
 
             DB::commit();
 
-            return redirect()->route('finance.index')->with('success', 'تم حذف الخطة المالية بنجاح.');
+            return redirect()->route('finance.index')->with('success', __('Finance plan deleted successfully.'));
         } catch (Exception $e) {
             DB::rollBack();
 
             return redirect()->route('finance.index')->withErrors([
-                'general' => 'حدث خطأ أثناء حذف الخطة المالية.',
+                'general' => __('An error occurred while deleting the finance plan.'),
             ]);
         }
     }
@@ -454,7 +454,7 @@ class SeasonEventFinanceController extends Controller
         ) {
             return [
                 'success' => false,
-                'message' => 'بيانات الفترات السعرية غير صحيحة.',
+                'message' => __('Price interval data is invalid.'),
             ];
         }
 
@@ -468,7 +468,7 @@ class SeasonEventFinanceController extends Controller
             if ($start === '' || $end === '' || $price === '' || $price === null) {
                 return [
                     'success' => false,
-                    'message' => 'يجب تعبئة جميع بيانات الفترات السعرية.',
+                    'message' => __('All price interval fields must be filled.'),
                 ];
             }
 
@@ -479,21 +479,21 @@ class SeasonEventFinanceController extends Controller
             } catch (Exception $e) {
                 return [
                     'success' => false,
-                    'message' => 'أحد تواريخ الفترات غير صحيح.',
+                    'message' => __('One of the interval dates is invalid.'),
                 ];
             }
 
             if ($startCarbon->gt($endCarbon)) {
                 return [
                     'success' => false,
-                    'message' => 'تاريخ بداية الفترة يجب أن يكون قبل أو يساوي تاريخ النهاية.',
+                    'message' => __('Interval start date must be on or before the end date.'),
                 ];
             }
 
             if ($startCarbon->gt($eventStartCarbon) || $endCarbon->gt($eventStartCarbon)) {
                 return [
                     'success' => false,
-                    'message' => 'لا يمكن أن تتجاوز أي فترة سعرية تاريخ بداية الفعالية.',
+                    'message' => __('No price interval may exceed the event start date.'),
                 ];
             }
 
@@ -515,7 +515,7 @@ class SeasonEventFinanceController extends Controller
             if ($intervals[$i]['StartDate'] !== $expectedStart) {
                 return [
                     'success' => false,
-                    'message' => 'يجب أن تبدأ كل فترة من اليوم التالي مباشرة لنهاية الفترة السابقة بدون فراغات أو تداخل.',
+                    'message' => __('Each interval must start the day after the previous interval ends, with no gaps or overlap.'),
                 ];
             }
         }

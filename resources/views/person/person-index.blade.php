@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => __('Control data') ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Control data')])
 
 
 @section('content')

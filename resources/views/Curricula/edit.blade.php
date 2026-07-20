@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل محاضرة'])
+@extends('layouts.app', ['pageTitle' => __('Edit lecture')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-green-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-green-300">
 
             <!-- Title -->
             <div class="mb-6 text-center">

@@ -175,9 +175,9 @@ class SeasonEventWaitingListController extends Controller
         $validator = Validator::make($request->all(), [
             'person_id' => 'required|integer|exists:PersonInformation,PersonID',
         ], [
-            'person_id.required' => 'يجب اختيار الشخص.',
-            'person_id.integer' => 'الشخص المختار غير صحيح.',
-            'person_id.exists' => 'الشخص المختار غير موجود.',
+            'person_id.required' => __('Person is required.'),
+            'person_id.integer' => __('Selected person is invalid.'),
+            'person_id.exists' => __('Selected person does not exist.'),
         ]);
 
         if ($validator->fails()) {
@@ -230,11 +230,11 @@ class SeasonEventWaitingListController extends Controller
             ]);
 
             return redirect()->route('eventWaitingList.index', $seasonEventID)
-                ->with('success', 'تمت إضافة الشخص إلى قائمة الانتظار بنجاح.');
+                ->with('success', __('Person added to waiting list successfully.'));
         } catch (Exception $e) {
             return redirect()->route('eventWaitingList.index', $seasonEventID)
                 ->withErrors([
-                    'general' => 'حدث خطأ أثناء إضافة الشخص إلى قائمة الانتظار.',
+                    'general' => __('An error occurred while adding person to waiting list.'),
                 ]);
         }
     }
@@ -254,7 +254,7 @@ class SeasonEventWaitingListController extends Controller
             ->delete();
 
         return redirect()->route('eventWaitingList.index', $row->SeasonEventID)
-            ->with('success', 'تم حذف الشخص من قائمة الانتظار بنجاح.');
+            ->with('success', __('Person removed from waiting list successfully.'));
     }
 
     private function getSeasonEventFullInfo($seasonEventID)

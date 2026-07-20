@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Add guest / family booking')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-6" dir="rtl">
+    <div class="container mx-auto px-4 py-6">
         @if ($errors->has('general'))
             <div class="mb-4 rounded-lg bg-red-100 border border-red-300 text-red-800 px-4 py-3">
                 {{ $errors->first('general') }}

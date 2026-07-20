@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-@php($locale = app()->getLocale())
-<html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
+@php
+    $locale = app()->getLocale();
+    $dir = $locale === 'ar' ? 'rtl' : 'ltr';
+@endphp
+<html lang="{{ $locale }}" dir="{{ $dir }}">
 
 <head>
     <meta charset="UTF-8" />
@@ -252,7 +255,7 @@
                                         <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="first_name" name="first_name" type="text" lang="ar"
-                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        dir="{{ $dir }}" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('First name') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
@@ -263,7 +266,7 @@
                                         <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="second_name" name="second_name" type="text" lang="ar"
-                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        dir="{{ $dir }}" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('Second name') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
@@ -274,7 +277,7 @@
                                         <span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
                                     <input required id="third_name" name="third_name" type="text" lang="ar"
-                                        dir="rtl" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
+                                        dir="{{ $dir }}" pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('Third name') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600">{{ __('Please enter Arabic letters only') }}</p>
@@ -283,7 +286,7 @@
                                 <div class="md:col-span-3">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Fourth name') }}<span class="text-xs text-slate-500">{{ __('(in Arabic)') }}</span>
                                     </label>
-                                    <input id="fourth_name" name="fourth_name" type="text" lang="ar" dir="rtl"
+                                    <input id="fourth_name" name="fourth_name" type="text" lang="ar" dir="{{ $dir }}"
                                         pattern="^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]+$"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('Optional') }}">

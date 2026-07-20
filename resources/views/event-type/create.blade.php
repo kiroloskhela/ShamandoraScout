@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300 dark:border-slate-700" dir="rtl">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300 dark:border-slate-700">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-100">{{ __('Add event type') }}</h2>
             </div>

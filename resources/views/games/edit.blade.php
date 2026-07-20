@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="flex justify-center px-4 py-8">
-        <div class="w-full max-w-2xl rounded-2xl border border-blue-200 bg-white p-8 shadow-lg" dir="rtl">
+        <div class="w-full max-w-2xl rounded-2xl border border-blue-200 bg-white p-8 shadow-lg">
             <div class="mb-6 text-center">
                 <h2 class="text-2xl font-bold text-gray-800">{{ __('Edit game') }}</h2>
                 <p class="mt-2 text-sm text-gray-500">{{ __('Edit the game details clearly and in an organized way') }}</p>

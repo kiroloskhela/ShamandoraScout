@@ -71,7 +71,7 @@ class WhatsAppCampaignController extends Controller
 
         return redirect()
             ->route('whatsapp.campaigns.show', $campaign)
-            ->with('success', 'تم إنشاء مسودة من CSV (' . $campaign->recipients()->count() . ' رقم). راجع ثم أكّد الإرسال.');
+            ->with('success', __('Draft created from CSV (').$campaign->recipients()->count().' رقم). راجع ثم أكّد الإرسال.');
     }
 
     public function store(Request $request, WhatsAppCampaignService $campaigns)
@@ -81,7 +81,7 @@ class WhatsAppCampaignController extends Controller
 
         return redirect()
             ->route('whatsapp.campaigns.show', $campaign)
-            ->with('success', 'تم حفظ المسودة. راجع المستلمين ثم أكّد الإرسال.');
+            ->with('success', __('Draft saved. Review recipients then confirm send.'));
     }
 
     public function show(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
@@ -98,9 +98,9 @@ class WhatsAppCampaignController extends Controller
 
     public function edit(WhatsAppCampaign $campaign)
     {
-        if (!$campaign->isEditable()) {
+        if (! $campaign->isEditable()) {
             return redirect()->route('whatsapp.campaigns.show', $campaign)
-                ->with('error', 'لا يمكن تعديل حملة غير مسودة.');
+                ->with('error', __('Cannot edit a non-draft campaign.'));
         }
 
         $selectedIds = $campaign->recipients()->pluck('person_id')->all();
@@ -122,7 +122,7 @@ class WhatsAppCampaignController extends Controller
 
         return redirect()
             ->route('whatsapp.campaigns.show', $campaign)
-            ->with('success', 'تم تحديث المسودة.');
+            ->with('success', __('Draft updated.'));
     }
 
     public function searchContacts(Request $request, CampaignRecipientQuery $query)
@@ -190,7 +190,7 @@ class WhatsAppCampaignController extends Controller
 
         return redirect()
             ->route('whatsapp.campaigns.show', $campaign)
-            ->with('success', 'بدأت الحملة. الرسائل تُرسل تدريجياً عبر الطابور.');
+            ->with('success', __('Campaign started. Messages are being sent gradually via queue.'));
     }
 
     public function pause(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
@@ -201,7 +201,7 @@ class WhatsAppCampaignController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'تم إيقاف الحملة مؤقتاً.');
+        return back()->with('success', __('Campaign paused.'));
     }
 
     public function resume(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
@@ -212,7 +212,7 @@ class WhatsAppCampaignController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'تم استئناف الحملة.');
+        return back()->with('success', __('Campaign resumed.'));
     }
 
     public function cancel(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
@@ -223,7 +223,7 @@ class WhatsAppCampaignController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'تم إلغاء الحملة.');
+        return back()->with('success', __('Campaign cancelled.'));
     }
 
     /**
@@ -266,7 +266,6 @@ class WhatsAppCampaignController extends Controller
     }
 
     /**
-     * @param  mixed  $value
      * @return list<int>
      */
     private function intList(mixed $value): array

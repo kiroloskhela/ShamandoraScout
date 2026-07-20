@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'تعديل عنصر في المخزون'])
+@extends('layouts.app', ['pageTitle' => __('Edit inventory item')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-emerald-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-emerald-300">
             <!-- Title -->
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">تعديل بيانات المخزون</h2>

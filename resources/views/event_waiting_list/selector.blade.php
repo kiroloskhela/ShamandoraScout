@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'اختيار الفعالية لإدارة قائمة الانتظار'])
+@extends('layouts.app', ['pageTitle' => __('Choose event for waiting list management')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300" dir="rtl">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md border-2 border-blue-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">اختيار الفعالية</h2>
             </div>

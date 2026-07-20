@@ -1,4 +1,4 @@
-@extends('layouts.app', ['pageTitle' => __('Dashboard') ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Dashboard')])
 
 @section('content')
     @php

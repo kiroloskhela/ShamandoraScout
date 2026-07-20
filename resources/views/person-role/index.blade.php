@@ -1,16 +1,16 @@
-@extends('layouts.app' , ['pageTitle' => "ربط القاده بلمهام"?? ''])
+@extends('layouts.app' , ['pageTitle' => __('Link leaders to duties (alt)')])
 
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <x-data-table :data="$personRoles" title="إدارة ربط القاده بلمهام" :add-button="[
-            'label' => 'ربط قائد بمهام',
+    <x-data-table :data="$personRoles" :title="__('Manage leader role assignments')" :add-button="[
+            'label' => __('Link leader to roles'),
             'route' => route('person-role.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
             [
                 'key' => 'PersonRoleID',
-                'label' => 'تسلسل',
+                'label' => __('Sequence'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900'
             ],
@@ -22,13 +22,13 @@
             ],
             [
                 'key' => 'PersonFullName',
-                'label' => 'اسم القائد',
+                'label' => __('Leader name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm'
             ],
             [
                 'key' => 'RoleName',
-                'label' => 'اسم الدور (System Role)',
+                'label' => __('Role name (System Role)'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm'
             ]

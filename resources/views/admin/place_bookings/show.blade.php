@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'مراجعة طلب حجز مكان'])
+@extends('layouts.app', ['pageTitle' => __('Review place booking request')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
 
         <div class="mb-6 text-center">
             <h1 class="text-2xl font-bold text-gray-800 mb-2">مراجعة طلب حجز رقم #{{ $booking->BookingID }}</h1>

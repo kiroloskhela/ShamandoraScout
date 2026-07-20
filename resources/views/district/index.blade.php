@@ -1,23 +1,23 @@
-@extends('layouts.app', ['pageTitle' => 'الأحياء السكنية' ?? ''])
+@extends('layouts.app', ['pageTitle' => __('Residential districts')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$districts->toArray()" title="إدارة الأحياء السكنية" :add-button="[
-            'label' => 'إضافة حي سكني',
+        <x-data-table :data="$districts->toArray()" :title="__('Manage residential districts')" :add-button="[
+            'label' => __('Add residential district'),
             'route' => route('district.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'DistrictID',
-                'label' => 'رقم الحي السكني',
+                'label' => __('District ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'DistrictName',
-                'label' => 'اسم الحي السكني',
+                'label' => __('District name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Manage event waiting list')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg p-8 w-full border-2 border-blue-300 dark:border-slate-700">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800 dark:text-slate-100">{{ __('Manage event waiting list') }}</h2>

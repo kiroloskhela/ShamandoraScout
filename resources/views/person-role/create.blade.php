@@ -1,7 +1,7 @@
-@extends('layouts.app', ['pageTitle' => 'ربط القاده بالمهام'])
+@extends('layouts.app', ['pageTitle' => __('Link leaders to duties')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
 
         <div class="bg-white shadow-md rounded-lg p-6 mb-8  border-2 border-blue-300">
             <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">ربط قائد جديد بمهام</h2>

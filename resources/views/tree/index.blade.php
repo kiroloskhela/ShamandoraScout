@@ -5,14 +5,14 @@
     @php
         $typeLabel = [2 => 'فريق', 3 => 'طليعة'];
         $typeBadgeClass = [2 => 'badge--fareeq', 3 => 'badge--taleia'];
-        $pageTitle = $pageTitle ?? 'هيكل الفريق';
+        $pageTitle = $pageTitle ?? __('Team structure');
         $servedQetaas = $servedQetaas ?? collect();
         $selectedQetaaId = $selectedQetaaId ?? request('qetaa');
         $qetaaPeopleOverview = $qetaaPeopleOverview ?? null;
         $ungroupedPeople = $ungroupedPeople ?? collect();
     @endphp
 
-    <div class="qt-root" dir="rtl">
+    <div class="qt-root">
 
         {{-- ══ TOPBAR ══════════════════════════════════════════════════════════════ --}}
         <header class="qt-topbar">
@@ -201,14 +201,14 @@
                             @if ($editable)
                                 <div class="qt-head-actions" onclick="event.stopPropagation()">
                                     <button class="qt-action-btn qt-action-btn--fareeq"
-                                        onclick="openGroupModal({{ $q->QetaaID }}, 2, 0)" title="إضافة فريق">
+                                        onclick="openGroupModal({{ $q->QetaaID }}, 2, 0)" :title="__('Add team')">
                                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 2v8M2 6h8" />
                                         </svg>
                                         فريق
                                     </button>
                                     <button class="qt-action-btn qt-action-btn--taleia"
-                                        onclick="openGroupModal({{ $q->QetaaID }}, 3, 0)" title="إضافة طليعة مباشرة">
+                                        onclick="openGroupModal({{ $q->QetaaID }}, 3, 0)" :title="__('Add patrol directly')">
                                         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M6 2v8M2 6h8" />
                                         </svg>

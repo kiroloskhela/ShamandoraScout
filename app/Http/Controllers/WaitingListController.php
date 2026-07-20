@@ -91,7 +91,7 @@ class WaitingListController extends Controller
             app(WaitingListService::class)->migrate((int) $id);
 
             return redirect()->route('person.waiting-list-index')
-                ->with('success', 'تم نقل الشخص إلى قائمة التسجيل بنجاح');
+                ->with('success', __('Person moved to registration list successfully'));
         } catch (RuntimeException $e) {
             return redirect()->route('person.waiting-list-index')
                 ->with('error', $e->getMessage());
@@ -99,7 +99,7 @@ class WaitingListController extends Controller
             Log::error('migrateWaitingList failed', ['message' => $e->getMessage(), 'person_id' => $id]);
 
             return redirect()->route('person.waiting-list-index')
-                ->with('error', 'حدث خطأ أثناء النقل: '.$e->getMessage());
+                ->with('error', __('An error occurred during transfer: ').$e->getMessage());
         }
     }
 
@@ -112,7 +112,7 @@ class WaitingListController extends Controller
             app(WaitingListService::class)->decline((int) $id);
 
             return redirect()->route('person.waiting-list-index')
-                ->with('success', 'تم رفض الطلب وحذفه من قائمة الانتظار');
+                ->with('success', __('Request rejected and removed from waiting list'));
         } catch (RuntimeException $e) {
             return redirect()->route('person.waiting-list-index')
                 ->with('error', $e->getMessage());
@@ -120,7 +120,7 @@ class WaitingListController extends Controller
             Log::error('declineWaitingList failed', ['message' => $e->getMessage(), 'person_id' => $id]);
 
             return redirect()->route('person.waiting-list-index')
-                ->with('error', 'حدث خطأ أثناء الحذف: '.$e->getMessage());
+                ->with('error', __('An error occurred during deletion: ').$e->getMessage());
         }
     }
 }

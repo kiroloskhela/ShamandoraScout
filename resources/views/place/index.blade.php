@@ -1,29 +1,29 @@
-@extends('layouts.app', ['pageTitle' => 'المناطق'])
+@extends('layouts.app', ['pageTitle' => __('Places')])
 
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$places->toArray()" title="إدارة المناطق" :add-button="[
-            'label' => 'إضافة منطقة',
+        <x-data-table :data="$places->toArray()" :title="__('Manage places')" :add-button="[
+            'label' => __('Add area'),
             'route' => route('place.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'PlaceID',
-                'label' => 'رقم المنطقة',
+                'label' => __('Area ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
                 'key' => 'PlaceName',
-                'label' => 'اسم المنطقة',
+                'label' => __('Area name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
                 'key' => 'LocationName',
-                'label' => 'اسم المنطقة',
+                'label' => __('Area name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],

@@ -1,22 +1,22 @@
-@extends('layouts.app' , ['pageTitle' => "الرتب الكشفيه"])
+@extends('layouts.app' , ['pageTitle' => __('Scout ranks')])
 
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <x-data-table :data="$rotab->toArray()" title="إدارة الرتب الكشفيه" :add-button="[
-            'label' => 'إضافة رتبه كشفيه',
+    <x-data-table :data="$rotab->toArray()" :title="__('Manage scout ranks')" :add-button="[
+            'label' => __('Add scout rank'),
             'route' => route('rotab.create'),
             'cssClass' => 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'
         ]" :columns="[
             [
                 'key' => 'RotbaID',
-                'label' => 'رقم الرتبه الكشفيه',
+                'label' => __('Scout rank ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 font-medium'
             ],
             [
                 'key' => 'RotbaName',
-                'label' => 'اسم الرتبه الكشفيه',
+                'label' => __('Scout rank name'),
                 'type' => 'label',
                 'cssClass' => 'text-blue-600 font-bold text-sm'
             ]

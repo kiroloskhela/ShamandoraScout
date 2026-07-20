@@ -207,7 +207,7 @@ class PersonBlackListController extends Controller
         $userId = Auth::id();
 
         if (! $this->allowedPersonExists($request->person_id, $userId)) {
-            return redirect()->back()->with('status', 'هذا الشخص غير متاح لك');
+            return redirect()->back()->with('status', __('This person is not available to you'));
         }
 
         $exists = DB::table('PersonBlackList')
@@ -216,7 +216,7 @@ class PersonBlackListController extends Controller
             ->first();
 
         if ($exists) {
-            return redirect()->back()->with('status', 'تمت إضافة هذا الشخص بالفعل اليوم إلى القائمة السوداء');
+            return redirect()->back()->with('status', __('This person was already added to the blacklist today'));
         }
 
         DB::table('PersonBlackList')->insert([
@@ -227,7 +227,7 @@ class PersonBlackListController extends Controller
         ]);
 
         return redirect()->route('personblacklist.index')
-            ->with('status', 'تم إضافة الشخص إلى القائمة السوداء بنجاح');
+            ->with('status', __('Person added to blacklist successfully'));
     }
 
     public function edit($id)
@@ -235,12 +235,12 @@ class PersonBlackListController extends Controller
         $black = $this->getAllowedBlackList($id);
 
         if (! $black) {
-            abort(403, 'غير مسموح لك بالوصول لهذا السجل');
+            abort(403, __('You are not allowed to access this record'));
         }
 
         return view('personblacklist.edit', [
             'black' => $black,
-            'title' => 'تعديل القائمة السوداء',
+            'title' => __('Edit blacklist entry'),
         ]);
     }
 
@@ -253,7 +253,7 @@ class PersonBlackListController extends Controller
         $black = $this->getAllowedBlackList($id);
 
         if (! $black) {
-            abort(403, 'غير مسموح لك بتعديل هذا السجل');
+            abort(403, __('You are not allowed to edit this record'));
         }
 
         DB::table('PersonBlackList')
@@ -263,7 +263,7 @@ class PersonBlackListController extends Controller
             ]);
 
         return redirect()->route('personblacklist.index')
-            ->with('status', 'تم تعديل الملاحظة بنجاح');
+            ->with('status', __('Note updated successfully'));
     }
 
     public function deletes($id)
@@ -271,12 +271,12 @@ class PersonBlackListController extends Controller
         $black = $this->getAllowedBlackList($id);
 
         if (! $black) {
-            abort(403, 'غير مسموح لك بحذف هذا السجل');
+            abort(403, __('You are not allowed to delete this record'));
         }
 
         return view('personblacklist.delete', [
             'black' => $black,
-            'title' => 'حذف من القائمة السوداء',
+            'title' => __('Remove from blacklist'),
         ]);
     }
 
@@ -285,7 +285,7 @@ class PersonBlackListController extends Controller
         $black = $this->getAllowedBlackList($id);
 
         if (! $black) {
-            abort(403, 'غير مسموح لك بحذف هذا السجل');
+            abort(403, __('You are not allowed to delete this record'));
         }
 
         DB::table('PersonBlackList')
@@ -293,7 +293,7 @@ class PersonBlackListController extends Controller
             ->delete();
 
         return redirect()->route('personblacklist.index')
-            ->with('status', 'تم حذف الشخص من القائمة السوداء بنجاح');
+            ->with('status', __('Person removed from blacklist successfully'));
     }
 
     public function searchPersons(Request $request)

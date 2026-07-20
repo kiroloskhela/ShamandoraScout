@@ -207,7 +207,7 @@ class PersonSpecialCaseController extends Controller
         $userId = Auth::id();
 
         if (! $this->allowedPersonExists($request->person_id, $userId)) {
-            return redirect()->back()->with('status', 'هذا الشخص غير متاح لك');
+            return redirect()->back()->with('status', __('This person is not available to you'));
         }
 
         $exists = DB::table('PersonSpecialCase')
@@ -216,7 +216,7 @@ class PersonSpecialCaseController extends Controller
             ->first();
 
         if ($exists) {
-            return redirect()->back()->with('status', 'تمت إضافة هذا الشخص بالفعل اليوم');
+            return redirect()->back()->with('status', __('This person was already added today'));
         }
 
         $specialCases->create(
@@ -226,7 +226,7 @@ class PersonSpecialCaseController extends Controller
         );
 
         return redirect()->route('personspecialcase.index')
-            ->with('status', 'تم إضافة الحالة الخاصة بنجاح');
+            ->with('status', __('Special case added successfully'));
     }
 
     public function edit($id)
@@ -234,12 +234,12 @@ class PersonSpecialCaseController extends Controller
         $case = $this->getAllowedCase($id);
 
         if (! $case) {
-            abort(403, 'غير مسموح لك بالوصول لهذه الحالة');
+            abort(403, __('You are not allowed to access this special case'));
         }
 
         return view('personspecialcase.edit', [
             'case' => $case,
-            'title' => 'تعديل حالة خاصة',
+            'title' => __('Edit special case'),
         ]);
     }
 
@@ -252,7 +252,7 @@ class PersonSpecialCaseController extends Controller
         $case = $this->getAllowedCase($id);
 
         if (! $case) {
-            abort(403, 'غير مسموح لك بتعديل هذه الحالة');
+            abort(403, __('You are not allowed to edit this special case'));
         }
 
         DB::table('PersonSpecialCase')
@@ -262,7 +262,7 @@ class PersonSpecialCaseController extends Controller
             ]);
 
         return redirect()->route('personspecialcase.index')
-            ->with('status', 'تم تعديل الملاحظة بنجاح');
+            ->with('status', __('Note updated successfully'));
     }
 
     public function deletes($id)
@@ -270,12 +270,12 @@ class PersonSpecialCaseController extends Controller
         $case = $this->getAllowedCase($id);
 
         if (! $case) {
-            abort(403, 'غير مسموح لك بحذف هذه الحالة');
+            abort(403, __('You are not allowed to delete this special case'));
         }
 
         return view('personspecialcase.delete', [
             'case' => $case,
-            'title' => 'حذف حالة خاصة',
+            'title' => __('Delete special case'),
         ]);
     }
 
@@ -284,7 +284,7 @@ class PersonSpecialCaseController extends Controller
         $case = $this->getAllowedCase($id);
 
         if (! $case) {
-            abort(403, 'غير مسموح لك بحذف هذه الحالة');
+            abort(403, __('You are not allowed to delete this special case'));
         }
 
         DB::table('PersonSpecialCase')
@@ -292,7 +292,7 @@ class PersonSpecialCaseController extends Controller
             ->delete();
 
         return redirect()->route('personspecialcase.index')
-            ->with('status', 'تم حذف الحالة الخاصة بنجاح');
+            ->with('status', __('Special case deleted successfully'));
     }
 
     public function searchPersons(Request $request)

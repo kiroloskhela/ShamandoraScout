@@ -205,7 +205,7 @@ class PersonExamMarkController extends Controller
         $userId = Auth::id();
 
         if (! $this->allowedPersonExists($data['person_id'], $userId)) {
-            return redirect()->back()->withInput()->with('error', 'هذا الشخص غير متاح لك');
+            return redirect()->back()->withInput()->with('error', __('This person is not available to you'));
         }
 
         DB::table('PersonExamMark')->insert([
@@ -220,7 +220,7 @@ class PersonExamMarkController extends Controller
         ]);
 
         return redirect()->route('personexammark.index')
-            ->with('status', 'تم تسجيل درجات الامتحان بنجاح');
+            ->with('status', __('Exam marks recorded successfully'));
     }
 
     public function edit($id)
@@ -228,7 +228,7 @@ class PersonExamMarkController extends Controller
         $mark = $this->getAllowedMark($id);
 
         if (! $mark) {
-            abort(403, 'غير مسموح لك بالوصول لهذا السجل');
+            abort(403, __('You are not allowed to access this record'));
         }
 
         return view('personexammark.edit', [
@@ -242,7 +242,7 @@ class PersonExamMarkController extends Controller
     {
         $mark = $this->getAllowedMark($id);
         if (! $mark) {
-            abort(403, 'غير مسموح لك بتعديل هذا السجل');
+            abort(403, __('You are not allowed to edit this record'));
         }
 
         $data = $request->validate([
@@ -266,14 +266,14 @@ class PersonExamMarkController extends Controller
             ]);
 
         return redirect()->route('personexammark.index')
-            ->with('status', 'تم تعديل درجات الامتحان بنجاح');
+            ->with('status', __('Exam marks updated successfully'));
     }
 
     public function deletes($id)
     {
         $mark = $this->getAllowedMark($id);
         if (! $mark) {
-            abort(403, 'غير مسموح لك بحذف هذا السجل');
+            abort(403, __('You are not allowed to delete this record'));
         }
 
         return view('personexammark.delete', ['mark' => $mark]);
@@ -283,13 +283,13 @@ class PersonExamMarkController extends Controller
     {
         $mark = $this->getAllowedMark($id);
         if (! $mark) {
-            abort(403, 'غير مسموح لك بحذف هذا السجل');
+            abort(403, __('You are not allowed to delete this record'));
         }
 
         DB::table('PersonExamMark')->where('ExamMarkID', $id)->delete();
 
         return redirect()->route('personexammark.index')
-            ->with('status', 'تم حذف سجل الدرجات بنجاح');
+            ->with('status', __('Exam marks record deleted successfully'));
     }
 
     public function searchPersons(Request $request)

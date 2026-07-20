@@ -1,7 +1,7 @@
 @extends('layouts.app', ['pageTitle' => __('Partial refund with deduction')])
 
 @section('content')
-    <div class="container mx-auto px-4 py-8" dir="rtl">
+    <div class="container mx-auto px-4 py-8">
         <div class="max-w-3xl mx-auto bg-white rounded-lg shadow border border-slate-200">
             <div class="px-6 py-4 border-b border-slate-200">
                 <h2 class="text-xl font-bold text-slate-800">{{ __('Refund amount with partial deduction') }}</h2>

@@ -1,22 +1,22 @@
-@extends('layouts.app', ['pageTitle' => ' ربط موسم بفعالية'])
+@extends('layouts.app', ['pageTitle' => __('Link season to event')])
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
-        <x-data-table :data="$seasonEvents" title="إدارة ربط موسم بفعالية" :add-button="[
-            'label' => 'إضافة ربط جديد',
+        <x-data-table :data="$seasonEvents" :title="__('Manage season-event links')" :add-button="[
+            'label' => __('Add new link'),
             'route' => route('season-event.create'),
             'cssClass' =>
                 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200',
         ]" :columns="[
             [
                 'key' => 'SeasonEventID',
-                'label' => 'رقم موسم-فعالية',
+                'label' => __('Season-event ID'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'SeasonName',
-                'label' => 'اسم الموسم',
+                'label' => __('Season name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 'filter' => true,
@@ -30,26 +30,26 @@
             ],
             [
                 'key' => 'EventTypeName',
-                'label' => 'نوع الحدث',
+                'label' => __('Event type'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
                 'filter' => true,
             ],
             [
                 'key' => 'EventName',
-                'label' => 'اسم الحدث',
+                'label' => __('Event name'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'EventStartDate',
-                'label' => 'تاريخ بدء الحدث',
+                'label' => __('Event start date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],
             [
                 'key' => 'EventEndDate',
-                'label' => 'تاريخ انتهاء الحدث',
+                'label' => __('Event end date'),
                 'type' => 'text',
                 'cssClass' => 'text-sm text-gray-900 dark:text-slate-100 font-medium',
             ],

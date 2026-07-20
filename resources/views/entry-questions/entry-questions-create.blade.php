@@ -1,8 +1,8 @@
-@extends('layouts.app', ['pageTitle' => 'إضافة سؤال جديد'])
+@extends('layouts.app', ['pageTitle' => __('Add new question')])
 
 @section('content')
     <div class="flex place-content-center">
-        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-blue-300" dir="rtl"
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl border-2 border-blue-300"
             x-data="questionForm()">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">إضافة سؤال جديد</h2>
