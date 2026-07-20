@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Support\LikeSearch;
-use App\Support\SqlPaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -148,30 +147,7 @@ class PersonBlackListController extends Controller
         $userId = $request->query('id') ?? Auth::id();
         Log::info('Fetching PersonBlackList for user ID: '.$userId);
 
-        $term = LikeSearch::fromRequest($request);
         $bindings = [$userId];
-        $searchSql = '';
-        if ($term !== null) {
-            $fragment = LikeSearch::sqlFlexibleOr(
-                [
-                    'CAST(pbl.PersonID AS CHAR)',
-                    'pbl.Note',
-                    'p.FirstName',
-                    'p.SecondName',
-                    'p.ThirdName',
-                    'p.FourthName',
-                    "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
-                    "CONCAT_WS(' ', s.FirstName, s.SecondName, s.ThirdName, s.FourthName)",
-                    'ppn.PersonPersonalMobileNumber',
-                    'ppn.FatherMobileNumber',
-                    'ppn.MotherMobileNumber',
-                ],
-                $term,
-                LikeSearch::personPhoneColumns('ppn'),
-            );
-            $searchSql = ' AND '.$fragment['sql'];
-            $bindings = array_merge($bindings, $fragment['bindings']);
-        }
 
         $sql = "
             SELECT
@@ -199,15 +175,13 @@ class PersonBlackListController extends Controller
             WHERE pbl.PersonID IN (
                 {$this->allowedPersonIdsSql()}
             )
-            {$searchSql}
             ORDER BY pbl.BlackListID DESC
         ";
 
-        $blacklist = SqlPaginator::paginate($sql, $bindings, 25);
+        $blacklist = collect(DB::select($sql, $bindings));
 
         return view('personblacklist.index', [
             'blacklist' => $blacklist,
-            'q' => $term ?? '',
         ]);
     }
 

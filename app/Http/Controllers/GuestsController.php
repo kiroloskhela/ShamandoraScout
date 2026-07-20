@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\LikeSearch;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +12,6 @@ class GuestsController extends Controller
 {
     public function index(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-
         $guests = DB::table('Guests')
             ->leftJoin('PersonInformation', 'PersonInformation.PersonID', '=', 'Guests.PersonID')
             ->select(
@@ -31,25 +28,10 @@ class GuestsController extends Controller
                 DB::raw("CONCAT_WS(' ', Guests.FirstName, Guests.SecondName, Guests.ThirdName, Guests.FourthName) as FullName"),
                 DB::raw("CONCAT_WS(' ', PersonInformation.FirstName, PersonInformation.SecondName, PersonInformation.ThirdName, PersonInformation.FourthName) as PersonFullName")
             )
-            ->when($term !== null, function ($query) use ($term) {
-                $fields = LikeSearch::namedPartyFields('Guests', 'GuestID');
-                $query->where(function ($sub) use ($term, $fields) {
-                    LikeSearch::applyFlexibleOr(
-                        $sub,
-                        $term,
-                        array_merge($fields['columns'], ['Guests.Email']),
-                        array_merge($fields['raw'], [
-                            "CONCAT_WS(' ', PersonInformation.FirstName, PersonInformation.SecondName, PersonInformation.ThirdName, PersonInformation.FourthName)",
-                        ]),
-                        ['Guests.MobileNumber'],
-                    );
-                });
-            })
             ->orderBy('Guests.GuestID', 'DESC')
-            ->paginate(25)
-            ->appends($request->query());
+            ->get();
 
-        return view('guests.index', ['guests' => $guests, 'q' => $term ?? '']);
+        return view('guests.index', ['guests' => $guests]);
     }
 
     public function create()

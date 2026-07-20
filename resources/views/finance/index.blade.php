@@ -14,9 +14,7 @@
             </div>
         @endif
 
-                <x-table-server-search :q="$q ?? ''" />
-
-        <x-data-table :data="$finance->items()" tableId="AddingFinance" title="{{ __('Manage event finance plans') }}" :add-button="[
+        <x-data-table :data="$finance" tableId="AddingFinance" title="{{ __('Manage event finance plans') }}" :add-button="[
             'label' => __('Add finance plan'),
             'route' => route('finance.create'),
             'cssClass' =>
@@ -100,9 +98,6 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200',
                 ],
-            ]" :searchable="false" :sortable="true" :pagination="false" :per-page="10" />
+            ]" :searchable="true" :sortable="true" :pagination="true" :per-page="25" />
     </div>
-        <div class="mt-4">
-            {{ $finance->links() }}
-        </div>
 @endsection

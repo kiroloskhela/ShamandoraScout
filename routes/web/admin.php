@@ -12,7 +12,6 @@ use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupPersonController;
 use App\Http\Controllers\GroupTypeController;
-use App\Http\Controllers\LiveFormMaxLimitsController;
 use App\Http\Controllers\LiveFormSettingsController;
 use App\Http\Controllers\ManteqaController;
 use App\Http\Controllers\MarhalaDeraseyyaController;
@@ -265,15 +264,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/sana-marhala/delete/{id}', [SanaMarhalaDeraseyyaController::class, 'deletes'])->name('sana-marhala.delete');
     Route::delete('/sana-marhala/destroy/{id}', [SanaMarhalaDeraseyyaController::class, 'destroy'])->name('sana-marhala.destroy');
 
-    // Liveform MaxLimits (duplicate in your original file, keep one set)
-    Route::get('/liveform-maxlimits', [LiveFormMaxLimitsController::class, 'index'])->name('liveform-maxlimits.index');
-    Route::get('/liveform-maxlimits/add', [LiveFormMaxLimitsController::class, 'create'])->name('liveform-maxlimits.create');
-    Route::post('/liveform-maxlimits/insert', [LiveFormMaxLimitsController::class, 'insert'])->name('liveform-maxlimits.insert');
-    Route::get('/liveform-maxlimits/edit/{id}', [LiveFormMaxLimitsController::class, 'edit'])->name('liveform-maxlimits.edit');
-    Route::patch('/liveform-maxlimits/update/{id}', [LiveFormMaxLimitsController::class, 'updates'])->name('liveform-maxlimits.update');
-    Route::get('/liveform-maxlimits/delete/{id}', [LiveFormMaxLimitsController::class, 'deletes'])->name('liveform-maxlimits.delete');
-    Route::delete('/liveform-maxlimits/destroy/{id}', [LiveFormMaxLimitsController::class, 'destroy'])->name('liveform-maxlimits.destroy');
-
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/create', [NotificationController::class, 'create']);
@@ -284,4 +274,4 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/migrate-new-enrolments/{qetaaID}', [MigrateNewEnrolments::class, 'migrate'])->name('person.migrate-new-enrolments');
     Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 
-  });
+});

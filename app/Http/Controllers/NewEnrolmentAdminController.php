@@ -29,27 +29,30 @@ class NewEnrolmentAdminController extends Controller
 
     private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index', bool $clientSearch = false)
     {
-        $term = $clientSearch ? null : LikeSearch::fromRequest($request);
-        $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
         $bindings = $extraBindings;
         $whereParts = [];
 
         if ($extraWhere !== '') {
             $whereParts[] = '('.$extraWhere.')';
         }
-        if ($term !== null) {
-            $fragment = LikeSearch::sqlOr($this->newUsersSearchColumns(), $term);
-            $whereParts[] = $fragment['sql'];
-            $bindings = array_merge($bindings, $fragment['bindings']);
-        }
 
-        $filterFrag = TableColumnFilters::sqlEquals($filters, [
-            'QetaaName' => 'nui.QetaaName',
-            'SanaMarhalaName' => 'sm.SanaMarhalaName',
-        ]);
-        if ($filterFrag['sql'] !== '') {
-            $whereParts[] = $filterFrag['sql'];
-            $bindings = array_merge($bindings, $filterFrag['bindings']);
+        if (! $clientSearch) {
+            $term = LikeSearch::fromRequest($request);
+            if ($term !== null) {
+                $fragment = LikeSearch::sqlOr($this->newUsersSearchColumns(), $term);
+                $whereParts[] = $fragment['sql'];
+                $bindings = array_merge($bindings, $fragment['bindings']);
+            }
+
+            $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
+            $filterFrag = TableColumnFilters::sqlEquals($filters, [
+                'QetaaName' => 'nui.QetaaName',
+                'SanaMarhalaName' => 'sm.SanaMarhalaName',
+            ]);
+            if ($filterFrag['sql'] !== '') {
+                $whereParts[] = $filterFrag['sql'];
+                $bindings = array_merge($bindings, $filterFrag['bindings']);
+            }
         }
 
         $whereSql = $whereParts === [] ? '' : (' WHERE '.implode(' AND ', $whereParts));
@@ -82,33 +85,8 @@ class NewEnrolmentAdminController extends Controller
             ? collect(DB::select($sql, $bindings))
             : SqlPaginator::paginate($sql, $bindings, 25);
 
-        $filterOptions = [
-            'QetaaName' => DB::table('NewUsersInformation')
-                ->whereNotNull('QetaaName')
-                ->where('QetaaName', '<>', '')
-                ->distinct()
-                ->orderBy('QetaaName')
-                ->pluck('QetaaName')
-                ->map(fn ($v) => (string) $v)
-                ->values()
-                ->all(),
-            'SanaMarhalaName' => DB::table('NewUsersInformation as nui')
-                ->leftJoin('SanaMarhala as sm', 'nui.SanaMarhalaID', '=', 'sm.SanaMarhalaID')
-                ->whereNotNull('sm.SanaMarhalaName')
-                ->where('sm.SanaMarhalaName', '<>', '')
-                ->distinct()
-                ->orderBy('sm.SanaMarhalaName')
-                ->pluck('sm.SanaMarhalaName')
-                ->map(fn ($v) => (string) $v)
-                ->values()
-                ->all(),
-        ];
-
         return view($view, [
             'persons' => $persons,
-            'clientSearch' => $clientSearch,
-            'filterOptions' => $filterOptions,
-            'activeServerFilters' => $filters,
         ]);
     }
 
@@ -145,7 +123,7 @@ class NewEnrolmentAdminController extends Controller
 
     public function showNewEnrolmentsByQetaaID(Request $request, $id)
     {
-        return $this->paginateNewUsers($request, 'nui.QetaaID = ?', [$id]);
+        return $this->paginateNewUsers($request, 'nui.QetaaID = ?', [$id], 'person.new-enrolments-index', true);
     }
 
     public function analyticsNewEnrolments()

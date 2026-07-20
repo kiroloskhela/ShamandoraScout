@@ -450,10 +450,7 @@
                     'cssClass' => 'text-sm text-gray-900 dark:text-slate-100',
                 ],
             ]" :actions="$bookingActions" :searchable="true"
-                :sortable="true" :pagination="true" :per-page="25"
-                :server-filters="true"
-                :filter-options="$filterOptions ?? []"
-                :active-server-filters="$activeServerFilters ?? []" />
+                :sortable="true" :pagination="true" :per-page="25" />
         </div>
     </div>
 @endsection

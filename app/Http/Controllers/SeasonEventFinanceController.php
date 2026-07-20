@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\LikeSearch;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -13,8 +12,6 @@ class SeasonEventFinanceController extends Controller
 {
     public function index(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-
         $finance = DB::table('SeasonEventFinance as sef')
             ->join('SeasonEvent as se', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
             ->join('Season as s', 'se.SeasonID', '=', 's.SeasonID')
@@ -34,17 +31,6 @@ class SeasonEventFinanceController extends Controller
                 DB::raw('COUNT(sefp.SeasonEventFinancePriceID) as IntervalsCount'),
 
             )
-            ->when($term !== null, function ($query) use ($term) {
-                LikeSearch::applyOr($query, $term, [
-                    's.SeasonName',
-                    'CAST(s.SeasonYear AS CHAR)',
-                    'e.EventName',
-                    'et.EventTypeName',
-                    'CAST(sef.SeasonEventID AS CHAR)',
-                ], [
-                    "CONCAT(et.EventTypeName, ' - ', e.EventName)",
-                ]);
-            })
             ->groupBy(
                 'sef.SeasonEventID',
                 's.SeasonName',
@@ -60,9 +46,8 @@ class SeasonEventFinanceController extends Controller
             ->orderByDesc('s.SeasonYear')
             ->orderBy('s.SeasonName')
             ->orderBy('e.EventStartDate')
-            ->paginate(25)
-            ->appends($request->query())
-            ->through(function ($row) {
+            ->get()
+            ->map(function ($row) {
                 $row->AllowBelowMinimumDepositText = $row->AllowBelowMinimumDeposit ? 'نعم' : 'لا';
                 $row->CanEditDelete = ! $this->hasPayments($row->SeasonEventID);
                 $row->CanEditDeleteText = $row->CanEditDelete ? 'نعم' : 'لا، يوجد مدفوعات';
@@ -70,7 +55,7 @@ class SeasonEventFinanceController extends Controller
                 return $row;
             });
 
-        return view('finance.index', ['finance' => $finance, 'q' => $term ?? '']);
+        return view('finance.index', ['finance' => $finance]);
     }
 
     public function create()

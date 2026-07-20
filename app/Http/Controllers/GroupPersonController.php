@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Domain\OrgTree\GroupTreeService;
-use App\Support\LikeSearch;
-use App\Support\SqlPaginator;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -21,33 +19,6 @@ class GroupPersonController extends Controller
      */
     public function index(Request $request)
     {
-        $term = LikeSearch::fromRequest($request);
-        $bindings = [];
-        $searchSql = '';
-
-        if ($term !== null) {
-            $fragment = LikeSearch::sqlFlexibleOr(
-                [
-                    'CAST(PersonInformation.PersonID AS CHAR)',
-                    'PersonInformation.ShamandoraCode',
-                    'PersonInformation.FirstName',
-                    'PersonInformation.SecondName',
-                    'PersonInformation.ThirdName',
-                    'PersonInformation.FourthName',
-                    "CONCAT_WS(' ', PersonInformation.FirstName, PersonInformation.SecondName, PersonInformation.ThirdName, PersonInformation.FourthName)",
-                    'GroupRole.GroupRoleName',
-                    'GroupTable.GroupName',
-                    'ppn.PersonPersonalMobileNumber',
-                    'ppn.FatherMobileNumber',
-                    'ppn.MotherMobileNumber',
-                ],
-                $term,
-                LikeSearch::personPhoneColumns('ppn'),
-            );
-            $searchSql = ' WHERE '.$fragment['sql'];
-            $bindings = $fragment['bindings'];
-        }
-
         $sql = "
                                     SELECT PersonGroup.PersonGroupRoleID,
                                         PersonGroup.PersonID,
@@ -64,15 +35,13 @@ class GroupPersonController extends Controller
                                     LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
                                     LEFT JOIN GroupRole ON GroupRole.GroupRoleID = PersonGroup.GroupRoleID
                                     LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                    {$searchSql}
                                     ORDER BY PersonInformation.ShamandoraCode ASC
                                     ";
 
-        $groupPersons = SqlPaginator::paginate($sql, $bindings, 25);
+        $groupPersons = collect(DB::select($sql));
 
         return view('group-person.index', [
             'groupPersons' => $groupPersons,
-            'q' => $term ?? '',
         ]);
     }
 

@@ -26,8 +26,13 @@ class PersonSearchService
      *
      * @param  array<string, string>  $columnFilters
      */
-    public function paginateAllPersons(?string $term, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
+    public function paginateAllPersons(?string $term, array $columnFilters = [], int $perPage = 25, bool $clientSearch = false): LengthAwarePaginator|Collection
     {
+        if ($clientSearch) {
+            $term = null;
+            $columnFilters = [];
+        }
+
         $bindings = [];
         $whereParts = [];
 
@@ -78,11 +83,17 @@ class PersonSearchService
             ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
         ";
 
-        return SqlPaginator::paginate($sql, $bindings, $perPage)->through(function ($person) {
+        $mapper = function ($person) {
             $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
 
             return $person;
-        });
+        };
+
+        if ($clientSearch) {
+            return collect(DB::select($sql, $bindings))->map($mapper);
+        }
+
+        return SqlPaginator::paginate($sql, $bindings, $perPage)->through($mapper);
     }
 
     /**
@@ -90,8 +101,13 @@ class PersonSearchService
      *
      * @param  array<string, string>  $columnFilters
      */
-    public function paginateScopedToPerson(int $userId, ?string $term = null, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
+    public function paginateScopedToPerson(int $userId, ?string $term = null, array $columnFilters = [], int $perPage = 25, bool $clientSearch = false): LengthAwarePaginator|Collection
     {
+        if ($clientSearch) {
+            $term = null;
+            $columnFilters = [];
+        }
+
         $bindings = [$userId];
         $searchParts = [];
 
@@ -153,11 +169,17 @@ class PersonSearchService
             ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
         ";
 
-        return SqlPaginator::paginate($sql, $bindings, $perPage)->through(function ($person) {
+        $mapper = function ($person) {
             $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
 
             return $person;
-        });
+        };
+
+        if ($clientSearch) {
+            return collect(DB::select($sql, $bindings))->map($mapper);
+        }
+
+        return SqlPaginator::paginate($sql, $bindings, $perPage)->through($mapper);
     }
 
     /**
