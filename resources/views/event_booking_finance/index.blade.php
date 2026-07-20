@@ -280,6 +280,70 @@
             </div>
         </details>
 
+        @php
+            $bookingActions = [
+                [
+                    'name' => 'add_installment',
+                    'label' => __('Add payment'),
+                    'route' => route('eventBookingFinance.createInstallment', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'edit_last_payment',
+                    'label' => __('Edit last payment'),
+                    'route' => route('eventBookingFinance.editLastPayment', ':id'),
+                    'idField' => 'LastPaymentID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'print_receipt',
+                    'label' => __('Print last receipt'),
+                    'route' => route('eventBookingFinance.printReceipt', ':id'),
+                    'idField' => 'LastPaymentID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'refund_full',
+                    'label' => __('Full refund'),
+                    'route' => route('eventBookingFinance.refundPage', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'refund_partial',
+                    'label' => __('Partial refund with deduction'),
+                    'route' => route('eventBookingFinance.partialRefundPage', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors duration-200 ml-2',
+                ],
+                [
+                    'name' => 'show',
+                    'label' => __('View'),
+                    'route' => route('eventBookingFinance.show', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
+                ],
+            ];
+
+            if ($isSuperAdmin) {
+                $bookingActions[] = [
+                    'name' => 'delete_booking',
+                    'label' => __('Delete booking'),
+                    'route' => route('eventBookingFinance.deletePage', ':id'),
+                    'idField' => 'SeasonEventParticipantFinanceID',
+                    'cssClass' =>
+                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-rose-800 hover:bg-rose-900 transition-colors duration-200 ml-2',
+                ];
+            }
+        @endphp
+
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:border dark:border-slate-700 border border-slate-200 p-4">
             <x-data-table title="{{ __('Bookings list') }}" :data="$bookings" :columns="[
                 [
@@ -364,56 +428,7 @@
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 dark:text-slate-100',
                 ],
-            ]" :actions="[
-                [
-                    'name' => 'add_installment',
-                    'label' => __('Add payment'),
-                    'route' => route('eventBookingFinance.createInstallment', ':id'),
-                    'idField' => 'SeasonEventParticipantFinanceID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 ml-2',
-                ],
-                [
-                    'name' => 'edit_last_payment',
-                    'label' => __('Edit last payment'),
-                    'route' => route('eventBookingFinance.editLastPayment', ':id'),
-                    'idField' => 'LastPaymentID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors duration-200 ml-2',
-                ],
-                [
-                    'name' => 'print_receipt',
-                    'label' => __('Print last receipt'),
-                    'route' => route('eventBookingFinance.printReceipt', ':id'),
-                    'idField' => 'LastPaymentID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-200 ml-2',
-                ],
-                [
-                    'name' => 'refund_full',
-                    'label' => __('Full refund'),
-                    'route' => route('eventBookingFinance.refundPage', ':id'),
-                    'idField' => 'SeasonEventParticipantFinanceID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors duration-200 ml-2',
-                ],
-                [
-                    'name' => 'refund_partial',
-                    'label' => __('Partial refund with deduction'),
-                    'route' => route('eventBookingFinance.partialRefundPage', ':id'),
-                    'idField' => 'SeasonEventParticipantFinanceID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors duration-200 ml-2',
-                ],
-                [
-                    'name' => 'show',
-                    'label' => __('View'),
-                    'route' => route('eventBookingFinance.show', ':id'),
-                    'idField' => 'SeasonEventParticipantFinanceID',
-                    'cssClass' =>
-                        'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
-                ],
-            ]" :searchable="true"
+            ]" :actions="$bookingActions" :searchable="true"
                 :sortable="true" :pagination="true" :per-page="25"
                 :server-filters="true"
                 :filter-options="$filterOptions ?? []"

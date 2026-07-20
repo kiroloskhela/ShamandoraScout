@@ -1243,4 +1243,47 @@ class SeasonEventBookingFinanceController extends Controller
         return redirect()->route('eventBookingFinance.show', $bookingID)
             ->with('success', 'تم تحديث مقاس القميص بنجاح.');
     }
+
+    public function deletePage($bookingID)
+    {
+        $this->ensureSuperAdmin();
+
+        $booking = $this->bookings->getBookingDetails((int) $bookingID);
+        if (! $booking) {
+            abort(404);
+        }
+
+        $paymentsCount = DB::table('SeasonEventParticipantFinancePayment')
+            ->where('SeasonEventParticipantFinanceID', $bookingID)
+            ->count();
+
+        $receiptsCount = DB::table('SeasonEventParticipantFinanceReceipt as r')
+            ->join('SeasonEventParticipantFinancePayment as p', 'r.PaymentID', '=', 'p.PaymentID')
+            ->where('p.SeasonEventParticipantFinanceID', $bookingID)
+            ->count();
+
+        return view('event_booking_finance.delete', compact('booking', 'paymentsCount', 'receiptsCount'));
+    }
+
+    public function destroy($bookingID)
+    {
+        $this->ensureSuperAdmin();
+
+        $booking = $this->bookings->deleteBooking((int) $bookingID);
+        if (! $booking) {
+            abort(404);
+        }
+
+        return redirect()
+            ->route('eventBookingFinance.index', $booking->SeasonEventID)
+            ->with('success', __('Booking deleted successfully. All related payments and receipts were removed.'));
+    }
+
+    private function ensureSuperAdmin(): void
+    {
+        $user = Auth::user();
+        if (! $user || ! $user->role()->where('RoleName', 'SuperAdmin')->exists()) {
+            abort(403);
+        }
+    }
 }

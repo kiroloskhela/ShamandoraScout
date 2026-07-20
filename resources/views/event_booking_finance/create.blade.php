@@ -68,20 +68,25 @@
                         @if ((int) $plan->HaveShirt === 1)
                             <div>
                                 <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('T-shirt size') }}</label>
-                                <select name="shirt_size" id="shirt_size"
-                                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
-                                    <option value="">{{ __('-- Choose size --') }}</option>
-                                    <option value="XS" {{ old('shirt_size') === 'XS' ? 'selected' : '' }}>XS</option>
-                                    <option value="S" {{ old('shirt_size') === 'S' ? 'selected' : '' }}>S</option>
-                                    <option value="M" {{ old('shirt_size') === 'M' ? 'selected' : '' }}>M</option>
-                                    <option value="L" {{ old('shirt_size') === 'L' ? 'selected' : '' }}>L</option>
-                                    <option value="XL" {{ old('shirt_size') === 'XL' ? 'selected' : '' }}>XL</option>
-                                    <option value="2XL" {{ old('shirt_size') === '2XL' ? 'selected' : '' }}>2XL</option>
-                                    <option value="3XL" {{ old('shirt_size') === '3XL' ? 'selected' : '' }}>3XL</option>
-                                    <option value="4XL" {{ old('shirt_size') === '4XL' ? 'selected' : '' }}>4XL</option>
-                                    <option value="5XL" {{ old('shirt_size') === '5XL' ? 'selected' : '' }}>5XL</option>
-                                    <option value="6XL" {{ old('shirt_size') === '6XL' ? 'selected' : '' }}>6XL</option>
-                                </select>
+                                <div class="relative">
+                                    <select name="shirt_size" id="shirt_size"
+                                        class="w-full h-12 ps-4 pe-10 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer">
+                                        <option value="">{{ __('-- Choose size --') }}</option>
+                                        <option value="XS" {{ old('shirt_size') === 'XS' ? 'selected' : '' }}>XS</option>
+                                        <option value="S" {{ old('shirt_size') === 'S' ? 'selected' : '' }}>S</option>
+                                        <option value="M" {{ old('shirt_size') === 'M' ? 'selected' : '' }}>M</option>
+                                        <option value="L" {{ old('shirt_size') === 'L' ? 'selected' : '' }}>L</option>
+                                        <option value="XL" {{ old('shirt_size') === 'XL' ? 'selected' : '' }}>XL</option>
+                                        <option value="2XL" {{ old('shirt_size') === '2XL' ? 'selected' : '' }}>2XL</option>
+                                        <option value="3XL" {{ old('shirt_size') === '3XL' ? 'selected' : '' }}>3XL</option>
+                                        <option value="4XL" {{ old('shirt_size') === '4XL' ? 'selected' : '' }}>4XL</option>
+                                        <option value="5XL" {{ old('shirt_size') === '5XL' ? 'selected' : '' }}>5XL</option>
+                                        <option value="6XL" {{ old('shirt_size') === '6XL' ? 'selected' : '' }}>6XL</option>
+                                    </select>
+                                    <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
                             </div>
                         @endif
                     </div>

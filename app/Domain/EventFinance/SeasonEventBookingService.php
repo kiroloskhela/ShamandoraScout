@@ -404,4 +404,35 @@ class SeasonEventBookingService
 
         return $lastPayment && (int) $lastPayment->PaymentID === $paymentId;
     }
+
+    /**
+     * Hard-delete a booking and all related payment/receipt/attendance rows.
+     * Payments and receipts cascade via DB FKs; attendance has no FK and is removed explicitly.
+     *
+     * @return object|null The deleted booking row (for redirect context), or null if missing.
+     */
+    public function deleteBooking(int $bookingId): ?object
+    {
+        $booking = DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventParticipantFinanceID', $bookingId)
+            ->first();
+
+        if (! $booking) {
+            return null;
+        }
+
+        DB::transaction(function () use ($bookingId) {
+            if (DB::getSchemaBuilder()->hasTable('SeasonEventBookingAttendance')) {
+                DB::table('SeasonEventBookingAttendance')
+                    ->where('SeasonEventParticipantFinanceID', $bookingId)
+                    ->delete();
+            }
+
+            DB::table('SeasonEventParticipantFinance')
+                ->where('SeasonEventParticipantFinanceID', $bookingId)
+                ->delete();
+        });
+
+        return $booking;
+    }
 }

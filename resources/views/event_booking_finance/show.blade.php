@@ -65,6 +65,13 @@
                         </a>
                     @endif
 
+                    @if ($isSuperAdmin)
+                        <a href="{{ route('eventBookingFinance.deletePage', $booking->SeasonEventParticipantFinanceID) }}"
+                            class="bg-rose-800 hover:bg-rose-900 text-white text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">
+                            {{ __('Delete booking') }}
+                        </a>
+                    @endif
+
                     <a href="{{ route('eventBookingFinance.index', $booking->SeasonEventID) }}"
                         class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-bold py-2 px-4 rounded-lg transition-colors duration-200">{{ __('Back') }}</a>
                 </div>
@@ -131,30 +138,24 @@
                     class="space-y-3">
                     @csrf
 
-                    <select name="shirt_size"
-                        class="w-full h-11 px-4 border rounded-xl text-right border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
-                        <option value="XS" {{ old('shirt_size', $booking->ShirtSize) == 'XS' ? 'selected' : '' }}>XS
-                        </option>
-                        <option value="S" {{ old('shirt_size', $booking->ShirtSize) == 'S' ? 'selected' : '' }}>S
-                        </option>
-                        <option value="M" {{ old('shirt_size', $booking->ShirtSize) == 'M' ? 'selected' : '' }}>M
-                        </option>
-                        <option value="L" {{ old('shirt_size', $booking->ShirtSize) == 'L' ? 'selected' : '' }}>L
-                        </option>
-                        <option value="XL" {{ old('shirt_size', $booking->ShirtSize) == 'XL' ? 'selected' : '' }}>XL
-                        </option>
-                        <option value="2XL" {{ old('shirt_size', $booking->ShirtSize) == '2XL' ? 'selected' : '' }}>2XL
-                        </option>
-                        <option value="3XL" {{ old('shirt_size', $booking->ShirtSize) == '3XL' ? 'selected' : '' }}>3XL
-                        </option>
-                        <option value="4XL" {{ old('shirt_size', $booking->ShirtSize) == '4XL' ? 'selected' : '' }}>4XL
-                        </option>
-                        <option value="5XL" {{ old('shirt_size', $booking->ShirtSize) == '5XL' ? 'selected' : '' }}>5XL
-                        </option>
-                        <option value="6XL" {{ old('shirt_size', $booking->ShirtSize) == '6XL' ? 'selected' : '' }}>6XL
-                        </option>
-
-                    </select>
+                    <div class="relative">
+                        <select name="shirt_size"
+                            class="w-full h-11 ps-4 pe-10 border rounded-xl border-slate-200 text-slate-700 bg-white focus:border-blue-500 focus:outline-none appearance-none cursor-pointer">
+                            <option value="XS" {{ old('shirt_size', $booking->ShirtSize) == 'XS' ? 'selected' : '' }}>XS</option>
+                            <option value="S" {{ old('shirt_size', $booking->ShirtSize) == 'S' ? 'selected' : '' }}>S</option>
+                            <option value="M" {{ old('shirt_size', $booking->ShirtSize) == 'M' ? 'selected' : '' }}>M</option>
+                            <option value="L" {{ old('shirt_size', $booking->ShirtSize) == 'L' ? 'selected' : '' }}>L</option>
+                            <option value="XL" {{ old('shirt_size', $booking->ShirtSize) == 'XL' ? 'selected' : '' }}>XL</option>
+                            <option value="2XL" {{ old('shirt_size', $booking->ShirtSize) == '2XL' ? 'selected' : '' }}>2XL</option>
+                            <option value="3XL" {{ old('shirt_size', $booking->ShirtSize) == '3XL' ? 'selected' : '' }}>3XL</option>
+                            <option value="4XL" {{ old('shirt_size', $booking->ShirtSize) == '4XL' ? 'selected' : '' }}>4XL</option>
+                            <option value="5XL" {{ old('shirt_size', $booking->ShirtSize) == '5XL' ? 'selected' : '' }}>5XL</option>
+                            <option value="6XL" {{ old('shirt_size', $booking->ShirtSize) == '6XL' ? 'selected' : '' }}>6XL</option>
+                        </select>
+                        <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
 
                     <button type="submit"
                         class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition-colors duration-200">{{ __('Update size') }}</button>

@@ -60,6 +60,11 @@ Route::prefix('event-booking-finance')->name('eventBookingFinance.')->group(func
     Route::get('/booking/{bookingID}/show', [SeasonEventBookingFinanceController::class, 'show'])->name('show');
     Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])->name('updateShirtSize');
     Route::post('/booking/{bookingID}/send-qr', [SeasonEventBookingFinanceController::class, 'sendQr'])->name('sendQr');
+
+    Route::middleware(['checkAuth:SuperAdmin'])->group(function () {
+        Route::get('/booking/{bookingID}/delete', [SeasonEventBookingFinanceController::class, 'deletePage'])->name('deletePage');
+        Route::delete('/booking/{bookingID}/delete', [SeasonEventBookingFinanceController::class, 'destroy'])->name('destroy');
+    });
 });
 
 
