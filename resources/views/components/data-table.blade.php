@@ -65,11 +65,11 @@
             <div x-show="searchable" class="order-3">
                 <div class="relative">
                     <input type="text" x-model="searchTerm" @input.debounce.300ms="search()" placeholder="{{ __('Search...') }}"
-                        class="w-full sm:w-64 pr-10 pl-4 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500/40 focus:border-transparent">
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        class="w-full sm:w-64 ps-10 pe-4 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500/40 focus:border-transparent">
+                    <div class="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d=" M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                 </div>
@@ -505,8 +505,8 @@
             applyAll(resetPage = true) {
                 let result = [...this.originalData];
 
-                // Client search/filter only when not in server mode
-                if (!this.serverFilters && this.searchTerm.trim()) {
+                // Always allow in-table text search on the loaded rows.
+                if (this.searchTerm.trim()) {
                     const term = this.searchTerm.toLowerCase();
 
                     result = result.filter(item =>
@@ -519,6 +519,7 @@
                     );
                 }
 
+                // Column filters are client-side only when not using server filters.
                 if (!this.serverFilters) {
                     Object.entries(this.activeFilters).forEach(([key, value]) => {
                         result = result.filter(item => {

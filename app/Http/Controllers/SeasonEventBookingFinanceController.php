@@ -127,7 +127,6 @@ class SeasonEventBookingFinanceController extends Controller
                 ->sum('p.Amount'),
         ];
 
-        $term = LikeSearch::fromRequest($request);
         $filters = TableColumnFilters::fromRequest($request, [
             'QetaaNames',
             'ShirtSize',
@@ -144,37 +143,6 @@ class SeasonEventBookingFinanceController extends Controller
             ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
             ->where('b.SeasonEventID', $seasonEventID)
-            ->when($term !== null, function ($query) use ($term) {
-                $query->where(function ($sub) use ($term) {
-                    LikeSearch::applyFlexibleOr(
-                        $sub,
-                        $term,
-                        [
-                            'CAST(b.PersonID AS CHAR)',
-                            'CAST(b.GuestID AS CHAR)',
-                            'CAST(b.FamilyID AS CHAR)',
-                            'p.ShamandoraCode',
-                            'ppn.PersonPersonalMobileNumber',
-                            'ppn.FatherMobileNumber',
-                            'ppn.MotherMobileNumber',
-                            'g.MobileNumber',
-                            'f.MobileNumber',
-                        ],
-                        [
-                            "CONCAT_WS(' ', p.FirstName, p.SecondName, p.ThirdName, p.FourthName)",
-                            "CONCAT_WS(' ', g.FirstName, g.SecondName, g.ThirdName, g.FourthName)",
-                            "CONCAT_WS(' ', f.FirstName, f.SecondName, f.ThirdName, f.FourthName)",
-                        ],
-                        [
-                            'ppn.PersonPersonalMobileNumber',
-                            'ppn.FatherMobileNumber',
-                            'ppn.MotherMobileNumber',
-                            'g.MobileNumber',
-                            'f.MobileNumber',
-                        ],
-                    );
-                });
-            })
             ->when(isset($filters['ShirtSize']), function ($query) use ($filters) {
                 if ($filters['ShirtSize'] === '-') {
                     $query->where(function ($sub) {
@@ -331,9 +299,8 @@ class SeasonEventBookingFinanceController extends Controller
             )
             ->orderBy('PersonFullName')
             ->orderBy('b.SeasonEventParticipantFinanceID')
-            ->paginate(25)
-            ->appends($request->query())
-            ->through(function ($booking) {
+            ->get()
+            ->map(function ($booking) {
                 if ($booking->SpecialCaseType === 'AKHOH_RAB' || (int) $booking->HasPersonSpecialCase === 1) {
                     $booking->BookingStatusText = 'أخوه رب';
                 } elseif ($booking->SpecialCaseType === 'HAS_BROTHERS') {
@@ -458,7 +425,6 @@ class SeasonEventBookingFinanceController extends Controller
             'selectedDaySummary' => $selectedDaySummary,
             'totalSummary' => $totalSummary,
             'qetaaCounts' => $qetaaCounts,
-            'q' => $term ?? '',
             'filterOptions' => [
                 'QetaaNames' => $qetaaFilterOptions,
                 'ShirtSize' => $shirtSizes,

@@ -281,8 +281,7 @@
         </details>
 
         <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:border dark:border-slate-700 border border-slate-200 p-4">
-            <x-table-server-search :q="$q ?? ''" placeholder="{{ __('Name / code / phone / ID') }}" />
-            <x-data-table title="{{ __('Bookings list') }}" :data="$bookings->items()" :columns="[
+            <x-data-table title="{{ __('Bookings list') }}" :data="$bookings" :columns="[
                 [
                     'key' => 'BookingCode',
                     'label' => __('Code'),
@@ -414,14 +413,11 @@
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 ml-2',
                 ],
-            ]" :searchable="false"
-                :sortable="true" :pagination="false" :per-page="25"
+            ]" :searchable="true"
+                :sortable="true" :pagination="true" :per-page="25"
                 :server-filters="true"
                 :filter-options="$filterOptions ?? []"
                 :active-server-filters="$activeServerFilters ?? []" />
-            <div class="mt-4">
-                {{ $bookings->links() }}
-            </div>
         </div>
     </div>
 @endsection
