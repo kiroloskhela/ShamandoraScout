@@ -1,100 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app', ['pageTitle' => __('Migration completed')])
 
-<head>
+@section('content')
+    <div class="max-w-xl mx-auto px-4 py-10">
+        <div
+            class="rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm p-8 text-center space-y-5">
+            <div
+                class="mx-auto w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-2xl font-black">
+                ✓
+            </div>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+            <h2 class="text-2xl font-extrabold text-slate-900 dark:text-slate-50">
+                {{ __('Migration completed') }}
+            </h2>
 
-    <title>كشافة الشمندورة - نجاح النقل</title>
+            <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                {{ __('Approved new enrolments were transferred to the main system successfully.') }}
+            </p>
 
-    <!-- Custom fonts for this template-->
-    <link href="../vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-        <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
-</style>
-    @include('partials.motion-styles')
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
-</head>
-
-<body class="bg-gradient-primary">
-
-    <div class="container status-card-enter">
-
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-sm-7">
-                    <img src={{ asset('img/shamandora.webp') }} style="width: 100%; height: 100%">
-                    </div>
-                    <div class="col-sm-5">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">GREAT!</h1>
-                            </div>
-                                
-                                <div class="text-center">
-                                    <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> تم تحويل بيانات الملتحقين الجدد إلى النظام الأساسي بنجاح</h2>
-                                    <a href="{{route('person.index')}}" class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: #4e73df;">الذهاب إلى بيانات مستخدمين النظام</a>
-                                </div>
-                                <hr>
-
-                                <div class="container my-auto">
-                                    <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout 2024</span>
-                                        <br />
-                                        <span style="font-size: larger;font-weight: bold; color: #4e73df;">{{ __('Shamandora Scout Group') }}</span>
-                                    </div>
-                                </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                <a href="{{ route('person.new-enrolments-migrate-index') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 transition-colors duration-200">
+                    {{ __('Back to migration buttons') }}
+                </a>
+                <a href="{{ route('person.index') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold px-5 py-3 transition-colors duration-200">
+                    {{ __('Go to system users') }}
+                </a>
             </div>
         </div>
-
     </div>
-
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
-    <script>
-        function validate(ElementId) {
-            const element = document.getElementById(ElementId);
-            if(element.value=='') {
-                //element.style.backgroundColor = '#C53939';
-                //element.style.color = '#FFFFFF';
-            document.getElementById('submit-button').disabled = true;
-            }
-            else {
-                //element.style.backgroundColor = 'White';
-                //element.style.color = '#1D43EC';
-                document.getElementById('submit-button').disabled = false;
-            }
-        }
-    </script>
-
-</body>
-
-</html>
+@endsection

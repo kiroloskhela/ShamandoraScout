@@ -27,9 +27,9 @@ class NewEnrolmentAdminController extends Controller
         ];
     }
 
-    private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index')
+    private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index', bool $clientSearch = false)
     {
-        $term = LikeSearch::fromRequest($request);
+        $term = $clientSearch ? null : LikeSearch::fromRequest($request);
         $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
         $bindings = $extraBindings;
         $whereParts = [];
@@ -78,7 +78,9 @@ class NewEnrolmentAdminController extends Controller
                                                 {$whereSql}
                                                 ORDER BY nui.CreatedAt DESC, nui.PersonID DESC";
 
-        $persons = SqlPaginator::paginate($sql, $bindings, 25);
+        $persons = $clientSearch
+            ? collect(DB::select($sql, $bindings))
+            : SqlPaginator::paginate($sql, $bindings, 25);
 
         $filterOptions = [
             'QetaaName' => DB::table('NewUsersInformation')
@@ -104,20 +106,41 @@ class NewEnrolmentAdminController extends Controller
 
         return view($view, [
             'persons' => $persons,
-            'q' => $term ?? '',
+            'clientSearch' => $clientSearch,
             'filterOptions' => $filterOptions,
             'activeServerFilters' => $filters,
         ]);
     }
 
-    public function indexNewEnrolmentsAndMigrations(Request $request)
+    public function indexNewEnrolmentsAndMigrations()
     {
-        return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-migrate-index');
+        $qetaas = DB::table('Qetaa')
+            ->orderBy('QetaaID')
+            ->get(['QetaaID', 'QetaaName']);
+
+        $approvedByQetaa = DB::table('NewUsersInformation')
+            ->where('IsApproved', 1)
+            ->select('QetaaID', DB::raw('COUNT(*) as approved_count'))
+            ->groupBy('QetaaID')
+            ->pluck('approved_count', 'QetaaID');
+
+        $totalApproved = (int) $approvedByQetaa->sum();
+
+        $qetaas = $qetaas->map(function ($qetaa) use ($approvedByQetaa) {
+            $qetaa->approved_count = (int) ($approvedByQetaa[$qetaa->QetaaID] ?? 0);
+
+            return $qetaa;
+        });
+
+        return view('person.new-enrolments-migrate-index', [
+            'qetaas' => $qetaas,
+            'totalApproved' => $totalApproved,
+        ]);
     }
 
     public function indexNewEnrolments(Request $request)
     {
-        return $this->paginateNewUsers($request);
+        return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-index', true);
     }
 
     public function showNewEnrolmentsByQetaaID(Request $request, $id)

@@ -8,6 +8,17 @@ use Throwable;
 
 class MigrateNewEnrolments extends Controller
 {
+    public function migrateAll(MigrateEnrolmentService $service)
+    {
+        try {
+            $service->migrateAllApproved();
+        } catch (Throwable $e) {
+            return view('person.entry-error');
+        }
+
+        return view('person.migrate-new-enrolments-status');
+    }
+
     public function migrate($qetaaID, MigrateEnrolmentService $service)
     {
         try {

@@ -18,6 +18,25 @@ class MigrateEnrolmentService
             ->orderBy('PersonID')
             ->pluck('PersonID');
 
+        $this->migratePersonIds($personIds);
+    }
+
+    public function migrateAllApproved(): void
+    {
+        $personIds = DB::table('NewUsersInformation')
+            ->where('IsApproved', 1)
+            ->orderBy('QetaaID')
+            ->orderBy('PersonID')
+            ->pluck('PersonID');
+
+        $this->migratePersonIds($personIds);
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, mixed>|array<int, mixed>  $personIds
+     */
+    private function migratePersonIds($personIds): void
+    {
         foreach ($personIds as $personId) {
             try {
                 $this->migrateOneById((int) $personId);

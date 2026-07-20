@@ -17,6 +17,7 @@ use App\Http\Controllers\LiveFormSettingsController;
 use App\Http\Controllers\ManteqaController;
 use App\Http\Controllers\MarhalaDeraseyyaController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\MigrateNewEnrolments;
 use App\Http\Controllers\NewEnrolmentAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonDirectoryController;
@@ -279,7 +280,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
     // Migrate New Enrolments
-    Route::get('/migrate-new-enrolments/{qetaaID}', ['as' => 'person.migrate-new-enrolments', 'uses' => 'App\Http\Controllers\MigrateNewEnrolments@migrate']);
+    Route::get('/migrate-new-enrolments/all', [MigrateNewEnrolments::class, 'migrateAll'])->name('person.migrate-new-enrolments-all');
+    Route::get('/migrate-new-enrolments/{qetaaID}', [MigrateNewEnrolments::class, 'migrate'])->name('person.migrate-new-enrolments');
     Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 
   });
