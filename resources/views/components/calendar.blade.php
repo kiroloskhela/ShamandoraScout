@@ -4,6 +4,10 @@
 
 @php
     $calId = 'calendar_' . uniqid();
+    $locale = app()->getLocale();
+    $isRtl = $locale === 'ar';
+    $fcLocale = $isRtl ? 'ar' : 'en';
+    $dateLocale = $isRtl ? 'ar-EG' : 'en-GB';
 
     $fcEvents = collect($events)
         ->unique('EventID')
@@ -475,9 +479,9 @@
     @endpush
 @endonce
 
-<div class="sc-calendar-card">
+<div class="sc-calendar-card" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
     <div class="sc-calendar-head">
-        <h3 class="sc-calendar-title">📅 التقويم</h3>
+        <h3 class="sc-calendar-title">📅 {{ __('Calendar') }}</h3>
         <div id="{{ $calId }}_count" class="sc-calendar-count"></div>
     </div>
 
@@ -503,6 +507,24 @@
     <script>
         (function() {
             const raw = @json($fcEvents);
+            const fcLocale = @json($fcLocale);
+            const isRtl = @json($isRtl);
+            const dateLocale = @json($dateLocale);
+            const i18n = {
+                eventsCount: @json(__(':count events')),
+                more: @json(__('+:count more')),
+                today: @json(__('Today')),
+                month: @json(__('Month')),
+                week: @json(__('Week')),
+                list: @json(__('List')),
+                startDate: @json(__('Start date')),
+                endDate: @json(__('End date')),
+                eventType: @json(__('Event type')),
+                sameDay: @json(__('Same day')),
+                eventDetails: @json(__('Event details')),
+                season: @json(__('Season')),
+                year: @json(__('Year')),
+            };
 
             const typeColors = {
                 'يوم كشفي': {
@@ -566,7 +588,7 @@
                 };
             });
 
-            countEl.textContent = `${events.length} فعالية`;
+            countEl.textContent = i18n.eventsCount.replace(':count', String(events.length));
 
             function getResponsiveView() {
                 return window.innerWidth < 640 ? 'listWeek' : 'dayGridMonth';
@@ -598,21 +620,21 @@
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: getResponsiveView(),
-                locale: 'ar',
-                direction: 'rtl',
-                firstDay: 6,
+                locale: fcLocale,
+                direction: isRtl ? 'rtl' : 'ltr',
+                firstDay: isRtl ? 6 : 0,
                 height: 'auto',
                 timeZone: 'local',
                 dayMaxEventRows: window.innerWidth < 640 ? 2 : 3,
                 moreLinkText: function(n) {
-                    return `+${n} أكثر`;
+                    return i18n.more.replace(':count', String(n));
                 },
                 headerToolbar: getResponsiveToolbar(),
                 buttonText: {
-                    today: 'اليوم',
-                    month: 'شهر',
-                    week: 'أسبوع',
-                    list: 'قائمة'
+                    today: i18n.today,
+                    month: i18n.month,
+                    week: i18n.week,
+                    list: i18n.list
                 },
                 events: events,
                 eventClick(info) {
@@ -620,36 +642,36 @@
                     const props = e.extendedProps || {};
                     const color = typeColors[props.type] || defaultColor;
 
-                    const startDate = e.start ? e.start.toLocaleDateString('ar-EG', {
+                    const startDate = e.start ? e.start.toLocaleDateString(dateLocale, {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     }) : '—';
 
-                    const endDate = e.end ? e.end.toLocaleDateString('ar-EG', {
+                    const endDate = e.end ? e.end.toLocaleDateString(dateLocale, {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                    }) : 'نفس اليوم';
+                    }) : i18n.sameDay;
 
-                    modalTitleEl.textContent = e.title || 'تفاصيل الفعالية';
+                    modalTitleEl.textContent = e.title || i18n.eventDetails;
 
                     modalBodyEl.innerHTML = `
                         <div class="sc-event-detail">
-                            <div class="sc-event-label">تاريخ البداية</div>
+                            <div class="sc-event-label">${i18n.startDate}</div>
                             <div class="sc-event-value">${startDate}</div>
                         </div>
 
                         <div class="sc-event-detail">
-                            <div class="sc-event-label">تاريخ النهاية</div>
+                            <div class="sc-event-label">${i18n.endDate}</div>
                             <div class="sc-event-value">${endDate}</div>
                         </div>
 
                         ${props.type ? `
                                             <div class="sc-event-detail">
-                                                <div class="sc-event-label">نوع الفعالية</div>
+                                                <div class="sc-event-label">${i18n.eventType}</div>
                                                 <div class="sc-event-value">
                                                     <span class="sc-event-badge" style="background:${color.light}; color:${color.bg};">
                                                         ${props.type}
@@ -660,14 +682,14 @@
 
                         ${props.season ? `
                                             <div class="sc-event-detail">
-                                                <div class="sc-event-label">{{ __('Season') }}</div>
+                                                <div class="sc-event-label">${i18n.season}</div>
                                                 <div class="sc-event-value">${props.season}</div>
                                             </div>
                                         ` : ''}
 
                         ${props.year ? `
                                             <div class="sc-event-detail">
-                                                <div class="sc-event-label">{{ __('Year') }}</div>
+                                                <div class="sc-event-label">${i18n.year}</div>
                                                 <div class="sc-event-value">${props.year}</div>
                                             </div>
                                         ` : ''}
@@ -684,7 +706,6 @@
                 calendar.setOption('dayMaxEventRows', window.innerWidth < 640 ? 2 : 3);
 
                 const currentView = calendar.view.type;
-                const targetView = getResponsiveView();
 
                 if (window.innerWidth < 640 && currentView !== 'listWeek') {
                     calendar.changeView('listWeek');

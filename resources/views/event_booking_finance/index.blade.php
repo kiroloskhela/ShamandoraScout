@@ -181,19 +181,24 @@
                         <div class="flex-1">
                             <label for="summary_date" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">{{ __('Choose payment day') }}</label>
 
-                            <select name="summary_date" id="summary_date"
-                                class="w-full h-11 px-4 border rounded-xl text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none">
-                                @forelse($paymentDays as $day)
-                                    <option value="{{ $day }}"
-                                        {{ $selectedSummaryDate == $day ? 'selected' : '' }}>
-                                        {{ \Carbon\Carbon::parse($day)->format('Y-m-d') }}
-                                    </option>
-                                @empty
-                                    <option value="{{ now()->format('Y-m-d') }}">
-                                        {{ now()->format('Y-m-d') }}
-                                    </option>
-                                @endforelse
-                            </select>
+                            <div class="relative">
+                                <select name="summary_date" id="summary_date"
+                                    class="w-full h-11 ps-4 pe-10 border rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer">
+                                    @forelse($paymentDays as $day)
+                                        <option value="{{ $day }}"
+                                            {{ $selectedSummaryDate == $day ? 'selected' : '' }}>
+                                            {{ \Carbon\Carbon::parse($day)->format('Y-m-d') }}
+                                        </option>
+                                    @empty
+                                        <option value="{{ now()->format('Y-m-d') }}">
+                                            {{ now()->format('Y-m-d') }}
+                                        </option>
+                                    @endforelse
+                                </select>
+                                <svg class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
                         </div>
 
                         <div class="flex gap-2">
@@ -217,7 +222,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 py-3 text-center">
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-1">{{ __('Bookings count') }}</div>
                                 <div
@@ -241,6 +246,14 @@
                                     {{ number_format($selectedDaySummary['refund_amount'], 2) }}
                                 </div>
                             </div>
+
+                            <div class="rounded-xl border border-indigo-100 dark:border-slate-700 bg-indigo-50/70 dark:bg-indigo-950/40 px-2 py-3 text-center">
+                                <div class="text-[11px] text-indigo-700 dark:text-indigo-300 mb-1">{{ __('Total') }}</div>
+                                <div
+                                    class="text-lg font-extrabold text-indigo-700 dark:text-indigo-300 blur-sm hover:blur-none transition duration-200 select-none">
+                                    {{ number_format(($selectedDaySummary['payments_amount'] ?? 0) - ($selectedDaySummary['refund_amount'] ?? 0), 2) }}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -250,7 +263,7 @@
                                 class="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-200 font-extrabold text-sm">{{ __('Booking total') }}</div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 py-3 text-center">
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-1">{{ __('Bookings count') }}</div>
                                 <div
@@ -272,6 +285,14 @@
                                 <div
                                     class="text-lg font-extrabold text-red-700 dark:text-red-300 blur-sm hover:blur-none transition duration-200 select-none">
                                     {{ number_format($totalSummary['refund_amount'], 2) }}
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-indigo-100 dark:border-slate-700 bg-indigo-50/70 dark:bg-indigo-950/40 px-2 py-3 text-center">
+                                <div class="text-[11px] text-indigo-700 dark:text-indigo-300 mb-1">{{ __('Total') }}</div>
+                                <div
+                                    class="text-lg font-extrabold text-indigo-700 dark:text-indigo-300 blur-sm hover:blur-none transition duration-200 select-none">
+                                    {{ number_format(($totalSummary['payments_amount'] ?? 0) - ($totalSummary['refund_amount'] ?? 0), 2) }}
                                 </div>
                             </div>
                         </div>
