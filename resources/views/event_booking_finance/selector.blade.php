@@ -17,7 +17,7 @@
                 <div>
                     <label for="season_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose season') }}</label>
                     <select id="season_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         <option value="">{{ __('-- Choose season --') }}</option>
                         @foreach ($seasons as $season)
                             <option value="{{ $season->SeasonID }}">{{ $season->SeasonName }} ({{ $season->SeasonYear }})
@@ -29,7 +29,7 @@
                 <div>
                     <label for="season_event_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose event') }}</label>
                     <select id="season_event_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         <option value="">{{ __('-- Choose event --') }}</option>
                     </select>
                 </div>

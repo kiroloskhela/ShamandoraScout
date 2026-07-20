@@ -17,7 +17,7 @@
                     <div>
                         <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">{{ __('Scout sector') }}</label>
                         <select id="qetaa_id" name="qetaa_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="" selected disabled>اختر القطاع الكشفي</option>
                             @foreach ($qetaat as $qetaa)
                                 <option value="{{ $qetaa->QetaaID }}">{{ $qetaa->QetaaName }}</option>
@@ -29,7 +29,7 @@
                     <div>
                         <label for="required_answer_type" class="block mb-2 text-sm text-gray-700">نوع السؤال</label>
                         <select id="required_answer_type" name="required_answer_type" x-model="type" @change="onTypeChange"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             required>
                             <option value="" selected disabled>اختر نوع السؤال</option>
                             @foreach ($questionTypes as $questionType)
@@ -62,7 +62,7 @@
                                     <label class="block mb-2 text-sm text-gray-700">عدد الاختيارات (بحد أقصى 6)</label>
                                     <input type="number" min="1" max="6" x-model.number="choicesCount"
                                         @input="normalizeCount"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                         placeholder="أدخل عدد الاختيارات">
                                 </div>
                                 <button type="button" @click="buildChoices"

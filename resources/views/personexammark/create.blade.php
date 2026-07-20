@@ -31,7 +31,7 @@
                     <div class="relative">
                         <label for="person_search" class="block mb-2 text-sm text-gray-700">ابحث عن المخدوم</label>
                         <input type="text" id="person_search" autocomplete="off"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             placeholder="اكتب الاسم أو الرقم أو الموبايل" value="">
                         <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}" required>
                         <div id="search_results"
@@ -42,7 +42,7 @@
                     <div>
                         <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">القطعة (وقت الامتحان)</label>
                         <select id="qetaa_id" name="qetaa_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="">اختر القطعة</option>
                             @foreach ($qetaas as $q)
                                 <option value="{{ $q->QetaaID }}" @selected(old('qetaa_id') == $q->QetaaID)>
@@ -55,7 +55,7 @@
                     <div>
                         <label for="sana_marhala_id" class="block mb-2 text-sm text-gray-700">سنة المرحلة (وقت الامتحان)</label>
                         <select id="sana_marhala_id" name="sana_marhala_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="">اختر سنة المرحلة</option>
                             @foreach ($sanaMarhalas as $sm)
                                 <option value="{{ $sm->SanaMarhalaID }}" @selected(old('sana_marhala_id') == $sm->SanaMarhalaID)>
@@ -70,14 +70,14 @@
                             <label for="theoretical_mark" class="block mb-2 text-sm text-gray-700">درجة النظري</label>
                             <input type="number" id="theoretical_mark" name="theoretical_mark" required min="0" max="999" step="1"
                                 value="{{ old('theoretical_mark') }}"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 placeholder="مثال: 80">
                         </div>
                         <div>
                             <label for="practical_mark" class="block mb-2 text-sm text-gray-700">درجة العملي</label>
                             <input type="number" id="practical_mark" name="practical_mark" required min="0" max="999" step="1"
                                 value="{{ old('practical_mark') }}"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 placeholder="مثال: 70">
                         </div>
                     </div>
@@ -86,7 +86,7 @@
                         <label for="exam_date" class="block mb-2 text-sm text-gray-700">تاريخ الامتحان</label>
                         <input type="date" id="exam_date" name="exam_date" required
                             value="{{ old('exam_date', date('Y-m-d')) }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                     </div>
 
                     <div>

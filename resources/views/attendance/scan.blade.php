@@ -31,7 +31,7 @@
                 <div>
                     <label for="season_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose season') }}</label>
                     <select id="season_id" name="season_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
                         onchange="this.form.submit()">
                         <option value="">{{ __('-- Choose season --') }}</option>
                         @foreach ($seasons as $s)
@@ -44,7 +44,7 @@
                 <div>
                     <label for="season_event_id" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Choose event') }}</label>
                     <select id="season_event_id" name="season_event_id"
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 {{ !empty($seasonId) ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }} focus:border-blue-500 focus:outline-none"
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 {{ !empty($seasonId) ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 dark:text-slate-500' }} focus:border-blue-500 focus:outline-none"
                         {{ !empty($seasonId) ? '' : 'disabled' }} onchange="this.form.submit()">
                         <option value="">{{ __('-- Choose event --') }}</option>
                         @foreach ($events as $e)

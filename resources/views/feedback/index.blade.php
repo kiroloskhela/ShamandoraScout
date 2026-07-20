@@ -177,12 +177,23 @@
     .select {
         width: 100%;
         padding: 12px 16px;
+        padding-inline-end: 2.5rem;
         border: 2px solid var(--border-color);
         border-radius: var(--border-radius);
         font-size: 1rem;
         font-family: inherit;
         transition: var(--transition);
-        background: white;
+        background-color: white;
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-size: 1rem 1rem;
+        background-position: right 0.75rem center;
+    }
+
+    html[dir="rtl"] .select {
+        background-position: left 0.75rem center;
     }
 
     .input:focus,

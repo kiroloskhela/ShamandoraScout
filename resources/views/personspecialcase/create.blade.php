@@ -31,7 +31,7 @@
                         <label for="person_search" class="block mb-2 text-sm text-gray-700">ابحث عن الشخص</label>
 
                         <input type="text" id="person_search" autocomplete="off"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             placeholder="اكتب الاسم أو الرقم أو الموبايل" value="">
 
                         <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}" required>

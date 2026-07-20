@@ -24,7 +24,7 @@
                     <div class="md:col-span-2 relative">
                         <label for="medicine_search" class="block mb-2 text-sm text-gray-700">{{ __('Medicine') }}</label>
                         <input type="text" id="medicine_search" autocomplete="off"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
                             placeholder="{{ __('Type medicine name, type, or place') }}">
                         <input type="hidden" id="medicine_id" name="medicine_id" value="{{ old('medicine_id') }}"
                             required>
@@ -39,7 +39,7 @@
                     <div>
                         <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Medicine place') }}</label>
                         <select id="location_id" name="location_id" required disabled
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none disabled:bg-slate-100">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none disabled:bg-slate-100">
                             <option value="">{{ __('-- Choose medicine first --') }}</option>
                         </select>
                     </div>
@@ -58,7 +58,7 @@
                     <div class="md:col-span-2 relative">
                         <label for="person_search" class="block mb-2 text-sm text-gray-700">{{ __('Person') }}</label>
                         <input type="text" id="person_search" autocomplete="off"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
                             placeholder="{{ __('Type name, code, or mobile number') }}">
                         <input type="hidden" id="person_id" name="person_id" value="{{ old('person_id') }}" required>
 
@@ -70,7 +70,7 @@
                     <div class="md:col-span-2">
                         <label for="notes" class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
                         <input type="text" id="notes" name="notes" value="{{ old('notes') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-emerald-500 focus:outline-none"
                             placeholder="{{ __('Optional') }}">
                     </div>
                 </div>

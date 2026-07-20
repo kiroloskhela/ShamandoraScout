@@ -30,7 +30,7 @@
                     <div class="md:col-span-2 relative">
                         <label for="medicine_search" class="block mb-2 text-sm text-gray-700">{{ __('Medicine') }}</label>
                         <input type="text" id="medicine_search" autocomplete="off"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
                             placeholder="{{ __('Type medicine name, type, or place') }}">
                         <input type="hidden" id="medicine_id" name="medicine_id" value="{{ old('medicine_id') }}"
                             required>
@@ -43,7 +43,7 @@
                     <div>
                         <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Lock location') }}</label>
                         <select id="location_id" name="location_id" required disabled
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none disabled:bg-slate-100">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none disabled:bg-slate-100">
                             <option value="">{{ __('-- Choose medicine first --') }}</option>
                         </select>
                     </div>
@@ -63,28 +63,28 @@
                         <label for="starts_at" class="block mb-2 text-sm text-gray-700">{{ __('Lock start date') }}</label>
                         <input type="date" id="starts_at" name="starts_at"
                             value="{{ old('starts_at', now()->toDateString()) }}" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
                     </div>
 
                     <div>
                         <label for="ends_at" class="block mb-2 text-sm text-gray-700">{{ __('Lock end date') }}</label>
                         <input type="date" id="ends_at" name="ends_at"
                             value="{{ old('ends_at', now()->toDateString()) }}" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="lock_reason" class="block mb-2 text-sm text-gray-700">{{ __('Lock reason') }}</label>
                         <input type="text" id="lock_reason" name="lock_reason"
                             value="{{ old('lock_reason', 'معسكر') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
                             placeholder="{{ __('Example: camp') }}">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="notes" class="block mb-2 text-sm text-gray-700">{{ __('Notes') }}</label>
                         <input type="text" id="notes" name="notes" value="{{ old('notes') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-amber-500 focus:outline-none"
                             placeholder="{{ __('Optional') }}">
                     </div>
                 </div>

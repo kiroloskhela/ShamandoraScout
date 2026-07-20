@@ -26,13 +26,13 @@
                         <label for="medicine_name" class="block mb-2 text-sm text-gray-700">اسم الدواء</label>
                         <input type="text" id="medicine_name" name="medicine_name" required
                             value="{{ old('medicine_name', $medicine->MedicineName) }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                     </div>
 
                     <div>
                         <label for="medicine_type" class="block mb-2 text-sm text-gray-700">نوع الدواء</label>
                         <select id="medicine_type" name="medicine_type" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                             <option value="">-- اختر النوع --</option>
                             @foreach ($types as $value => $type)
                                 <option value="{{ $value }}"
@@ -47,7 +47,7 @@
                         <label for="expiration_date" class="block mb-2 text-sm text-gray-700">تاريخ انتهاء الصلاحية</label>
                         <input type="date" id="expiration_date" name="expiration_date" required
                             value="{{ old('expiration_date', $medicine->ExpirationDate) }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                     </div>
                     <div>
                         <label for="amount" id="amount_label" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>

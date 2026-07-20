@@ -15,7 +15,7 @@
                     <div class="relative">
                         <label for="group_type_id" class="block mb-2 text-sm text-gray-700">اختر نوع المجموعة</label>
                         <select id="group_type_id" name="group_type_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                    focus:border-blue-500 focus:outline-none">
                             <option value="" disabled selected>اختر نوع المجموعة</option>
                             @foreach ($groupTypes as $groupType)
@@ -32,7 +32,7 @@
                             اختر المجموعة التي تتضمنها (المجموعة الأكبر منها)
                         </label>
                         <select id="included_under_group_id" name="included_under_group_id"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                    focus:border-blue-500 focus:outline-none">
                             <option value="" disabled selected>اختر المجموعة التي تتضمنها</option>
                             @foreach ($groups as $group)
@@ -47,7 +47,7 @@
                     <div class="relative">
                         <label for="group_name" class="block mb-2 text-sm text-gray-700">{{ __('Group name') }}</label>
                         <input type="text" id="group_name" name="group_name" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                    focus:border-blue-500 focus:outline-none"
                             placeholder="ادخل اسم المجموعة">
                     </div>

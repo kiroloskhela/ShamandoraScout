@@ -13,7 +13,7 @@
                 <div class="relative">
                     <label for="event_type_name" class="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-200">{{ __('Event type name') }}</label>
                     <input id="event_type_name" type="text" name="event_type_name" value="{{ old('event_type_name') }}" required
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none"
                         placeholder="{{ __('Enter event type name') }}">
                     @error('event_type_name')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
