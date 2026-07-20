@@ -33,13 +33,11 @@ class CampaignRecipientQuery
         $hasConsentCols = Schema::hasColumn('PersonPhoneNumbers', 'WhatsAppConsent');
 
         if (! empty($filters['q'])) {
-            $fragment = LikeSearch::sqlFlexibleOr(
-                LikeSearch::personDirectoryColumns(),
-                (string) $filters['q'],
-                LikeSearch::personPhoneColumns(),
-            );
-            $wheres[] = '('.$fragment['sql'].')';
-            $bindings = array_merge($bindings, $fragment['bindings']);
+            $fragment = $this->buildTextSearchFragment((string) $filters['q']);
+            if ($fragment !== null) {
+                $wheres[] = '('.$fragment['sql'].')';
+                $bindings = array_merge($bindings, $fragment['bindings']);
+            }
         }
 
         if (! empty($filters['gender'])) {
@@ -99,7 +97,7 @@ class CampaignRecipientQuery
         $limit = max(1, min(2000, $limit));
 
         $sql = "
-            SELECT DISTINCT
+            SELECT
                 pi.PersonID,
                 pi.ShamandoraCode,
                 pi.FirstName,
@@ -108,12 +106,16 @@ class CampaignRecipientQuery
                 pi.FourthName,
                 pi.Gender,
                 ppn.PersonPersonalMobileNumber,
-                q.QetaaName,
-                q.QetaaID
+                (
+                    SELECT q.QetaaName
+                    FROM PersonQetaa pq
+                    INNER JOIN Qetaa q ON q.QetaaID = pq.QetaaID
+                    WHERE pq.PersonID = pi.PersonID
+                    ORDER BY q.QetaaName ASC
+                    LIMIT 1
+                ) AS QetaaName
             FROM PersonInformation pi
             INNER JOIN PersonPhoneNumbers ppn ON ppn.PersonID = pi.PersonID
-            LEFT JOIN PersonQetaa pq ON pq.PersonID = pi.PersonID
-            LEFT JOIN Qetaa q ON q.QetaaID = pq.QetaaID
             WHERE {$whereSql}
             ORDER BY pi.FirstName ASC, pi.PersonID ASC
             LIMIT {$limit}
@@ -139,5 +141,64 @@ class CampaignRecipientQuery
     public function count(array $filters = []): int
     {
         return $this->search($filters, 2000)->count();
+    }
+
+    /**
+     * Flexible name / code / phone match that only uses aliases present in the query.
+     *
+     * @return array{sql: string, bindings: list<string>}|null
+     */
+    private function buildTextSearchFragment(string $raw): ?array
+    {
+        $term = LikeSearch::term($raw);
+        if ($term === null) {
+            return null;
+        }
+
+        $nameColumns = [
+            'pi.FirstName',
+            'pi.SecondName',
+            'pi.ThirdName',
+            'pi.FourthName',
+        ];
+        $identityColumns = [
+            'CAST(pi.PersonID AS CHAR)',
+            'pi.ShamandoraCode',
+            "CONCAT_WS(' ', pi.FirstName, pi.SecondName, pi.ThirdName, pi.FourthName)",
+        ];
+        $phoneColumns = LikeSearch::personPhoneColumns('ppn');
+
+        $parts = [];
+        $bindings = [];
+
+        // Word mode: each word must match at least one name part (AND of ORs).
+        $words = LikeSearch::words($term);
+        if ($words !== []) {
+            $wordGroups = [];
+            foreach ($words as $word) {
+                $like = LikeSearch::wildcard($word);
+                $ors = [];
+                foreach ($nameColumns as $column) {
+                    $ors[] = $column.' LIKE ?';
+                    $bindings[] = $like;
+                }
+                $wordGroups[] = '('.implode(' OR ', $ors).')';
+            }
+            $parts[] = '('.implode(' AND ', $wordGroups).')';
+        }
+
+        // Full-term identity / phone match.
+        $identity = LikeSearch::sqlFlexibleOr(
+            array_merge($identityColumns, $nameColumns),
+            $term,
+            $phoneColumns,
+        );
+        $parts[] = $identity['sql'];
+        $bindings = array_merge($bindings, $identity['bindings']);
+
+        return [
+            'sql' => implode(' OR ', $parts),
+            'bindings' => $bindings,
+        ];
     }
 }
