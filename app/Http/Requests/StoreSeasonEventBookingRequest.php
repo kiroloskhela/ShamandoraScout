@@ -3,12 +3,13 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Gate;
 
 class StoreSeasonEventBookingRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return Gate::allows('eventBooking.create');
     }
 
     public function rules(): array

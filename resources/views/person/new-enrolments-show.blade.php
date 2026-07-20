@@ -1,603 +1,545 @@
-<!DOCTYPE html>
-@php
-    $locale = app()->getLocale();
-    $isRtl = $locale === 'ar';
-    $dir = $isRtl ? 'rtl' : 'ltr';
-@endphp
-<html lang="{{ $locale }}" dir="{{ $dir }}">
+@extends('layouts.app', ['pageTitle' => __('View enrolment request')])
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>كشافة الشمندورة - اظهار بيانات</title>
-
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Cairo Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
-
+@section('content')
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
+        .person-form-page input[type="text"],
+        .person-form-page input[type="email"],
+        .person-form-page input[type="date"],
+        .person-form-page input[type="number"],
+        .person-form-page input[type="url"],
+        .person-form-page select,
+        .person-form-page textarea {
+            min-height: 50px;
         }
 
-        ::-webkit-scrollbar {
-            width: 10px
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 999px
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="date"],
-        input[type="number"],
-        input[type="url"] {
-            height: 50px;
+        .person-form-page textarea {
+            height: auto;
         }
     </style>
-</head>
 
-<body class="min-h-screen bg-white py-8">
-
-    <!-- Status -->
-    @if (session('status'))
-        <div class="max-w-6xl mx-auto px-4 mb-4">
-            <div class="rounded-xl bg-emerald-600 text-white px-5 py-4 shadow">
-                {{ session('status') }}
-            </div>
-        </div>
-    @endif
-
-    <div class="max-w-6xl mx-auto px-4">
-
-        <div class="rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
-
-            <!-- Header -->
-            <div class="px-6 md:px-10 py-8 border-b border-slate-200 bg-slate-50">
-                <div class="flex flex-col items-center justify-center gap-4 text-center">
-                    <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="h-20 w-20 object-contain" />
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">بيانات الملتحق</h1>
-                        <p class="text-slate-500 mt-2">عرض جميع البيانات المسجلة</p>
-                    </div>
+    <div class="person-form-page py-8">
+        @if (session('status'))
+            <div class="max-w-6xl mx-auto px-4 mb-4">
+                <div class="rounded-xl bg-emerald-600 text-white px-5 py-4 shadow">
+                    {{ session('status') }}
                 </div>
             </div>
+        @endif
 
-            <div class="p-6 md:p-10 space-y-8">
+        @if (session('success'))
+            <div class="max-w-6xl mx-auto px-4 mb-4">
+                <div class="rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-200 px-5 py-4">
+                    {{ session('success') }}
+                </div>
+            </div>
+        @endif
 
-                <!-- ===================== Section 1: Personal ===================== -->
-                {{-- ===================== Section 1: Personal ===================== --}}
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
+        @if (session('error'))
+            <div class="max-w-6xl mx-auto px-4 mb-4">
+                <div class="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-200 px-5 py-4">
+                    {{ session('error') }}
+                </div>
+            </div>
+        @endif
+
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="rounded-3xl bg-white dark:bg-slate-900 shadow-xl ring-1 ring-slate-200 dark:ring-slate-700 overflow-hidden">
+
+                <div class="px-6 md:px-10 py-8 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
+                    <div class="flex flex-col items-center justify-center gap-4 text-center">
+                        <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="h-14 w-14 object-contain dark:hidden" />
+                        <img src="{{ asset('img/shamandora-dark.webp') }}" alt="Logo" class="h-14 w-14 object-contain hidden dark:block" />
                         <div>
-                            <h2 class="text-xl font-bold text-slate-900">{{ __('Part 1: Personal information') }}</h2>
-                            <p class="text-slate-500 mt-1 text-sm">عرض بيانات الملتحق الأساسية.</p>
+                            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">{{ __('Applicant data') }}</h1>
+                            <p class="text-slate-500 dark:text-slate-400 mt-2">{{ __('View all registered enrolment data') }}</p>
                         </div>
-                        <span
-                            class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                            1 / 5
-                        </span>
                     </div>
+                </div>
 
-                    @php
-                        // الصور حسب الـ DB
-                        $personalPath = $person->PersonalImagePath ?? null;
-                        $scoutPath = $person->ScoutImagePath ?? null;
+                <div class="px-6 md:px-10 py-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-700 dark:text-slate-200">{{ __('Status:') }}</span>
+                            @if ((int) ($person->IsApproved ?? 0) === 1)
+                                <span class="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800">{{ __('Approved') }}</span>
+                            @else
+                                <span class="px-3 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800">{{ __('Pending review') }}</span>
+                            @endif
+                        </div>
 
-                        // Builder: يدعم URL كامل / مسارات public / أو ملفات storage public
-                        $buildImgUrl = function ($path) {
-                            if (!$path) {
-                                return null;
-                            }
-                            $p = trim($path);
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <a href="{{ route('person.new-enrolments-index') }}"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 transition-colors">
+                                {{ __('Back to list') }}
+                            </a>
+                            <a href="{{ route('person.new-enrolments-edit', $person->PersonID) }}"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-yellow-500 hover:bg-yellow-600 transition-colors">
+                                {{ __('Edit') }}
+                            </a>
+                            @if ((int) ($person->IsApproved ?? 0) !== 1)
+                                <a href="{{ route('person.new-enrolments-approve', $person->PersonID) }}"
+                                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                    {{ __('Approve') }}
+                                </a>
+                            @endif
+                            <a href="{{ route('person.new-enrolments-delete', $person->PersonID) }}"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors">
+                                {{ __('Reject') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-                            if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
-                                return $p;
-                            }
+                @php
+                    $personalPath = $person->PersonalImagePath ?? null;
+                    $scoutPath = $person->ScoutImagePath ?? null;
 
-                            if (
-                                str_starts_with($p, 'storage/') ||
-                                str_starts_with($p, 'uploads/') ||
-                                str_starts_with($p, 'img/')
-                            ) {
-                                return asset($p);
-                            }
+                    $buildImgUrl = function ($path) {
+                        if (!$path) {
+                            return null;
+                        }
+                        $p = trim($path);
 
-                            return asset('storage/' . ltrim($p, '/'));
-                        };
+                        if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
+                            return $p;
+                        }
 
-                        $personalUrl = $buildImgUrl($personalPath);
-                        $scoutUrl = $buildImgUrl($scoutPath);
+                        if (
+                            str_starts_with($p, 'storage/') ||
+                            str_starts_with($p, 'uploads/') ||
+                            str_starts_with($p, 'img/')
+                        ) {
+                            return asset($p);
+                        }
 
-                        // ==== NEW: Allergy / Medical history values ====
-                        $allergyFood = trim((string) ($person->AllergyFood ?? ($person->allergy_food ?? '')));
-                        $allergyMedicine = trim(
-                            (string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? '')),
-                        );
-                        $medicalDiseases = trim(
-                            (string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? '')),
-                        );
-                        $medicalMedications = trim(
-                            (string) ($person->MedicalMedications ?? ($person->medical_medications ?? '')),
-                        );
-                        $hasEmergency = $person->HasEmergencyCase ?? ($person->has_emergency_case ?? null);
-                        $emergencyDetailsVal = trim(
-                            (string) ($person->EmergencyDetails ?? ($person->emergency_details ?? '')),
-                        );
+                        return asset('storage/' . ltrim($p, '/'));
+                    };
 
-                        $hasAllergy = $allergyFood !== '' || $allergyMedicine !== '';
-                        $hasMedical =
-                            $medicalDiseases !== '' ||
-                            $medicalMedications !== '' ||
-                            $hasEmergency == 1 ||
-                            $hasEmergency === true ||
-                            $hasEmergency === '1';
+                    $personalUrl = $buildImgUrl($personalPath);
+                    $scoutUrl = $buildImgUrl($scoutPath);
 
-                        $yesNo = function ($v) {
-                            return $v == 1 || $v === true || $v === '1' || $v === 'True' ? 'نعم' : 'لا';
-                        };
-                    @endphp
+                    $allergyFood = trim((string) ($person->AllergyFood ?? ($person->allergy_food ?? '')));
+                    $allergyMedicine = trim((string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? '')));
+                    $medicalDiseases = trim((string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? '')));
+                    $medicalMedications = trim((string) ($person->MedicalMedications ?? ($person->medical_medications ?? '')));
+                    $hasEmergency = $person->HasEmergencyCase ?? ($person->has_emergency_case ?? null);
+                    $emergencyDetailsVal = trim((string) ($person->EmergencyDetails ?? ($person->emergency_details ?? '')));
 
-                    {{-- ✅ Photos INSIDE Section 1 --}}
-                    @if ($personalUrl || $scoutUrl)
-                        <div class="mb-6">
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div class="font-bold text-slate-800">{{ __('Photos') }}</div>
-                                    <div class="text-xs text-slate-500">سيتم عرض الصور المتاحة فقط</div>
-                                </div>
+                    $hasAllergy = $allergyFood !== '' || $allergyMedicine !== '';
+                    $hasMedical =
+                        $medicalDiseases !== '' ||
+                        $medicalMedications !== '' ||
+                        $hasEmergency == 1 ||
+                        $hasEmergency === true ||
+                        $hasEmergency === '1';
 
-                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                    @if ($personalUrl)
-                                        <div class="md:col-span-6">
-                                            <div class="rounded-2xl border border-slate-200 bg-white p-3">
-                                                <div class="text-sm font-semibold text-slate-700 mb-3">صورة شخصية</div>
-                                                <div class="rounded-2xl overflow-hidden ring-1 ring-slate-200 bg-white">
-                                                    <img src="{{ $personalUrl }}" alt="Personal Photo"
-                                                        class="w-full h-80 object-cover">
+                    $yesNo = function ($v) {
+                        return $v == 1 || $v === true || $v === '1' || $v === 'True' ? __('Yes') : __('No');
+                    };
+                @endphp
+
+                <div class="p-6 md:p-10 space-y-8">
+
+                    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ __('Part 1: Personal information') }}</h2>
+                                <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">{{ __("Show the applicant's basic information.") }}</p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold">1 / 5</span>
+                        </div>
+
+                        @if ($personalUrl || $scoutUrl)
+                            <div class="mb-6">
+                                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                    <div class="flex items-center justify-between gap-3 mb-4">
+                                        <div class="font-bold text-slate-800 dark:text-slate-100">{{ __('Photos') }}</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">{{ __('Only available photos will be shown') }}</div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        @if ($personalUrl)
+                                            <div class="md:col-span-6">
+                                                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                                                    <div class="font-semibold text-slate-800 dark:text-slate-100 mb-3">{{ __('Personal photo') }}</div>
+                                                    <img src="{{ $personalUrl }}" alt="{{ __('Personal photo') }}"
+                                                        class="w-full h-80 object-cover rounded-xl border border-slate-200 dark:border-slate-700">
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endif
+                                        @endif
 
-                                    @if ($scoutUrl)
-                                        <div class="md:col-span-6">
-                                            <div class="rounded-2xl border border-slate-200 bg-white p-3">
-                                                <div class="text-sm font-semibold text-slate-700 mb-3">صورة الزي الرسمي
-                                                </div>
-                                                <div class="rounded-2xl overflow-hidden ring-1 ring-slate-200 bg-white">
-                                                    <img src="{{ $scoutUrl }}" alt="Scout Photo"
-                                                        class="w-full h-80 object-cover">
+                                        @if ($scoutUrl)
+                                            <div class="md:col-span-6">
+                                                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                                                    <div class="font-semibold text-slate-800 dark:text-slate-100 mb-3">{{ __('Scout uniform photo') }}</div>
+                                                    <img src="{{ $scoutUrl }}" alt="{{ __('Scout uniform photo') }}"
+                                                        class="w-full h-80 object-cover rounded-xl border border-slate-200 dark:border-slate-700">
                                                 </div>
                                             </div>
-                                        </div>
-                                    @endif
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
 
-                    {{-- ✅ NEW: Allergy + Medical History (show only if found) --}}
-                    @if ($hasAllergy)
-                        <div class="mb-6">
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div class="font-bold text-slate-800">قسم الحساسية</div>
-                                    <div class="text-xs text-slate-500">يظهر فقط عند وجود بيانات</div>
-                                </div>
+                        @if ($hasAllergy)
+                            <div class="mb-6">
+                                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                    <div class="flex items-center justify-between gap-3 mb-4">
+                                        <div class="font-bold text-slate-800 dark:text-slate-100">{{ __('Allergy section') }}</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">{{ __('Only shown when data exists') }}</div>
+                                    </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                    @if ($allergyFood !== '')
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">حساسية من
-                                                طعام</label>
-                                            <input type="text" readonly value="{{ $allergyFood }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                        </div>
-                                    @endif
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        @if ($allergyFood !== '')
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Food allergy') }}</label>
+                                                <input type="text" readonly value="{{ $allergyFood }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
 
-                                    @if ($allergyMedicine !== '')
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">حساسية من
-                                                دواء</label>
-                                            <input type="text" readonly value="{{ $allergyMedicine }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                        </div>
-                                    @endif
+                                        @if ($allergyMedicine !== '')
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Medicine allergy') }}</label>
+                                                <input type="text" readonly value="{{ $allergyMedicine }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
+                        @endif
 
-                    @if ($hasMedical)
-                        <div class="mb-6">
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <div class="flex items-center justify-between gap-3 mb-4">
-                                    <div class="font-bold text-slate-800">قسم التاريخ المرضي</div>
-                                    <div class="text-xs text-slate-500">يظهر فقط عند وجود بيانات</div>
+                        @if ($hasMedical)
+                            <div class="mb-6">
+                                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                    <div class="flex items-center justify-between gap-3 mb-4">
+                                        <div class="font-bold text-slate-800 dark:text-slate-100">{{ __('Medical history section') }}</div>
+                                        <div class="text-xs text-slate-500 dark:text-slate-400">{{ __('Only shown when data exists') }}</div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        @if ($medicalDiseases !== '')
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Chronic diseases / diagnosis (if any)') }}</label>
+                                                <input type="text" readonly value="{{ $medicalDiseases }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
+
+                                        @if ($medicalMedications !== '')
+                                            <div class="md:col-span-6">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Current medications (if any)') }}</label>
+                                                <input type="text" readonly value="{{ $medicalMedications }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
+
+                                        @if ($hasEmergency !== null)
+                                            <div class="md:col-span-12">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Previous emergency cases?') }}</label>
+                                                <input type="text" readonly value="{{ $yesNo($hasEmergency) }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
+
+                                        @if ($emergencyDetailsVal !== '')
+                                            <div class="md:col-span-12">
+                                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Emergency details') }}</label>
+                                                <input type="text" readonly value="{{ $emergencyDetailsVal }}"
+                                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
+                            </div>
+                        @endif
 
-                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                    @if ($medicalDiseases !== '')
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">أمراض مزمنة /
-                                                تشخيص</label>
-                                            <input type="text" readonly value="{{ $medicalDiseases }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Request sequence') }}</label>
+                                <input type="text" readonly value="{{ $person->PersonID }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('First name') }}</label>
+                                <input type="text" readonly value="{{ $person->FirstName }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Second name') }}</label>
+                                <input type="text" readonly value="{{ $person->SecondName }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Third name') }}</label>
+                                <input type="text" readonly value="{{ $person->ThirdName }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Fourth name') }}</label>
+                                <input type="text" readonly value="{{ $person->FourthName ?? '' }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    placeholder="{{ __('None') }}">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Applicant gender') }}</label>
+                                <input type="text" readonly value="{{ $person->Gender == 'Male' ? __('Male') : __('Female') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Email') }}</label>
+                                <input type="text" readonly value="{{ $person->PersonalEmail ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Date of birth') }}</label>
+                                <input type="text" readonly value="{{ $person->DateOfBirth }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Joining year') }}</label>
+                                <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('National ID') }}</label>
+                                <input type="text" readonly value="{{ $person->RaqamQawmy }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Facebook link') }}</label>
+                                <input type="text" readonly value="{{ $person->FacebookProfileURL ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Instagram link') }}</label>
+                                <input type="text" readonly value="{{ $person->InstagramProfileURL ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Blood type') }}</label>
+                                <input type="text" readonly value="{{ $person->BloodTypeName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ __('Part 2: Contact and address') }}</h2>
+                                <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">{{ __('Show contact numbers and address.') }}</p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold">2 / 5</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Personal mobile') }}</label>
+                                <input type="text" readonly value="{{ $person->PersonPersonalMobileNumber }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Father mobile') }}</label>
+                                <input type="text" readonly value="{{ $person->FatherMobileNumber ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Mother mobile') }}</label>
+                                <input type="text" readonly value="{{ $person->MotherMobileNumber ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Landline') }}</label>
+                                <input type="text" readonly value="{{ $person->HomePhoneNumber ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                    dir="ltr">
+                            </div>
+
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('WhatsApp on primary number') }}</label>
+                                <input type="text" readonly
+                                    value="{{ $person->IsOPersonalPhoneNumberHavingWhatsapp == true || $person->IsOPersonalPhoneNumberHavingWhatsapp == 'True' || $person->IsOPersonalPhoneNumberHavingWhatsapp == 1 ? __('Yes') : __('No') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-12 mt-2">
+                                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                    <div class="font-bold text-slate-800 dark:text-slate-100 mb-3">{{ __('Address') }}</div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Building number') }}</label>
+                                            <input type="text" readonly value="{{ $person->BuildingNumber ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
                                         </div>
-                                    @endif
 
-                                    @if ($medicalMedications !== '')
-                                        <div class="md:col-span-6">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">الأدوية
-                                                الحالية</label>
-                                            <input type="text" readonly value="{{ $medicalMedications }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Floor number') }}</label>
+                                            <input type="text" readonly value="{{ $person->FloorNumber ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
                                         </div>
-                                    @endif
 
-                                    @if ($hasEmergency !== null)
+                                        <div class="md:col-span-4">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Apartment number') }}</label>
+                                            <input type="text" readonly value="{{ $person->AppartmentNumber ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                        </div>
+
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Side street') }}</label>
+                                            <input type="text" readonly value="{{ $person->SubStreetName ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                        </div>
+
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Main street') }}</label>
+                                            <input type="text" readonly value="{{ $person->MainStreetName ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                        </div>
+
                                         <div class="md:col-span-12">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">هل يوجد حالات
-                                                طوارئ سابقة؟</label>
-                                            <input type="text" readonly value="{{ $yesNo($hasEmergency) }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Nearest landmark') }}</label>
+                                            <input type="text" readonly value="{{ $person->NearestLandmark ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none"
+                                                placeholder="{{ __('None') }}">
                                         </div>
-                                    @endif
 
-                                    @if ($emergencyDetailsVal !== '')
-                                        <div class="md:col-span-12">
-                                            <label class="block text-sm font-semibold text-slate-700 mb-1">تفاصيل
-                                                الحالة</label>
-                                            <input type="text" readonly value="{{ $emergencyDetailsVal }}"
-                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Area') }}</label>
+                                            <input type="text" readonly value="{{ $person->ManteqaName ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
                                         </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endif
 
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">تسلسل الطلب</label>
-                            <input type="text" readonly value="{{ $person->PersonID }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('First name') }}</label>
-                            <input type="text" readonly value="{{ $person->FirstName }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Second name') }}</label>
-                            <input type="text" readonly value="{{ $person->SecondName }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Third name') }}</label>
-                            <input type="text" readonly value="{{ $person->ThirdName }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Fourth name') }}</label>
-                            <input type="text" readonly value="{{ $person->FourthName ?? '' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                placeholder="{{ __('None') }}">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Applicant gender') }}</label>
-                            <input type="text" readonly value="{{ $person->Gender == 'Male' ? 'ذكر' : 'أنثى' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Email') }}</label>
-                            <input type="text" readonly value="{{ $person->PersonalEmail ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Date of birth') }}</label>
-                            <input type="text" readonly value="{{ $person->DateOfBirth }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Joining year') }}</label>
-                            <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('National ID') }}</label>
-                            <input type="text" readonly value="{{ $person->RaqamQawmy }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Facebook</label>
-                            <input type="text" readonly value="{{ $person->FacebookProfileURL ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Instagram</label>
-                            <input type="text" readonly value="{{ $person->InstagramProfileURL ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Blood type') }}</label>
-                            <input type="text" readonly value="{{ $person->BloodTypeName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-                    </div>
-                </section>
-
-
-
-
-
-
-                <!-- ===================== Section 2: Contact ===================== -->
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900">الجزء الثاني: بيانات التواصل</h2>
-                            <p class="text-slate-500 mt-1 text-sm">الأرقام والعنوان.</p>
-                        </div>
-                        <span
-                            class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                            2 / 5
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">موبايل الملتحق
-                                (الأساسي)</label>
-                            <input type="text" readonly value="{{ $person->PersonPersonalMobileNumber }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Father mobile') }}</label>
-                            <input type="text" readonly value="{{ $person->FatherMobileNumber ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Mother mobile') }}</label>
-                            <input type="text" readonly value="{{ $person->MotherMobileNumber ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-3">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">هاتف أرضي</label>
-                            <input type="text" readonly value="{{ $person->HomePhoneNumber ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none"
-                                dir="ltr">
-                        </div>
-
-                        <div class="md:col-span-12">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">هل الرقم الأساسي عليه
-                                Whatsapp؟</label>
-                            <input type="text" readonly
-                                value="{{ $person->IsOPersonalPhoneNumberHavingWhatsapp == true || $person->IsOPersonalPhoneNumberHavingWhatsapp == 'True' ? 'نعم' : 'لا' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-
-                        <!-- Address box -->
-                        <div class="md:col-span-12 mt-2">
-                            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
-                                <div class="font-bold text-slate-800 mb-3">{{ __('Address') }}</div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                    <div class="md:col-span-4">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">رقم
-                                            العمارة</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->BuildingNumber ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-4">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">رقم
-                                            الدور</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->FloorNumber ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-4">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">رقم
-                                            الشقة</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->AppartmentNumber ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-6">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">اسم
-                                            الشارع</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->SubStreetName ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-6">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب شارع
-                                            رئيسي</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->MainStreetName ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-12">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">أقرب علامة
-                                            مميزة</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->NearestLandmark ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none"
-                                            placeholder="{{ __('None') }}">
-                                    </div>
-
-                                    <div class="md:col-span-6">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Area') }}</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->ManteqaName ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
-                                    </div>
-
-                                    <div class="md:col-span-6">
-                                        <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('District') }}</label>
-                                        <input type="text" readonly
-                                            value="{{ $person->DistrictName ?? 'لا يوجد' }}"
-                                            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none">
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('District') }}</label>
+                                            <input type="text" readonly value="{{ $person->DistrictName ?? __('None') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </section>
 
-                    </div>
-                </section>
-
-                <!-- ===================== Section 3: Education/Church ===================== -->
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900">الجزء الثالث: البيانات الدراسية والكنسية</h2>
-                            <p class="text-slate-500 mt-1 text-sm">بيانات تعليمية وكنسية (إن وُجدت).</p>
-                        </div>
-                        <span
-                            class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                            3 / 5
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <div class="md:col-span-12">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">السنة والمرحلة
-                                الدراسية</label>
-                            <input type="text" readonly value="{{ $person->SanaMarhalaName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ __('Part 3: Educational and church data') }}</h2>
+                                <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">{{ __('Show educational and church data.') }}</p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold">3 / 5</span>
                         </div>
 
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('School name') }}</label>
-                            <input type="text" readonly value="{{ $person->SchoolName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Academic year and stage') }}</label>
+                                <input type="text" readonly value="{{ $person->SanaMarhalaName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('School name') }}</label>
+                                <input type="text" readonly value="{{ $person->SchoolName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('School graduation year') }}</label>
+                                <input type="text" readonly value="{{ $person->SchoolGraduationYear ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Spiritual father name') }}</label>
+                                <input type="text" readonly value="{{ $person->SpiritualFatherName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+
+                            <div class="md:col-span-6">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Spiritual father church') }}</label>
+                                <input type="text" readonly value="{{ $person->SpiritualFatherChurchName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ __('Part 4: Scout information') }}</h2>
+                                <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">{{ __('Sector, rank and certificate details.') }}</p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold">4 / 5</span>
                         </div>
 
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">سنة التخرج من
-                                المدرسة</label>
-                            <input type="text" readonly value="{{ $person->SchoolGraduationYear ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <div class="md:col-span-12">
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Scout sector') }}</label>
+                                <input type="text" readonly value="{{ $person->QetaaName ?? __('None') }}"
+                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 md:p-6">
+                        <div class="flex items-start justify-between gap-4 mb-5">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">{{ __('Final part: Sector questions') }}</h2>
+                                <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm">{{ __('Show questions and their recorded answers clearly.') }}</p>
+                            </div>
+                            <span class="shrink-0 inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-4 py-2 text-sm font-semibold">5 / 5</span>
                         </div>
 
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Spiritual father name') }}</label>
-                            <input type="text" readonly value="{{ $person->SpiritualFatherName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
+                        <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4 mb-4 text-slate-800 dark:text-slate-100">
+                            <div class="font-bold">{{ __('Sector:') }} {{ $person->QetaaName ?? __('None') }}</div>
                         </div>
 
-                        <div class="md:col-span-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">كنيسة الأب الروحي</label>
-                            <input type="text" readonly
-                                value="{{ $person->SpiritualFatherChurchName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-                    </div>
-                </section>
+                        @if (!$questions->isEmpty())
+                            <div class="space-y-4">
+                                @foreach ($questions as $question)
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+                                        <div class="font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                                            {{ __('Question:') }} {{ $question->QuestionText }}
+                                        </div>
+                                        <div class="text-sm text-slate-600 dark:text-slate-300 mb-2">{{ __('Applicant answer') }}</div>
+                                        <input type="text" readonly value="{{ $question->Answer }}"
+                                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-5 text-amber-900 dark:text-amber-100">
+                                {{ __('No questions for this person in this sector') }}
+                            </div>
+                        @endif
+                    </section>
 
-                <!-- ===================== Section 4: Scout ===================== -->
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900">{{ __('Part 4: Scout information') }}</h2>
-                            <p class="text-slate-500 mt-1 text-sm">بيانات القطاع.</p>
-                        </div>
-                        <span
-                            class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                            4 / 5
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <div class="md:col-span-12">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">{{ __('Scout sector') }}</label>
-                            <input type="text" readonly value="{{ $person->QetaaName ?? 'لا يوجد' }}"
-                                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                        </div>
-                    </div>
-                </section>
-
-                <!-- ===================== Section 5: Sector Questions ===================== -->
-                <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
-                    <div class="flex items-start justify-between gap-4 mb-5">
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900">{{ __('Final part: Sector questions') }}</h2>
-                            <p class="text-slate-500 mt-1 text-sm">الإجابات المسجلة.</p>
-                        </div>
-                        <span
-                            class="shrink-0 inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-4 py-2 text-sm font-semibold">
-                            5 / 5
-                        </span>
-                    </div>
-
-                    <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 mb-4 text-slate-800">
-                        <div class="font-bold">القطاع: {{ $person->QetaaName ?? 'لا يوجد' }}</div>
-                    </div>
-
-                    @if (!$questions->isEmpty())
-                        <div class="space-y-4">
-                            @foreach ($questions as $question)
-                                <div class="rounded-2xl border border-slate-200 bg-white p-4">
-                                    <div class="font-semibold text-slate-900 mb-2">السؤال:
-                                        {{ $question->QuestionText }}</div>
-                                    <div class="text-sm text-slate-600 mb-2">{{ __('Applicant answer') }}</div>
-                                    <input type="text" readonly value="{{ $question->Answer }}"
-                                        class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:outline-none">
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="rounded-2xl bg-amber-50 border border-amber-200 p-5 text-amber-900">
-                            لا يوجد أسئلة لهذا الشخص في هذا القطاع
-                        </div>
-                    @endif
-                </section>
-
+                </div>
             </div>
         </div>
     </div>
-
-</body>
-
-</html>
+@endsection

@@ -5,8 +5,10 @@ namespace App\Providers;
 use App\Models\Game;
 use App\Models\User;
 use App\Policies\CurriculaPolicy;
+use App\Policies\EventBookingPolicy;
 use App\Policies\GamePolicy;
 use App\Policies\PersonPolicy;
+use App\Policies\TreePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -43,5 +45,12 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('curricula.create', fn (?User $user) => $user !== null && (new CurriculaPolicy)->create($user));
         Gate::define('curricula.update', fn (?User $user) => $user !== null && (new CurriculaPolicy)->update($user));
         Gate::define('curricula.delete', fn (?User $user) => $user !== null && (new CurriculaPolicy)->delete($user));
+
+        Gate::define('eventBooking.create', fn (?User $user) => $user !== null && (new EventBookingPolicy)->create($user));
+        Gate::define('eventBooking.update', fn (?User $user) => $user !== null && (new EventBookingPolicy)->update($user));
+        Gate::define('eventBooking.delete', fn (?User $user) => $user !== null && (new EventBookingPolicy)->delete($user));
+
+        Gate::define('tree.manageQetaa', fn (?User $user, int $qetaaId) => $user !== null && (new TreePolicy)->manageQetaa($user, $qetaaId));
+        Gate::define('tree.manageGroup', fn (?User $user, int $groupId) => $user !== null && (new TreePolicy)->manageGroup($user, $groupId));
     }
 }

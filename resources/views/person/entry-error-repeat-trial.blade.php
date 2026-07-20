@@ -1,104 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
-
+@php($locale = app()->getLocale())
+<html lang="{{ $locale }}" dir="{{ $locale === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>كشافة الشمندورة - حدثت مشكلة</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ __('Problem occurred | Shamandora Scout') }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ asset('img/shamandora.webp') }}">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;500&display=swap');
+        body { font-family: {{ $locale === 'ar' ? "'Tajawal'" : "'Source Sans 3'" }}, sans-serif; }
+        .sea-bg {
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.18), transparent),
+                linear-gradient(165deg, #fffbeb 0%, #fef3c7 40%, #f8fafc 100%);
+        }
     </style>
     @include('partials.motion-styles')
-    <!-- Custom styles for this template-->
-    <link href="../css/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-alpha1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 </head>
-
-<body class="bg-gradient-primary">
-
-    <div class="container status-card-enter">
-
-        <div class="card o-hidden border-0 shadow-lg my-5">
-            <div class="card-body p-0">
-                <!-- Nested Row within Card Body -->
-                <div class="row">
-                    <div class="col-sm-7">
-                        <img src="{{ asset('img/shamandora.webp') }}" style="width: 100%; height: 100%">
-                    </div>
-                    <div class="col-sm-5">
-                        <div class="p-5">
-                            <div class="text-center">
-                                <h1 class="h4 text-gray-900 mb-4">عذراً</h1>
-                            </div>
-
-                            <div class="text-center">
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: brown;"> من فضلك عد
-                                    إلى الصفحة السابقة
-                                </h2>
-                                <h2 class="h4 mb-4" style="font-family: 'Cairo', sans-serif; color: #4e73df;"> وتأكد من
-                                    ادخال البيانات المطلوبة كاملةً وغير فارغة وبشكل سليم
-                                </h2>
-                            </div>
-                            <hr>
-
-                            <div class="container my-auto">
-                                <div class="copyright text-center my-auto">
-                                    <span>Copyright &copy; Shamandora Scout 2024</span>
-                                    <br />
-                                    <span style="font-size: larger;font-weight: bold; color: #4e73df;">مجموعة الشمندورة
-                                        الكشفية</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<body class="sea-bg min-h-screen flex flex-col">
+    <main class="flex-1 flex items-center justify-center px-4 py-16">
+        <div class="w-full max-w-lg text-center status-card-enter">
+            <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora') }}" class="mx-auto h-24 w-24 object-contain drop-shadow-md">
+            <div class="mt-8 rounded-3xl bg-white/90 shadow-xl ring-1 ring-amber-100 px-8 py-10 backdrop-blur">
+                <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-100">
+                    <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
                 </div>
+                <h1 class="text-2xl font-extrabold text-amber-900">{{ __('Sorry') }}</h1>
+                <p class="mt-4 text-base leading-relaxed text-slate-700">{{ __('Go back to the previous page') }}</p>
+                <p class="mt-2 text-base leading-relaxed text-indigo-700">{{ __('Make sure all required fields are filled in correctly') }}</p>
             </div>
+            <p class="mt-8 text-xs text-slate-400">© {{ date('Y') }} {{ __('Shamandora Scout Group') }}</p>
         </div>
-
-    </div>
-
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{{ asset('vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="../js/sb-admin-2.min.js"></script>
-
-    <script>
-        function validate(ElementId) {
-            const element = document.getElementById(ElementId);
-            if (element.value == '') {
-                //element.style.backgroundColor = '#C53939';
-                //element.style.color = '#FFFFFF';
-                document.getElementById('submit-button').disabled = true;
-            } else {
-                //element.style.backgroundColor = 'White';
-                //element.style.color = '#1D43EC';
-                document.getElementById('submit-button').disabled = false;
-            }
-        }
-    </script>
-
+    </main>
 </body>
-
 </html>

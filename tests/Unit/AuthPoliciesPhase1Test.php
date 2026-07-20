@@ -2,7 +2,9 @@
 
 namespace Tests\Unit;
 
+use App\Models\Game;
 use App\Models\User;
+use App\Policies\EventBookingPolicy;
 use App\Policies\GamePolicy;
 use App\Policies\PersonPolicy;
 use Illuminate\Database\Schema\Blueprint;
@@ -56,14 +58,14 @@ class AuthPoliciesPhase1Test extends TestCase
             'FirstName' => 'Test',
             'SecondName' => 'User',
             'ThirdName' => 'X',
-            'ShamandoraCode' => $code ?? ('T' . uniqid()),
+            'ShamandoraCode' => $code ?? ('T'.uniqid()),
         ]);
     }
 
     private function attachRole(User $user, string $roleName): void
     {
         $roleId = DB::table('Roles')->where('RoleName', $roleName)->value('RoleID');
-        if (!$roleId) {
+        if (! $roleId) {
             $roleId = DB::table('Roles')->insertGetId([
                 'RoleName' => $roleName,
                 'RoleDescription' => $roleName,
@@ -107,8 +109,8 @@ class AuthPoliciesPhase1Test extends TestCase
     public function test_game_policy_allows_view_but_denies_mutate_for_regular_user(): void
     {
         $user = $this->createUser();
-        $policy = new GamePolicy();
-        $game = new \App\Models\Game();
+        $policy = new GamePolicy;
+        $game = new Game;
 
         $this->assertTrue($policy->viewAny($user));
         $this->assertTrue($policy->view($user, $game));
@@ -120,7 +122,7 @@ class AuthPoliciesPhase1Test extends TestCase
     public function test_person_policy_allows_own_record(): void
     {
         $user = $this->createUser();
-        $policy = new PersonPolicy();
+        $policy = new PersonPolicy;
 
         $this->assertTrue($policy->view($user, $user));
         $this->assertTrue($policy->update($user, $user));
@@ -132,7 +134,7 @@ class AuthPoliciesPhase1Test extends TestCase
         $viewer = $this->createUser('V1');
         $this->attachRole($viewer, 'Servant');
         $target = $this->createUser('T1');
-        $policy = new PersonPolicy();
+        $policy = new PersonPolicy;
 
         $this->assertFalse($policy->view($viewer, $target));
         $this->assertFalse($policy->update($viewer, $target));
@@ -144,7 +146,7 @@ class AuthPoliciesPhase1Test extends TestCase
         $admin = $this->createUser('A1');
         $this->attachRole($admin, 'SuperAdmin');
         $target = $this->createUser('T2');
-        $policy = new PersonPolicy();
+        $policy = new PersonPolicy;
 
         $this->assertTrue($policy->view($admin, $target));
         $this->assertTrue($policy->update($admin, $target));
@@ -156,7 +158,7 @@ class AuthPoliciesPhase1Test extends TestCase
         $this->attachRole($admin, 'AdminQetaa');
         $shared = $this->createUser('T3');
         $other = $this->createUser('T4');
-        $policy = new PersonPolicy();
+        $policy = new PersonPolicy;
 
         DB::table('PersonQetaa')->insert([
             ['PersonID' => $admin->PersonID, 'QetaaID' => 1],
@@ -166,7 +168,29 @@ class AuthPoliciesPhase1Test extends TestCase
 
         $this->assertTrue($policy->view($admin, $shared));
         $this->assertTrue($policy->update($admin, $shared));
+        $this->assertTrue($policy->delete($admin, $shared));
         $this->assertFalse($policy->view($admin, $other));
         $this->assertFalse($policy->update($admin, $other));
+        $this->assertFalse($policy->delete($admin, $other));
+    }
+
+    public function test_event_booking_policy_allows_finance_roles_to_mutate(): void
+    {
+        $finance = $this->createUser('F1');
+        $this->attachRole($finance, 'AdminFinance');
+        $policy = new EventBookingPolicy;
+
+        $this->assertTrue($policy->create($finance));
+        $this->assertTrue($policy->update($finance));
+        $this->assertFalse($policy->delete($finance));
+    }
+
+    public function test_event_booking_policy_allows_superadmin_delete(): void
+    {
+        $admin = $this->createUser('SA1');
+        $this->attachRole($admin, 'SuperAdmin');
+        $policy = new EventBookingPolicy;
+
+        $this->assertTrue($policy->delete($admin));
     }
 }

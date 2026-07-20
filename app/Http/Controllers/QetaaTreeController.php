@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\OrgTree\GroupTreeService;
+use App\Policies\TreePolicy;
 use App\Support\LikeSearch;
 use App\Support\PersonAvatar;
 use Illuminate\Http\Request;
@@ -13,13 +14,14 @@ class QetaaTreeController extends Controller
 {
     public function __construct(
         private readonly GroupTreeService $groups,
+        private readonly TreePolicy $treePolicy,
     ) {}
 
     public function index(Request $request)
     {
         // Never trust spoofable ?id= — always scope the tree to the authenticated user.
         $userId = Auth::id();
-        $servedQetaaIds = $this->servedQetaaIds($userId);
+        $servedQetaaIds = $this->treePolicy->servedQetaaIds((int) $userId);
         [$seasons, $currentSeasonId] = $this->seasonContext($request);
         $servedQetaas = DB::table('Qetaa')
             ->whereIn('QetaaID', $servedQetaaIds)
@@ -54,7 +56,7 @@ class QetaaTreeController extends Controller
     public function auxiliary(Request $request)
     {
         $userId = Auth::id();
-        $servedQetaaIds = $this->servedQetaaIds($userId);
+        $servedQetaaIds = $this->treePolicy->servedQetaaIds((int) $userId);
         $servedQetaas = DB::table('Qetaa')
             ->whereIn('QetaaID', $servedQetaaIds)
             ->orderBy('QetaaID')
@@ -188,16 +190,6 @@ class QetaaTreeController extends Controller
             'talaea',
             'directTalaeaCount'
         ));
-    }
-
-    private function servedQetaaIds($userId)
-    {
-        return DB::table('GroupQetaa as gq')
-            ->join('PersonGroup as pg', 'pg.GroupID', '=', 'gq.GroupID')
-            ->where('pg.PersonID', $userId)
-            ->pluck('gq.QetaaID')
-            ->unique()
-            ->values();
     }
 
     private function seasonContext(Request $request)
@@ -391,7 +383,7 @@ class QetaaTreeController extends Controller
         }
 
         $qetaaId = $this->qetaaIdForGroup($groupId);
-        if (! $qetaaId || ! $this->servedQetaaIds(Auth::id())->contains((int) $qetaaId)) {
+        if (! $qetaaId || ! $this->treePolicy->manageQetaa(Auth::user(), (int) $qetaaId)) {
             return response()->json([]);
         }
 
@@ -457,7 +449,7 @@ class QetaaTreeController extends Controller
             'SeasonID' => 'required|integer',
         ]);
 
-        if (! $this->servedQetaaIds(Auth::id())->contains((int) $request->QetaaID)) {
+        if (! $this->treePolicy->manageQetaa(Auth::user(), (int) $request->QetaaID)) {
             return response()->json(['error' => __('You cannot edit this sector.')], 403);
         }
 
@@ -497,12 +489,7 @@ class QetaaTreeController extends Controller
     public function deleteGroup(Request $request, $groupId)
     {
         $groupId = (int) $groupId;
-        $canAccessGroup = DB::table('GroupQetaa')
-            ->where('GroupID', $groupId)
-            ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
-            ->exists();
-
-        if (! $canAccessGroup) {
+        if (! $this->treePolicy->manageGroup(Auth::user(), $groupId)) {
             return response()->json(['error' => __('You cannot delete this group.')], 403);
         }
 
@@ -537,12 +524,7 @@ class QetaaTreeController extends Controller
             return response()->json(['error' => __('People can only be added inside a patrol.')], 422);
         }
 
-        $canAccessGroup = DB::table('GroupQetaa')
-            ->where('GroupID', $request->GroupID)
-            ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
-            ->exists();
-
-        if (! $canAccessGroup) {
+        if (! $this->treePolicy->manageGroup(Auth::user(), (int) $request->GroupID)) {
             return response()->json(['error' => __('You cannot edit this group.')], 403);
         }
 
@@ -609,10 +591,7 @@ class QetaaTreeController extends Controller
         ]);
 
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
-        $canAccessGroup = DB::table('GroupQetaa')
-            ->where('GroupID', $request->GroupID)
-            ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
-            ->exists();
+        $canAccessGroup = $this->treePolicy->manageGroup(Auth::user(), (int) $request->GroupID);
 
         $personInGroup = DB::table('PersonGroup')
             ->where('PersonID', $request->PersonID)
@@ -639,12 +618,8 @@ class QetaaTreeController extends Controller
     public function removePerson(Request $request)
     {
         $group = DB::table('GroupTable')->where('GroupID', $request->GroupID)->first();
-        $canAccessGroup = DB::table('GroupQetaa')
-            ->where('GroupID', $request->GroupID)
-            ->whereIn('QetaaID', $this->servedQetaaIds(Auth::id()))
-            ->exists();
 
-        if (! $group || (int) $group->GroupTypeID !== 3 || ! $canAccessGroup) {
+        if (! $group || (int) $group->GroupTypeID !== 3 || ! $this->treePolicy->manageGroup(Auth::user(), (int) $request->GroupID)) {
             return response()->json(['error' => __('You cannot edit this group.')], 403);
         }
 

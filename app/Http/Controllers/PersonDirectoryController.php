@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSearchService;
+use App\Models\User;
 use App\Support\LikeSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,13 @@ class PersonDirectoryController extends Controller
 
     public function show($id)
     {
+        $target = User::query()->find((int) $id);
+        if (! $target) {
+            return view('person.entry-error');
+        }
+
+        $this->authorize('view', $target);
+
         $person = DB::table('PersonInformation')
             ->leftJoin('PersonImages', 'PersonImages.PersonID', '=', 'PersonInformation.PersonID')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
@@ -121,6 +129,13 @@ class PersonDirectoryController extends Controller
      */
     public function edit($id)
     {
+        $target = User::query()->find((int) $id);
+        if (! $target) {
+            return view('person.entry-error');
+        }
+
+        $this->authorize('update', $target);
+
         $marahel = DB::table('Marhala')->get();
         $rotab = DB::table('RotbaInformation')->get();
         $seneen_marahel = DB::table('SanaMarhala')->get();
@@ -248,6 +263,13 @@ class PersonDirectoryController extends Controller
 
     public function updates(Request $request, $id)
     {
+        $target = User::query()->find((int) $id);
+        if (! $target) {
+            return view('person.entry-error');
+        }
+
+        $this->authorize('update', $target);
+
         if (! $this->profiles->exists((int) $id)) {
             return view('person.entry-error');
         }
@@ -334,6 +356,13 @@ class PersonDirectoryController extends Controller
 
     public function deletes($id)
     {
+        $target = User::query()->find((int) $id);
+        if (! $target) {
+            return view('person.entry-error');
+        }
+
+        $this->authorize('delete', $target);
+
         $person = DB::table('PersonInformation')->where('PersonID', '=', $id)->select('PersonInformation.PersonID', 'PersonInformation.ShamandoraCode')->first();
 
         return view('person.person-delete', ['person' => $person]);
@@ -341,6 +370,13 @@ class PersonDirectoryController extends Controller
 
     public function destroy($id)
     {
+        $target = User::query()->find((int) $id);
+        if (! $target) {
+            return view('person.entry-error');
+        }
+
+        $this->authorize('delete', $target);
+
         DB::beginTransaction();
 
         DB::table('PersonEgazetBetakatTaqaddom')->where('PersonID', $id)->delete();
