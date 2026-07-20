@@ -194,8 +194,13 @@ class QetaaTreeController extends Controller
 
     private function seasonContext(Request $request)
     {
-        $seasons = DB::table('Season')->orderByDesc('SeasonYear')->get();
-        $currentSeasonId = $request->query('season') ?? ($seasons->first()->SeasonID ?? null);
+        $seasons = DB::table('Season')
+            ->orderByDesc('IsActive')
+            ->orderByDesc('SeasonYear')
+            ->get();
+        $active = $seasons->first(fn ($s) => (int) ($s->IsActive ?? 0) === 1);
+        $activeId = $active->SeasonID ?? ($seasons->first()->SeasonID ?? null);
+        $currentSeasonId = $request->query('season') ?? $activeId;
 
         return [$seasons, $currentSeasonId];
     }

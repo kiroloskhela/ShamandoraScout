@@ -37,7 +37,7 @@
                         <label for="document_date" class="block mb-2 text-sm text-gray-700">تاريخ الاجتماع</label>
                         <input type="date" id="document_date" name="document_date" value="{{ old('document_date') }}"
                             required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                focus:border-blue-500 focus:outline-none"
                             placeholder="اختر التاريخ">
                     </div>

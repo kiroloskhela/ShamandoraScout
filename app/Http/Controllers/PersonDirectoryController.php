@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSearchService;
+use App\Domain\Person\PersonSeasonActivityService;
 use App\Models\User;
 use App\Support\LikeSearch;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class PersonDirectoryController extends Controller
     public function __construct(
         private readonly PersonSearchService $personSearch,
         private readonly PersonProfileService $profiles,
+        private readonly PersonSeasonActivityService $seasonActivity,
     ) {}
 
     public function index(Request $request)
@@ -41,7 +43,7 @@ class PersonDirectoryController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $target = User::query()->find((int) $id);
         if (! $target) {
@@ -115,9 +117,19 @@ class PersonDirectoryController extends Controller
             ->where('PersonEntryQuestions.PersonID', $id)
             ->get();
 
+        $seasons = $this->seasonActivity->seasons();
+        $selectedSeasonId = $this->seasonActivity->resolveSeasonId(
+            $request->integer('season') ?: null
+        );
+        $seasonActivity = $this->seasonActivity->forPerson((int) $id, $selectedSeasonId);
+
         return view('person.person-show', [
             'person' => $person,
             'questions' => $questions,
+            'seasons' => $seasons,
+            'selectedSeasonId' => $selectedSeasonId,
+            'seasonActivity' => $seasonActivity,
+            'canEdit' => Auth::user()?->can('update', $target) ?? false,
         ]);
     }
 

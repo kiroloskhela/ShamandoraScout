@@ -33,7 +33,7 @@
                 class="grid md:grid-cols-[1fr_auto] gap-3 mb-6">
                 @csrf
                 <input type="text" name="location_name" value="{{ old('location_name') }}"
-                    class="h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-700 focus:border-cyan-500 focus:outline-none"
+                    class="h-12 ps-4 border rounded-lg border-slate-200 text-slate-700 focus:border-cyan-500 focus:outline-none"
                     placeholder="مثال: صندوق 4">
                 <button type="submit"
                     class="inline-flex items-center justify-center h-12 px-8 text-sm font-medium rounded-full bg-cyan-50 text-cyan-700 hover:bg-cyan-100 transition">

@@ -37,7 +37,7 @@
                         <label for="curricula_name" class="block mb-2 text-sm text-gray-700">اسم المحاضرة</label>
                         <input type="text" id="curricula_name" name="curricula_name" value="{{ old('curricula_name') }}"
                             required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                focus:border-blue-500 focus:outline-none"
                             placeholder="اكتب اسم المحاضرة">
                     </div>
@@ -46,7 +46,7 @@
                     <div class="relative">
                         <label for="curricula_category_id" class="block mb-2 text-sm text-gray-700">التصنيف</label>
                         <select id="curricula_category_id" name="curricula_category_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                focus:border-blue-500 focus:outline-none">
                             @foreach ($categories as $cat)
                                 <option value="{{ $cat->CurriculaCategoryID }}"
@@ -61,7 +61,7 @@
                     <div class="relative">
                         <label for="marhala_id" class="block mb-2 text-sm text-gray-700">{{ __('Stage') }}</label>
                         <select id="marhala_id" name="marhala_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                focus:border-blue-500 focus:outline-none">
                             @foreach ($marhalat as $m)
                                 <option value="{{ $m->MarhalaID }}"

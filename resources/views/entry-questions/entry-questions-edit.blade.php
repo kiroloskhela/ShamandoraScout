@@ -29,19 +29,19 @@
                     <div>
                         <label class="block mb-2 text-sm text-gray-700">نوع السؤال</label>
                         <input type="text" value="{{ $entryQuestion->QuestionTypeInArabicWords }}" disabled
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 bg-slate-50">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 bg-slate-50">
                     </div>
                     <div>
                         <label class="block mb-2 text-sm text-gray-700">القطاع الحالي</label>
                         <input type="text" value="{{ $entryQuestion->QetaaName }}" disabled
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 bg-slate-50">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 bg-slate-50">
                     </div>
                 </div>
 
                 <div>
                     <label for="qetaa_id" class="block mb-2 text-sm text-gray-700">اختر قطاعًا جديدًا (اختياري)</label>
                     <select id="qetaa_id" name="qetaa_id" required
-                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                         @foreach ($qetaat as $qetaa)
                             <option value="{{ $qetaa->QetaaID }}"
                                 {{ $qetaa->QetaaID == $qetaaSelected->QetaaID ? 'selected' : '' }}>

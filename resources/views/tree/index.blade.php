@@ -461,17 +461,27 @@
             height: 6px;
             color: var(--qt-text-muted);
             flex-shrink: 0;
+            /* Keep chevron on the physical left in RTL (and after the field in LTR). */
+            order: 3;
+        }
+
+        html[dir="rtl"] .qt-select-wrap__arrow {
+            order: -1;
         }
 
         .qt-select {
             border: none;
             background: transparent;
+            background-image: none !important;
             font-family: inherit;
             font-size: 13px;
             color: var(--qt-text);
             outline: none;
             cursor: pointer;
             padding: 0;
+            padding-inline-end: 0 !important;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .qt-link-btn {

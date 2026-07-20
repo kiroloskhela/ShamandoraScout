@@ -120,14 +120,14 @@
                                 :class="activeFilters[col.key] ?
                                     'border-emerald-400 ring-1 ring-emerald-300 bg-emerald-50 text-emerald-800 font-medium' :
                                     'border-gray-300 bg-white text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-200'"
-                                class="w-full text-sm border rounded-lg px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
+                                class="w-full text-sm border rounded-lg px-3 py-2 pe-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
                                 <option value="__all__">{{ __('— All —') }}</option>
                                 <template x-for="option in getDistinctValues(col.key)" :key="option">
                                     <option :value="option" x-text="option"></option>
                                 </template>
                             </select>
 
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+                            <div class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-2">
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

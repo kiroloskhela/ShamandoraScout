@@ -32,7 +32,7 @@
                         <label class="block mb-2 text-sm text-gray-700">{{ __('New amount') }}</label>
                         <input type="number" step="1" min="0" name="amount"
                             value="{{ old('amount', $payment->Amount) }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600">
                     </div>
 
                     <div class="flex justify-center gap-3">

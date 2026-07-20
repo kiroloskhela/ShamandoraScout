@@ -19,7 +19,7 @@
                     <div class="relative">
                         <label for="group_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose scout group') }}</label>
                         <select name="group_id" id="group_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                             @if (optional($selectedGroup)->GroupID)
                                 <option value="{{ $selectedGroup->GroupID }}" selected>{{ $selectedGroup->GroupInfo }}
                                 </option>
@@ -69,7 +69,7 @@
 
                         @if ($isKhadem)
                             <select id="group_role_id" name="group_role_id" required
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-emerald-500 focus:outline-none">
                                 @if ($prefilledRoleId)
                                     <option value="{{ $prefilledRoleId }}" selected>{{ $prefilledRoleName }}</option>
                                 @else

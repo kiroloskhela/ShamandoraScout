@@ -29,7 +29,7 @@
                             <label for="season_id" class="block mb-2 text-sm font-medium text-slate-700"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Season (optional)') }}</label>
                             <select name="season_id" id="season_id"
-                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                                class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
                                 <option value="">{{ __('Not linked to a season') }}</option>
                                 @isset($seasons)
@@ -47,7 +47,7 @@
                             <label for="event_type_id" class="block mb-2 text-sm font-medium text-slate-700"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Scout event or occasion type') }}</label>
                             <select name="event_type_id" id="event_type_id" required
-                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                                class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium">
                                 <option value="" disabled selected>{{ __('Choose scout event type') }}</option>
                                 @foreach ($eventTypes as $eventType)
@@ -60,7 +60,7 @@
                         <div class="relative">
                             <input id="event_name" type="text" name="event_name"
                                 placeholder="{{ __('Enter event or occasion name (optional — auto-generated if left empty)') }}"
-                                class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                                class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 style="font-family: 'Cairo', sans-serif; font-size: medium" />
                             <label for="event_name" class="sr-only">{{ __('Event name') }}</label>
                             <p class="mt-2 text-xs text-slate-500" style="font-family: 'Cairo', sans-serif;">
@@ -104,12 +104,12 @@
                             <div>
                                 <label for="event_start_date" class="block mb-2 text-sm text-gray-700">{{ __('Event start date') }}</label>
                                 <input id="event_start_date" type="date" name="event_start_date"
-                                    class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
+                                    class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             </div>
                             <div>
                                 <label for="event_end_date" class="block mb-2 text-sm text-gray-700">{{ __('Event end date') }}</label>
                                 <input id="event_end_date" type="date" name="event_end_date"
-                                    class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right">
+                                    class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             </div>
                         </div>
 
@@ -259,7 +259,7 @@
                     row.className = 'flex items-center gap-3';
                     row.innerHTML = `
                         <input type="date" name="event_multi_dates[]" value="${val}"
-                            class="w-full h-12 px-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none text-right"
+                            class="w-full h-12 ps-4 text-sm border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             required>
                         <button type="button"
                                 class="h-10 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-sm remove-date">{{ __('Remove') }}</button>

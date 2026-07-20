@@ -25,14 +25,14 @@
                         <label for="medicine_name" class="block mb-2 text-sm text-gray-700">اسم الدواء</label>
                         <input type="text" id="medicine_name" name="medicine_name" required
                             value="{{ old('medicine_name') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                             placeholder="اكتب اسم الدواء">
                     </div>
 
                     <div>
                         <label for="medicine_type" class="block mb-2 text-sm text-gray-700">نوع الدواء</label>
                         <select id="medicine_type" name="medicine_type" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="">-- اختر النوع --</option>
                             @foreach ($types as $value => $type)
                                 <option value="{{ $value }}" {{ old('medicine_type') === $value ? 'selected' : '' }}>
@@ -46,7 +46,7 @@
                         <label for="expiration_date" class="block mb-2 text-sm text-gray-700">تاريخ انتهاء الصلاحية</label>
                         <input type="date" id="expiration_date" name="expiration_date" required
                             value="{{ old('expiration_date') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                     </div>
 
                     <div>
@@ -64,7 +64,7 @@
                     <div>
                         <label for="location_id" class="block mb-2 text-sm text-gray-700">مكان الدواء</label>
                         <select id="location_id" name="location_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                             <option value="">-- اختر المكان --</option>
                             @foreach ($locations as $location)
                                 <option value="{{ $location->LocationID }}"

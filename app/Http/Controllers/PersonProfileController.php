@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Person\PersonProfileService;
+use App\Domain\Person\PersonSeasonActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -12,20 +13,27 @@ use Illuminate\Support\Facades\Validator;
 
 class PersonProfileController extends Controller
 {
-    public function show()
+    public function show(Request $request, PersonSeasonActivityService $seasonActivity)
     {
         $user = Auth::user();
         $personId = (int) $user->PersonID;
 
         $person = $this->loadPerson($personId);
-        $attendance = $this->loadAttendance($personId);
+        $seasons = $seasonActivity->seasons();
+        $selectedSeasonId = $seasonActivity->resolveSeasonId(
+            $request->integer('season') ?: null
+        );
+        $seasonData = $seasonActivity->forPerson($personId, $selectedSeasonId);
         $custodyCount = DB::table('CustodyRequests')->where('PersonID', $personId)->count();
         $bookingCount = DB::table('PlaceBookings')->where('PersonID', $personId)->count();
 
         return view('profile', [
             'user' => $user,
             'person' => $person,
-            'attendance' => $attendance,
+            'seasons' => $seasons,
+            'selectedSeasonId' => $selectedSeasonId,
+            'seasonActivity' => $seasonData,
+            'attendance' => $seasonData['attendance'],
             'custodyCount' => $custodyCount,
             'bookingCount' => $bookingCount,
         ]);
@@ -199,50 +207,5 @@ class PersonProfileController extends Controller
                 'Districts.DistrictName'
             )
             ->first();
-    }
-
-    /**
-     * @return array{events: \Illuminate\Support\Collection, summary: array{total: int, present: int, absent: int, excused: int, rate: float|int}}
-     */
-    private function loadAttendance(int $personId): array
-    {
-        $events = DB::table('PersonQetaa as pq')
-            ->join('EventQetaa as eq', 'eq.QetaaID', '=', 'pq.QetaaID')
-            ->join('SeasonEvent as se', 'se.EventID', '=', 'eq.EventID')
-            ->join('Event as e', 'e.EventID', '=', 'se.EventID')
-            ->join('Season as s', 's.SeasonID', '=', 'se.SeasonID')
-            ->leftJoin('Attendance as a', function ($join) {
-                $join->on('a.SeasonEventID', '=', 'se.SeasonEventID')
-                    ->on('a.ServedID', '=', 'pq.PersonID');
-            })
-            ->where('pq.PersonID', $personId)
-            ->select(
-                'se.SeasonEventID',
-                'e.EventName',
-                'e.EventStartDate',
-                's.SeasonName',
-                's.SeasonYear',
-                DB::raw("COALESCE(a.AttendanceStatus, 'absent') AS Status"),
-                'a.Excuse'
-            )
-            ->orderByDesc('e.EventStartDate')
-            ->limit(20)
-            ->get();
-
-        $total = $events->count();
-        $present = $events->where('Status', 'present')->count();
-        $absent = $events->where('Status', 'absent')->count();
-        $excused = $events->where('Status', 'excused')->count();
-
-        return [
-            'events' => $events,
-            'summary' => [
-                'total' => $total,
-                'present' => $present,
-                'absent' => $absent,
-                'excused' => $excused,
-                'rate' => $total ? round($present / $total * 100, 1) : 0,
-            ],
-        ];
     }
 }

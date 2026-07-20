@@ -18,7 +18,7 @@
                     <div class="relative">
                         <label for="location_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose location') }}</label>
                         <select id="location_id" name="location_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                    focus:border-emerald-500 focus:outline-none">
                             <option value="" disabled>{{ __('Choose location') }}</option>
 
@@ -35,7 +35,7 @@
                     <div class="relative">
                         <label for="place_name" class="block mb-2 text-sm text-gray-700">اسم المكان</label>
                         <input type="text" id="place_name" name="place_name" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600
                                    focus:border-emerald-500 focus:outline-none"
                             placeholder="ادخل اسم المكان" value="{{ $place->PlaceName }}">
                     </div>

@@ -27,6 +27,7 @@ use App\Http\Controllers\RotbaKashfeyaController;
 use App\Http\Controllers\SanaMarhalaDeraseyyaController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\SeasonEventController;
+use App\Http\Controllers\SeasonPersonRollController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\WhatsAppBridgeController;
 use App\Http\Controllers\WhatsAppCampaignController;
@@ -225,8 +226,15 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::post('/season/insert', [SeasonController::class, 'insert'])->name('season.insert');
     Route::get('/season/edit/{id}', [SeasonController::class, 'edit'])->name('season.edit');
     Route::patch('/season/update/{id}', [SeasonController::class, 'updates'])->name('season.update');
+    Route::get('/season/activate/{id}', [SeasonController::class, 'activate'])->name('season.activate');
     Route::get('/season/delete/{id}', [SeasonController::class, 'deletes'])->name('season.delete');
     Route::delete('/season/destroy/{id}', [SeasonController::class, 'destroy'])->name('season.destroy');
+
+    // Season person roll (academic + youth qetaa) with rollback
+    Route::get('/season/person-roll', [SeasonPersonRollController::class, 'preview'])->name('season-person-roll.preview');
+    Route::post('/season/person-roll/apply', [SeasonPersonRollController::class, 'apply'])->name('season-person-roll.apply');
+    Route::get('/season/person-roll/history', [SeasonPersonRollController::class, 'history'])->name('season-person-roll.history');
+    Route::post('/season/person-roll/{batchId}/rollback', [SeasonPersonRollController::class, 'rollback'])->name('season-person-roll.rollback');
 
     // Season Event
     Route::get('/season-event', [SeasonEventController::class, 'index'])->name('season-event.index');

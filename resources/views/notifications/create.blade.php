@@ -32,7 +32,7 @@
                     <div>
                         <label class="block mb-2 text-sm text-gray-700">اختر الشخص</label>
                         <select name="person_id"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none"
                             required>
                             <option value="">-- اختر شخص --</option>
                             @foreach ($users as $user)
@@ -47,7 +47,7 @@
                     <div>
                         <label class="block mb-2 text-sm text-gray-700">عنوان الإشعار</label>
                         <input type="text" name="title"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 focus:border-green-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 focus:border-green-500 focus:outline-none"
                             placeholder="ادخل عنوان الإشعار" required>
                     </div>
 

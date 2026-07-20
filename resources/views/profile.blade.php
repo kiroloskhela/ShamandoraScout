@@ -82,7 +82,15 @@
     }
 </style>
 
-<div class="profile-page -mx-2 sm:mx-0" x-data="{ tab: 'personal' }">
+@php
+    $activeTab = request('tab', 'personal');
+    if (! in_array($activeTab, ['personal', 'study', 'seasons', 'custody', 'bookings'], true)) {
+        $activeTab = 'personal';
+    }
+    $exams = $seasonActivity['exams'] ?? collect();
+    $finances = $seasonActivity['finances'] ?? collect();
+@endphp
+<div class="profile-page -mx-2 sm:mx-0" x-data="{ tab: @js($activeTab) }">
     @if (session('success'))
         <div class="mb-4 rounded-2xl border border-emerald-200 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/40 px-4 py-3 text-emerald-800 dark:text-emerald-200 text-sm font-semibold">
             {{ session('success') }}
@@ -158,7 +166,7 @@
         @foreach ([
             'personal' => __('Personal data'),
             'study' => __('Study data'),
-            'attendance' => __('Attendance section'),
+            'seasons' => __('Seasons'),
             'custody' => __('Custody'),
             'bookings' => __('Bookings'),
         ] as $key => $label)
@@ -293,11 +301,35 @@
                 </article>
             </div>
 
-            {{-- Attendance --}}
-            <div x-show="tab === 'attendance'" x-cloak class="fade-in space-y-4">
+            {{-- Seasons --}}
+            <div x-show="tab === 'seasons'" x-cloak class="fade-in space-y-4">
+                <article class="rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-slate-200/80 dark:ring-slate-700">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ __('Season activity') }}</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ __('Attendance, absences, exam scores and event finance for the selected season.') }}</p>
+                        </div>
+                        <form method="GET" action="{{ route('profile.show') }}" class="flex items-center gap-2">
+                            <input type="hidden" name="tab" value="seasons">
+                            <label for="profile-season" class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ __('Season') }}</label>
+                            <select id="profile-season" name="season" onchange="this.form.submit()"
+                                class="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 ps-3 py-2 text-sm font-semibold min-w-[12rem]">
+                                @forelse ($seasons as $season)
+                                    <option value="{{ $season->SeasonID }}" @selected((int) $selectedSeasonId === (int) $season->SeasonID)>
+                                        {{ $season->SeasonName }} ({{ $season->SeasonYear }})
+                                        @if ((int) ($season->IsActive ?? 0) === 1) — {{ __('Active') }} @endif
+                                    </option>
+                                @empty
+                                    <option value="">{{ __('No seasons') }}</option>
+                                @endforelse
+                            </select>
+                        </form>
+                    </div>
+                </article>
+
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     @foreach ([
-                        ['label' => __('Total'), 'value' => $attendance['summary']['total'], 'class' => 'bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100'],
+                        ['label' => __('Total events'), 'value' => $attendance['summary']['total'], 'class' => 'bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100'],
                         ['label' => __('Present'), 'value' => $attendance['summary']['present'], 'class' => 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200'],
                         ['label' => __('Absent'), 'value' => $attendance['summary']['absent'], 'class' => 'bg-rose-50 dark:bg-rose-900/40 text-rose-800 dark:text-rose-200'],
                         ['label' => __('Excused'), 'value' => $attendance['summary']['excused'], 'class' => 'bg-amber-50 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200'],
@@ -310,12 +342,12 @@
                 </div>
 
                 <article class="rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:ring-slate-700 overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100">{{ __('Recent events') }}</div>
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100">{{ __('Attendance') }}</div>
                     @forelse ($attendance['events'] as $ev)
                         <div class="px-5 py-3.5 flex items-center justify-between gap-3 border-b border-slate-50 dark:border-slate-700 last:border-0">
                             <div class="min-w-0">
                                 <div class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ $ev->EventName }}</div>
-                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ev->SeasonName }} {{ $ev->SeasonYear }} · {{ $ev->EventStartDate }}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ev->EventStartDate }}</div>
                             </div>
                             @php
                                 $statusMap = [
@@ -328,7 +360,42 @@
                             <span class="shrink-0 rounded-full px-3 py-1 text-xs font-bold {{ $stClass }}">{{ $stLabel }}</span>
                         </div>
                     @empty
-                        <div class="px-5 py-10 text-center text-slate-500 dark:text-slate-400 text-sm">{{ __('No attendance records yet.') }}</div>
+                        <div class="px-5 py-10 text-center text-slate-500 dark:text-slate-400 text-sm">{{ __('No attendance records for this season.') }}</div>
+                    @endforelse
+                </article>
+
+                <article class="rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:ring-slate-700 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100">{{ __('Exam scores') }}</div>
+                    @forelse ($exams as $exam)
+                        <div class="px-5 py-3.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-50 dark:border-slate-700 last:border-0">
+                            <div>
+                                <div class="font-bold text-slate-900 dark:text-slate-100">{{ $exam->ExamDate ?? '—' }}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">{{ $exam->QetaaName ?? '—' }} · {{ $exam->SanaMarhalaName ?? '—' }}</div>
+                            </div>
+                            <div class="text-sm font-bold text-teal-700 dark:text-teal-300">
+                                {{ __('Theoretical') }} {{ $exam->TheoreticalMark }} · {{ __('Practical') }} {{ $exam->PracticalMark }}
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-5 py-10 text-center text-slate-500 dark:text-slate-400 text-sm">{{ __('No exam scores for this season.') }}</div>
+                    @endforelse
+                </article>
+
+                <article class="rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:ring-slate-700 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100">{{ __('Event finance') }}</div>
+                    @forelse ($finances as $finance)
+                        <div class="px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-50 dark:border-slate-700 last:border-0">
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ $finance->EventName }}</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $finance->EventStartDate }}</div>
+                            </div>
+                            <div class="text-xs text-end">
+                                <div>{{ __('Paid') }}: {{ $finance->AmountPaid }}</div>
+                                <div>{{ __('Remaining') }}: {{ $finance->RemainingAmount }}</div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-5 py-10 text-center text-slate-500 dark:text-slate-400 text-sm">{{ __('No event finance records for this season.') }}</div>
                     @endforelse
                 </article>
             </div>
@@ -405,7 +472,7 @@
                             <span class="text-lg font-bold {{ $attendanceRate >= 75 ? 'text-teal-800 dark:text-teal-200' : 'text-rose-600 dark:text-rose-300' }}">{{ $attendanceRate }}%</span>
                         </div>
                     </div>
-                    <div class="mt-3 text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('Attendance rate') }}</div>
+                    <div class="mt-3 text-xs font-bold text-slate-600 dark:text-slate-300">{{ __('Season attendance') }}</div>
                 </div>
             </div>
         </aside>

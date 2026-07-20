@@ -34,7 +34,7 @@
                     <div>
                         <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Search for eligible person') }}</label>
                         <input type="text" id="person-search"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
                             placeholder="{{ __('Search by name, PersonID, or mobile') }}">
                         <input type="hidden" name="person_id" id="person_id" value="{{ old('person_id') }}">
                         <div id="search-results"
@@ -54,7 +54,7 @@
                         <div>
                             <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment date') }}</label>
                             <input type="text" value="{{ now()->format('Y-m-d') }}" readonly
-                                class="w-full h-12 px-4 border rounded-lg text-right bg-gray-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed">
+                                class="w-full h-12 ps-4 border rounded-lg bg-gray-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed">
 
                             <input type="hidden" name="first_payment_date" value="{{ now()->format('Y-m-d') }}">
                         </div>
@@ -63,7 +63,7 @@
                             <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment amount') }}</label>
                             <input type="number" step="1" min="1" name="first_payment_amount"
                                 value="{{ old('first_payment_amount') }}" id="first_payment_amount"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                         </div>
                         @if ((int) $plan->HaveShirt === 1)
                             <div>
@@ -118,7 +118,7 @@
                                 <div>
                                     <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Case type') }}</label>
                                     <select name="special_case_type" id="special_case_type"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
+                                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                         <option value="NONE">{{ __('None') }}</option>
                                         <option value="AKHOH_RAB"
                                             {{ old('special_case_type') === 'AKHOH_RAB' ? 'selected' : '' }}>{{ __('Brotherhood case') }}</option>
@@ -134,7 +134,7 @@
                                     <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Discount amount') }}</label>
                                     <input type="number" step="1" min="0" name="discount_amount"
                                         id="discount_amount" value="{{ old('discount_amount', 0) }}"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
+                                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                 </div>
 
                                 <div id="note-box"
@@ -142,7 +142,7 @@
                                     <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('Notes') }}</label>
                                     <input type="text" name="special_case_note" id="special_case_note"
                                         value="{{ old('special_case_note') }}"
-                                        class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
+                                        class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
                                 </div>
                             </div>
                         </div>

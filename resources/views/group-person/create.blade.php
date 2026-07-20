@@ -15,7 +15,7 @@
                     <div class="relative">
                         <label for="group_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose scout group') }}</label>
                         <select name="group_id" id="group_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
                             <option value="" disabled selected>{{ __('Choose scout group') }}</option>
                             @foreach ($groups as $group)
@@ -68,7 +68,7 @@
                         <label for="group_role_id" class="block mb-2 text-sm text-gray-700">اختر دور الشخص في
                             المجموعة</label>
                         <select id="group_role_id" name="group_role_id" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
                             <option disabled selected value="">اختر دور الشخص</option>
                             @foreach ($groupRoles as $groupRole)

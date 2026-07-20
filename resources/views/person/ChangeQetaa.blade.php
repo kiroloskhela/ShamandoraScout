@@ -303,11 +303,12 @@
         .cq-select {
             width: 100%;
             padding: .6rem .85rem;
+            padding-inline-end: 2.5rem;
             border: 1.5px solid var(--cq-border);
             border-radius: 8px;
             font-size: .9rem;
             color: var(--cq-text);
-            background: #fff;
+            background-color: #fff;
             transition: border-color .15s, box-shadow .15s;
             box-sizing: border-box;
         }

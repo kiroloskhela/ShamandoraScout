@@ -15,7 +15,7 @@
                     <div class="relative">
                         <label for="item_name" class="block mb-2 text-sm text-gray-700">اسم العنصر</label>
                         <input type="text" id="item_name" name="item_name" required
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none"
                             placeholder="ادخل اسم العنصر">
                     </div>
@@ -24,7 +24,7 @@
                     <div class="relative">
                         <label for="item_quantity" class="block mb-2 text-sm text-gray-700">{{ __('Quantity') }}</label>
                         <input type="number" id="item_quantity" name="item_quantity"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none"
                             placeholder="ادخل الكمية">
                     </div>
@@ -33,7 +33,7 @@
                     <div class="relative">
                         <label for="item_measuring_unit" class="block mb-2 text-sm text-gray-700">وحدة القياس</label>
                         <select id="item_measuring_unit" name="item_measuring_unit"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
                             <option value="">-- اختر الوحدة --</option>
                             @foreach ($units as $unit)
@@ -45,7 +45,7 @@
                     <div class="relative">
                         <label for="category" class="block mb-2 text-sm text-gray-700">الفئة</label>
                         <select id="category" name="category"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
                             <option value="">-- اختر الفئة --</option>
                             @foreach ($categories as $category)
@@ -57,7 +57,7 @@
                     <div class="relative">
                         <label for="location" class="block mb-2 text-sm text-gray-700">{{ __('Location') }}</label>
                         <select id="location" name="location"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 
                                focus:border-blue-500 focus:outline-none">
                             <option value="">-- اختر الموقع --</option>
                             @foreach ($locations as $location)

@@ -33,20 +33,20 @@
                             <label for="max_installments_number" class="block mb-2 text-sm text-gray-700">{{ __('Max installments') }}</label>
                             <input type="number" min="1" id="max_installments_number" name="max_installments_number"
                                 value="{{ old('max_installments_number', $finance->MaxInstallmentsNumber) }}"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
                             <label for="minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Minimum deposit') }}</label>
                             <input type="number" step="1" min="0" id="minimum_deposit" name="minimum_deposit"
                                 value="{{ old('minimum_deposit', $finance->MinimumDeposit) }}"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
                             <label for="allow_below_minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Allow below minimum deposit') }}</label>
                             <select id="allow_below_minimum_deposit" name="allow_below_minimum_deposit"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                                 <option value="1"
                                     {{ old('allow_below_minimum_deposit', $finance->AllowBelowMinimumDeposit) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 <option value="0"
@@ -57,7 +57,7 @@
                         <div>
                             <label for="have_shirt" class="block mb-2 text-sm text-gray-700">{{ __('Has a T-shirt?') }}</label>
                             <select id="have_shirt" name="have_shirt"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                                 <option value="1" {{ old('have_shirt', $finance->HaveShirt) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 <option value="0" {{ old('have_shirt', $finance->HaveShirt) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
                             </select>
@@ -65,7 +65,7 @@
                         <div>
                             <label for="send_qr_whatsapp" class="block mb-2 text-sm text-gray-700">{{ __('Send QR via WhatsApp?') }}</label>
                             <select id="send_qr_whatsapp" name="send_qr_whatsapp"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                                 <option value="1" {{ old('send_qr_whatsapp', $finance->SendQrWhatsApp ?? 0) == 1 ? 'selected' : '' }}>{{ __('Yes') }}</option>
                                 <option value="0" {{ old('send_qr_whatsapp', $finance->SendQrWhatsApp ?? 0) == 0 ? 'selected' : '' }}>{{ __('No') }}</option>
                             </select>
@@ -109,19 +109,19 @@
             <div>
                 <label class="block mb-2 text-sm text-gray-700">{{ __('From date') }}</label>
                 <input type="date" name="start_date[]" value="${startValue}"
-                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
+                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div>
                 <label class="block mb-2 text-sm text-gray-700">{{ __('To date') }}</label>
                 <input type="date" name="end_date[]" value="${endValue}"
-                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
+                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div>
                 <label class="block mb-2 text-sm text-gray-700">{{ __('Price') }}</label>
                 <input type="number" step="1" min="0" name="price[]" value="${priceValue}"
-                    class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
+                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
             </div>
 
             <div class="flex items-end">

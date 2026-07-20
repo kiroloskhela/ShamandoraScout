@@ -42,7 +42,7 @@
                         <div>
                             <label class="block mb-2 text-sm text-gray-700">{{ __('Search for eligible person') }}</label>
                             <input type="text" id="person-search"
-                                class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
+                                class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 placeholder="{{ __('Search by name, PersonID, or mobile') }}">
                             <input type="hidden" name="person_id" id="person_id" value="{{ old('person_id') }}">
                             <div id="search-results"

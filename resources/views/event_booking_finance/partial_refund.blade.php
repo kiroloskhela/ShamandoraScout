@@ -46,7 +46,7 @@
                         <label for="deduction_amount" class="block mb-2 text-sm text-gray-700">{{ __('Deducted portion') }}</label>
                         <input type="number" step="1" min="0" name="deduction_amount" id="deduction_amount"
                             value="{{ old('deduction_amount') }}"
-                            class="w-full h-12 px-4 border rounded-lg text-right border-slate-200 text-slate-600 focus:border-orange-500 focus:outline-none"
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-orange-500 focus:outline-none"
                             placeholder="{{ __('Enter the portion to deduct from the paid amount') }}">
                         <p class="text-xs text-slate-500 mt-2">{{ __('Example: if paid is 1000 and you enter 200, 800 will be refunded and 200 kept.') }}</p>
                     </div>

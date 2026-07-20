@@ -20,6 +20,7 @@ class LiveFormQetaaResolverTest extends TestCase
         $result = $this->resolver->resolve(3, 'Male', false);
 
         $this->assertSame([[1, 'براعم', 'Male']], $result);
+        $this->assertSame(1, $this->resolver->resolveYouthSectorId(3, 'Male'));
     }
 
     public function test_ashbal_vs_zahrat_by_gender(): void
