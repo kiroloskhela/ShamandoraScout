@@ -11,32 +11,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', __('Shamandora Scout'))</title>
-    <meta name="description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
-    <meta name="keywords"
-        content="الشمندوره البحريه, Shamandora Scout, scouts, sea scout, shamandora, الكشافة, الكشفية البحرية">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Shamandora Scout">
     <meta name="color-scheme" content="light dark">
-    <link rel="canonical" href="{{ url()->current() }}">
-
-    {{-- Favicon / Logo in browser tab and Google icon --}}
-    <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/shamandora.png') }}">
-
-    {{-- Open Graph for Facebook / WhatsApp / social preview --}}
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="@yield('title', __('Shamandora Scout'))">
-    <meta property="og:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
-    <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:image" content="{{ asset('img/shamandora.webp') }}">
-    <meta property="og:site_name" content="Shamandora Scout">
-
-    {{-- Twitter / X preview --}}
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="@yield('title', __('Shamandora Scout'))">
-    <meta name="twitter:description" content="@yield('meta_description', __('Official Shamandora Scout site. Follow activities, events, registration, and news.'))">
-    <meta name="twitter:image" content="{{ asset('img/shamandora.webp') }}">
+    @php
+        $pageTitle = trim($__env->yieldContent('title'));
+        $pageDescription = trim($__env->yieldContent('meta_description'));
+    @endphp
+    @include('partials.seo-head', [
+        'seoTitle' => $pageTitle !== '' ? $pageTitle : __('Shamandora Scout'),
+        'seoDescription' => $pageDescription !== ''
+            ? $pageDescription
+            : __('Egyptian Sea Scout group. Official Shamandora Scout portal for activities, events, registration, and news.'),
+    ])
 
     {{-- Prevent theme flash before CSS loads --}}
     <script>
@@ -49,22 +34,6 @@
                 else document.documentElement.classList.remove('dark');
             } catch (e) {}
         })();
-    </script>
-
-    {{-- Google Organization structured data for logo --}}
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Shamandora Scout",
-        "alternateName": "الشمندوره البحريه",
-        "url": "{{ url('/') }}",
-        "logo": "{{ asset('img/shamandora.webp') }}",
-        "sameAs": [
-            "https://www.facebook.com/ShamandoraScout",
-            "https://www.instagram.com/shamandora_scout"
-        ]
-    }
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])

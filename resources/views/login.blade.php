@@ -9,7 +9,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ __('Log in') }} | {{ __('Shamandora Scout') }}</title>
+    <meta name="color-scheme" content="light dark">
+    @include('partials.seo-head', [
+        'seoTitle' => __('Shamandora Scout'),
+        'seoDescription' => __('Egyptian Sea Scout group. Official Shamandora Scout portal for activities, events, registration, and news.'),
+        'seoCanonical' => url('/'),
+        'seoUrl' => url('/'),
+    ])
     <script>
         (function () {
             try {
