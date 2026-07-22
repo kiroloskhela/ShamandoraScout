@@ -233,11 +233,11 @@
             <div class="flex flex-col items-center justify-center text-gray-800 dark:text-slate-100 order-1 lg:order-2">
                 <div class="mb-8">
                     <div
-                        class="w-40 h-40 bg-gray-100 dark:bg-transparent rounded-full flex items-center justify-center shadow-md dark:shadow-none border border-gray-200 dark:border-transparent overflow-hidden ring-4 ring-transparent">
+                        class="w-40 h-40 bg-gray-100 dark:bg-slate-900 rounded-full flex items-center justify-center shadow-md dark:shadow-[0_0_40px_rgba(16,185,129,0.2)] border border-gray-200 dark:border-emerald-500/30 overflow-hidden ring-4 ring-transparent dark:ring-emerald-500/10">
                         <img src="{{ asset('img/shamandora.webp') }}" alt="{{ __('Shamandora Scout') }}"
-                            class="h-28 w-28 object-contain dark:hidden">
-                        <img src="{{ asset('img/shamandora-white.webp') }}" alt="{{ __('Shamandora Scout') }}"
-                            class="h-28 w-28 object-contain hidden dark:block">
+                            class="h-24 w-24 object-contain dark:hidden">
+                        <img src="{{ asset('img/shamandora-dark.webp') }}" alt="{{ __('Shamandora Scout') }}"
+                            class="h-24 w-24 object-contain hidden dark:block">
                     </div>
                 </div>
 
