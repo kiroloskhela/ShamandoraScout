@@ -20,10 +20,12 @@
 <meta name="theme-color" content="#0b1220">
 <link rel="canonical" href="{{ $seoCanonical }}">
 
-{{-- Favicon / browser & Google search icon --}}
+{{-- Favicon / browser & Google search icon (this brand logo) --}}
 <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" sizes="48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32.png') }}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16.png') }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ asset('favicon-192.png') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
 
 {{-- Open Graph --}}
