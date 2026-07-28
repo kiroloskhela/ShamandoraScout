@@ -25,12 +25,7 @@ class AttendanceController extends Controller
         $ctx = $this->selectionContext($request, $meId);
 
         $tableRows = [];
-        $reservationRoster = [];
-        $reservationCounts = null;
-        if ($ctx['seasonEventId'] && $ctx['takesReservation']) {
-            $reservationRoster = $this->bookingAttendance->roster((int) $ctx['seasonEventId']);
-            $reservationCounts = $this->bookingAttendance->counts((int) $ctx['seasonEventId']);
-        } elseif ($ctx['seasonEventId'] && ! empty($ctx['allowedQetaas']) && ! $ctx['takesReservation']) {
+        if ($ctx['seasonEventId'] && ! empty($ctx['allowedQetaas'])) {
             $tableRows = $this->rosterRows((int) $ctx['seasonEventId'], $ctx['allowedQetaas']);
         }
 
@@ -41,8 +36,6 @@ class AttendanceController extends Controller
             'seasonEventId' => $ctx['seasonEventId'],
             'takesReservation' => $ctx['takesReservation'],
             'tableRows' => $tableRows,
-            'reservationRoster' => $reservationRoster,
-            'reservationCounts' => $reservationCounts,
             'me' => $me,
         ]);
     }
@@ -288,13 +281,6 @@ class AttendanceController extends Controller
             'attendance.*.status' => 'required|in:present,absent,excused',
             'attendance.*.excuse' => 'nullable|string|max:1000',
         ]);
-
-        if ($this->qr->eventTakesReservation((int) $seasonEventId)) {
-            return redirect()->route('attendance.scan', [
-                'season_id' => $request->season_id,
-                'season_event_id' => $seasonEventId,
-            ])->with('error', __('Use scan attendance for reservation events.'));
-        }
 
         $allowedQetaas = $this->allowedQetaas((int) $serventId, (int) $seasonEventId);
         if (empty($allowedQetaas)) {
