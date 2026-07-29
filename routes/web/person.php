@@ -88,7 +88,10 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
         ->name('export.scouts.excel');
 
-    // CurriculaCategory
+});
+
+// Curricula categories: any authenticated role may manage
+Route::middleware(['auth'])->group(function () {
     Route::get('/CurriculaCategory', [CurriculaCategoryController::class, 'index'])->name('CurriculaCategory.index');
     Route::get('/CurriculaCategory/add', [CurriculaCategoryController::class, 'create'])->name('CurriculaCategory.create');
     Route::post('/CurriculaCategory/insert', [CurriculaCategoryController::class, 'insert'])->name('CurriculaCategory.insert');
@@ -96,8 +99,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::patch('/CurriculaCategory/update/{id}', [CurriculaCategoryController::class, 'updates'])->name('CurriculaCategory.update');
     Route::get('/CurriculaCategory/delete/{id}', [CurriculaCategoryController::class, 'deletes'])->name('CurriculaCategory.delete');
     Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
-
 });
+
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');

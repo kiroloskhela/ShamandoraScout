@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * Curricula: any authenticated user may view/download; only SuperAdmin may mutate.
+ * Curricula: any authenticated user may view/download and publish (create/update/delete).
  */
 class CurriculaPolicy
 {
@@ -21,21 +21,16 @@ class CurriculaPolicy
 
     public function create(User $user): bool
     {
-        return $this->isSuperAdmin($user);
+        return true;
     }
 
     public function update(User $user): bool
     {
-        return $this->isSuperAdmin($user);
+        return true;
     }
 
     public function delete(User $user): bool
     {
-        return $this->isSuperAdmin($user);
-    }
-
-    private function isSuperAdmin(User $user): bool
-    {
-        return $user->role()->where('RoleName', 'SuperAdmin')->exists();
+        return true;
     }
 }

@@ -88,17 +88,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/media/pages/events', [MediaController::class, 'getEventsForPages'])->name('media.getEventsForPages');
     Route::get('/media/pages/media', [MediaController::class, 'getMediaForEvent'])->name('media.getMediaForEvent');
 
-    // Curricula (read for any auth user; writes SuperAdmin via controller authorize)
+    // Curricula (any authenticated role may view and publish)
     Route::get('/curricula', [CurriculaController::class, 'index'])->name('curricula.index');
     Route::get('/curricula/download/{id}', [CurriculaController::class, 'download'])->name('curricula.download');
-    Route::middleware(['checkAuth:SuperAdmin'])->group(function () {
-        Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
-        Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
-        Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
-        Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
-        Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
-        Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
-    });
+    Route::get('/curricula/add', [CurriculaController::class, 'create'])->name('curricula.create');
+    Route::post('/curricula/insert', [CurriculaController::class, 'insert'])->name('curricula.insert');
+    Route::get('/curricula/edit/{id}', [CurriculaController::class, 'edit'])->name('curricula.edit');
+    Route::patch('/curricula/update/{id}', [CurriculaController::class, 'updates'])->name('curricula.update');
+    Route::get('/curricula/delete/{id}', [CurriculaController::class, 'deletes'])->name('curricula.delete');
+    Route::delete('/curricula/destroy/{id}', [CurriculaController::class, 'destroy'])->name('curricula.destroy');
 
     // Attendance
     Route::get('/attendance/manage', [AttendanceController::class, 'manage'])->name('attendance.manage');
