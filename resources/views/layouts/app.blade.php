@@ -544,10 +544,20 @@
                                         href="{{ route('whatsapp.status') }}">{{ __('WhatsApp') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('whatsapp.campaigns.index') }}">{{ __('WhatsApp campaigns') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('event-program.index') }}">{{ __('Camp leader programs') }}</a>
                                 </div>
                             </div>
                         </div>
                     @endif
+
+                    {{-- ===================== My Program ===================== --}}
+                    <div class="px-3 mb-2">
+                        <a href="{{ route('my-program.index') }}"
+                            class="block w-full p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors {{ request()->routeIs('my-program.*') ? 'bg-emerald-50 text-emerald-600' : '' }}">
+                            <span class="font-medium">{{ __('My program tab') }}</span>
+                        </a>
+                    </div>
 
                     {{-- ===================== Profile ===================== --}}
                     <div class="px-3 mb-2">

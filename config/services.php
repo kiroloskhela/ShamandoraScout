@@ -43,4 +43,9 @@ return [
         'bridge_token' => env('WHATSAPP_BRIDGE_TOKEN'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('EVENT_PROGRAM_AI_MODEL', 'gemini-2.5-flash'),
+    ],
+
 ];

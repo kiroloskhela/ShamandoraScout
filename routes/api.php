@@ -13,6 +13,7 @@ use App\Http\Controllers\API\PlaceBookingApiController;
 use App\Http\Controllers\API\PersonSpecialCaseApiController;
 use App\Http\Controllers\API\GamesApiController;
 use App\Http\Controllers\API\VersionApiController;
+use App\Http\Controllers\API\EventProgramApiController;
 use App\Http\Controllers\API\QetaaTreeApiController;
 
 
@@ -91,6 +92,9 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::put('/games/{id}', [GamesApiController::class, 'update']);
     Route::delete('/games/{id}', [GamesApiController::class, 'destroy']);
 
+    // Event programs (leader missions)
+    Route::get('/programs', [EventProgramApiController::class, 'index']);
+    Route::get('/programs/{seasonEventId}', [EventProgramApiController::class, 'show']);
 
     // Auxiliary Qetaa Tree Data
     Route::get('/auxiliary', [QetaaTreeApiController::class, 'auxiliary']);
