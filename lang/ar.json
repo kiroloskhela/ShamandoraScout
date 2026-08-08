@@ -1268,7 +1268,7 @@
     "Only available photos will be shown": "سيتم عرض الصور المتاحة فقط",
     "Only shown when data exists": "يظهر فقط عند وجود بيانات",
     "Only the last payment can be edited.": "يمكن تعديل آخر دفعة فقط.",
-    "Open": "مفتوح",
+    "Open": "افتح",
     "Open / close enrolment form": "فتح / إغلاق نموذج الالتحاق",
     "Optional": "اختياري",
     "Optional - JPG/PNG/WebP - max 5 MB": "اختياري - JPG/PNG/WebP - حد أقصى 5 ميجا",
@@ -2020,5 +2020,14 @@
     "Shamandora Scout enrolment is currently closed. Official Egyptian Sea Scout group — الشمندوره البحريه.": "التسجيل في كشافة الشمندورة مغلق حالياً. مجموعة كشفية بحرية مصرية رسمية — الشمندوره البحريه.",
     "Set a new password": "تعيين كلمة سر جديدة",
     "Set a new Shamandora Scout account password.": "عيّن كلمة سر جديدة لحساب كشافة الشمندورة.",
-    "Reset your Shamandora Scout account password.": "أعد تعيين كلمة سر حساب كشافة الشمندورة."
+    "Reset your Shamandora Scout account password.": "أعد تعيين كلمة سر حساب كشافة الشمندورة.",
+    "One organization, everywhere": "جهة واحدة في كل مكان",
+    "If you follow Shamandora Scout on social media or use the Shamandora app, you are looking at the same Egyptian Sea Scout group as this website.": "إذا كنت تتابع كشافة الشمندورة على وسائل التواصل أو تستخدم تطبيق Shamandora، فأنت تتعامل مع نفس المجموعة الكشفية البحرية المصرية لهذا الموقع.",
+    "The Shamandora mobile app is published by the same organization.": "تطبيق Shamandora للموبايل يصدر عن نفس الجهة.",
+    "Ready to continue as a member?": "جاهز للمتابعة كعضو؟",
+    "Use your Shamandora Scout account to open the portal.": "استخدم حساب كشافة الشمندورة لفتح البوابة.",
+    "Footer": "تذييل الصفحة",
+    "Same organization": "نفس الجهة",
+    "These are the verified public profiles of Shamandora Scout — the same group as this site.": "هذه الحسابات العامة الرسمية لكشافة الشمندورة — نفس المجموعة صاحبة هذا الموقع.",
+    "Shamandora Scout channel": "قناة كشافة الشمندورة"
 }
