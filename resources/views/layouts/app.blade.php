@@ -546,6 +546,8 @@
                                         href="{{ route('whatsapp.campaigns.index') }}">{{ __('WhatsApp campaigns') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('event-program.index') }}">{{ __('Camp leader programs') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('curriculum-plan.index') }}">{{ __('Curriculum plans') }}</a>
                                 </div>
                             </div>
                         </div>

@@ -7,6 +7,7 @@ use App\Http\Controllers\API\TokenApiController;
 use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
 use App\Http\Controllers\API\CurriculaApiController;
+use App\Http\Controllers\API\CurriculumPlanApiController;
 use App\Http\Controllers\API\MediaApiController;
 use App\Http\Controllers\API\CustodyApiController;
 use App\Http\Controllers\API\PlaceBookingApiController;
@@ -52,6 +53,10 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
     Route::get('/curricula/meta', [CurriculaApiController::class, 'meta']);
     Route::get('/curricula/{id}', [CurriculaApiController::class, 'show']);
     Route::get('/curricula/{id}/download', [CurriculaApiController::class, 'download']);
+
+    // Curriculum plans (active منهج for mobile)
+    Route::get('/curriculum-plans/active', [CurriculumPlanApiController::class, 'activeAll']);
+    Route::get('/curriculum-plans/active/{qetaaId}', [CurriculumPlanApiController::class, 'activeForQetaa']);
 
     // Media
     Route::get('/media/seasons', [MediaApiController::class, 'seasons']);

@@ -52,6 +52,8 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('curricula.update', fn (?User $user) => $user !== null && (new CurriculaPolicy)->update($user));
         Gate::define('curricula.delete', fn (?User $user) => $user !== null && (new CurriculaPolicy)->delete($user));
 
+        Gate::define('curriculumPlan.view', fn (?User $user) => $user !== null);
+
         Gate::define('eventBooking.create', fn (?User $user) => $user !== null && (new EventBookingPolicy)->create($user));
         Gate::define('eventBooking.update', fn (?User $user) => $user !== null && (new EventBookingPolicy)->update($user));
         Gate::define('eventBooking.delete', fn (?User $user) => $user !== null && (new EventBookingPolicy)->delete($user));
