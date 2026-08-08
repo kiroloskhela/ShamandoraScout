@@ -50,7 +50,7 @@ class LoginController extends Controller
         Auth::login($genericUser);
         $request->session()->regenerate();
 
-        return redirect()->intended('/');
+        return redirect()->intended('/home');
     }
 
     protected function invalidLogin(Request $request)
@@ -64,6 +64,6 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, Authenticatable $user)
     {
-        return redirect()->intended('/');
+        return redirect()->intended('/home');
     }
 }

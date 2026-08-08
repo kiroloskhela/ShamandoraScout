@@ -5,7 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('Forgot password') }}</title>
+    @include('partials.seo-head', [
+        'seoTitle' => __('Forgot password'),
+        'seoDescription' => __('Reset your Shamandora Scout account password.'),
+        'seoRobots' => 'noindex, nofollow',
+    ])
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');

@@ -13,7 +13,10 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PersonProfileController;
 use App\Http\Controllers\PlaceBookingController;
+use App\Http\Controllers\PublicLandingController;
 use App\Http\Controllers\QetaaTreeController;
+use App\Http\Controllers\RobotsTxtController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\TestingController;
 
 /*
@@ -23,18 +26,15 @@ use App\Http\Controllers\TestingController;
 */
 Route::get('/health', HealthController::class)->name('health');
 Route::get('/up', HealthController::class);
+Route::get('/robots.txt', RobotsTxtController::class)->name('robots');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 /*
 |--------------------------------------------------------------------------
-| Testing
+| Public brand landing (SEO / AEO entity page)
 |--------------------------------------------------------------------------
 */
-// Route::get('/testing', [TestingController::class, 'index'])->name('testing.index');
-// Route::post('/testing', [TestingController::class, 'upload'])->name('testing.upload');
-
-
-
-
+Route::get('/', PublicLandingController::class)->name('landing');
 
 /*
 |--------------------------------------------------------------------------
@@ -50,8 +50,8 @@ Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Home
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    // Authenticated dashboard (was /)
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     // Logout
     Route::post('/logout', [LogoutController::class, 'perform'])->name('logout');

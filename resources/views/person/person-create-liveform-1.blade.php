@@ -6,7 +6,10 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ __('Shamandora Scout - New enrolment') }}</title>
+    @include('partials.seo-head', [
+        'seoTitle' => __('Shamandora Scout - New enrolment'),
+        'seoDescription' => __('Official Shamandora Scout enrolment form. Egyptian Sea Scout group — الشمندوره البحريه.'),
+    ])
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

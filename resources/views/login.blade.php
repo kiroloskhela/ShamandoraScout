@@ -227,6 +227,29 @@
                             </a>
                         </p>
                     </div>
+
+                    @php($sameAs = config('seo.same_as'))
+                    <div class="mt-8 border-t border-gray-200 pt-6 text-center dark:border-slate-700">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                            {{ __('Official profiles') }}
+                        </p>
+                        <div class="mt-3 flex flex-wrap items-center justify-center gap-3 text-sm">
+                            <a href="{{ $sameAs['facebook'] }}" rel="noopener noreferrer me" target="_blank"
+                                class="font-medium text-emerald-700 hover:underline dark:text-emerald-300">
+                                Facebook
+                            </a>
+                            <span class="text-gray-300 dark:text-slate-600" aria-hidden="true">·</span>
+                            <a href="{{ $sameAs['instagram'] }}" rel="noopener noreferrer me" target="_blank"
+                                class="font-medium text-emerald-700 hover:underline dark:text-emerald-300">
+                                Instagram
+                            </a>
+                            <span class="text-gray-300 dark:text-slate-600" aria-hidden="true">·</span>
+                            <a href="{{ route('landing') }}"
+                                class="font-medium text-gray-700 hover:underline dark:text-slate-200">
+                                {{ __('About Shamandora Scout') }}
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 

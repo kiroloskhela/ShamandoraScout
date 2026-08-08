@@ -21,6 +21,7 @@
         'seoDescription' => $pageDescription !== ''
             ? $pageDescription
             : __('Egyptian Sea Scout group. Official Shamandora Scout portal for activities, events, registration, and news.'),
+        'seoRobots' => 'noindex, nofollow',
     ])
 
     {{-- Prevent theme flash before CSS loads --}}
@@ -615,7 +616,7 @@
 
                     <!-- Center: Logo -->
                     <div class="flex items-center justify-center">
-                        <a href="{{ url('/') }}">
+                        <a href="{{ route('home') }}">
                             <img src="{{ asset('img/shamandora.webp') }}" alt="Logo"
                                 class="h-10 w-auto sm:h-10 lg:h-14 dark:hidden">
                             <img src="{{ asset('img/shamandora-dark.webp') }}" alt="Logo"

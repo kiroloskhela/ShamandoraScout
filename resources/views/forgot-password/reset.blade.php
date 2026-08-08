@@ -9,7 +9,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تعيين كلمة سر جديدة</title>
+    @include('partials.seo-head', [
+        'seoTitle' => __('Set a new password'),
+        'seoDescription' => __('Set a new Shamandora Scout account password.'),
+        'seoRobots' => 'noindex, nofollow',
+    ])
     <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
