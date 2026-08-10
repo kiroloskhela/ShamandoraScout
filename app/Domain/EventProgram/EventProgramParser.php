@@ -4,6 +4,7 @@ namespace App\Domain\EventProgram;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use RuntimeException;
 
 /**
@@ -164,7 +165,7 @@ final class EventProgramParser
         return compact('meta', 'days', 'resources');
     }
 
-    /** @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws */
+    /** @param Worksheet $ws */
     private function parseMetaSheet($ws): array
     {
         $rows = [];
@@ -197,7 +198,7 @@ final class EventProgramParser
         ];
     }
 
-    /** @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws */
+    /** @param Worksheet $ws */
     private function parseDaySheet($ws, int $dayNumber): array
     {
         $rows = $ws->toArray(null, true, true, false);
@@ -324,7 +325,7 @@ final class EventProgramParser
         return true;
     }
 
-    /** @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws */
+    /** @param Worksheet $ws */
     private function parseResourcesSheet($ws): array
     {
         return $this->parseResourceRows($ws->toArray(null, true, true, false));
@@ -363,7 +364,7 @@ final class EventProgramParser
         return $out;
     }
 
-    /** @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws */
+    /** @param Worksheet $ws */
     private function parseLegacyGamesLinks($ws): array
     {
         $rows = $ws->toArray(null, true, true, false);
@@ -421,7 +422,7 @@ final class EventProgramParser
         return $out;
     }
 
-    /** @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $ws */
+    /** @param Worksheet $ws */
     private function parseLegacyLecturesLinks($ws): array
     {
         $rows = $ws->toArray(null, true, true, false);
@@ -447,6 +448,7 @@ final class EventProgramParser
                 || str_contains($joined, 'تقييم')
             )) {
                 $currentSection = $joined;
+
                 continue;
             }
 

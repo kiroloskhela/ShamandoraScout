@@ -23,9 +23,6 @@ final class CampEventTypeGate
         return is_string($type) && in_array($type, self::allowedTypes(), true);
     }
 
-    /**
-     * @return object|null
-     */
     public function seasonEventMeta(int $seasonEventId): ?object
     {
         return DB::table('SeasonEvent as se')

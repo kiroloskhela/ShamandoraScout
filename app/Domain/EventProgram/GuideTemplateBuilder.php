@@ -26,7 +26,7 @@ final class GuideTemplateBuilder
 
     public function writeGuideXlsx(string $path): void
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
 
         // Guide
         $guide = $spreadsheet->getActiveSheet();

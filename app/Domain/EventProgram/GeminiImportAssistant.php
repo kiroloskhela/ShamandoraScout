@@ -142,6 +142,7 @@ TXT;
                         'shamandora_code' => $issue['shamandora_code'] ?? null,
                     ],
                 ];
+
                 continue;
             }
 
@@ -160,6 +161,7 @@ TXT;
                         'occurrences' => $issue['occurrences'] ?? [],
                     ],
                 ];
+
                 continue;
             }
 

@@ -108,7 +108,6 @@ final class PersonResolver
         return $name;
     }
 
-    /** @param object $p */
     private function candidate(object $p): array
     {
         return [
