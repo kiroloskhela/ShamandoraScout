@@ -3,7 +3,6 @@
 namespace App\Domain\EventProgram;
 
 use App\Models\EventProgram;
-use App\Models\EventProgramAssignment;
 use App\Models\EventProgramImportSession;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -67,6 +66,7 @@ final class EventProgramRefreshService
             $code = $q['code'] ?? '';
             if ($code === 'person_unresolved') {
                 $needsPersonReview = true;
+
                 continue;
             }
             if ($code === 'resource_missing_url') {
@@ -187,11 +187,13 @@ final class EventProgramRefreshService
                 if ($code !== '' && isset($known[$this->key('code', $code)])) {
                     $leader['resolved_person_id'] = $known[$this->key('code', $code)];
                     $leader['person_id'] = $leader['resolved_person_id'];
+
                     continue;
                 }
                 if ($name !== '' && isset($known[$this->key('name', $name)])) {
                     $leader['resolved_person_id'] = $known[$this->key('name', $name)];
                     $leader['person_id'] = $leader['resolved_person_id'];
+
                     continue;
                 }
                 // Try resolver + then known

@@ -95,6 +95,7 @@ final class ImportIssueDetector
                     'message' => 'مورد بدون عنوان.',
                     'resource_index' => $ri,
                 ];
+
                 continue;
             }
             if (empty($res['url'])) {
