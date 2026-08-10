@@ -2,19 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExportController extends Controller
 {
-    public function exportScoutsExcel(Request $request, $userId)
+    /** @var array<string, string> */
+    private const FILTER_COLUMNS = [
+        'SanaMarhalaName' => 'sm.SanaMarhalaName',
+        'QetaaName' => 'q.QetaaName',
+    ];
+
+    public function exportScoutsExcel(Request $request)
     {
+        $userId = (int) Auth::id();
+        $filters = TableColumnFilters::fromRequest($request, array_keys(self::FILTER_COLUMNS));
+        $filterFrag = TableColumnFilters::sqlEquals($filters, self::FILTER_COLUMNS);
+        $filterSql = $filterFrag['sql'] !== '' ? ' AND '.$filterFrag['sql'] : '';
+        $filterBindings = $filterFrag['bindings'];
+
         // ─── Sheet 1: Personal Details ────────────────────────────────────────
         $sheet1Data = DB::select("
             SELECT
@@ -35,7 +48,6 @@ class ExportController extends Controller
             LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
             LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
             LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonEntryQuestions peq  ON pi.PersonID = peq.PersonID
             LEFT JOIN PersonPhoneNumbers ppn    ON pi.PersonID = ppn.PersonID
             LEFT JOIN PersonGroup PG            ON PG.PersonID = pi.PersonID
             JOIN GroupQetaa gq                  ON gq.QetaaID = q.QetaaID
@@ -47,13 +59,14 @@ class ExportController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
+            {$filterSql}
             GROUP BY
                 pi.PersonID, pi.ShamandoraCode, pi.FirstName, pi.SecondName,
                 pi.ThirdName, pi.FourthName, q.QetaaName, pi.ScoutJoiningYear,
                 sm.SanaMarhalaName, pi.RaqamQawmy, ppn.PersonPersonalMobileNumber,
-                q.QetaaID, PG.PersonID, psm.SanaMarhalaID
+                ppn.MotherMobileNumber, q.QetaaID, PG.PersonID, psm.SanaMarhalaID
             ORDER BY pi.ShamandoraCode ASC
-        ", [$userId]);
+        ", array_merge([$userId], $filterBindings));
 
         // ─── Sheet 2: Medical & Allergies ─────────────────────────────────────
         $sheet2Data = DB::select("
@@ -74,6 +87,8 @@ class ExportController extends Controller
             FROM PersonInformation pi
             LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
             LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
+            LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
+            LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
             LEFT JOIN PeopleAllergies pa        ON pa.PersonID = pi.PersonID
             LEFT JOIN PeopleMedicalHistory pmh  ON pmh.PersonID = pi.PersonID
             JOIN GroupQetaa gq                  ON gq.QetaaID = q.QetaaID
@@ -85,6 +100,7 @@ class ExportController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
+            {$filterSql}
             GROUP BY
                 pi.PersonID, pi.ShamandoraCode, pi.FirstName,
                 pi.SecondName, pi.ThirdName, pi.FourthName, q.QetaaName
@@ -93,10 +109,18 @@ class ExportController extends Controller
                 MedicineAllergies IS NOT NULL OR
                 Diseases          IS NOT NULL
             ORDER BY pi.ShamandoraCode ASC
-        ", [$userId]);
+        ", array_merge([$userId], $filterBindings));
 
         // ─── Sheet 3: Questions & Answers (dynamic pivot) ─────────────────────
-        DB::statement("SET SESSION group_concat_max_len = 1000000");
+        DB::statement('SET SESSION group_concat_max_len = 1000000');
+
+        // Question columns: sector filter only (no person-stage context here).
+        $colsFilterSql = '';
+        $colsBindings = [$userId];
+        if (isset($filters['QetaaName'])) {
+            $colsFilterSql = ' AND q.QetaaName = ?';
+            $colsBindings[] = $filters['QetaaName'];
+        }
 
         $colsResult = DB::selectOne("
             SELECT GROUP_CONCAT(
@@ -109,6 +133,7 @@ class ExportController extends Controller
                 SEPARATOR ', '
             ) AS cols
             FROM MarhalaEntryQuestions meq
+            LEFT JOIN Qetaa q ON q.QetaaID = meq.QetaaID
             WHERE meq.QetaaID IN (
                 SELECT gq2.QetaaID FROM GroupQetaa gq2
                 WHERE gq2.GroupID IN (
@@ -116,7 +141,8 @@ class ExportController extends Controller
                     WHERE pg3.PersonID = ?
                 )
             )
-        ", [$userId]);
+            {$colsFilterSql}
+        ", $colsBindings);
 
         $sheet3Data = [];
         if ($colsResult && $colsResult->cols) {
@@ -133,6 +159,8 @@ class ExportController extends Controller
                 FROM PersonInformation pi
                 LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
                 LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
+                LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
+                LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
                 LEFT JOIN PersonEntryQuestions peq  ON pi.PersonID = peq.PersonID
                                                     AND peq.QuestionID IN (
                                                         SELECT QuestionID
@@ -148,62 +176,60 @@ class ExportController extends Controller
                         WHERE pg3.PersonID = ?
                     )
                 )
+                {$filterSql}
                 GROUP BY
                     pi.PersonID, pi.ShamandoraCode, pi.FirstName,
                     pi.SecondName, pi.ThirdName, pi.FourthName, q.QetaaName
                 ORDER BY pi.ShamandoraCode ASC
             ";
-            $sheet3Data = DB::select($dynamicQuery, [$userId]);
+            $sheet3Data = DB::select($dynamicQuery, array_merge([$userId], $filterBindings));
         }
 
         // ─── Build Excel ──────────────────────────────────────────────────────
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
 
-        $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('البيانات الشخصية'),   $sheet1Data);
+        $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('البيانات الشخصية'), $sheet1Data);
         $this->fillSheet($spreadsheet->createSheet()->setTitle('الحساسية والتاريخ الطبي'), $sheet2Data);
-        $this->fillSheet($spreadsheet->createSheet()->setTitle('الأسئلة والأجوبة'),       $sheet3Data);
+        $this->fillSheet($spreadsheet->createSheet()->setTitle('الأسئلة والأجوبة'), $sheet3Data);
 
         $spreadsheet->setActiveSheetIndex(0);
 
-        // ─── Stream to browser ────────────────────────────────────────────────
-        $filename = 'scouts_export_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+        $filename = 'scouts_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
 
         $writer = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
             $writer->save('php://output');
         }, $filename, [
-            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Cache-Control'       => 'max-age=0',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-store, max-age=0',
         ]);
     }
 
-    // ─── Helper: fill a worksheet with data + styled header ──────────────────
     private function fillSheet(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, array $data): void
     {
         if (empty($data)) {
             $sheet->setCellValue('A1', 'لا توجد بيانات');
+
             return;
         }
 
         $headers = array_keys((array) $data[0]);
-        $col     = 1;
+        $col = 1;
 
-        // Header row
         foreach ($headers as $header) {
             $cell = $sheet->getCellByColumnAndRow($col, 1);
             $cell->setValue($header);
             $cell->getStyle()->applyFromArray([
-                'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
-                'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E75B6']],
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E75B6']],
                 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-                'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
             ]);
             $sheet->getColumnDimensionByColumn($col)->setWidth(22);
             $col++;
         }
 
-        // Data rows
         $row = 2;
         foreach ($data as $record) {
             $col = 1;
@@ -212,24 +238,20 @@ class ExportController extends Controller
                 $cell->setValue($value ?? '');
                 $cell->getStyle()->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
-                    'borders'   => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
                 ]);
                 $col++;
             }
-            // Alternate row shading
             if ($row % 2 === 0) {
                 $sheet->getStyleByColumnAndRow(1, $row, count($headers), $row)
-                      ->getFill()
-                      ->setFillType(Fill::FILL_SOLID)
-                      ->getStartColor()->setRGB('F2F7FC');
+                    ->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setRGB('F2F7FC');
             }
             $row++;
         }
 
-        // Freeze header row
         $sheet->freezePane('A2');
-
-        // RTL direction for Arabic content
         $sheet->setRightToLeft(true);
     }
 }

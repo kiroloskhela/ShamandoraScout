@@ -84,10 +84,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function (
     Route::get('/persons/waiting-list/{id}/migrate', [WaitingListController::class, 'migrateWaitingList'])->name('person.waiting-list-migrate');
     Route::get('/persons/waiting-list/{id}/decline', [WaitingListController::class, 'declineWaitingList'])->name('person.waiting-list-decline');
 
-    // Export Scouts Excel
-    Route::get('/export/scouts/{userId}', [ExportController::class, 'exportScoutsExcel'])
-        ->name('export.scouts.excel');
-
 });
 
 // Curricula categories: any authenticated role may manage
@@ -101,9 +97,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
 });
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
-
+// Person directory list + Excel export (scoped to caller's groups)
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
+    Route::get('/export/scouts', [ExportController::class, 'exportScoutsExcel'])->name('export.scouts.excel');
+});
+
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
 
     Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
     Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
