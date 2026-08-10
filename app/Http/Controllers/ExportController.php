@@ -6,10 +6,12 @@ use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExportController extends Controller
@@ -22,11 +24,15 @@ class ExportController extends Controller
 
     public function exportScoutsExcel(Request $request)
     {
+        // Production nginx often times out at 60s; keep room for large scoped exports.
+        @set_time_limit(300);
+
         $userId = (int) Auth::id();
         $filters = TableColumnFilters::fromRequest($request, array_keys(self::FILTER_COLUMNS));
         $filterFrag = TableColumnFilters::sqlEquals($filters, self::FILTER_COLUMNS);
         $filterSql = $filterFrag['sql'] !== '' ? ' AND '.$filterFrag['sql'] : '';
         $filterBindings = $filterFrag['bindings'];
+        $scopeSql = $this->orgScopeSql();
 
         // ─── Sheet 1: Personal Details ────────────────────────────────────────
         $sheet1Data = DB::select("
@@ -49,22 +55,13 @@ class ExportController extends Controller
             LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
             LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
             LEFT JOIN PersonPhoneNumbers ppn    ON pi.PersonID = ppn.PersonID
-            LEFT JOIN PersonGroup PG            ON PG.PersonID = pi.PersonID
-            JOIN GroupQetaa gq                  ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2                ON pg2.GroupID = gq.GroupID
-            WHERE q.QetaaID IN (
-                SELECT gq2.QetaaID FROM GroupQetaa gq2
-                WHERE gq2.GroupID IN (
-                    SELECT pg3.GroupID FROM PersonGroup pg3
-                    WHERE pg3.PersonID = ?
-                )
-            )
+            WHERE {$scopeSql}
             {$filterSql}
             GROUP BY
                 pi.PersonID, pi.ShamandoraCode, pi.FirstName, pi.SecondName,
                 pi.ThirdName, pi.FourthName, q.QetaaName, pi.ScoutJoiningYear,
                 sm.SanaMarhalaName, pi.RaqamQawmy, ppn.PersonPersonalMobileNumber,
-                ppn.MotherMobileNumber, q.QetaaID, PG.PersonID, psm.SanaMarhalaID
+                ppn.MotherMobileNumber
             ORDER BY pi.ShamandoraCode ASC
         ", array_merge([$userId], $filterBindings));
 
@@ -91,15 +88,7 @@ class ExportController extends Controller
             LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
             LEFT JOIN PeopleAllergies pa        ON pa.PersonID = pi.PersonID
             LEFT JOIN PeopleMedicalHistory pmh  ON pmh.PersonID = pi.PersonID
-            JOIN GroupQetaa gq                  ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2                ON pg2.GroupID = gq.GroupID
-            WHERE q.QetaaID IN (
-                SELECT gq2.QetaaID FROM GroupQetaa gq2
-                WHERE gq2.GroupID IN (
-                    SELECT pg3.GroupID FROM PersonGroup pg3
-                    WHERE pg3.PersonID = ?
-                )
-            )
+            WHERE {$scopeSql}
             {$filterSql}
             GROUP BY
                 pi.PersonID, pi.ShamandoraCode, pi.FirstName,
@@ -114,7 +103,6 @@ class ExportController extends Controller
         // ─── Sheet 3: Questions & Answers (dynamic pivot) ─────────────────────
         DB::statement('SET SESSION group_concat_max_len = 1000000');
 
-        // Question columns: sector filter only (no person-stage context here).
         $colsFilterSql = '';
         $colsBindings = [$userId];
         if (isset($filters['QetaaName'])) {
@@ -167,15 +155,7 @@ class ExportController extends Controller
                                                         FROM MarhalaEntryQuestions
                                                         WHERE QetaaID = q.QetaaID
                                                     )
-                JOIN GroupQetaa gq                  ON gq.QetaaID = q.QetaaID
-                JOIN PersonGroup pg2                ON pg2.GroupID = gq.GroupID
-                WHERE q.QetaaID IN (
-                    SELECT gq2.QetaaID FROM GroupQetaa gq2
-                    WHERE gq2.GroupID IN (
-                        SELECT pg3.GroupID FROM PersonGroup pg3
-                        WHERE pg3.PersonID = ?
-                    )
-                )
+                WHERE {$scopeSql}
                 {$filterSql}
                 GROUP BY
                     pi.PersonID, pi.ShamandoraCode, pi.FirstName,
@@ -185,7 +165,6 @@ class ExportController extends Controller
             $sheet3Data = DB::select($dynamicQuery, array_merge([$userId], $filterBindings));
         }
 
-        // ─── Build Excel ──────────────────────────────────────────────────────
         $spreadsheet = new Spreadsheet;
 
         $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('البيانات الشخصية'), $sheet1Data);
@@ -195,7 +174,6 @@ class ExportController extends Controller
         $spreadsheet->setActiveSheetIndex(0);
 
         $filename = 'scouts_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
-
         $writer = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
@@ -206,49 +184,55 @@ class ExportController extends Controller
         ]);
     }
 
-    private function fillSheet(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, array $data): void
+    private function orgScopeSql(): string
     {
-        if (empty($data)) {
+        return 'q.QetaaID IN (
+            SELECT gq2.QetaaID FROM GroupQetaa gq2
+            WHERE gq2.GroupID IN (
+                SELECT pg3.GroupID FROM PersonGroup pg3
+                WHERE pg3.PersonID = ?
+            )
+        )';
+    }
+
+    private function fillSheet(Worksheet $sheet, array $data): void
+    {
+        if ($data === []) {
             $sheet->setCellValue('A1', 'لا توجد بيانات');
 
             return;
         }
 
         $headers = array_keys((array) $data[0]);
-        $col = 1;
-
-        foreach ($headers as $header) {
-            $cell = $sheet->getCellByColumnAndRow($col, 1);
-            $cell->setValue($header);
-            $cell->getStyle()->applyFromArray([
-                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E75B6']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
-            ]);
-            $sheet->getColumnDimensionByColumn($col)->setWidth(22);
-            $col++;
+        $rows = [array_values($headers)];
+        foreach ($data as $record) {
+            $rows[] = array_map(
+                static fn ($value) => $value ?? '',
+                array_values((array) $record)
+            );
         }
 
-        $row = 2;
-        foreach ($data as $record) {
-            $col = 1;
-            foreach ((array) $record as $value) {
-                $cell = $sheet->getCellByColumnAndRow($col, $row);
-                $cell->setValue($value ?? '');
-                $cell->getStyle()->applyFromArray([
-                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
-                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
-                ]);
-                $col++;
-            }
-            if ($row % 2 === 0) {
-                $sheet->getStyleByColumnAndRow(1, $row, count($headers), $row)
-                    ->getFill()
-                    ->setFillType(Fill::FILL_SOLID)
-                    ->getStartColor()->setRGB('F2F7FC');
-            }
-            $row++;
+        $sheet->fromArray($rows, null, 'A1', true);
+
+        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
+        $lastRow = count($rows);
+
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E75B6']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+
+        if ($lastRow >= 2) {
+            $sheet->getStyle("A2:{$lastCol}{$lastRow}")->applyFromArray([
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+            ]);
+        }
+
+        for ($col = 1; $col <= count($headers); $col++) {
+            $sheet->getColumnDimensionByColumn($col)->setWidth(22);
         }
 
         $sheet->freezePane('A2');
