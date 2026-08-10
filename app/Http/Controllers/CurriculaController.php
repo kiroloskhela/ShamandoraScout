@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Curriculum\CurriculumPlanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class CurriculaController extends Controller
@@ -153,11 +155,17 @@ public function index()
         return $this->delete($id);
     }
 
-    public function destroy($id)
+    public function destroy($id, CurriculumPlanService $plans)
     {
         Gate::authorize('curricula.delete');
 
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
+
+        if (Schema::hasTable('CurriculumPlanLecture') && $plans->isCurriculaReferenced((int) $id)) {
+            return redirect()
+                ->route('curricula.index')
+                ->with('error', __('Cannot delete this lecture because it is used in a curriculum plan.'));
+        }
 
         if ($curriculum && !empty($curriculum->CurriculaPath)) {
             Storage::delete($curriculum->CurriculaPath);

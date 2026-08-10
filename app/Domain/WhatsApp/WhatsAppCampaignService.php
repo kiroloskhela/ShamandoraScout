@@ -102,7 +102,7 @@ class WhatsAppCampaignService
 
                 WhatsAppCampaignRecipient::create([
                     'campaign_id' => $campaign->id,
-                    'person_id' => null,
+                    'person_id' => isset($row['person_id']) ? (int) $row['person_id'] : null,
                     'phone' => $phone,
                     'personalized_message' => $message,
                     'status' => $status,

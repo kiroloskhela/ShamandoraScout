@@ -17,4 +17,5 @@ require __DIR__.'/web/person.php';
 require __DIR__.'/web/finance.php';
 require __DIR__.'/web/inventory.php';
 require __DIR__.'/web/medicine.php';
+require __DIR__.'/web/event_program.php';
 require __DIR__.'/web/misc.php';

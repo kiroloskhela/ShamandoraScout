@@ -48,7 +48,7 @@
                 </a>
 
                 <template x-for="button in headerButtons" :key="button.label">
-                    <a :href="button.route || '#'"
+                    <a :href="headerButtonHref(button)"
                         :class="button.cssClass ||
                             'bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200'"
                         x-text="button.label">
@@ -588,6 +588,25 @@
 
             hasActiveFilters() {
                 return Object.keys(this.activeFilters).length > 0;
+            },
+
+            headerButtonHref(button) {
+                const base = button?.route || '#';
+                if (!button?.appendFilters || base === '#') {
+                    return base;
+                }
+
+                try {
+                    const url = new URL(base, window.location.origin);
+                    Object.entries(this.activeFilters || {}).forEach(([key, value]) => {
+                        if (value !== null && value !== undefined && String(value) !== '' && String(value) !== '__all__') {
+                            url.searchParams.set(`f[${key}]`, String(value));
+                        }
+                    });
+                    return `${url.pathname}${url.search}${url.hash}`;
+                } catch (e) {
+                    return base;
+                }
             },
 
             applyAll(resetPage = true) {

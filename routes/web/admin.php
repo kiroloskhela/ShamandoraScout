@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminPasswordController;
 use App\Http\Controllers\AppVersionSettingsController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\CurriculumPlanController;
 use App\Http\Controllers\BetakaTakaddomController;
 use App\Http\Controllers\BloodTypeController;
 use App\Http\Controllers\DistrictController;
@@ -71,6 +72,17 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
 
     // System audit logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // Curriculum plans (منهج) per Qetaa
+    Route::get('/curriculum-plans', [CurriculumPlanController::class, 'index'])->name('curriculum-plan.index');
+    Route::get('/curriculum-plans/add', [CurriculumPlanController::class, 'create'])->name('curriculum-plan.create');
+    Route::post('/curriculum-plans/insert', [CurriculumPlanController::class, 'insert'])->name('curriculum-plan.insert');
+    Route::get('/curriculum-plans/edit/{id}', [CurriculumPlanController::class, 'edit'])->name('curriculum-plan.edit');
+    Route::patch('/curriculum-plans/update/{id}', [CurriculumPlanController::class, 'update'])->name('curriculum-plan.update');
+    Route::get('/curriculum-plans/delete/{id}', [CurriculumPlanController::class, 'delete'])->name('curriculum-plan.delete');
+    Route::delete('/curriculum-plans/destroy/{id}', [CurriculumPlanController::class, 'destroy'])->name('curriculum-plan.destroy');
+    Route::post('/curriculum-plans/activate/{id}', [CurriculumPlanController::class, 'activate'])->name('curriculum-plan.activate');
+    Route::post('/curriculum-plans/deactivate/{id}', [CurriculumPlanController::class, 'deactivate'])->name('curriculum-plan.deactivate');
 
     // Liveform open/close
     Route::get('/liveform-settings', [LiveFormSettingsController::class, 'edit'])->name('liveform-settings.edit');
