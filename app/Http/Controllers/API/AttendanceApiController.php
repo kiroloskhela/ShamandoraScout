@@ -67,7 +67,7 @@ class AttendanceApiController extends Controller
                     'e.EventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate'
                 )
                 ->orderBy('s.SeasonYear', 'desc')
-                ->orderBy('e.EventStartDate', 'asc')
+                ->orderBy('e.EventStartDate', 'desc')
                 ->get();
 
             $bySeason = [];
@@ -99,7 +99,7 @@ class AttendanceApiController extends Controller
             ->where('se.SeasonID', $seasonId)
             ->whereExists(fn ($q) => $this->scopeToMyGroups($q, $myGroups))
             ->select('se.SeasonEventID', 'se.SeasonID', 'e.EventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate')
-            ->orderBy('e.EventStartDate', 'asc')
+            ->orderBy('e.EventStartDate', 'desc')
             ->get()
             ->map(fn ($r) => $this->formatEvent($r));
 
