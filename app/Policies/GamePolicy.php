@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\Game;
 use App\Models\User;
 
@@ -22,7 +23,7 @@ class GamePolicy
 
     public function create(User $user): bool
     {
-        $p = app(\App\Domain\Authz\PermissionService::class);
+        $p = app(PermissionService::class);
 
         return $p->userCan($user, 'web.games.manage') || $p->userCan($user, 'api.games.mutate');
     }

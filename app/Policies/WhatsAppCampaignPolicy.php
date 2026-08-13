@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use App\Models\WhatsAppCampaign;
 
@@ -37,6 +38,6 @@ class WhatsAppCampaignPolicy
 
     private function isSuperAdmin(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->isSuperAdmin($user);
+        return app(PermissionService::class)->isSuperAdmin($user);
     }
 }

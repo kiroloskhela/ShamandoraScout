@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -36,17 +37,17 @@ class CustodyPolicy
 
     public function viewAdmin(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.inventory.manage');
+        return app(PermissionService::class)->userCan($user, 'web.inventory.manage');
     }
 
     public function review(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.inventory.review');
+        return app(PermissionService::class)->userCan($user, 'web.inventory.review');
     }
 
     private function isInventoryStaff(User $user): bool
     {
-        $p = app(\App\Domain\Authz\PermissionService::class);
+        $p = app(PermissionService::class);
 
         return $p->userCan($user, 'web.inventory.manage') || $p->userCan($user, 'web.inventory.review');
     }

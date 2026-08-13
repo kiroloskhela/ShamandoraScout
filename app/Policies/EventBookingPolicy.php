@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 
 /**
@@ -21,11 +22,11 @@ class EventBookingPolicy
 
     public function delete(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.finance.delete_booking');
+        return app(PermissionService::class)->userCan($user, 'web.finance.delete_booking');
     }
 
     private function hasFinanceRole(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.finance.manage');
+        return app(PermissionService::class)->userCan($user, 'web.finance.manage');
     }
 }

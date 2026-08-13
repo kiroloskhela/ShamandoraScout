@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 
 /**
@@ -26,6 +27,6 @@ class MedicinePolicy
 
     private function hasMedicineRole(User $user): bool
     {
-        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.medicine.manage');
+        return app(PermissionService::class)->userCan($user, 'web.medicine.manage');
     }
 }
