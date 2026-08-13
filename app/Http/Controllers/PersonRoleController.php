@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Auth\TokenSessionService;
 use App\Domain\Authz\PermissionService;
 use App\Domain\Authz\SuperAdminGuard;
 use Illuminate\Http\Request;
@@ -20,14 +21,16 @@ class PersonRoleController extends Controller
         {
 
             
-$personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRoleID, r.RoleName, q.QetaaName, r.RoleID,
+$personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRoleID, r.RoleName,
+           (SELECT q.QetaaName FROM PersonQetaa pq
+            JOIN Qetaa q ON q.QetaaID = pq.QetaaID
+            WHERE pq.PersonID = pi.PersonID
+            LIMIT 1) as QetaaName,
+           r.RoleID,
            CONCAT(pi.FirstName, ' ', pi.SecondName, ' ', pi.ThirdName) as PersonFullName
     FROM PersonRole pr
     LEFT JOIN PersonInformation pi ON pi.PersonID = pr.PersonID
     LEFT JOIN Roles r ON r.RoleID = pr.RoleID
-    LEFT JOIN PersonQetaa pq ON pq.PersonID = pi.PersonID
-    LEFT JOIN Qetaa q ON q.QetaaID = pq.QetaaID
-    WHERE q.QetaaName = 'قادة'
     ORDER BY pr.PersonRoleID ASC
 ");
 
@@ -43,9 +46,7 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
             $khoddam = DB::select("SELECT   pi.PersonID,
                                                 CONCAT(pi.ShamandoraCode, ' ', pi.FirstName, ' ', pi.SecondName, ' ', pi.ThirdName) as PersonFullName
                                                 FROM PersonInformation pi
-                                                LEFT JOIN PersonQetaa pq ON pq.PersonID = pi.PersonID
-                                                LEFT JOIN Qetaa q ON q.QetaaID = pq.QetaaID
-                                                WHERE q.QetaaName = 'قادة';");
+                                                ORDER BY pi.PersonID");
 
             $roles =  DB::select("  SELECT   r.RoleID, r.RoleName
                                     FROM Roles r");
@@ -62,6 +63,7 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
                         (int) $request->role_id,
                         $request->user()
                     );
+                    $this->assertRoleAssignableToPerson((int) $request->person_id, (int) $request->role_id);
 
                     // PersonRole.PersonRoleID is not AUTO_INCREMENT in production.
                     $thisPersonRoleID = \App\Support\ManualPrimaryKey::next('PersonRole', 'PersonRoleID');
@@ -132,6 +134,7 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
                         (int) $request->role_id,
                         $request->user()
                     );
+                    $this->assertRoleAssignableToPerson((int) $row->PersonID, (int) $request->role_id);
 
                     DB::table('PersonRole')->where('PersonRoleID', $id)->update([
                         'RoleID' => $request->role_id,
@@ -139,6 +142,7 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
                     ]);
 
                     app(PermissionService::class)->bumpVersion();
+                    app(TokenSessionService::class)->revokeIfNoAppAccess((int) $row->PersonID);
                 });
             } catch (HttpException $e) {
                 throw $e;
@@ -178,8 +182,10 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
                     }
 
                     app(SuperAdminGuard::class)->assertPersonRoleDeleteAllowed((int) $row->RoleID);
+                    $personId = (int) $row->PersonID;
                     DB::table('PersonRole')->where('PersonRoleID', $id)->delete();
                     app(PermissionService::class)->bumpVersion();
+                    app(TokenSessionService::class)->revokeIfNoAppAccess($personId);
                 });
             } catch (HttpException $e) {
                 throw $e;
@@ -188,5 +194,26 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
             }
 
             return redirect()->route('person-role.index');
+        }
+
+        private function assertRoleAssignableToPerson(int $personId, int $roleId): void
+        {
+            $roleName = (string) DB::table('Roles')->where('RoleID', $roleId)->value('RoleName');
+            if ($roleName === '') {
+                abort(404, 'Role not found.');
+            }
+            if ($roleName === 'Mkhdom') {
+                return;
+            }
+
+            $isLeader = DB::table('PersonQetaa as pq')
+                ->join('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
+                ->where('pq.PersonID', $personId)
+                ->where('q.QetaaName', 'قادة')
+                ->exists();
+
+            if (! $isLeader) {
+                abort(403, 'Staff roles can only be assigned to people in قادة.');
+            }
         }
 }

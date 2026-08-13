@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\LoginApiController;
+use App\Http\Controllers\API\MeApiController;
 use App\Http\Controllers\API\TokenApiController;
 use App\Http\Controllers\API\PersonApiController;
 use App\Http\Controllers\API\AttendanceApiController;
@@ -35,6 +36,11 @@ Route::get('/version/check', [VersionApiController::class, 'check']);
 Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
 
     Route::post('/logout', [LoginApiController::class, 'apiLogout']);
+
+    Route::get('/me', [MeApiController::class, 'show'])
+        ->middleware('can.permission:api.me.view');
+    Route::get('/attendance/mine', [AttendanceApiController::class, 'mine'])
+        ->middleware(['can.permission:api.attendance.own', 'throttle:30,1']);
 
     Route::middleware('can.permission:api.mobile.staff')->group(function () {
 

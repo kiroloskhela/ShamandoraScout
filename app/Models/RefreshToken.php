@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class RefreshToken extends Model
 {
     protected $fillable = [
-        'user_id','token_hash','expires_at','revoked_at','replaced_by_id','ip','user_agent'
+        'user_id', 'token_hash', 'family_id', 'expires_at', 'revoked_at', 'replaced_by_id', 'ip', 'user_agent',
     ];
 
     protected $casts = [

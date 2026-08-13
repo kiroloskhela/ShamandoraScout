@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Auth\TokenSessionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,7 @@ class AdminPasswordController extends Controller
             ['PersonID' => $id],
             ['Password' => Hash::make($plain)]
         );
+        app(TokenSessionService::class)->revokeAllForUser((int) $id);
 
         $phone = DB::table('PersonPhoneNumbers')
             ->where('PersonID', $id)

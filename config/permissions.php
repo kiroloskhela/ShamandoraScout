@@ -45,17 +45,31 @@ $keys = [
     'mobile.games.manage' => ['label' => 'Create and edit games', 'platform' => 'mobile'],
 
     'api.mobile.staff' => ['label' => 'Core mobile APIs (list, attendance, media, own custody)', 'platform' => 'api'],
+    'api.me.view' => ['label' => 'Own /me identity and permission hints', 'platform' => 'api'],
+    'api.attendance.own' => ['label' => 'Own attendance history API', 'platform' => 'api'],
     'api.special_cases.manage' => ['label' => 'Special-cases API', 'platform' => 'api'],
     'api.games.mutate' => ['label' => 'Create/update/delete games via API', 'platform' => 'api', 'danger' => true],
 ];
 
 $mobileStaff = [
     'api.mobile.staff',
+    'api.me.view',
+    'api.attendance.own',
     'mobile.profile.own',
+    'mobile.attendance.own',
     'mobile.attendance.take',
     'mobile.members.list',
     'mobile.inventory.requests',
     'mobile.games.view',
+    'mobile.lectures.own',
+    'mobile.media.own',
+];
+
+$mkhdom = [
+    'api.me.view',
+    'api.attendance.own',
+    'mobile.profile.own',
+    'mobile.attendance.own',
     'mobile.lectures.own',
     'mobile.media.own',
 ];
@@ -103,6 +117,7 @@ return [
         'Khadem' => array_values(array_unique(array_merge($mobileStaff, [
             'web.people.directory',
         ]))),
+        'Mkhdom' => $mkhdom,
     ],
     'staff_roles' => $staff,
 ];

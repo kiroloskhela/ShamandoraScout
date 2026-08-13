@@ -3,13 +3,17 @@
 namespace Database\Seeders;
 
 use App\Domain\Authz\PermissionService;
+use App\Support\ManualPrimaryKey;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->ensureMkhdomRole();
+
         $seed = config('permissions.seed', []);
         $now = now();
 
@@ -39,5 +43,22 @@ class RolePermissionSeeder extends Seeder
         }
 
         app(PermissionService::class)->bumpVersion();
+    }
+
+    private function ensureMkhdomRole(): void
+    {
+        if (DB::table('Roles')->where('RoleName', 'Mkhdom')->exists()) {
+            return;
+        }
+
+        $row = [
+            'RoleID' => ManualPrimaryKey::next('Roles', 'RoleID'),
+            'RoleName' => 'Mkhdom',
+        ];
+        if (Schema::hasColumn('Roles', 'RoleDescription')) {
+            $row['RoleDescription'] = 'Served person (own-only mobile access)';
+        }
+
+        DB::table('Roles')->insert($row);
     }
 }

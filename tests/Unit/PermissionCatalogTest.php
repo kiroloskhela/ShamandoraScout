@@ -41,4 +41,16 @@ class PermissionCatalogTest extends TestCase
             }
         }
     }
+
+    public function test_mkhdom_seed_is_own_only(): void
+    {
+        $keys = config('permissions.seed.Mkhdom');
+        $this->assertNotEmpty($keys);
+        $this->assertContains('api.me.view', $keys);
+        $this->assertContains('api.attendance.own', $keys);
+        $this->assertNotContains('api.mobile.staff', $keys);
+        $this->assertNotContains('mobile.attendance.take', $keys);
+        $this->assertNotContains('mobile.members.list', $keys);
+        $this->assertNotContains('web.people.manage', $keys);
+    }
 }

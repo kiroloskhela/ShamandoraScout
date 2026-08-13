@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Http\Request;
+use App\Domain\Auth\TokenSessionService;
+use App\Domain\Authz\PermissionService;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use App\Models\User;
-use App\Models\RefreshToken;
-use \Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Laravel\Sanctum\PersonalAccessToken;
 
 
 
@@ -110,32 +110,32 @@ public function apiLogin(Request $request)
         'platform'  => 'nullable|string|in:android,ios,web',
     ]);
 
-    $user = User::find($request->id);
-
-    $hashedPassword = optional($user->password)->Password;
-
-    if (!$user || !$hashedPassword || !Hash::check($request->password, $hashedPassword)) {
+    $limitKey = 'api-login-id:'.$request->integer('id');
+    if (RateLimiter::tooManyAttempts($limitKey, 5)) {
         return response()->json([
             'ok' => false,
-            'message' => 'Invalid credentials'
+            'message' => 'Invalid credentials',
         ], 401);
     }
 
-    $roleNames = $user->role()
-        ->pluck('RoleName')
-        ->toArray();
+    $user = User::find($request->id);
+    $permissions = app(PermissionService::class);
+    $hashedPassword = $user?->password?->Password
+        ?: '$2y$10$usesomesillystringfore7hnbRJHxMlgFlAcQFRY3NmR7N2146wo';
 
-    $accessToken = $user->createToken('api-token', ['*'], now()->addHours(1))->plainTextToken;
+    $passwordOk = Hash::check($request->password, $hashedPassword);
+    if (! $user || ! $user->password?->Password || ! $passwordOk || ! $permissions->hasAppAccess($user)) {
+        RateLimiter::hit($limitKey, 60);
 
-    $plainRefresh = Str::random(64);
+        return response()->json([
+            'ok' => false,
+            'message' => 'Invalid credentials',
+        ], 401);
+    }
 
-    RefreshToken::create([
-        'user_id'    => $user->PersonID,
-        'token_hash' => hash('sha256', $plainRefresh),
-        'expires_at' => now()->addDays(30),
-        'ip'         => $request->ip(),
-        'user_agent' => substr((string) $request->userAgent(), 0, 1000),
-    ]);
+    RateLimiter::clear($limitKey);
+
+    $tokens = app(TokenSessionService::class)->issue($user, $request);
 
     if ($request->filled('fcmtoken')) {
         DB::table('devices')->updateOrInsert(
@@ -154,11 +154,12 @@ public function apiLogin(Request $request)
     return response()->json([
         'ok' => true,
         'message' => 'Login successful',
-        'access_token'   => $accessToken,
-        'token_type'     => 'Bearer',
-        'expires_in_sec' => 3600,
-        'refresh_token'  => $plainRefresh,
-        'role_names'     => $roleNames,
+        'access_token' => $tokens['access_token'],
+        'token_type' => 'Bearer',
+        'expires_in_sec' => $tokens['expires_in_sec'],
+        'refresh_token' => $tokens['refresh_token'],
+        'role_names' => $user->role()->pluck('RoleName')->values(),
+        'permissions' => $permissions->clientKeysForUser($user),
     ]);
 }
 
@@ -167,19 +168,13 @@ public function apiLogout(Request $request)
     $token = $request->user()->currentAccessToken();
 
     if ($token instanceof PersonalAccessToken) {
-        // API token auth: revoke this access token
-        $token->delete();
+        app(TokenSessionService::class)->logoutCurrent($request->user(), $token);
     } else {
-        // SPA (cookie) auth: end the session
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        app(TokenSessionService::class)->revokeAllForUser((int) $request->user()->PersonID);
     }
-
-    // (Optional) revoke all active refresh tokens for this user
-    RefreshToken::where('user_id', $request->user()->PersonID)
-        ->whereNull('revoked_at')
-        ->update(['revoked_at' => now()]);
 
     return response()->json(['message' => 'Logged out']);
 }

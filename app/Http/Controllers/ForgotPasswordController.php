@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Auth\PasswordResetLinkService;
+use App\Domain\Auth\TokenSessionService;
 use App\Jobs\SendPasswordResetLinkMail;
 use App\Services\WhatsAppBridgeClient;
 use Illuminate\Http\Request;
@@ -195,6 +196,7 @@ class ForgotPasswordController extends Controller
             ['PersonID' => $personId],
             ['Password' => Hash::make($data['password']), 'updated_at' => now()]
         );
+        app(TokenSessionService::class)->revokeAllForUser((int) $personId);
 
         $resets->consumeToken($email);
 

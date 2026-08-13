@@ -77,7 +77,37 @@ class PermissionService
             return array_keys(config('permissions.keys', []));
         }
 
+        if (! config('permissions.enforce')) {
+            return $this->seedKeysFor($user);
+        }
+
         return array_keys($this->keysFor($user));
+    }
+
+    /**
+     * UI hints for login / refresh /me — same source as userCan, api+mobile only.
+     *
+     * @return list<string>
+     */
+    public function clientKeysForUser(?User $user): array
+    {
+        return array_values(array_filter(
+            $this->keysForUser($user),
+            fn (string $key) => str_starts_with($key, 'api.') || str_starts_with($key, 'mobile.')
+        ));
+    }
+
+    public function hasAppAccess(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin($user)) {
+            return true;
+        }
+
+        return $this->clientKeysForUser($user) !== [];
     }
 
     public function bumpVersion(): int
@@ -179,14 +209,28 @@ class PermissionService
 
     private function seedFallback(User $user, string $key): bool
     {
+        return in_array($key, $this->seedKeysFor($user), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function seedKeysFor(User $user): array
+    {
         $names = $user->role()->pluck('Roles.RoleName');
+        $set = [];
 
         foreach (config('permissions.seed', []) as $role => $keys) {
-            if ($names->contains($role) && in_array($key, $keys, true)) {
-                return true;
+            if (! $names->contains($role)) {
+                continue;
+            }
+            foreach ($keys as $key) {
+                if ($this->isGrantable((string) $key)) {
+                    $set[$key] = true;
+                }
             }
         }
 
-        return false;
+        return array_keys($set);
     }
 }
