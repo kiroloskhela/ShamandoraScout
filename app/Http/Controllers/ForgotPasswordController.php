@@ -192,11 +192,13 @@ class ForgotPasswordController extends Controller
                 ->with('error', __('Could not find the account linked to this reset link.'));
         }
 
-        DB::table('PersonSystemPassword')->updateOrInsert(
-            ['PersonID' => $personId],
-            ['Password' => Hash::make($data['password']), 'updated_at' => now()]
-        );
-        app(TokenSessionService::class)->revokeAllForUser((int) $personId);
+        DB::transaction(function () use ($personId, $data) {
+            DB::table('PersonSystemPassword')->updateOrInsert(
+                ['PersonID' => $personId],
+                ['Password' => Hash::make($data['password']), 'updated_at' => now()]
+            );
+            app(TokenSessionService::class)->revokeAllForUser((int) $personId);
+        });
 
         $resets->consumeToken($email);
 

@@ -248,6 +248,7 @@ class AttendanceApiController extends Controller
             ->select(
                 'a.AttendanceID',
                 'a.SeasonEventID',
+                'a.ServedID',
                 'a.AttendanceStatus',
                 'a.Excuse',
                 'e.EventName',

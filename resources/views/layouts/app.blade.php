@@ -422,6 +422,8 @@
                                         href="{{ route('inventory.index') }}">{{ __('Custody items') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('inventory-issue.index') }}">{{ __('Print custody') }}</a>
+                                @endif
+                                @if (($canPerm['web.inventory.manage'] ?? false) || ($canPerm['web.inventory.review'] ?? false))
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.custody_requests.index') }}">{{ __('Follow up custody') }}</a>
                                 @endif

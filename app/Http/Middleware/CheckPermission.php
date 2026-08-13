@@ -5,13 +5,12 @@ namespace App\Http\Middleware;
 use App\Domain\Authz\PermissionService;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckPermission
 {
-    public function __construct(private PermissionService $permissions)
-    {
-    }
+    public function __construct(private PermissionService $permissions) {}
 
     public function handle(Request $request, Closure $next, ?string $key = null): Response
     {
@@ -21,9 +20,11 @@ class CheckPermission
             return $next($request);
         }
 
-        $permission = $key
-            ?: $request->route()?->defaults['permission']
-            ?? $request->route()?->parameter('permission');
+        $permission = $key;
+        $route = $request->route();
+        if ((! is_string($permission) || $permission === '') && $route instanceof Route) {
+            $permission = $route->defaults['permission'] ?? $route->parameter('permission');
+        }
 
         if (! is_string($permission) || $permission === '') {
             return $this->deny($request, 'missing_permission_key', 'Forbidden');
@@ -34,7 +35,15 @@ class CheckPermission
             return $this->unauthenticated($request);
         }
 
-        if (! $this->permissions->userCan($user, $permission)) {
+        $allowed = false;
+        foreach (explode('|', $permission) as $candidate) {
+            if ($candidate !== '' && $this->permissions->userCan($user, $candidate)) {
+                $allowed = true;
+                break;
+            }
+        }
+
+        if (! $allowed) {
             return $this->deny($request, 'capability_denied', 'This action is unauthorized.');
         }
 

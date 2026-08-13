@@ -137,11 +137,13 @@ class PersonProfileController extends Controller
 
         $user = Auth::user();
 
-        DB::table('PersonSystemPassword')->updateOrInsert(
-            ['PersonID' => $user->PersonID],
-            ['Password' => Hash::make($request->input('password'))]
-        );
-        app(TokenSessionService::class)->revokeAllForUser((int) $user->PersonID);
+        DB::transaction(function () use ($user, $request) {
+            DB::table('PersonSystemPassword')->updateOrInsert(
+                ['PersonID' => $user->PersonID],
+                ['Password' => Hash::make($request->input('password'))]
+            );
+            app(TokenSessionService::class)->revokeAllForUser((int) $user->PersonID);
+        });
 
         return Redirect::route('profile.show')->with('success', 'تم تحديث كلمة المرور بنجاح.');
     }

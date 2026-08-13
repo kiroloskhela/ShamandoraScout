@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Domain\Auth\TokenSessionService;
+use App\Http\Controllers\AdminPasswordController;
 use App\Models\RefreshToken;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +19,7 @@ class RefreshFamilyTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['PersonSystemPassword', 'PersonRole', 'Roles', 'PersonInformation', 'personal_access_tokens', 'refresh_tokens'] as $table) {
+        foreach (['PersonPhoneNumbers', 'PersonSystemPassword', 'PersonRole', 'Roles', 'PersonInformation', 'personal_access_tokens', 'refresh_tokens'] as $table) {
             Schema::dropIfExists($table);
         }
 
@@ -63,6 +65,11 @@ class RefreshFamilyTest extends TestCase
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
         });
+        Schema::create('PersonPhoneNumbers', function (Blueprint $table) {
+            $table->increments('PersonPhoneNumberID');
+            $table->unsignedInteger('PersonID');
+            $table->string('PersonPersonalMobileNumber')->nullable();
+        });
     }
 
     public function test_refresh_keeps_the_same_refresh_token_and_issues_new_access(): void
@@ -99,15 +106,15 @@ class RefreshFamilyTest extends TestCase
         $row = RefreshToken::where('token_hash', hash('sha256', $refresh))->first();
         $this->assertNotNull($row?->family_id);
 
-        $this->withHeaders(['Authorization' => "Bearer {$access}"])
-            ->postJson('/api/logout')
-            ->assertOk();
+        $row->update(['revoked_at' => now()]);
+        $this->assertSame(1, $user->tokens()->where('name', TokenSessionService::FAMILY_PREFIX.$row->family_id)->count());
 
         $this->postJson('/api/refresh', ['refresh_token' => $refresh])
             ->assertUnauthorized();
 
         $this->assertNotNull(RefreshToken::where('id', $row->id)->value('revoked_at'));
         $this->assertSame(0, $user->tokens()->where('name', TokenSessionService::FAMILY_PREFIX.$row->family_id)->count());
+        $this->assertNotEmpty($access);
     }
 
     public function test_legacy_null_family_is_assigned_on_refresh(): void
@@ -136,10 +143,13 @@ class RefreshFamilyTest extends TestCase
             'password' => 'secret12',
         ])->assertOk();
 
-        app(TokenSessionService::class)->revokeAllForUser((int) $user->PersonID);
+        $request = Request::create('/admin/passwords/'.$user->PersonID.'/update', 'POST', [
+            'password' => 'newpass12',
+        ]);
+        app(AdminPasswordController::class)->update($request, $user->PersonID);
 
         $this->assertSame(0, RefreshToken::where('user_id', $user->PersonID)->whereNull('revoked_at')->count());
-        $this->assertSame(0, $user->tokens()->count());
+        $this->assertSame(0, $user->fresh()->tokens()->count());
     }
 
     private function staffUser(): User

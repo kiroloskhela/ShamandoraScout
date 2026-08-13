@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminCustodyRequestController;
 use App\Http\Controllers\AdminPlaceBookingController;
 use App\Http\Controllers\EventController;
@@ -9,6 +8,7 @@ use App\Http\Controllers\InventoryIssueController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\SecretaryController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,25 +16,25 @@ use App\Http\Controllers\SecretaryController;
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary', 'can.permission:web.secretary.manage'])->group(function () {
-    Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
-    Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
-    Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
+    Route::get('/secretary', [SecretaryController::class, 'index'])->name('secretary.index');
+    Route::get('/secretary/add', [SecretaryController::class, 'create'])->name('secretary.create');
+    Route::post('/secretary/insert', [SecretaryController::class, 'insert'])->name('secretary.insert');
 
-    Route::get('/secretary/edit/{id}',      [SecretaryController::class, 'edit'])->name('secretary.edit');
-    Route::patch('/secretary/update/{id}',  [SecretaryController::class, 'updates'])->name('secretary.update');
+    Route::get('/secretary/edit/{id}', [SecretaryController::class, 'edit'])->name('secretary.edit');
+    Route::patch('/secretary/update/{id}', [SecretaryController::class, 'updates'])->name('secretary.update');
 
-    Route::get('/secretary/download/{id}',  [SecretaryController::class, 'download'])->name('secretary.download');
+    Route::get('/secretary/download/{id}', [SecretaryController::class, 'download'])->name('secretary.download');
 
-    Route::get('/secretary/delete/{id}',    [SecretaryController::class, 'deletes'])->name('secretary.delete');
-    Route::delete('/secretary/destroy/{id}',[SecretaryController::class, 'destroy'])->name('secretary.destroy');
+    Route::get('/secretary/delete/{id}', [SecretaryController::class, 'deletes'])->name('secretary.delete');
+    Route::delete('/secretary/destroy/{id}', [SecretaryController::class, 'destroy'])->name('secretary.destroy');
 
-    Route::post('/secretary/upload',        [SecretaryController::class, 'upload'])->name('secretary.upload');
+    Route::post('/secretary/upload', [SecretaryController::class, 'upload'])->name('secretary.upload');
 
     Route::get('/admin/place-bookings', [AdminPlaceBookingController::class, 'index'])->name('admin.place_bookings.index');
     Route::get('/admin/place-bookings/{id}', [AdminPlaceBookingController::class, 'show'])->name('admin.place_bookings.show');
 
     Route::post('/admin/place-bookings/{id}/approve', [AdminPlaceBookingController::class, 'approve'])->name('admin.place_bookings.approve');
-    Route::post('/admin/place-bookings/{id}/reject',  [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
+    Route::post('/admin/place-bookings/{id}/reject', [AdminPlaceBookingController::class, 'reject'])->name('admin.place_bookings.reject');
     Route::post('/admin/place-bookings/{id}/approve-edit', [AdminPlaceBookingController::class, 'approveWithEdit'])->name('admin.place_bookings.approve_edit');
 
     // Events (SuperAdmin included via checkAuth list; delete/destroy stay SuperAdmin-only)
@@ -46,7 +46,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary', 'can
     Route::get('/event/edit/{id}', [EventController::class, 'edit'])->name('event.edit');
     Route::patch('/event/update/{id}', [EventController::class, 'updates'])->name('event.update');
 
-  // Locations
+    // Locations
     Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
     Route::get('/locations/create', [LocationController::class, 'create'])->name('locations.create');
     Route::post('/locations/insert', [LocationController::class, 'insert'])->name('locations.insert');
@@ -56,14 +56,13 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary', 'can
     Route::delete('/locations/destroy/{id}', [LocationController::class, 'destroy'])->name('locations.destroy');
 
     // PlaceTypes
-    Route::get('/place',                  [PlaceController::class, 'index'])->name('place.index');
-    Route::get('/place/add',              [PlaceController::class, 'create'])->name('place.create');
-    Route::post('/place/insert',          [PlaceController::class, 'insert'])->name('place.insert');
-    Route::get('/place/edit/{id}',        [PlaceController::class, 'edit'])->name('place.edit');
-    Route::patch('/place/update/{id}',    [PlaceController::class, 'updates'])->name('place.update');
-    Route::get('/place/delete/{id}',      [PlaceController::class, 'deletes'])->name('place.delete');
-    Route::delete('/place/destroy/{id}',  [PlaceController::class, 'destroy'])->name('place.destroy');
-
+    Route::get('/place', [PlaceController::class, 'index'])->name('place.index');
+    Route::get('/place/add', [PlaceController::class, 'create'])->name('place.create');
+    Route::post('/place/insert', [PlaceController::class, 'insert'])->name('place.insert');
+    Route::get('/place/edit/{id}', [PlaceController::class, 'edit'])->name('place.edit');
+    Route::patch('/place/update/{id}', [PlaceController::class, 'updates'])->name('place.update');
+    Route::get('/place/delete/{id}', [PlaceController::class, 'deletes'])->name('place.delete');
+    Route::delete('/place/destroy/{id}', [PlaceController::class, 'destroy'])->name('place.destroy');
 
 });
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory', 'can.permission:web.inventory.review'])->group(function () {
@@ -73,13 +72,12 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory', 'can.permissio
 
 });
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory', 'can.permission:web.inventory.manage'])->group(function () {
-
-
-    // Admin Custody
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory', 'can.permission:web.inventory.manage|web.inventory.review'])->group(function () {
     Route::get('/admin/custody-requests', [AdminCustodyRequestController::class, 'index'])->name('admin.custody_requests.index');
     Route::get('/admin/custody-requests/{id}', [AdminCustodyRequestController::class, 'show'])->name('admin.custody_requests.show');
+});
 
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory', 'can.permission:web.inventory.manage'])->group(function () {
 
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
@@ -94,7 +92,5 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory', 'can
     Route::get('/inventory-issue', [InventoryIssueController::class, 'index'])->name('inventory-issue.index');
     Route::get('/inventory-issue/getEventsForSeason', [InventoryIssueController::class, 'getEventsForSeason'])->name('inventory-issue.getEventsForSeason');
     Route::post('/inventory-issue/generate', [InventoryIssueController::class, 'generate'])->name('inventory-issue.generate');
-
-
 
 });

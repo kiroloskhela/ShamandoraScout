@@ -11,7 +11,7 @@ class ApiPermissionRouteTableTest extends TestCase
     {
         $missing = [];
 
-        foreach (Route::getRoutes() as $route) {
+        foreach (Route::getRoutes()->getRoutes() as $route) {
             $uri = $route->uri();
             if (! str_starts_with($uri, 'api/')) {
                 continue;

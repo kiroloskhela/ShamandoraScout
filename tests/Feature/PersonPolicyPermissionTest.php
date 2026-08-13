@@ -121,5 +121,6 @@ class PersonPolicyPermissionTest extends TestCase
         ]);
 
         $this->assertFalse((new PersonPolicy)->delete($admin->fresh(), $target->fresh()));
+        $this->assertFalse((new PersonPolicy)->update($admin->fresh(), $target->fresh()));
     }
 }

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Domain\Authz\SuperAdminGuard;
+use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -86,9 +87,20 @@ class SuperAdminGuardTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function test_duplicate_superadmin_rows_for_one_person_still_count_as_last(): void
+    {
+        DB::table('PersonRole')->insert([
+            ['PersonID' => 10, 'RoleID' => 1],
+            ['PersonID' => 10, 'RoleID' => 1],
+        ]);
+
+        $this->expectException(RuntimeException::class);
+        (new SuperAdminGuard)->assertPersonRoleDeleteAllowed(1);
+    }
+
     public function test_non_superadmin_cannot_assign_superadmin(): void
     {
-        $actor = \App\Models\User::create([
+        $actor = User::create([
             'FirstName' => 'Fin',
             'SecondName' => 'User',
             'ThirdName' => 'X',
@@ -105,7 +117,7 @@ class SuperAdminGuardTest extends TestCase
 
     public function test_superadmin_can_assign_superadmin(): void
     {
-        $actor = \App\Models\User::create([
+        $actor = User::create([
             'FirstName' => 'Root',
             'SecondName' => 'Admin',
             'ThirdName' => 'X',

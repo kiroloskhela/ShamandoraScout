@@ -10,9 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class RolePermissionController extends Controller
 {
-    public function __construct(private PermissionService $permissions)
-    {
-    }
+    public function __construct(private PermissionService $permissions) {}
 
     public function edit(Request $request)
     {
@@ -62,23 +60,6 @@ class RolePermissionController extends Controller
             throw ValidationException::withMessages(['password' => 'Password confirmation failed.']);
         }
 
-        if ((int) $data['auth_version'] !== $this->permissions->version()) {
-            throw ValidationException::withMessages([
-                'auth_version' => 'This matrix was changed by someone else. Reload and try again.',
-            ]);
-        }
-
-        $role = DB::table('Roles')->where('RoleID', $data['role_id'])->first();
-        if (! $role) {
-            abort(404);
-        }
-
-        if (($role->RoleName ?? '') === 'SuperAdmin') {
-            throw ValidationException::withMessages([
-                'role_id' => 'SuperAdmin always has every grantable permission. It is not edited in the matrix.',
-            ]);
-        }
-
         $incoming = array_values(array_unique($data['keys'] ?? []));
         foreach ($incoming as $key) {
             if (! $this->permissions->isGrantable($key)) {
@@ -88,14 +69,34 @@ class RolePermissionController extends Controller
             }
         }
 
-        $before = DB::table('role_permissions')
-            ->where('RoleID', $role->RoleID)
-            ->pluck('permission_key')
-            ->sort()
-            ->values()
-            ->all();
+        $role = null;
+        $before = [];
 
-        DB::transaction(function () use ($role, $incoming) {
+        DB::transaction(function () use ($data, $incoming, &$role, &$before) {
+            $role = DB::table('Roles')->where('RoleID', $data['role_id'])->lockForUpdate()->first();
+            if (! $role) {
+                abort(404);
+            }
+
+            if (($role->RoleName ?? '') === 'SuperAdmin') {
+                throw ValidationException::withMessages([
+                    'role_id' => 'SuperAdmin always has every grantable permission. It is not edited in the matrix.',
+                ]);
+            }
+
+            if ((int) $data['auth_version'] !== $this->permissions->version()) {
+                throw ValidationException::withMessages([
+                    'auth_version' => 'This matrix was changed by someone else. Reload and try again.',
+                ]);
+            }
+
+            $before = DB::table('role_permissions')
+                ->where('RoleID', $role->RoleID)
+                ->pluck('permission_key')
+                ->sort()
+                ->values()
+                ->all();
+
             DB::table('role_permissions')->where('RoleID', $role->RoleID)->delete();
             $now = now();
             foreach ($incoming as $key) {

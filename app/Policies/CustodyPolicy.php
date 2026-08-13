@@ -37,7 +37,7 @@ class CustodyPolicy
 
     public function viewAdmin(User $user): bool
     {
-        return app(PermissionService::class)->userCan($user, 'web.inventory.manage');
+        return $this->isInventoryStaff($user);
     }
 
     public function review(User $user): bool

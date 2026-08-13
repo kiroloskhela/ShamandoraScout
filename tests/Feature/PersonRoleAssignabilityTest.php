@@ -8,6 +8,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -91,6 +92,20 @@ class PersonRoleAssignabilityTest extends TestCase
         } catch (HttpException $e) {
             $this->assertSame(403, $e->getStatusCode());
         }
+    }
+
+    public function test_insert_rejects_unknown_person(): void
+    {
+        $actor = $this->superAdmin();
+        $request = Request::create('/person-role/insert', 'POST', [
+            'person_id' => 999999,
+            'role_id' => 3,
+            'RequestPersonID' => $actor->PersonID,
+        ]);
+        $request->setUserResolver(fn () => $actor);
+
+        $this->expectException(ValidationException::class);
+        app(PersonRoleController::class)->insert($request);
     }
 
     private function superAdmin(): User

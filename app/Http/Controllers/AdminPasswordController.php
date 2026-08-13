@@ -49,11 +49,13 @@ class AdminPasswordController extends Controller
 
         $plain = (string) $request->input('password');
 
-        DB::table('PersonSystemPassword')->updateOrInsert(
-            ['PersonID' => $id],
-            ['Password' => Hash::make($plain)]
-        );
-        app(TokenSessionService::class)->revokeAllForUser((int) $id);
+        DB::transaction(function () use ($id, $plain) {
+            DB::table('PersonSystemPassword')->updateOrInsert(
+                ['PersonID' => $id],
+                ['Password' => Hash::make($plain)]
+            );
+            app(TokenSessionService::class)->revokeAllForUser((int) $id);
+        });
 
         $phone = DB::table('PersonPhoneNumbers')
             ->where('PersonID', $id)

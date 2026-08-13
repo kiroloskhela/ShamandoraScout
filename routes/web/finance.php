@@ -53,7 +53,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance', 'can.per
         Route::post('/booking/{bookingID}/update-shirt-size', [SeasonEventBookingFinanceController::class, 'updateShirtSize'])->name('updateShirtSize');
         Route::post('/booking/{bookingID}/send-qr', [SeasonEventBookingFinanceController::class, 'sendQr'])->name('sendQr');
 
-        Route::middleware(['checkAuth:SuperAdmin', 'can.permission:web.finance.delete_booking'])->group(function () {
+        Route::middleware(['superadmin.only', 'can.permission:web.finance.delete_booking'])->group(function () {
             Route::get('/booking/{bookingID}/delete', [SeasonEventBookingFinanceController::class, 'deletePage'])->name('deletePage');
             Route::delete('/booking/{bookingID}/delete', [SeasonEventBookingFinanceController::class, 'destroy'])->name('destroy');
         });

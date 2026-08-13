@@ -86,22 +86,25 @@ class TokenSessionService
 
     public function revokeFamily(int $userId, string $familyId): void
     {
-        RefreshToken::where('user_id', $userId)
-            ->where('family_id', $familyId)
-            ->whereNull('revoked_at')
-            ->update(['revoked_at' => now()]);
+        DB::transaction(function () use ($userId, $familyId) {
+            RefreshToken::where('user_id', $userId)
+                ->where('family_id', $familyId)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
 
-        $user = User::find($userId);
-        $user?->tokens()->where('name', self::FAMILY_PREFIX.$familyId)->delete();
+            User::find($userId)?->tokens()->where('name', self::FAMILY_PREFIX.$familyId)->delete();
+        });
     }
 
     public function revokeAllForUser(int $userId): void
     {
-        RefreshToken::where('user_id', $userId)
-            ->whereNull('revoked_at')
-            ->update(['revoked_at' => now()]);
+        DB::transaction(function () use ($userId) {
+            RefreshToken::where('user_id', $userId)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
 
-        User::find($userId)?->tokens()->delete();
+            User::find($userId)?->tokens()->delete();
+        });
     }
 
     public function logoutCurrent(User $user, mixed $token): void

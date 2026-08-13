@@ -97,7 +97,7 @@ class MkhdomApiTest extends TestCase
 
         DB::table('Event')->insert(['EventID' => 1, 'EventName' => 'Camp', 'EventStartDate' => '2026-01-01']);
         DB::table('SeasonEvent')->insert(['SeasonEventID' => 1, 'EventID' => 1]);
-        DB::table('Attendance')->insert([
+        $ownAttendanceId = DB::table('Attendance')->insertGetId([
             'SeasonEventID' => 1,
             'ServedID' => $user->PersonID,
             'ServentID' => $other->PersonID,
@@ -123,7 +123,8 @@ class MkhdomApiTest extends TestCase
 
         $mine = $this->withHeaders($headers)->getJson('/api/attendance/mine?person_id='.$other->PersonID);
         $mine->assertOk()->assertJsonPath('ok', true)->assertJsonPath('total', 1);
-        $this->assertSame($user->PersonID, (int) $mine->json('data.0.ServedID') ?: $user->PersonID);
+        $this->assertSame((int) $ownAttendanceId, (int) $mine->json('data.0.AttendanceID'));
+        $this->assertSame($user->PersonID, (int) $mine->json('data.0.ServedID'));
         $this->assertSame('present', $mine->json('data.0.AttendanceStatus'));
 
         $this->withHeaders($headers)->getJson('/api/show-persons')
@@ -138,10 +139,20 @@ class MkhdomApiTest extends TestCase
 
     public function test_unknown_person_id_returns_same_401(): void
     {
-        $this->postJson('/api/login', [
+        $user = $this->createUserWithRole('Mkhdom');
+
+        $unknown = $this->postJson('/api/login', [
             'id' => 999999,
             'password' => 'secret12',
-        ])->assertUnauthorized()->assertJsonPath('message', 'Invalid credentials');
+        ]);
+        $badPassword = $this->postJson('/api/login', [
+            'id' => $user->PersonID,
+            'password' => 'wrong-password',
+        ]);
+
+        $unknown->assertUnauthorized()->assertJsonPath('ok', false)->assertJsonPath('message', 'Invalid credentials');
+        $badPassword->assertUnauthorized()->assertJsonPath('ok', false)->assertJsonPath('message', 'Invalid credentials');
+        $this->assertSame($unknown->json(), $badPassword->json());
     }
 
     public function test_password_without_app_role_cannot_login(): void

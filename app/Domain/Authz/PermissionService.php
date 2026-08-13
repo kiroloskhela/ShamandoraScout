@@ -11,10 +11,10 @@ class PermissionService
 {
     public const VERSION_KEY = 'authz.version';
 
-    /** @var array<int, array<string, true>> */
+    /** @var array<string, array<string, true>> */
     private array $requestMemo = [];
 
-    /** @var array<int, bool> */
+    /** @var array<string, bool> */
     private array $superAdminMemo = [];
 
     public function isSuperAdmin(?User $user): bool
@@ -28,17 +28,18 @@ class PermissionService
             return false;
         }
 
-        if (array_key_exists($id, $this->superAdminMemo)) {
-            return $this->superAdminMemo[$id];
+        $memoKey = $this->memoKey($id);
+        if (array_key_exists($memoKey, $this->superAdminMemo)) {
+            return $this->superAdminMemo[$memoKey];
         }
 
-        $this->superAdminMemo[$id] = DB::table('PersonRole as pr')
+        $this->superAdminMemo[$memoKey] = DB::table('PersonRole as pr')
             ->join('Roles as r', 'r.RoleID', '=', 'pr.RoleID')
             ->where('pr.PersonID', $id)
             ->where('r.RoleName', 'SuperAdmin')
             ->exists();
 
-        return $this->superAdminMemo[$id];
+        return $this->superAdminMemo[$memoKey];
     }
 
     public function userCan(?User $user, string $key): bool
@@ -151,8 +152,9 @@ class PermissionService
     private function keysFor(User $user): array
     {
         $id = (int) $user->PersonID;
-        if (isset($this->requestMemo[$id])) {
-            return $this->requestMemo[$id];
+        $memoKey = $this->memoKey($id);
+        if (isset($this->requestMemo[$memoKey])) {
+            return $this->requestMemo[$memoKey];
         }
 
         $roleIds = DB::table('PersonRole')
@@ -168,9 +170,14 @@ class PermissionService
             }
         }
 
-        $this->requestMemo[$id] = $set;
+        $this->requestMemo[$memoKey] = $set;
 
         return $set;
+    }
+
+    private function memoKey(int $id): string
+    {
+        return $this->version().':'.$id;
     }
 
     /**

@@ -24,16 +24,7 @@ class RolePermissionSeeder extends Seeder
             }
 
             foreach ($keys as $key) {
-                $exists = DB::table('role_permissions')
-                    ->where('RoleID', $roleId)
-                    ->where('permission_key', $key)
-                    ->exists();
-
-                if ($exists) {
-                    continue;
-                }
-
-                DB::table('role_permissions')->insert([
+                DB::table('role_permissions')->insertOrIgnore([
                     'RoleID' => $roleId,
                     'permission_key' => $key,
                     'created_at' => $now,

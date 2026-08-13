@@ -27,6 +27,11 @@ class PersonPolicy
             return true;
         }
 
+        $permissions = app(PermissionService::class);
+        if ($permissions->isSuperAdmin($person) && ! $permissions->isSuperAdmin($user)) {
+            return false;
+        }
+
         return $this->elevated($user, $person, 'web.people.update_any', 'web.people.manage');
     }
 

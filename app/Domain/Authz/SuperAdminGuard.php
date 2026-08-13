@@ -82,7 +82,11 @@ class SuperAdminGuard
             return;
         }
 
-        $count = (int) DB::table('PersonRole')->where('RoleID', $roleId)->lockForUpdate()->count();
+        $count = (int) DB::table('PersonRole')
+            ->where('RoleID', $roleId)
+            ->lockForUpdate()
+            ->distinct()
+            ->count('PersonID');
         if ($count <= 1) {
             throw new RuntimeException('The last SuperAdmin assignment cannot be removed.');
         }
