@@ -17,7 +17,7 @@ use App\Http\Controllers\SeasonEventServantFollowupController;
 use App\Http\Controllers\WaitingListController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa', 'can.permission:web.people.manage'])->group(function () {
 
     // Person Blacklist
     Route::get('/personblacklist', [PersonBlackListController::class, 'index'])->name('personblacklist.index');
@@ -98,12 +98,12 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Person directory list + Excel export (scoped to caller's groups)
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem', 'can.permission:web.people.directory'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
     Route::get('/export/scouts', [ExportController::class, 'exportScoutsExcel'])->name('export.scouts.excel');
 });
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance', 'can.permission:web.enrolments.manage'])->group(function () {
 
     Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
     Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
@@ -147,7 +147,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secre
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance|Secretary|AdminSecretary'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|Finance|AdminFinance|Secretary|AdminSecretary', 'can.permission:web.registrations.manage'])->group(function () {
 
     // Guests
     Route::get('/guests', [GuestsController::class, 'index'])->name('guests.index');

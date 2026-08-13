@@ -36,17 +36,19 @@ class CustodyPolicy
 
     public function viewAdmin(User $user): bool
     {
-        return $this->isInventoryStaff($user);
+        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.inventory.manage');
     }
 
     public function review(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'AdminInventory'])->exists();
+        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.inventory.review');
     }
 
     private function isInventoryStaff(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'AdminInventory', 'Inventory'])->exists();
+        $p = app(\App\Domain\Authz\PermissionService::class);
+
+        return $p->userCan($user, 'web.inventory.manage') || $p->userCan($user, 'web.inventory.review');
     }
 
     private function requestExists(int $requestId): bool

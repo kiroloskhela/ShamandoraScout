@@ -34,74 +34,70 @@ Route::get('/version/check', [VersionApiController::class, 'check']);
 // Protected routes
 Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
 
-    // Auth
     Route::post('/logout', [LoginApiController::class, 'apiLogout']);
 
-    // Persons
-    Route::get('/show-persons', [PersonApiController::class, 'ShowPersons']);
-    Route::get('/person/{id}', [PersonApiController::class, 'ShowProfile']);
-    Route::get('/calendar/{id}', [PersonApiController::class, 'ShowCalendar']);
+    Route::middleware('can.permission:api.mobile.staff')->group(function () {
 
-    // Attendance
-    Route::get('/attendance/events', [AttendanceApiController::class, 'events']);
-    Route::get('/attendance/persons', [AttendanceApiController::class, 'persons']);
-    Route::get('/attendance/persons/{seasonEventId}', [AttendanceApiController::class, 'personsBySeasonEventId']);
-    Route::post('/attendance/save', [AttendanceApiController::class, 'save']);
+        Route::get('/show-persons', [PersonApiController::class, 'ShowPersons']);
+        Route::get('/person/{id}', [PersonApiController::class, 'ShowProfile']);
+        Route::get('/calendar/{id}', [PersonApiController::class, 'ShowCalendar']);
 
-    // Curricula
-    Route::get('/curricula', [CurriculaApiController::class, 'index']);
-    Route::get('/curricula/meta', [CurriculaApiController::class, 'meta']);
-    Route::get('/curricula/{id}', [CurriculaApiController::class, 'show']);
-    Route::get('/curricula/{id}/download', [CurriculaApiController::class, 'download']);
+        Route::get('/attendance/events', [AttendanceApiController::class, 'events']);
+        Route::get('/attendance/persons', [AttendanceApiController::class, 'persons']);
+        Route::get('/attendance/persons/{seasonEventId}', [AttendanceApiController::class, 'personsBySeasonEventId']);
+        Route::post('/attendance/save', [AttendanceApiController::class, 'save']);
 
-    // Curriculum plans (active منهج for mobile)
-    Route::get('/curriculum-plans/active', [CurriculumPlanApiController::class, 'activeAll']);
-    Route::get('/curriculum-plans/active/{qetaaId}', [CurriculumPlanApiController::class, 'activeForQetaa']);
+        Route::get('/curricula', [CurriculaApiController::class, 'index']);
+        Route::get('/curricula/meta', [CurriculaApiController::class, 'meta']);
+        Route::get('/curricula/{id}', [CurriculaApiController::class, 'show']);
+        Route::get('/curricula/{id}/download', [CurriculaApiController::class, 'download']);
 
-    // Media
-    Route::get('/media/seasons', [MediaApiController::class, 'seasons']);
-    Route::get('/media/events', [MediaApiController::class, 'events']);
-    Route::get('/media/links', [MediaApiController::class, 'links']);
-    Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
+        Route::get('/curriculum-plans/active', [CurriculumPlanApiController::class, 'activeAll']);
+        Route::get('/curriculum-plans/active/{qetaaId}', [CurriculumPlanApiController::class, 'activeForQetaa']);
 
-    // Custody
-    Route::get('/custody/meta', [CustodyApiController::class, 'meta']);
-    Route::get('/custody/requests', [CustodyApiController::class, 'index']);
-    Route::post('/custody/requests', [CustodyApiController::class, 'store']);
-    Route::get('/custody/requests/{id}', [CustodyApiController::class, 'show']);
-    Route::put('/custody/requests/{id}', [CustodyApiController::class, 'update']);
-    Route::delete('/custody/requests/{id}', [CustodyApiController::class, 'destroy']);
+        Route::get('/media/seasons', [MediaApiController::class, 'seasons']);
+        Route::get('/media/events', [MediaApiController::class, 'events']);
+        Route::get('/media/links', [MediaApiController::class, 'links']);
+        Route::get('/media/links/{seasonEventId}', [MediaApiController::class, 'linksBySeasonEventId']);
 
-    // Place bookings
-    Route::get('/place_bookings/meta', [PlaceBookingApiController::class, 'meta']);
-    Route::get('/place_bookings/places/{locationId}', [PlaceBookingApiController::class, 'placesByLocation']);
-    Route::get('/place_bookings', [PlaceBookingApiController::class, 'index']);
-    Route::post('/place_bookings', [PlaceBookingApiController::class, 'store']);
-    Route::get('/place_bookings/{id}', [PlaceBookingApiController::class, 'show']);
-    Route::put('/place_bookings/{id}', [PlaceBookingApiController::class, 'update']);
-    Route::delete('/place_bookings/{id}', [PlaceBookingApiController::class, 'destroy']);
+        Route::get('/custody/meta', [CustodyApiController::class, 'meta']);
+        Route::get('/custody/requests', [CustodyApiController::class, 'index']);
+        Route::post('/custody/requests', [CustodyApiController::class, 'store']);
+        Route::get('/custody/requests/{id}', [CustodyApiController::class, 'show']);
+        Route::put('/custody/requests/{id}', [CustodyApiController::class, 'update']);
+        Route::delete('/custody/requests/{id}', [CustodyApiController::class, 'destroy']);
 
-    // Person special cases
-    Route::get('/person-special-cases', [PersonSpecialCaseApiController::class, 'index']);
-    Route::get('/person-special-cases/persons', [PersonSpecialCaseApiController::class, 'persons']);
-    Route::get('/person-special-cases/search/persons', [PersonSpecialCaseApiController::class, 'searchPersons']);
-    Route::get('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'show']);
-    Route::post('/person-special-cases', [PersonSpecialCaseApiController::class, 'store']);
-    Route::put('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'update']);
-    Route::delete('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'destroy']);
+        Route::get('/place_bookings/meta', [PlaceBookingApiController::class, 'meta']);
+        Route::get('/place_bookings/places/{locationId}', [PlaceBookingApiController::class, 'placesByLocation']);
+        Route::get('/place_bookings', [PlaceBookingApiController::class, 'index']);
+        Route::post('/place_bookings', [PlaceBookingApiController::class, 'store']);
+        Route::get('/place_bookings/{id}', [PlaceBookingApiController::class, 'show']);
+        Route::put('/place_bookings/{id}', [PlaceBookingApiController::class, 'update']);
+        Route::delete('/place_bookings/{id}', [PlaceBookingApiController::class, 'destroy']);
 
-    // Games
-    Route::get('/games', [GamesApiController::class, 'index']);
-    Route::get('/games/{id}', [GamesApiController::class, 'show']);
-    Route::post('/games', [GamesApiController::class, 'store']);
-    Route::put('/games/{id}', [GamesApiController::class, 'update']);
-    Route::delete('/games/{id}', [GamesApiController::class, 'destroy']);
+        Route::get('/games', [GamesApiController::class, 'index']);
+        Route::get('/games/{id}', [GamesApiController::class, 'show']);
 
-    // Event programs (leader missions)
-    Route::get('/programs', [EventProgramApiController::class, 'index']);
-    Route::get('/programs/{seasonEventId}', [EventProgramApiController::class, 'show']);
+        Route::get('/programs', [EventProgramApiController::class, 'index']);
+        Route::get('/programs/{seasonEventId}', [EventProgramApiController::class, 'show']);
 
-    // Auxiliary Qetaa Tree Data
-    Route::get('/auxiliary', [QetaaTreeApiController::class, 'auxiliary']);
+        Route::get('/auxiliary', [QetaaTreeApiController::class, 'auxiliary']);
+    });
+
+    Route::middleware('can.permission:api.special_cases.manage')->group(function () {
+        Route::get('/person-special-cases', [PersonSpecialCaseApiController::class, 'index']);
+        Route::get('/person-special-cases/persons', [PersonSpecialCaseApiController::class, 'persons']);
+        Route::get('/person-special-cases/search/persons', [PersonSpecialCaseApiController::class, 'searchPersons']);
+        Route::get('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'show']);
+        Route::post('/person-special-cases', [PersonSpecialCaseApiController::class, 'store']);
+        Route::put('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'update']);
+        Route::delete('/person-special-cases/{id}', [PersonSpecialCaseApiController::class, 'destroy']);
+    });
+
+    Route::middleware('can.permission:api.games.mutate')->group(function () {
+        Route::post('/games', [GamesApiController::class, 'store']);
+        Route::put('/games/{id}', [GamesApiController::class, 'update']);
+        Route::delete('/games/{id}', [GamesApiController::class, 'destroy']);
+    });
 
 });

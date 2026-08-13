@@ -37,6 +37,6 @@ class WhatsAppCampaignPolicy
 
     private function isSuperAdmin(User $user): bool
     {
-        return $user->role()->where('RoleName', 'SuperAdmin')->exists();
+        return app(\App\Domain\Authz\PermissionService::class)->isSuperAdmin($user);
     }
 }

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MedicineInventoryController;
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminFirstAid'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminFirstAid', 'can.permission:web.medicine.manage'])->group(function () {
     // Medicine Inventory
     Route::get('/medicine', [MedicineInventoryController::class, 'index'])->name('medicine.index');
     Route::get('/medicine/add', [MedicineInventoryController::class, 'create'])->name('medicine.create');

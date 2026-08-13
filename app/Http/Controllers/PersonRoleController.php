@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Authz\PermissionService;
+use App\Domain\Authz\SuperAdminGuard;
 use Illuminate\Http\Request;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
-use \Illuminate\Http\Response;
-
-use Session;
+use RuntimeException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PersonRoleController extends Controller
 {
@@ -58,17 +55,32 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
 
         public function insert(Request  $request)
         {
-            // PersonRole.PersonRoleID is not AUTO_INCREMENT in production.
-            $thisPersonRoleID = \App\Support\ManualPrimaryKey::next('PersonRole', 'PersonRoleID');
+            try {
+                DB::transaction(function () use ($request) {
+                    app(SuperAdminGuard::class)->assertPersonRoleChangeAllowed(
+                        null,
+                        (int) $request->role_id,
+                        $request->user()
+                    );
 
-            DB::table('PersonRole')->insert(
-                array(
-                    'PersonRoleID' => $thisPersonRoleID,
-                    'PersonID' => $request -> person_id,
-                    'RoleID' => $request -> role_id,
-                    'RequestPersonID' => $request -> RequestPersonID,
-                )
-            );
+                    // PersonRole.PersonRoleID is not AUTO_INCREMENT in production.
+                    $thisPersonRoleID = \App\Support\ManualPrimaryKey::next('PersonRole', 'PersonRoleID');
+
+                    DB::table('PersonRole')->insert([
+                        'PersonRoleID' => $thisPersonRoleID,
+                        'PersonID' => $request->person_id,
+                        'RoleID' => $request->role_id,
+                        'RequestPersonID' => $request->RequestPersonID,
+                    ]);
+
+                    app(PermissionService::class)->bumpVersion();
+                });
+            } catch (HttpException $e) {
+                throw $e;
+            } catch (RuntimeException $e) {
+                abort(403, $e->getMessage());
+            }
+
             return redirect()->route('person-role.index');
         }
     
@@ -108,9 +120,31 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
     
         public function updates(Request $request, $id)
         {
-            //$personRole = DB::table('PersonRole')->where('PersonRoleID', $id)->first();
+            try {
+                DB::transaction(function () use ($request, $id) {
+                    $row = DB::table('PersonRole')->where('PersonRoleID', $id)->lockForUpdate()->first();
+                    if (! $row) {
+                        abort(404);
+                    }
 
-            $affected = DB::table('PersonRole')->where('PersonRoleID', $id)->update(['RoleID' => $request->role_id, 'RequestPersonID' => $request-> RequestPersonID]);
+                    app(SuperAdminGuard::class)->assertPersonRoleChangeAllowed(
+                        (int) $row->RoleID,
+                        (int) $request->role_id,
+                        $request->user()
+                    );
+
+                    DB::table('PersonRole')->where('PersonRoleID', $id)->update([
+                        'RoleID' => $request->role_id,
+                        'RequestPersonID' => $request->RequestPersonID,
+                    ]);
+
+                    app(PermissionService::class)->bumpVersion();
+                });
+            } catch (HttpException $e) {
+                throw $e;
+            } catch (RuntimeException $e) {
+                abort(403, $e->getMessage());
+            }
 
             return redirect()->route('person-role.index');
         }
@@ -136,8 +170,23 @@ $personRoles = DB::select(" SELECT pi.PersonID, pi.ShamandoraCode, pr.PersonRole
 
         public function destroy($id)
         {
-            $deleted = DB::table('PersonRole')->where('PersonRoleID',$id)->delete();
-            
+            try {
+                DB::transaction(function () use ($id) {
+                    $row = DB::table('PersonRole')->where('PersonRoleID', $id)->lockForUpdate()->first();
+                    if (! $row) {
+                        abort(404);
+                    }
+
+                    app(SuperAdminGuard::class)->assertPersonRoleDeleteAllowed((int) $row->RoleID);
+                    DB::table('PersonRole')->where('PersonRoleID', $id)->delete();
+                    app(PermissionService::class)->bumpVersion();
+                });
+            } catch (HttpException $e) {
+                throw $e;
+            } catch (RuntimeException $e) {
+                abort(403, $e->getMessage());
+            }
+
             return redirect()->route('person-role.index');
         }
 }

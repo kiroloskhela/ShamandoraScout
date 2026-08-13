@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.manage'])->group(function () {
     Route::get('/event-program', [EventProgramController::class, 'index'])->name('event-program.index');
     Route::get('/event-program/guide', [EventProgramController::class, 'downloadGuide'])->name('event-program.guide');
     Route::get('/event-program/open/{seasonEventId}', [EventProgramController::class, 'open'])->name('event-program.open');

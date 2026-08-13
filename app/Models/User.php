@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(\App\Models\Password::class, 'PersonID', 'PersonID');
     }
+
+    public function isSuperAdmin(): bool
+    {
+        return app(\App\Domain\Authz\PermissionService::class)->isSuperAdmin($this);
+    }
 }

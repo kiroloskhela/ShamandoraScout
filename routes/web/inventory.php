@@ -15,7 +15,7 @@ use App\Http\Controllers\SecretaryController;
 | Secretary (SuperAdmin|Secretary)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary', 'can.permission:web.secretary.manage'])->group(function () {
     Route::get('/secretary',                [SecretaryController::class, 'index'])->name('secretary.index');
     Route::get('/secretary/add',            [SecretaryController::class, 'create'])->name('secretary.create');
     Route::post('/secretary/insert',        [SecretaryController::class, 'insert'])->name('secretary.insert');
@@ -66,14 +66,14 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminSecretary|Secretary'])->gr
 
 
 });
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory', 'can.permission:web.inventory.review'])->group(function () {
 
     Route::post('/admin/custody-requests/{id}/approve', [AdminCustodyRequestController::class, 'approve'])->name('admin.custody_requests.approve');
     Route::post('/admin/custody-requests/{id}/reject', [AdminCustodyRequestController::class, 'reject'])->name('admin.custody_requests.reject');
 
 });
 
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminInventory|Inventory', 'can.permission:web.inventory.manage'])->group(function () {
 
 
     // Admin Custody

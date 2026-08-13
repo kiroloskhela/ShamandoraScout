@@ -13,16 +13,15 @@ class CheckAuthentication
 {
     public function handle($request, Closure $next, $role)
     {
-        //dd($role);
-        $rolesArraySentInRequest = explode("|",$role);
-
-        //dd($rolesArraySentInRequest);
-        // Check if the user is authenticated
-        if (!auth()->check()) {
-            return redirect()->route('login-auth'); // Redirect to login page
+        if (! auth()->check()) {
+            return redirect()->route('login-auth');
         }
-    
-        // Get the user's roles
+
+        if (config('permissions.enforce')) {
+            return $next($request);
+        }
+
+        $rolesArraySentInRequest = explode("|",$role);
         $userRole = auth()->user()->role;
         //dd($userRole);
 

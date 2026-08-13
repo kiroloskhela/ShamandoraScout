@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * Event booking finance mutations: Finance roles; delete restricted to SuperAdmin.
+ * Event booking finance mutations: web.finance.manage; delete uses web.finance.delete_booking.
  */
 class EventBookingPolicy
 {
@@ -21,11 +21,11 @@ class EventBookingPolicy
 
     public function delete(User $user): bool
     {
-        return $user->role()->where('RoleName', 'SuperAdmin')->exists();
+        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.finance.delete_booking');
     }
 
     private function hasFinanceRole(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'Finance', 'AdminFinance'])->exists();
+        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.finance.manage');
     }
 }

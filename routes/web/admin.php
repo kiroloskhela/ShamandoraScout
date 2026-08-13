@@ -22,8 +22,9 @@ use App\Http\Controllers\NewEnrolmentAdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PersonDirectoryController;
 use App\Http\Controllers\PersonRoleController;
-use App\Http\Controllers\QetaaController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\QetaaController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\RotbaKashfeyaController;
 use App\Http\Controllers\SanaMarhalaDeraseyyaController;
 use App\Http\Controllers\SeasonController;
@@ -40,7 +41,7 @@ use Illuminate\Support\Facades\Route;
 | SuperAdmin Only
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
+Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.manage'])->group(function () {
 
     // Roles
     Route::get('/role', [RoleController::class, 'index'])->name('role.index');
@@ -51,24 +52,27 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin'])->group(function () {
     Route::get('/role/delete/{id}', [RoleController::class, 'deletes'])->name('role.delete');
     Route::delete('/role/destroy/{id}', [RoleController::class, 'destroy'])->name('role.destroy');
 
-    // Person Roles Assignment
-    Route::get('/person-role', [PersonRoleController::class, 'index'])->name('person-role.index');
-    Route::get('/person-role/add', [PersonRoleController::class, 'create'])->name('person-role.create');
-    Route::post('/person-role/insert', [PersonRoleController::class, 'insert'])->name('person-role.insert');
-    Route::get('/person-role/edit/{id}', [PersonRoleController::class, 'edit'])->name('person-role.edit');
-    Route::patch('/person-role/update/{id}', [PersonRoleController::class, 'updates'])->name('person-role.update');
-    Route::get('/person-role/delete/{id}', [PersonRoleController::class, 'deletes'])->name('person-role.delete');
-    Route::delete('/person-role/destroy/{id}', [PersonRoleController::class, 'destroy'])->name('person-role.destroy');
+    // SuperAdmin-only even when the matrix is enforced (never grantable).
+    Route::middleware('superadmin.only')->group(function () {
+        Route::get('/person-role', [PersonRoleController::class, 'index'])->name('person-role.index');
+        Route::get('/person-role/add', [PersonRoleController::class, 'create'])->name('person-role.create');
+        Route::post('/person-role/insert', [PersonRoleController::class, 'insert'])->name('person-role.insert');
+        Route::get('/person-role/edit/{id}', [PersonRoleController::class, 'edit'])->name('person-role.edit');
+        Route::patch('/person-role/update/{id}', [PersonRoleController::class, 'updates'])->name('person-role.update');
+        Route::get('/person-role/delete/{id}', [PersonRoleController::class, 'deletes'])->name('person-role.delete');
+        Route::delete('/person-role/destroy/{id}', [PersonRoleController::class, 'destroy'])->name('person-role.destroy');
+
+        Route::get('/admin/role-access', [RolePermissionController::class, 'edit'])->name('role-permissions.edit');
+        Route::post('/admin/role-access', [RolePermissionController::class, 'update'])->name('role-permissions.update');
+        Route::get('/admin/passwords', [AdminPasswordController::class, 'index'])->name('admin.passwords');
+        Route::get('/admin/passwords/{id}/edit', [AdminPasswordController::class, 'edit'])->name('admin.passwords.edit');
+        Route::post('/admin/passwords/{id}/update', [AdminPasswordController::class, 'update'])->name('admin.passwords.update');
+    });
 
     // Group Person (add khadem)
     Route::get('/group-person/add-khadem', [GroupPersonController::class, 'createKhadem'])->name('group-person.create-khadem');
     Route::get('/group-person/delete/{id}', [GroupPersonController::class, 'deletes'])->name('group-person.delete');
     Route::delete('/group-person/destroy/{id}', [GroupPersonController::class, 'destroy'])->name('group-person.destroy');
-
-    // SuperAdmin Password Management
-    Route::get('/admin/passwords', [AdminPasswordController::class, 'index'])->name('admin.passwords');
-    Route::get('/admin/passwords/{id}/edit', [AdminPasswordController::class, 'edit'])->name('admin.passwords.edit');
-    Route::post('/admin/passwords/{id}/update', [AdminPasswordController::class, 'update'])->name('admin.passwords.update');
 
     // System audit logs
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

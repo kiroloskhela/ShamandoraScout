@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * Medicine inventory: SuperAdmin or AdminFirstAid.
+ * Medicine inventory: web.medicine.manage.
  */
 class MedicinePolicy
 {
@@ -26,6 +26,6 @@ class MedicinePolicy
 
     private function hasMedicineRole(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'AdminFirstAid'])->exists();
+        return app(\App\Domain\Authz\PermissionService::class)->userCan($user, 'web.medicine.manage');
     }
 }
