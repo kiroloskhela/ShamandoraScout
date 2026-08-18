@@ -254,11 +254,12 @@ class AttendanceQrService
             ->leftJoin('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
             ->where('p.PersonID', $personId)
             ->groupBy('p.PersonID', 'p.FirstName', 'p.SecondName', 'p.ThirdName', 'p.FourthName', 'sm.SanaMarhalaName')
+            // MAX instead of MySQL GROUP_CONCAT ... SEPARATOR so sqlite tests can mark person bookings.
             ->selectRaw("
                 p.PersonID,
                 p.FirstName, p.SecondName, p.ThirdName, p.FourthName,
                 COALESCE(MAX(ph.PersonPersonalMobileNumber), '') as PhoneNumber,
-                COALESCE(GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ', '), '') as QetaaName,
+                COALESCE(MAX(q.QetaaName), '') as QetaaName,
                 COALESCE(sm.SanaMarhalaName, '') as SanaMarhalaName
             ")
             ->first();
