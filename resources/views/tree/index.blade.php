@@ -261,6 +261,7 @@
                     <input type="hidden" id="m-qetaa-id">
                     <input type="hidden" id="m-group-type">
                     <input type="hidden" id="m-parent-id">
+                    <input type="hidden" id="m-group-id">
                     <label class="qt-field">
                         <span class="qt-field__label">{{ __('Group name') }}</span>
                         <input type="text" id="m-group-name" class="qt-input" placeholder="{{ __('Enter name…') }}">
@@ -1784,11 +1785,25 @@
 
         // ── Group modal ────────────────────────────────────────────────────────────
         function openGroupModal(qetaaId, typeId, parentId) {
+            document.getElementById('m-group-id').value = '';
             document.getElementById('m-qetaa-id').value = qetaaId;
             document.getElementById('m-group-type').value = typeId;
             document.getElementById('m-parent-id').value = parentId;
             document.getElementById('m-group-name').value = '';
             document.getElementById('modal-group-title').textContent = typeId == 2 ? @json(__('Add team')) : @json(__('Add patrol'));
+            showModal('modal-group');
+            setTimeout(() => document.getElementById('m-group-name').focus(), 80);
+        }
+
+        function openRenameGroupModal(btn) {
+            document.getElementById('m-group-id').value = btn.dataset.groupId || '';
+            document.getElementById('m-qetaa-id').value = '';
+            document.getElementById('m-parent-id').value = '';
+            document.getElementById('m-group-type').value = btn.dataset.typeId || '';
+            document.getElementById('m-group-name').value = btn.dataset.name || '';
+            document.getElementById('modal-group-title').textContent = parseInt(btn.dataset.typeId, 10) === 2
+                ? @json(__('Rename team'))
+                : @json(__('Rename patrol'));
             showModal('modal-group');
             setTimeout(() => document.getElementById('m-group-name').focus(), 80);
         }
@@ -1803,6 +1818,7 @@
 
         async function submitGroup() {
             const name = document.getElementById('m-group-name').value.trim();
+            const groupId = document.getElementById('m-group-id').value;
             const qetaaId = document.getElementById('m-qetaa-id').value;
             const typeId = document.getElementById('m-group-type').value;
             const parentId = document.getElementById('m-parent-id').value;
@@ -1813,15 +1829,19 @@
             }
 
             try {
-                const res = await fetch('{{ route('qetaa.storeGroup') }}', {
-                    method: 'POST',
+                const isRename = Boolean(groupId);
+                const url = isRename
+                    ? '{{ route('qetaa.renameGroup', ['groupId' => '__GROUP_ID__']) }}'.replace('__GROUP_ID__', groupId)
+                    : '{{ route('qetaa.storeGroup') }}';
+                const res = await fetch(url, {
+                    method: isRename ? 'PATCH' : 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': CSRF,
                         'Accept': 'application/json'
                     },
                     credentials: 'same-origin',
-                    body: JSON.stringify({
+                    body: JSON.stringify(isRename ? { GroupName: name } : {
                         GroupName: name,
                         GroupTypeID: parseInt(typeId),
                         QetaaID: parseInt(qetaaId),
