@@ -491,6 +491,31 @@ class QetaaTreeController extends Controller
         return response()->json(['success' => true, 'GroupID' => $newId]);
     }
 
+    public function renameGroup(Request $request, $groupId)
+    {
+        $groupId = (int) $groupId;
+        if (! $this->treePolicy->manageGroup(Auth::user(), $groupId)) {
+            return response()->json(['error' => __('You cannot edit this group.')], 403);
+        }
+
+        $validated = $request->validate([
+            'GroupName' => 'required|string|max:50',
+        ]);
+
+        $group = DB::table('GroupTable')->where('GroupID', $groupId)->first();
+        if (! $group) {
+            return response()->json(['error' => __('Group not found.')], 404);
+        }
+
+        if (! in_array((int) $group->GroupTypeID, [2, 3], true)) {
+            return response()->json(['error' => __('Invalid group type.')], 422);
+        }
+
+        $this->groups->renameGroup($groupId, $validated['GroupName']);
+
+        return response()->json(['success' => true]);
+    }
+
     public function deleteGroup(Request $request, $groupId)
     {
         $groupId = (int) $groupId;

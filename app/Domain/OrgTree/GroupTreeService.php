@@ -111,6 +111,13 @@ class GroupTreeService
         });
     }
 
+    public function renameGroup(int $groupId, string $name): void
+    {
+        DB::table('GroupTable')->where('GroupID', $groupId)->update([
+            'GroupName' => $name,
+        ]);
+    }
+
     public function deleteGroups(iterable $groupIds): void
     {
         $ids = collect($groupIds)->map(fn ($id) => (int) $id)->values();

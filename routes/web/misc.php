@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/team/structure/search-persons', [QetaaTreeController::class, 'searchPersons'])->name('qetaa.searchPersons');
     Route::get('/team/structure/rotba-list', [QetaaTreeController::class, 'getRotbaList'])->name('qetaa.getRotbaList');
     Route::post('/team/structure/group', [QetaaTreeController::class, 'storeGroup'])->name('qetaa.storeGroup');
+    Route::patch('/team/structure/group/{groupId}', [QetaaTreeController::class, 'renameGroup'])->name('qetaa.renameGroup');
     Route::delete('/team/structure/group/{groupId}', [QetaaTreeController::class, 'deleteGroup'])->name('qetaa.deleteGroup');
     Route::post('/team/structure/person', [QetaaTreeController::class, 'storePerson'])->name('qetaa.storePerson');
     Route::post('/team/structure/person/rotba', [QetaaTreeController::class, 'updatePersonRotba'])->name('qetaa.updatePersonRotba');

@@ -42,6 +42,16 @@
                         </svg>
                     </button>
                 @endif
+                <button class="qt-icon-btn"
+                    title="{{ $isFareeq ? __('Rename team') : __('Rename patrol') }}"
+                    data-group-id="{{ $group->GroupID }}"
+                    data-type-id="{{ (int) $group->GroupTypeID }}"
+                    data-name="{{ $group->GroupName }}"
+                    onclick="openRenameGroupModal(this)">
+                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M8.5 2.5l3 3L5 12H2v-3l6.5-6.5z" />
+                    </svg>
+                </button>
                 <button class="qt-icon-btn qt-icon-btn--danger" :title="__('Delete group (tree)')"
                     onclick="deleteGroup({{ $group->GroupID }})">
                     <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -71,24 +81,38 @@
                                 {{ $typeLabel[$child->GroupTypeID] ?? '' }}
                             </span>
 
-                            @if ($isServed && (int) $child->GroupTypeID === 3)
+                            @if ($isServed && in_array((int) $child->GroupTypeID, [2, 3], true))
                                 <div class="qt-group__actions" onclick="event.stopPropagation()">
-                                    <button class="qt-icon-btn" :title="__('Add person')"
-                                        onclick="openPersonModal({{ $child->GroupID }})">
-                                        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <circle cx="6" cy="4" r="3" />
-                                            <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
-                                            <path d="M11 6v4M13 8h-4" />
+                                    @if ((int) $child->GroupTypeID === 3)
+                                        <button class="qt-icon-btn" :title="__('Add person')"
+                                            onclick="openPersonModal({{ $child->GroupID }})">
+                                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor"
+                                                stroke-width="1.8">
+                                                <circle cx="6" cy="4" r="3" />
+                                                <path d="M1 13c0-2.8 2.2-5 5-5s5 2.2 5 5" />
+                                                <path d="M11 6v4M13 8h-4" />
+                                            </svg>
+                                        </button>
+                                    @endif
+                                    <button class="qt-icon-btn"
+                                        title="{{ (int) $child->GroupTypeID === 2 ? __('Rename team') : __('Rename patrol') }}"
+                                        data-group-id="{{ $child->GroupID }}"
+                                        data-type-id="{{ (int) $child->GroupTypeID }}"
+                                        data-name="{{ $child->GroupName }}"
+                                        onclick="openRenameGroupModal(this)">
+                                        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8">
+                                            <path d="M8.5 2.5l3 3L5 12H2v-3l6.5-6.5z" />
                                         </svg>
                                     </button>
-                                    <button class="qt-icon-btn qt-icon-btn--danger" title="{{ __('Delete') }}"
-                                        onclick="deleteGroup({{ $child->GroupID }})">
-                                        <svg viewBox="0 0 12 14" fill="none" stroke="currentColor"
-                                            stroke-width="1.8">
-                                            <path d="M1 3h10M4 3V2h4v1M2 3l1 9h6l1-9" />
-                                        </svg>
-                                    </button>
+                                    @if ((int) $child->GroupTypeID === 3)
+                                        <button class="qt-icon-btn qt-icon-btn--danger" title="{{ __('Delete') }}"
+                                            onclick="deleteGroup({{ $child->GroupID }})">
+                                            <svg viewBox="0 0 12 14" fill="none" stroke="currentColor"
+                                                stroke-width="1.8">
+                                                <path d="M1 3h10M4 3V2h4v1M2 3l1 9h6l1-9" />
+                                            </svg>
+                                        </button>
+                                    @endif
                                 </div>
                             @endif
                         </div>
