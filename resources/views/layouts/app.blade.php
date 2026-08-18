@@ -474,6 +474,7 @@
                     @endif
 
                     {{-- ===================== Persons Data ===================== --}}
+                    @if (($isSuperAdmin ?? false) || ($canPerm['web.people.view_served'] ?? false) || ($canPerm['web.people.directory'] ?? false))
                     <div class="px-3 mb-2">
                         <div x-data="{ open: false }">
                             <button @click="open = !open"
@@ -515,6 +516,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     {{-- ===================== Events attendance ===================== --}}
                     @if ($canEventsAttendance)

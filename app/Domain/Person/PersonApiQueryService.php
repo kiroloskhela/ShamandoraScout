@@ -49,4 +49,21 @@ class PersonApiQueryService
                 return $person;
             });
     }
+
+    /**
+     * Same sector/group scope as {@see personsVisibleTo()} / GET /api/show-persons.
+     */
+    public function isVisibleTo(int $viewerId, int $personId): bool
+    {
+        if ($viewerId <= 0 || $personId <= 0) {
+            return false;
+        }
+
+        return DB::table('PersonQetaa as pq')
+            ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'pq.QetaaID')
+            ->join('PersonGroup as pg2', 'pg2.GroupID', '=', 'gq.GroupID')
+            ->where('pg2.PersonID', $viewerId)
+            ->where('pq.PersonID', $personId)
+            ->exists();
+    }
 }

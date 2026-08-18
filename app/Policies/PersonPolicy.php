@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Domain\Authz\PermissionService;
+use App\Domain\Person\PersonApiQueryService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,20 @@ class PersonPolicy
             return true;
         }
 
-        return $this->elevated($user, $person, 'web.people.view_any', 'web.people.manage');
+        if ($this->elevated($user, $person, 'web.people.view_any', 'web.people.manage')) {
+            return true;
+        }
+
+        $permissions = app(PermissionService::class);
+        // Same people as GET /api/show-persons (api.mobile.staff), not a new key.
+        if (! $permissions->userCan($user, 'api.mobile.staff') && ! $permissions->userCan($user, 'web.people.view_served')) {
+            return false;
+        }
+
+        return app(PersonApiQueryService::class)->isVisibleTo(
+            (int) $user->PersonID,
+            (int) $person->PersonID
+        );
     }
 
     public function update(User $user, User $person): bool

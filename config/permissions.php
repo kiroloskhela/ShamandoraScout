@@ -16,6 +16,7 @@ $keys = [
     'web.system.manage' => ['label' => 'System constants, lookups, WhatsApp, camp programs', 'platform' => 'web', 'danger' => true],
     'web.people.manage' => ['label' => 'Person CRUD, special cases, blacklist, waiting list', 'platform' => 'web'],
     'web.people.directory' => ['label' => 'Person directory and Excel export', 'platform' => 'web'],
+    'web.people.view_served' => ['label' => 'View full profile of people in served sectors', 'platform' => 'web'],
     'web.enrolments.manage' => ['label' => 'Review and approve enrolments', 'platform' => 'web'],
     'web.enrolments.unscoped' => ['label' => 'Enrolments without sector scope', 'platform' => 'web', 'danger' => true],
     'web.enrolments.migrate' => ['label' => 'Migrate enrolments to main system', 'platform' => 'web', 'danger' => true],
@@ -74,17 +75,7 @@ $mkhdom = [
     'mobile.media.own',
 ];
 
-return [
-    'enforce' => (bool) env('PERMISSIONS_ENFORCE', false),
-    'non_grantable' => [
-        'web.matrix.manage',
-        'web.admin.passwords',
-        'web.roles.assign_superadmin',
-        'web.audit.purge',
-        'web.security.config',
-    ],
-    'keys' => $keys,
-    'seed' => [
+$seed = [
         'AdminQetaa' => array_values(array_unique(array_merge($mobileStaff, [
             'web.people.manage', 'web.people.directory', 'web.enrolments.manage',
             'api.special_cases.manage', 'mobile.special_cases.manage',
@@ -118,6 +109,28 @@ return [
             'web.people.directory',
         ]))),
         'Mkhdom' => $mkhdom,
+];
+
+foreach ($staff as $roleName) {
+    if (! isset($seed[$roleName])) {
+        continue;
+    }
+    $seed[$roleName] = array_values(array_unique(array_merge(
+        $seed[$roleName],
+        ['web.people.view_served'],
+    )));
+}
+
+return [
+    'enforce' => (bool) env('PERMISSIONS_ENFORCE', false),
+    'non_grantable' => [
+        'web.matrix.manage',
+        'web.admin.passwords',
+        'web.roles.assign_superadmin',
+        'web.audit.purge',
+        'web.security.config',
     ],
+    'keys' => $keys,
+    'seed' => $seed,
     'staff_roles' => $staff,
 ];

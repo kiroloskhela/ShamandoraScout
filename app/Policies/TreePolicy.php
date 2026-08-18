@@ -30,6 +30,25 @@ class TreePolicy
     }
 
     /**
+     * True when the user serves a group in one of the person's sectors.
+     */
+    public function servesPerson(User $user, User $person): bool
+    {
+        $targetQetaas = DB::table('PersonQetaa')
+            ->where('PersonID', $person->PersonID)
+            ->pluck('QetaaID')
+            ->map(fn ($id) => (int) $id);
+
+        if ($targetQetaas->isEmpty()) {
+            return false;
+        }
+
+        return $this->servedQetaaIds((int) $user->PersonID)
+            ->intersect($targetQetaas)
+            ->isNotEmpty();
+    }
+
+    /**
      * @return Collection<int, int>
      */
     public function servedQetaaIds(int $userId): Collection

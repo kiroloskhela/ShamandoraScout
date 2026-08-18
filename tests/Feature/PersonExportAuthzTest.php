@@ -49,13 +49,19 @@ class PersonExportAuthzTest extends TestCase
             ->assertOk();
     }
 
-    public function test_media_cannot_open_person_directory_or_export(): void
+    public function test_media_can_open_person_directory_but_not_export(): void
     {
+        $this->mock(PersonSearchService::class, function ($mock) {
+            $mock->shouldReceive('paginateScopedToPerson')
+                ->once()
+                ->andReturn(new Collection);
+        });
+
         $user = $this->createUserWithRole('Media');
 
         $this->actingAs($user)
             ->get(route('person.index'))
-            ->assertStatus(403);
+            ->assertOk();
 
         $this->actingAs($user)
             ->get(route('export.served-people'))
