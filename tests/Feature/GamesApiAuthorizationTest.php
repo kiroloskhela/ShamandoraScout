@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * Games writes require SuperAdmin. Any authenticated user may list/view.
+ * Games writes require SuperAdmin (or api.games.mutate). Staff may list/view.
  * These legacy tables are not managed by Laravel migrations, so the test
  * builds a minimal sqlite schema for this suite only.
  */
@@ -176,10 +176,18 @@ class GamesApiAuthorizationTest extends TestCase
         $this->assertDatabaseHas('Games', ['GameID' => $gameId]);
     }
 
-    public function test_index_remains_accessible_to_any_authenticated_user(): void
+    public function test_index_is_forbidden_without_staff_permission(): void
     {
         $this->seedGame();
         $headers = $this->authHeadersForRoles(['Servant']);
+
+        $this->withHeaders($headers)->getJson('/api/games')->assertForbidden();
+    }
+
+    public function test_index_is_accessible_to_staff_role(): void
+    {
+        $this->seedGame();
+        $headers = $this->authHeadersForRoles(['Khadem']);
 
         $response = $this->withHeaders($headers)->getJson('/api/games');
 

@@ -2,42 +2,57 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Person record access: own PersonID, SuperAdmin (any), or AdminQetaa (shared Qetaa only).
+ * Person record access: own PersonID for view/update; elevated for others.
+ * Delete is never granted by "self" alone (Mkhdom must not delete themselves).
  */
 class PersonPolicy
 {
     public function view(User $user, User $person): bool
     {
-        return $this->ownsOrElevated($user, $person);
+        if ((int) $user->PersonID === (int) $person->PersonID) {
+            return true;
+        }
+
+        return $this->elevated($user, $person, 'web.people.view_any', 'web.people.manage');
     }
 
     public function update(User $user, User $person): bool
-    {
-        return $this->ownsOrElevated($user, $person);
-    }
-
-    public function delete(User $user, User $person): bool
-    {
-        return $this->ownsOrElevated($user, $person);
-    }
-
-    private function ownsOrElevated(User $user, User $person): bool
     {
         if ((int) $user->PersonID === (int) $person->PersonID) {
             return true;
         }
 
-        $roleNames = $user->role()->pluck('RoleName');
+        $permissions = app(PermissionService::class);
+        if ($permissions->isSuperAdmin($person) && ! $permissions->isSuperAdmin($user)) {
+            return false;
+        }
 
-        if ($roleNames->contains('SuperAdmin')) {
+        return $this->elevated($user, $person, 'web.people.update_any', 'web.people.manage');
+    }
+
+    public function delete(User $user, User $person): bool
+    {
+        if (app(PermissionService::class)->isSuperAdmin($person)) {
+            return false;
+        }
+
+        return $this->elevated($user, $person, 'web.people.delete_any', 'web.people.manage');
+    }
+
+    private function elevated(User $user, User $person, string $globalKey, string $scopedKey): bool
+    {
+        $permissions = app(PermissionService::class);
+
+        if ($permissions->isSuperAdmin($user) || $permissions->userCan($user, $globalKey)) {
             return true;
         }
 
-        if (! $roleNames->contains('AdminQetaa')) {
+        if (! $permissions->userCan($user, $scopedKey)) {
             return false;
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Auth\TokenSessionService;
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSeasonActivityService;
 use Illuminate\Http\Request;
@@ -136,10 +137,13 @@ class PersonProfileController extends Controller
 
         $user = Auth::user();
 
-        DB::table('PersonSystemPassword')->updateOrInsert(
-            ['PersonID' => $user->PersonID],
-            ['Password' => Hash::make($request->input('password'))]
-        );
+        DB::transaction(function () use ($user, $request) {
+            DB::table('PersonSystemPassword')->updateOrInsert(
+                ['PersonID' => $user->PersonID],
+                ['Password' => Hash::make($request->input('password'))]
+            );
+            app(TokenSessionService::class)->revokeAllForUser((int) $user->PersonID);
+        });
 
         return Redirect::route('profile.show')->with('success', 'تم تحديث كلمة المرور بنجاح.');
     }

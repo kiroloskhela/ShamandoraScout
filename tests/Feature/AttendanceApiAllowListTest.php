@@ -24,6 +24,8 @@ class AttendanceApiAllowListTest extends TestCase
             'GroupQetaa',
             'PersonGroup',
             'SeasonEvent',
+            'PersonRole',
+            'Roles',
             'PersonInformation',
             'personal_access_tokens',
         ] as $table) {
@@ -36,6 +38,17 @@ class AttendanceApiAllowListTest extends TestCase
             $table->string('FirstName')->nullable();
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
+        });
+
+        Schema::create('Roles', function (Blueprint $table) {
+            $table->increments('RoleID');
+            $table->string('RoleName');
+        });
+
+        Schema::create('PersonRole', function (Blueprint $table) {
+            $table->increments('PersonRoleID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('RoleID');
         });
 
         Schema::create('SeasonEvent', function (Blueprint $table) {
@@ -96,6 +109,11 @@ class AttendanceApiAllowListTest extends TestCase
             'SecondName' => 'One',
             'ThirdName' => 'A',
             'ShamandoraCode' => 'SV'.uniqid(),
+        ]);
+        $roleId = DB::table('Roles')->insertGetId(['RoleName' => 'Khadem']);
+        DB::table('PersonRole')->insert([
+            'PersonID' => $servant->PersonID,
+            'RoleID' => $roleId,
         ]);
         $allowedPersonId = 100;
         $blockedPersonId = 999;

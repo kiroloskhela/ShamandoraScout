@@ -109,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance/send-qr-entity/{type}/{id}', [AttendanceController::class, 'sendEntityQr'])->name('attendance.send-qr-entity');
     Route::post('/attendance/send-qr-bulk', [AttendanceController::class, 'sendQrBulk'])->name('attendance.send-qr-bulk');
 
-    Route::middleware('checkAuth:SuperAdmin|Secretary|AdminSecretary|Finance|AdminFinance')->group(function () {
+    Route::middleware(['checkAuth:SuperAdmin|Secretary|AdminSecretary|Finance|AdminFinance', 'can.permission:web.attendance.live'])->group(function () {
         Route::get('/attendance/live', [AttendanceLiveController::class, 'index'])->name('attendance.live');
         Route::get('/attendance/live/snapshot', [AttendanceLiveController::class, 'snapshot'])->name('attendance.live.snapshot');
     });
@@ -130,7 +130,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/games', [GamesController::class, 'index'])->name('games.index');
     Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
-    Route::middleware(['checkAuth:SuperAdmin'])->group(function () {
+    Route::middleware(['checkAuth:SuperAdmin', 'can.permission:web.games.manage'])->group(function () {
         Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
         Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
         Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');

@@ -293,7 +293,7 @@ class CurriculumPlanTest extends TestCase
 
     public function test_api_active_for_qetaa_returns_plan_with_download_urls(): void
     {
-        $headers = $this->authHeadersForRoles(['Servant']);
+        $headers = $this->authHeadersForRoles(['Khadem']);
         $planId = $this->seedPlan(2, 'Year 1', 1);
 
         DB::table('CurriculumPlanLecture')->insert([
@@ -313,7 +313,7 @@ class CurriculumPlanTest extends TestCase
 
     public function test_api_active_for_qetaa_null_when_none(): void
     {
-        $headers = $this->authHeadersForRoles(['Servant']);
+        $headers = $this->authHeadersForRoles(['Khadem']);
 
         $this->withHeaders($headers)
             ->getJson('/api/curriculum-plans/active/2')
@@ -326,7 +326,7 @@ class CurriculumPlanTest extends TestCase
 
     public function test_api_active_list_returns_only_active_plans(): void
     {
-        $headers = $this->authHeadersForRoles(['Servant']);
+        $headers = $this->authHeadersForRoles(['Khadem']);
         $active = $this->seedPlan(2, 'Year 1', 1);
         $this->seedPlan(2, 'Year 2', 0);
         $otherActive = $this->seedPlan(1, 'Braam', 1);
@@ -343,7 +343,7 @@ class CurriculumPlanTest extends TestCase
 
     public function test_api_missing_qetaa_is_404(): void
     {
-        $headers = $this->authHeadersForRoles(['Servant']);
+        $headers = $this->authHeadersForRoles(['Khadem']);
 
         $this->withHeaders($headers)
             ->getJson('/api/curriculum-plans/active/99')

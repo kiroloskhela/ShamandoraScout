@@ -232,6 +232,43 @@ class AttendanceApiController extends Controller
         ]);
     }
 
+    public function mine(Request $request)
+    {
+        $personId = $this->resolveAuthPersonId();
+        if (! $personId) {
+            return $this->unauthorized();
+        }
+
+        $perPage = min(50, max(1, (int) $request->query('per_page', 20)));
+
+        $page = DB::table('Attendance as a')
+            ->leftJoin('SeasonEvent as se', 'se.SeasonEventID', '=', 'a.SeasonEventID')
+            ->leftJoin('Event as e', 'e.EventID', '=', 'se.EventID')
+            ->where('a.ServedID', $personId)
+            ->select(
+                'a.AttendanceID',
+                'a.SeasonEventID',
+                'a.ServedID',
+                'a.AttendanceStatus',
+                'a.Excuse',
+                'e.EventName',
+                'e.EventStartDate',
+                'e.EventEndDate'
+            )
+            ->orderByDesc('e.EventStartDate')
+            ->orderByDesc('a.AttendanceID')
+            ->paginate($perPage);
+
+        return response()->json([
+            'ok' => true,
+            'data' => $page->items(),
+            'current_page' => $page->currentPage(),
+            'last_page' => $page->lastPage(),
+            'per_page' => $page->perPage(),
+            'total' => $page->total(),
+        ]);
+    }
+
     // =========================================================================
     //  HELPERS
     // =========================================================================

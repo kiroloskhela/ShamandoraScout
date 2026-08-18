@@ -100,15 +100,7 @@
 
                     @php
                         $isSuperAdmin = $isSuperAdmin ?? false;
-                        $isSecretary = $isSecretary ?? false;
-                        $isMedia = $isMedia ?? false;
-                        $isInventory = $isInventory ?? false;
-                        $isFinance = $isFinance ?? false;
-                        $isAdminQetaa = $isAdminQetaa ?? false;
-                        $isAdminSecretary = $isAdminSecretary ?? false;
-                        $isAdminInventory = $isAdminInventory ?? false;
-                        $isAdminFinance = $isAdminFinance ?? false;
-                        $isAdminFirstAid = $isAdminFirstAid ?? false;
+                        $canPerm = $canPerm ?? [];
                     @endphp
 
                     {{-- ===================== SuperAdmin: System Constants ===================== --}}
@@ -170,8 +162,8 @@
                         </div>
                     @endif
 
-                    {{-- ===================== Federations (visible to any logged-in user) ===================== --}}
-                    @if ($isSuperAdmin || $isAdminQetaa || $isAdminSecretary || $isSecretary)
+                    {{-- ===================== Enrolments ===================== --}}
+                    @if ($canPerm['web.enrolments.manage'] ?? false)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -191,8 +183,10 @@
                                         href="{{ url('/liveform') }}">{{ __('LIVE registration form') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/new-enrolments') }}">{{ __('Review enrolment requests') }}</a>
+                                    @if ($canPerm['web.people.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/persons/waiting-list') }}">{{ __('Review waiting list') }}</a>
+                                    @endif
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ url('/max-limits') }}">{{ __('Max request limits') }}</a>
                                     @if ($isSuperAdmin)
@@ -207,7 +201,6 @@
                                     @if ($isSuperAdmin)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                             href="{{ url('/new-enrolments/migrations') }}">{{ __('Migrate requests to main system') }}</a>
-
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                             href="{{ url('/person/change-qetaa') }}">{{ __('Change person sector') }}</a>
                                     @endif
@@ -219,8 +212,8 @@
 
 
 
-                    {{-- ===================== Federations (visible to any logged-in user) ===================== --}}
-                    @if ($isSuperAdmin || $isAdminSecretary || $isSecretary || $isAdminFinance || $isFinance)
+                    {{-- ===================== Registrations ===================== --}}
+                    @if ($canPerm['web.registrations.manage'] ?? false)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -290,7 +283,7 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
-                                @if ($isSuperAdmin || $isMedia)
+                                @if ($isSuperAdmin)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('media.index') }}">{{ __('Add photos') }}</a>
                                 @endif
@@ -322,8 +315,8 @@
                         </div>
                     </div>
 
-                    {{-- ===================== Finance (only SuperAdmin/Finance) ===================== --}}
-                    @if ($isSuperAdmin || $isFinance || $isAdminFinance)
+                    {{-- ===================== Finance ===================== --}}
+                    @if ($canPerm['web.finance.manage'] ?? false)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -338,14 +331,12 @@
                                 </button>
 
                                 <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
-                                    @if ($isSuperAdmin || $isFinance)
-                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('finance.index') }}">{{ __('Manage finance') }}</a>
-                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('eventBookingFinance.selector') }}">{{ __('Manage booking finance') }}</a>
-                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ route('eventWaitingList.selector') }}">{{ __('Booking finance waiting list') }}</a>
-                                    @endif
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('finance.index') }}">{{ __('Manage finance') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('eventBookingFinance.selector') }}">{{ __('Manage booking finance') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('eventWaitingList.selector') }}">{{ __('Booking finance waiting list') }}</a>
 
                                 </div>
                             </div>
@@ -390,7 +381,7 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
-                                @if ($isSuperAdmin || $isSecretary || $isAdminSecretary)
+                                @if ($canPerm['web.secretary.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('secretary.index') }}">{{ __('Add meeting minutes') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -426,11 +417,13 @@
                             </button>
 
                             <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
-                                @if ($isSuperAdmin || $isInventory || $isAdminInventory)
+                                @if ($canPerm['web.inventory.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('inventory.index') }}">{{ __('Custody items') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('inventory-issue.index') }}">{{ __('Print custody') }}</a>
+                                @endif
+                                @if (($canPerm['web.inventory.manage'] ?? false) || ($canPerm['web.inventory.review'] ?? false))
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.custody_requests.index') }}">{{ __('Follow up custody') }}</a>
                                 @endif
@@ -441,7 +434,7 @@
                     </div>
 
                     {{-- ===================== First Aid ===================== --}}
-                    @if ($isSuperAdmin || $isAdminFirstAid)
+                    @if ($canPerm['web.medicine.manage'] ?? false)
                         <div class="px-3 mb-2">
                             <div x-data="{ open: false }">
                                 <button @click="open = !open"
@@ -500,11 +493,11 @@
                                     href="{{ route('attendance.manage') }}">{{ __('Attendance') }}</a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('attendance.scan') }}">{{ __('Scan attendance') }}</a>
-                                @if ($isSuperAdmin || $isSecretary || $isAdminSecretary || $isFinance || $isAdminFinance)
+                                @if ($canPerm['web.attendance.live'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('attendance.live') }}">{{ __('Live attendance') }}</a>
                                 @endif
-                                @if ($isSuperAdmin || $isAdminQetaa)
+                                @if ($canPerm['web.people.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('personspecialcase.index') }}">{{ __('Special cases') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
@@ -534,6 +527,8 @@
                                 </button>
 
                                 <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('role-permissions.edit') }}">{{ __('Role access') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('admin.passwords') }}">{{ __('View & edit passwords') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"

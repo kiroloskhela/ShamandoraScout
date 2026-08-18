@@ -46,7 +46,8 @@ class AuthRoleLayoutSharingTest extends TestCase
             ->withSession(['locale' => 'en'])
             ->get('/__test-layout-role-sharing')
             ->assertOk()
-            ->assertSee('Add photos', false);
+            ->assertSee('View photos', false)
+            ->assertDontSee('Add photos', false);
 
         $roleQueries = collect(DB::getQueryLog())->filter(function (array $query): bool {
             return str_contains($query['query'], 'PersonRole')

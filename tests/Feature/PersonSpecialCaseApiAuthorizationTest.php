@@ -117,7 +117,7 @@ class PersonSpecialCaseApiAuthorizationTest extends TestCase
         $this->withHeaders($headers)
             ->getJson('/api/person-special-cases')
             ->assertForbidden()
-            ->assertJsonPath('message', 'Forbidden');
+            ->assertJsonPath('ok', false);
     }
 
     public function test_superadmin_can_store_and_update(): void

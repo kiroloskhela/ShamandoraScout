@@ -2,33 +2,19 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * New enrolments admin: role gate + AdminQetaa scoped to shared sector.
- * Migration is SuperAdmin-only.
+ * New enrolments admin: capability gate + AdminQetaa scoped to shared sector.
+ * Unscoped review and migration are separate keys.
  */
 class EnrolmentPolicy
 {
-    private const MANAGE_ROLES = [
-        'SuperAdmin',
-        'AdminQetaa',
-        'AdminSecretary',
-        'Secretary',
-        'AdminFinance',
-    ];
-
-    private const UNSCOPED_ROLES = [
-        'SuperAdmin',
-        'AdminSecretary',
-        'Secretary',
-        'AdminFinance',
-    ];
-
     public function viewAny(User $user): bool
     {
-        return $this->hasAnyRole($user, self::MANAGE_ROLES);
+        return app(PermissionService::class)->userCan($user, 'web.enrolments.manage');
     }
 
     public function view(User $user, int $newUserPersonId): bool
@@ -53,16 +39,18 @@ class EnrolmentPolicy
 
     public function migrate(User $user): bool
     {
-        return $user->role()->where('RoleName', 'SuperAdmin')->exists();
+        return app(PermissionService::class)->userCan($user, 'web.enrolments.migrate');
     }
 
     private function canAccessEnrolment(User $user, int $newUserPersonId): bool
     {
-        if (! $this->viewAny($user)) {
+        $permissions = app(PermissionService::class);
+
+        if (! $permissions->userCan($user, 'web.enrolments.manage')) {
             return false;
         }
 
-        if ($this->hasAnyRole($user, self::UNSCOPED_ROLES)) {
+        if ($permissions->userCan($user, 'web.enrolments.unscoped')) {
             return DB::table('NewUsersInformation')->where('PersonID', $newUserPersonId)->exists();
         }
 
@@ -78,13 +66,5 @@ class EnrolmentPolicy
             ->where('PersonID', $newUserPersonId)
             ->whereIn('QetaaID', $adminQetaas)
             ->exists();
-    }
-
-    /**
-     * @param  list<string>  $roles
-     */
-    private function hasAnyRole(User $user, array $roles): bool
-    {
-        return $user->role()->whereIn('RoleName', $roles)->exists();
     }
 }

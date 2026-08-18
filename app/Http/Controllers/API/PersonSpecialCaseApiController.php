@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Domain\Authz\PermissionService;
 use App\Domain\SpecialCase\PersonSpecialCaseService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePersonSpecialCaseRequest;
@@ -36,19 +37,14 @@ class PersonSpecialCaseApiController extends Controller
     {
         $user = $this->authUser();
 
-        return $user && $user->role()->where('RoleName', 'SuperAdmin')->exists();
-    }
-
-    private function isAdminQetaa(): bool
-    {
-        $user = $this->authUser();
-
-        return $user && $user->role()->where('RoleName', 'AdminQetaa')->exists();
+        return $user && app(PermissionService::class)->isSuperAdmin($user);
     }
 
     private function hasSpecialCaseAccess(): bool
     {
-        return $this->isSuperAdmin() || $this->isAdminQetaa();
+        $user = $this->authUser();
+
+        return $user && app(PermissionService::class)->userCan($user, 'api.special_cases.manage');
     }
 
     private function denyIfUnauthorized()

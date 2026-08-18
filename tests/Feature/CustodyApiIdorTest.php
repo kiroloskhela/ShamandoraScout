@@ -22,6 +22,8 @@ class CustodyApiIdorTest extends TestCase
         Schema::dropIfExists('Inventory');
         Schema::dropIfExists('Qetaa');
         Schema::dropIfExists('EventType');
+        Schema::dropIfExists('PersonRole');
+        Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonInformation');
         Schema::dropIfExists('personal_access_tokens');
 
@@ -31,6 +33,17 @@ class CustodyApiIdorTest extends TestCase
             $table->string('FirstName')->nullable();
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
+        });
+
+        Schema::create('Roles', function (Blueprint $table) {
+            $table->increments('RoleID');
+            $table->string('RoleName');
+        });
+
+        Schema::create('PersonRole', function (Blueprint $table) {
+            $table->increments('PersonRoleID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('RoleID');
         });
 
         Schema::create('Inventory', function (Blueprint $table) {
@@ -91,12 +104,23 @@ class CustodyApiIdorTest extends TestCase
 
     private function createUser(string $code = 'TST'): User
     {
-        return User::create([
+        $user = User::create([
             'FirstName' => 'Test',
             'SecondName' => 'User',
             'ThirdName' => 'A',
             'ShamandoraCode' => $code.uniqid(),
         ]);
+
+        $roleId = DB::table('Roles')->where('RoleName', 'Khadem')->value('RoleID');
+        if (! $roleId) {
+            $roleId = DB::table('Roles')->insertGetId(['RoleName' => 'Khadem']);
+        }
+        DB::table('PersonRole')->insert([
+            'PersonID' => $user->PersonID,
+            'RoleID' => $roleId,
+        ]);
+
+        return $user->fresh();
     }
 
     private function authHeaders(User $user): array

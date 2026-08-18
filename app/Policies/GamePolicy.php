@@ -2,11 +2,12 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\Game;
 use App\Models\User;
 
 /**
- * Games: any authenticated user may view; only SuperAdmin may mutate.
+ * Games: any authenticated user may view; mutate requires web.games.manage or api.games.mutate.
  */
 class GamePolicy
 {
@@ -22,21 +23,18 @@ class GamePolicy
 
     public function create(User $user): bool
     {
-        return $this->isSuperAdmin($user);
+        $p = app(PermissionService::class);
+
+        return $p->userCan($user, 'web.games.manage') || $p->userCan($user, 'api.games.mutate');
     }
 
     public function update(User $user, Game $game): bool
     {
-        return $this->isSuperAdmin($user);
+        return $this->create($user);
     }
 
     public function delete(User $user, Game $game): bool
     {
-        return $this->isSuperAdmin($user);
-    }
-
-    private function isSuperAdmin(User $user): bool
-    {
-        return $user->role()->where('RoleName', 'SuperAdmin')->exists();
+        return $this->create($user);
     }
 }

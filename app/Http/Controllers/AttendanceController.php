@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Authz\PermissionService;
 use App\Jobs\SendAttendanceQrWhatsApp;
 use App\Services\AttendanceQrService;
 use App\Services\BookingAttendanceService;
@@ -471,15 +472,10 @@ class AttendanceController extends Controller
         }
 
         // Live-board roles may mark reservation bookings even without sector membership.
-        if ($this->qr->eventTakesReservation($seasonEventId)) {
-            $roles = optional(Auth::user())->role;
-            if ($roles) {
-                foreach (['SuperAdmin', 'Secretary', 'AdminSecretary', 'Finance', 'AdminFinance'] as $role) {
-                    if ($roles->contains('RoleName', $role)) {
-                        return true;
-                    }
-                }
-            }
+        $user = Auth::user();
+        if ($user && $this->qr->eventTakesReservation($seasonEventId)
+            && app(PermissionService::class)->userCan($user, 'web.attendance.live')) {
+            return true;
         }
 
         return false;

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -41,12 +42,14 @@ class CustodyPolicy
 
     public function review(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'AdminInventory'])->exists();
+        return app(PermissionService::class)->userCan($user, 'web.inventory.review');
     }
 
     private function isInventoryStaff(User $user): bool
     {
-        return $user->role()->whereIn('RoleName', ['SuperAdmin', 'AdminInventory', 'Inventory'])->exists();
+        $p = app(PermissionService::class);
+
+        return $p->userCan($user, 'web.inventory.manage') || $p->userCan($user, 'web.inventory.review');
     }
 
     private function requestExists(int $requestId): bool

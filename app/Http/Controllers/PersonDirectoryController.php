@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Auth\TokenSessionService;
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSearchService;
 use App\Domain\Person\PersonSeasonActivityService;
@@ -398,6 +399,7 @@ class PersonDirectoryController extends Controller
         DB::table('PersonQetaa')->where('PersonID', $id)->delete();
         DB::table('PersonRotbaKashfeyya')->where('PersonID', $id)->delete();
         DB::table('PersonalPhysicalAddress')->where('PersonID', $id)->delete();
+        app(TokenSessionService::class)->revokeAllForUser((int) $id);
         DB::table('PersonSystemPassword')->where('PersonID', $id)->delete();
         DB::table('PersonSanaMarhala')->where('PersonID', $id)->delete();
         DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->delete();
