@@ -1144,7 +1144,7 @@ return [
             'title' => 'All members',
             'intro' => 'Admin view of every registered member in the system. Use it when you need the full directory beyond your usual scoped list.',
             'steps' => [
-                'Search by name, code, phone, or sector.',
+                'Search by name, code, phone, parent phone, or sector.',
                 'Filter by stage or sector when the list is long.',
                 'Open View or Edit on a row to work with that member.',
                 'Use Add user if you need to create a new member from here.',
@@ -1194,7 +1194,7 @@ return [
             'title' => 'Members directory',
             'intro' => 'Browse and manage scout members you are allowed to see. Search, filter, view, edit, or add members from this list.',
             'steps' => [
-                'Search by name, code, phone, or sector.',
+                'Search by name, code, phone, parent phone, or sector.',
                 'Use stage or sector column filters to narrow the list.',
                 'Open View to read a member’s full record, or Edit to update it.',
                 'Use Add user to register a new member.',
