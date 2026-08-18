@@ -22,6 +22,7 @@ class GamesApiAuthorizationTest extends TestCase
         Schema::dropIfExists('Games');
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
+        Schema::dropIfExists('PersonImages');
         Schema::dropIfExists('PersonInformation');
         Schema::dropIfExists('personal_access_tokens');
 
@@ -31,6 +32,13 @@ class GamesApiAuthorizationTest extends TestCase
             $table->string('FirstName')->nullable();
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
+        });
+
+        Schema::create('PersonImages', function (Blueprint $table) {
+            $table->increments('PersonImageID');
+            $table->unsignedInteger('PersonID')->nullable();
+            $table->string('PersonSystemImagePath')->nullable();
+            $table->string('PersonSystemImageThumbnailPath')->nullable();
         });
 
         Schema::create('Roles', function (Blueprint $table) {
@@ -193,5 +201,36 @@ class GamesApiAuthorizationTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('ok', true);
+    }
+
+    public function test_web_create_is_allowed_for_staff_role(): void
+    {
+        $this->withoutVite();
+        $user = $this->createUserWithRoles(['Finance']);
+
+        $this->actingAs($user)
+            ->get('/games/create')
+            ->assertOk();
+    }
+
+    public function test_web_delete_is_forbidden_for_staff_role(): void
+    {
+        $gameId = $this->seedGame();
+        $user = $this->createUserWithRoles(['Finance']);
+
+        $this->actingAs($user)
+            ->get("/games/delete/{$gameId}")
+            ->assertForbidden();
+    }
+
+    public function test_web_delete_is_allowed_for_superadmin(): void
+    {
+        $this->withoutVite();
+        $gameId = $this->seedGame();
+        $user = $this->createUserWithRoles(['SuperAdmin']);
+
+        $this->actingAs($user)
+            ->get("/games/delete/{$gameId}")
+            ->assertOk();
     }
 }

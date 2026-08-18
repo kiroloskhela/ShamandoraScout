@@ -7,7 +7,7 @@ use App\Models\Game;
 use App\Models\User;
 
 /**
- * Games: any authenticated user may view; mutate requires web.games.manage or api.games.mutate.
+ * Games: any authenticated user may view/create/edit; delete is SuperAdmin-only.
  */
 class GamePolicy
 {
@@ -23,18 +23,16 @@ class GamePolicy
 
     public function create(User $user): bool
     {
-        $p = app(PermissionService::class);
-
-        return $p->userCan($user, 'web.games.manage') || $p->userCan($user, 'api.games.mutate');
+        return true;
     }
 
     public function update(User $user, Game $game): bool
     {
-        return $this->create($user);
+        return true;
     }
 
     public function delete(User $user, Game $game): bool
     {
-        return $this->create($user);
+        return app(PermissionService::class)->isSuperAdmin($user);
     }
 }

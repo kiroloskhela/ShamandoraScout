@@ -69,7 +69,7 @@ class GamesController extends Controller
      */
     public function edit($id)
     {
-        $this->authorize('create', Game::class);
+        $this->authorize('update', new Game);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         return view('games.edit', ['game' => $game, 'title' => __('Edit game')]);
@@ -77,7 +77,7 @@ class GamesController extends Controller
 
     public function updates(Request $request, $id)
     {
-        $this->authorize('create', Game::class);
+        $this->authorize('update', new Game);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         $affected = DB::table('Games')->where('GameID', $id)->update([
@@ -97,7 +97,7 @@ class GamesController extends Controller
 
     public function deletes($id)
     {
-        $this->authorize('create', Game::class);
+        $this->authorize('delete', new Game);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         return view('games.delete', ['game' => $game, 'title' => __('Delete game')]);
@@ -105,7 +105,7 @@ class GamesController extends Controller
 
     public function destroy($id)
     {
-        $this->authorize('create', Game::class);
+        $this->authorize('delete', new Game);
         $deleted = DB::table('Games')->where('GameID', $id)->delete();
 
         return redirect()->route('games.index')->with('status', __('Game deleted successfully'));

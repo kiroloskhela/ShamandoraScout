@@ -130,11 +130,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/games', [GamesController::class, 'index'])->name('games.index');
     Route::get('/games/show/{id}', [GamesController::class, 'show'])->name('games.show');
-    Route::middleware(['checkAuth:SuperAdmin', 'can.permission:web.games.manage'])->group(function () {
-        Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
-        Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
-        Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
-        Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+    Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
+    Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
+    Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
+    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+    Route::middleware('superadmin.only')->group(function () {
         Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
         Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
     });
