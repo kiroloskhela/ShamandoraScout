@@ -32,14 +32,13 @@ class AttendanceLiveController extends Controller
                 ->join('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
                 ->where('se.SeasonID', $seasonId)
                 ->where('et.TakesReservation', 1)
-                ->where('sef.SendQrWhatsApp', 1)
                 ->select('se.SeasonEventID', 'e.EventName', 'e.EventStartDate', 'e.EventEndDate')
                 ->orderBy('e.EventStartDate', 'asc')
                 ->get();
         }
 
         $snapshot = null;
-        if ($seasonEventId) {
+        if ($seasonEventId && $this->isReservationEvent((int) $seasonEventId)) {
             $snapshot = $this->buildSnapshot((int) $seasonEventId);
         }
 
@@ -101,7 +100,6 @@ class AttendanceLiveController extends Controller
             ->join('SeasonEventFinance as sef', 'sef.SeasonEventID', '=', 'se.SeasonEventID')
             ->where('se.SeasonEventID', $seasonEventId)
             ->where('et.TakesReservation', 1)
-            ->where('sef.SendQrWhatsApp', 1)
             ->exists();
     }
 }

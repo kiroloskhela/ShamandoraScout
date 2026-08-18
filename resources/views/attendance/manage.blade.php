@@ -63,8 +63,15 @@
         </form>
 
         @if (!empty($seasonEventId))
+            @php $isReservation = !empty($takesReservation); @endphp
             <div class="bg-white dark:bg-slate-900 rounded-lg shadow-lg dark:border dark:border-slate-700 p-6 border-2 border-blue-300 dark:border-slate-700">
-                <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm">
+                @if ($isReservation)
+                    <p class="mb-4 text-sm font-semibold text-emerald-700 dark:text-emerald-300 text-center">
+                        {{ __('Reservation event — attendance is only for people who booked.') }}
+                    </p>
+                @endif
+                <form method="POST" action="{{ route('attendance.save', $seasonEventId) }}" id="attendanceForm"
+                    data-third-status="{{ $isReservation ? 'outside' : 'excused' }}">
                     @csrf
                     <input type="hidden" name="season_id" value="{{ $seasonId }}">
 
@@ -108,8 +115,13 @@
                                 class="px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-xs font-semibold hover:bg-green-200 dark:hover:bg-green-900/60 transition">{{ __('✓ Present') }}</button>
                             <button type="button" id="markAllAbsent"
                                 class="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-900/60 transition">{{ __('✗ Absent') }}</button>
-                            <button type="button" id="markAllExcused"
-                                class="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition">{{ __('~ Absent with excuse') }}</button>
+                            @if ($isReservation)
+                                <button type="button" id="markAllOutside"
+                                    class="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition">{{ __('Outside') }}</button>
+                            @else
+                                <button type="button" id="markAllExcused"
+                                    class="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 text-xs font-semibold hover:bg-amber-200 dark:hover:bg-amber-900/60 transition">{{ __('~ Absent with excuse') }}</button>
+                            @endif
                         </div>
 
                     </div>
@@ -121,45 +133,45 @@
                                 <tr>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Name') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Phone') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Sector') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Stage') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ $isReservation ? __('Type') : __('Sector') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ $isReservation ? __('Code') : __('Stage') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center w-56">{{ __('Attendance section') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
+                                    @unless ($isReservation)
+                                        <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
+                                    @endunless
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($tableRows as $r)
                                     @php
-                                        $pid = $r['PersonID'];
-                                        $status = $r['Status']; // 'present' | 'absent' | 'excused'
-                                        $excuse = $r['Excuse'];
+                                        $rowId = $isReservation ? ($r['BookingID'] ?? 0) : ($r['PersonID'] ?? 0);
+                                        $status = $r['Status'] ?? null;
+                                        $excuse = $r['Excuse'] ?? '';
+                                        $thirdStatus = $isReservation ? 'outside' : 'excused';
                                         $searchHaystack = mb_strtolower(
                                             trim(
                                                 ($r['PersonName'] ?? '') .
                                                     ' ' .
                                                     ($r['PhoneNumber'] ?? '') .
                                                     ' ' .
-                                                    ($r['QetaaName'] ?? '') .
+                                                    ($isReservation ? ($r['TypeLabel'] ?? '') : ($r['QetaaName'] ?? '')) .
                                                     ' ' .
-                                                    ($r['SanaMarhalaName'] ?? ''),
+                                                    ($isReservation ? ($r['Code'] ?? '') : ($r['SanaMarhalaName'] ?? '')),
                                             ),
                                         );
                                     @endphp
                                     <tr class="border-t border-slate-200 dark:border-slate-700 attendance-row" data-search="{{ e($searchHaystack) }}">
                                         <td class="px-4 py-3 text-right text-slate-800 dark:text-slate-100">{{ $r['PersonName'] }}</td>
                                         <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['PhoneNumber'] }}</td>
-                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['QetaaName'] }}</td>
-                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $r['SanaMarhalaName'] }}</td>
+                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $isReservation ? ($r['TypeLabel'] ?? '') : ($r['QetaaName'] ?? '') }}</td>
+                                        <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $isReservation ? ($r['Code'] ?? '') : ($r['SanaMarhalaName'] ?? '') }}</td>
 
-                                        {{-- 3-way status selector --}}
                                         <td class="px-4 py-3">
                                             <div class="flex items-center justify-center gap-1">
 
-                                                {{-- Present --}}
                                                 <label class="status-label cursor-pointer">
-                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
+                                                    <input type="radio" name="attendance[{{ $rowId }}][status]"
                                                         value="present" class="sr-only status-radio"
-                                                        data-person="{{ $pid }}"
                                                         {{ $status === 'present' ? 'checked' : '' }}>
                                                     <span
                                                         class="status-btn present-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
@@ -168,11 +180,9 @@
                                                         : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-green-400' }}">{{ __('✓ Present') }}</span>
                                                 </label>
 
-                                                {{-- Absent --}}
                                                 <label class="status-label cursor-pointer">
-                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
+                                                    <input type="radio" name="attendance[{{ $rowId }}][status]"
                                                         value="absent" class="sr-only status-radio"
-                                                        data-person="{{ $pid }}"
                                                         {{ $status === 'absent' ? 'checked' : '' }}>
                                                     <span
                                                         class="status-btn absent-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
@@ -181,39 +191,37 @@
                                                         : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-red-400' }}">{{ __('✗ Absent') }}</span>
                                                 </label>
 
-                                                {{-- Excused --}}
                                                 <label class="status-label cursor-pointer">
-                                                    <input type="radio" name="attendance[{{ $pid }}][status]"
-                                                        value="excused" class="sr-only status-radio"
-                                                        data-person="{{ $pid }}"
-                                                        {{ $status === 'excused' ? 'checked' : '' }}>
+                                                    <input type="radio" name="attendance[{{ $rowId }}][status]"
+                                                        value="{{ $thirdStatus }}" class="sr-only status-radio"
+                                                        {{ $status === $thirdStatus ? 'checked' : '' }}>
                                                     <span
-                                                        class="status-btn excused-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
-                                                    {{ $status === 'excused'
+                                                        class="status-btn third-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
+                                                    {{ $status === $thirdStatus
                                                         ? 'bg-amber-500 text-white border-amber-500'
-                                                        : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400' }}">{{ __('~ Excuse') }}</span>
+                                                        : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400' }}">{{ $isReservation ? __('Outside') : __('~ Excuse') }}</span>
                                                 </label>
 
                                             </div>
                                         </td>
 
-                                        {{-- Excuse text — visible only when status = excused --}}
-                                        <td class="px-4 py-3 excuse-cell"
-                                            style="{{ $status !== 'excused' ? 'display:none' : '' }}">
-                                            <input type="text" name="attendance[{{ $pid }}][excuse]"
-                                                value="{{ e($excuse) }}" placeholder="{{ __('Write the excuse...') }}" maxlength="1000"
-                                                class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 text-sm focus:border-amber-400 focus:outline-none text-right">
-                                        </td>
-                                        {{-- Placeholder cell when not excused --}}
-                                        <td class="px-4 py-3 no-excuse-cell"
-                                            style="{{ $status === 'excused' ? 'display:none' : '' }}">
-                                            <span class="text-slate-300 dark:text-slate-600 text-xs">—</span>
-                                        </td>
+                                        @unless ($isReservation)
+                                            <td class="px-4 py-3 excuse-cell"
+                                                style="{{ $status !== 'excused' ? 'display:none' : '' }}">
+                                                <input type="text" name="attendance[{{ $rowId }}][excuse]"
+                                                    value="{{ e($excuse) }}" placeholder="{{ __('Write the excuse...') }}" maxlength="1000"
+                                                    class="w-full h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 text-sm focus:border-amber-400 focus:outline-none text-right">
+                                            </td>
+                                            <td class="px-4 py-3 no-excuse-cell"
+                                                style="{{ $status === 'excused' ? 'display:none' : '' }}">
+                                                <span class="text-slate-300 dark:text-slate-600 text-xs">—</span>
+                                            </td>
+                                        @endunless
 
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-slate-600 dark:text-slate-300">{{ __('No people to display.') }}</td>
+                                        <td colspan="{{ $isReservation ? 5 : 6 }}" class="px-4 py-6 text-center text-slate-600 dark:text-slate-300">{{ $isReservation ? __('No bookings for this event.') : __('No people to display.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -230,7 +238,7 @@
                     <div class="flex items-center gap-6 mt-4 px-2">
                         <span class="text-sm text-green-700 dark:text-green-300 font-semibold">{{ __('Present:') }} <span id="countPresent">0</span></span>
                         <span class="text-sm text-red-700 dark:text-red-300 font-semibold">{{ __('Absent:') }} <span id="countAbsent">0</span></span>
-                        <span class="text-sm text-amber-700 dark:text-amber-300 font-semibold">{{ __('Absent with excuse:') }} <span
+                        <span class="text-sm text-amber-700 dark:text-amber-300 font-semibold">{{ $isReservation ? __('Outside:') : __('Absent with excuse:') }} <span
                                 id="countExcused">0</span></span>
                         <span class="text-sm text-slate-500 dark:text-slate-400">{{ __('Total:') }} <span id="countTotal">0</span></span>
                     </div>
@@ -247,6 +255,9 @@
                 document.addEventListener('DOMContentLoaded', function() {
                     const pageSize = 10;
                     let currentPage = 1;
+
+                    const form = document.getElementById('attendanceForm');
+                    const thirdStatus = form?.dataset.thirdStatus || 'excused';
 
                     const searchInput = document.getElementById('tableSearch');
                     const table = document.getElementById('attendanceTable');
@@ -265,17 +276,17 @@
                         const btns = {
                             present: row.querySelector('.present-btn'),
                             absent: row.querySelector('.absent-btn'),
-                            excused: row.querySelector('.excused-btn'),
+                            [thirdStatus]: row.querySelector('.third-btn'),
                         };
                         const styles = {
                             present: ['bg-green-600', 'text-white', 'border-green-600'],
                             absent: ['bg-red-600', 'text-white', 'border-red-600'],
-                            excused: ['bg-amber-500', 'text-white', 'border-amber-500'],
+                            [thirdStatus]: ['bg-amber-500', 'text-white', 'border-amber-500'],
                         };
                         const hoverBorders = {
                             present: 'hover:border-green-400',
                             absent: 'hover:border-red-400',
-                            excused: 'hover:border-amber-400',
+                            [thirdStatus]: 'hover:border-amber-400',
                         };
 
                         Object.keys(btns).forEach(key => {
@@ -337,6 +348,7 @@
                     document.getElementById('markAllPresent')?.addEventListener('click', () => markAll('present'));
                     document.getElementById('markAllAbsent')?.addEventListener('click', () => markAll('absent'));
                     document.getElementById('markAllExcused')?.addEventListener('click', () => markAll('excused'));
+                    document.getElementById('markAllOutside')?.addEventListener('click', () => markAll('outside'));
 
                     // ── Counts ───────────────────────────────────────────────────
                     function updateCounts() {
@@ -348,7 +360,7 @@
                             if (!checked) return;
                             if (checked.value === 'present') p++;
                             else if (checked.value === 'absent') a++;
-                            else if (checked.value === 'excused') ex++;
+                            else if (checked.value === 'excused' || checked.value === 'outside') ex++;
                         });
                         document.getElementById('countPresent').textContent = p;
                         document.getElementById('countAbsent').textContent = a;

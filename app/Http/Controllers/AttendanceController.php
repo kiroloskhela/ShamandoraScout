@@ -26,8 +26,13 @@ class AttendanceController extends Controller
         $ctx = $this->selectionContext($request, $meId);
 
         $tableRows = [];
-        if ($ctx['seasonEventId'] && ! empty($ctx['allowedQetaas'])) {
-            $tableRows = $this->rosterRows((int) $ctx['seasonEventId'], $ctx['allowedQetaas']);
+        $seasonEventId = $ctx['seasonEventId'] ? (int) $ctx['seasonEventId'] : 0;
+        if ($seasonEventId && $this->canAccessEvent($meId, $seasonEventId)) {
+            if ($ctx['takesReservation']) {
+                $tableRows = $this->bookingRosterRows($seasonEventId);
+            } elseif (! empty($ctx['allowedQetaas'])) {
+                $tableRows = $this->rosterRows($seasonEventId, $ctx['allowedQetaas']);
+            }
         }
 
         return view('attendance.manage', [
@@ -275,7 +280,16 @@ class AttendanceController extends Controller
 
     public function save(Request $request, $seasonEventId)
     {
-        $serventId = optional(Auth::user())->PersonID ?? Auth::id();
+        $serventId = (int) (optional(Auth::user())->PersonID ?? Auth::id());
+        $seasonEventId = (int) $seasonEventId;
+
+        if (! $this->canAccessEvent($serventId, $seasonEventId)) {
+            abort(403, 'Not allowed to take attendance for this event');
+        }
+
+        if ($this->qr->eventTakesReservation($seasonEventId)) {
+            return $this->saveReservationAttendance($request, $seasonEventId, $serventId);
+        }
 
         $request->validate([
             'attendance' => 'array',
@@ -283,7 +297,7 @@ class AttendanceController extends Controller
             'attendance.*.excuse' => 'nullable|string|max:1000',
         ]);
 
-        $allowedQetaas = $this->allowedQetaas((int) $serventId, (int) $seasonEventId);
+        $allowedQetaas = $this->allowedQetaas($serventId, $seasonEventId);
         if (empty($allowedQetaas)) {
             abort(403, 'Not allowed to take attendance for this event');
         }
@@ -322,6 +336,28 @@ class AttendanceController extends Controller
                 ['SeasonEventID', 'ServedID'],
                 ['ServentID', 'AttendanceStatus', 'Excuse']
             );
+        }
+
+        return redirect()->route('attendance.manage', [
+            'season_id' => $request->season_id,
+            'season_event_id' => $seasonEventId,
+        ])->with('success', 'تم حفظ الحضور بنجاح');
+    }
+
+    private function saveReservationAttendance(Request $request, int $seasonEventId, int $serventId)
+    {
+        $request->validate([
+            'attendance' => 'array',
+            'attendance.*.status' => 'nullable|in:present,absent,outside',
+        ]);
+
+        foreach ((array) $request->input('attendance', []) as $bookingId => $data) {
+            $status = $data['status'] ?? null;
+            if (! in_array($status, BookingAttendanceService::STATUSES, true)) {
+                continue;
+            }
+
+            $this->bookingAttendance->mark($seasonEventId, (int) $bookingId, $status, $serventId);
         }
 
         return redirect()->route('attendance.manage', [
@@ -421,19 +457,33 @@ class AttendanceController extends Controller
             ->pluck('GroupID')
             ->toArray();
 
+        $canSeeAllReservation = $this->canSeeAllReservationEvents();
+
         $events = collect();
-        if ($seasonId && ! empty($myGroups)) {
+        if ($seasonId && (! empty($myGroups) || $canSeeAllReservation)) {
             $events = DB::table('SeasonEvent as se')
                 ->join('Event as e', 'e.EventID', '=', 'se.EventID')
                 ->leftJoin('EventType as et', 'et.EventTypeID', '=', 'e.EventTypeID')
                 ->where('se.SeasonID', $seasonId)
-                ->whereExists(function ($q) use ($myGroups) {
-                    $q->select(DB::raw(1))
-                        ->from('EventQetaa as eq')
-                        ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'eq.QetaaID')
-                        ->whereColumn('eq.EventID', 'se.EventID')
-                        ->whereIn('gq.GroupID', $myGroups)
-                        ->limit(1);
+                ->where(function ($q) use ($myGroups, $canSeeAllReservation) {
+                    if (! empty($myGroups)) {
+                        $q->whereExists(function ($sub) use ($myGroups) {
+                            $sub->select(DB::raw(1))
+                                ->from('EventQetaa as eq')
+                                ->join('GroupQetaa as gq', 'gq.QetaaID', '=', 'eq.QetaaID')
+                                ->whereColumn('eq.EventID', 'se.EventID')
+                                ->whereIn('gq.GroupID', $myGroups)
+                                ->limit(1);
+                        });
+                    }
+
+                    if ($canSeeAllReservation) {
+                        if (empty($myGroups)) {
+                            $q->whereRaw('COALESCE(et.TakesReservation, 0) = 1');
+                        } else {
+                            $q->orWhereRaw('COALESCE(et.TakesReservation, 0) = 1');
+                        }
+                    }
                 })
                 ->select(
                     'se.SeasonEventID',
@@ -450,9 +500,11 @@ class AttendanceController extends Controller
 
         $allowedQetaas = [];
         $takesReservation = false;
-        if ($seasonEventId && ! empty($myGroups)) {
-            $allowedQetaas = $this->allowedQetaas($meId, (int) $seasonEventId);
+        if ($seasonEventId) {
             $takesReservation = $this->qr->eventTakesReservation((int) $seasonEventId);
+            if (! empty($myGroups)) {
+                $allowedQetaas = $this->allowedQetaas($meId, (int) $seasonEventId);
+            }
         }
 
         return [
@@ -561,5 +613,29 @@ class AttendanceController extends Controller
             ->toArray();
 
         return array_values(array_intersect($myQetaas, $eventQetaas));
+    }
+
+    private function canSeeAllReservationEvents(): bool
+    {
+        $user = Auth::user();
+
+        return $user && app(PermissionService::class)->userCan($user, 'web.attendance.live');
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function bookingRosterRows(int $seasonEventId): array
+    {
+        return array_map(function (array $row) {
+            return [
+                'BookingID' => $row['booking_id'],
+                'PersonName' => $row['name'],
+                'PhoneNumber' => $row['phone'],
+                'TypeLabel' => $row['booking_type_label'],
+                'Code' => $row['code'],
+                'Status' => $row['status'],
+            ];
+        }, $this->bookingAttendance->roster($seasonEventId));
     }
 }
