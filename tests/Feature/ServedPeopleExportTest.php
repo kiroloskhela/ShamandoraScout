@@ -130,9 +130,31 @@ class ServedPeopleExportTest extends TestCase
         ]);
 
         $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
-        $names = collect($workbook['sheets'][1]['rows'])->pluck('FirstName')->all();
+        $medical = collect($workbook['sheets'][1]['rows']);
+        $questions = collect($workbook['sheets'][2]['rows']);
 
-        $this->assertSame(['Allergic'], $names);
+        $this->assertSame(['Allergic Scout'], $medical->pluck('FullName')->all());
+        $this->assertContains('Allergic Scout', $questions->pluck('FullName')->all());
+        $this->assertContains('Healthy Scout', $questions->pluck('FullName')->all());
+    }
+
+    public function test_person_sheet_includes_father_phone(): void
+    {
+        $this->seedQetaa(1, 'كشافة');
+        $seasonId = $this->seedSeason();
+        $person = $this->seedPersonInQetaa(1, 'Named', 'Scout');
+        DB::table('PersonPhoneNumbers')->insert([
+            'PersonID' => $person->PersonID,
+            'PersonPersonalMobileNumber' => '01011112222',
+            'FatherMobileNumber' => '01099998888',
+            'MotherMobileNumber' => '01033334444',
+        ]);
+
+        $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
+        $row = collect($workbook['sheets'][0]['rows'])->first();
+
+        $this->assertSame('01099998888', $row['FatherMobileNumber'] ?? null);
+        $this->assertSame('01033334444', $row['MotherMobileNumber'] ?? null);
     }
 
     private function seedQetaa(int $id, string $name): void
@@ -304,6 +326,7 @@ class ServedPeopleExportTest extends TestCase
             $table->increments('PersonPhoneNumberID');
             $table->unsignedInteger('PersonID');
             $table->string('PersonPersonalMobileNumber')->nullable();
+            $table->string('FatherMobileNumber')->nullable();
             $table->string('MotherMobileNumber')->nullable();
         });
         Schema::create('PeopleAllergies', function (Blueprint $table) {

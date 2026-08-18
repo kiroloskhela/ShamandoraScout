@@ -121,6 +121,7 @@ class ServedPeopleExportService
                 'pi.RaqamQawmy',
                 'sm.SanaMarhalaName',
                 'ppn.PersonPersonalMobileNumber',
+                'ppn.FatherMobileNumber',
                 'ppn.MotherMobileNumber'
             )
             ->get()
@@ -152,6 +153,7 @@ class ServedPeopleExportService
             'SanaMarhalaName' => $p->SanaMarhalaName ?? '',
             'RaqamQawmy' => $p->RaqamQawmy ?? '',
             'PersonPersonalMobileNumber' => $p->PersonPersonalMobileNumber ?? '',
+            'FatherMobileNumber' => $p->FatherMobileNumber ?? '',
             'MotherMobileNumber' => $p->MotherMobileNumber ?? '',
         ])->all();
     }
@@ -224,6 +226,7 @@ class ServedPeopleExportService
             $rows[] = [
                 'PersonID' => $p->PersonID,
                 'ShamandoraCode' => $p->ShamandoraCode,
+                'FullName' => $this->fullName($p),
                 'FirstName' => $p->FirstName,
                 'SecondName' => $p->SecondName,
                 'ThirdName' => $p->ThirdName,
@@ -281,6 +284,7 @@ class ServedPeopleExportService
             $row = [
                 'PersonID' => $p->PersonID,
                 'ShamandoraCode' => $p->ShamandoraCode,
+                'FullName' => $this->fullName($p),
                 'FirstName' => $p->FirstName,
                 'SecondName' => $p->SecondName,
                 'ThirdName' => $p->ThirdName,
@@ -375,12 +379,7 @@ class ServedPeopleExportService
         return $people->map(function ($p) use ($eventHeaders, $patrols, $status) {
             $pid = (int) $p->PersonID;
             $row = [
-                'FullName' => trim(implode(' ', array_filter([
-                    $p->FirstName,
-                    $p->SecondName,
-                    $p->ThirdName,
-                    $p->FourthName,
-                ], fn ($part) => trim((string) $part) !== ''))),
+                'FullName' => $this->fullName($p),
                 'Tale3a' => $patrols[$pid] ?? '',
             ];
             foreach ($eventHeaders as $eventId => $header) {
@@ -423,5 +422,15 @@ class ServedPeopleExportService
             fn (array $list) => implode(' | ', array_unique($list)),
             $names
         );
+    }
+
+    private function fullName(object $person): string
+    {
+        return trim(implode(' ', array_filter([
+            $person->FirstName ?? '',
+            $person->SecondName ?? '',
+            $person->ThirdName ?? '',
+            $person->FourthName ?? '',
+        ], fn ($part) => trim((string) $part) !== '')));
     }
 }
