@@ -87,6 +87,7 @@ Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
         Route::get('/programs', [EventProgramApiController::class, 'index']);
         Route::get('/programs/{seasonEventId}', [EventProgramApiController::class, 'show']);
 
+        Route::get('/team-structure', [QetaaTreeApiController::class, 'structure']);
         Route::get('/auxiliary', [QetaaTreeApiController::class, 'auxiliary']);
     });
 

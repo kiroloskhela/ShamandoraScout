@@ -2,13 +2,95 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Domain\Person\AuthenticatedPersonId;
 use App\Http\Controllers\Controller;
+use App\Policies\TreePolicy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class QetaaTreeApiController extends Controller
 {
+    public function __construct(private readonly TreePolicy $treePolicy) {}
+
+    public function structure(Request $request)
+    {
+        $personId = AuthenticatedPersonId::from($request);
+        $servedQetaaIds = $this->treePolicy->servedQetaaIds($personId);
+
+        if ($servedQetaaIds->isEmpty()) {
+            return response()->json([
+                'ok' => true,
+                'person_id' => $personId,
+                'qetaas' => [],
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $qetaas = DB::table('Qetaa')
+            ->whereIn('QetaaID', $servedQetaaIds)
+            ->orderBy('QetaaID')
+            ->get(['QetaaID', 'QetaaName']);
+
+        $groups = DB::table('GroupTable as gt')
+            ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')
+            ->whereIn('gq.QetaaID', $servedQetaaIds)
+            ->whereIn('gt.GroupTypeID', [2, 3])
+            ->orderBy('gt.GroupName')
+            ->get(['gt.GroupID', 'gt.GroupTypeID', 'gt.IncludedUnderGroupID', 'gt.GroupName', 'gq.QetaaID']);
+
+        $groupsByQetaa = $groups->groupBy('QetaaID');
+
+        return response()->json([
+            'ok' => true,
+            'person_id' => $personId,
+            'qetaas' => $qetaas
+                ->map(fn ($qetaa) => $this->nestQetaa($qetaa, $groupsByQetaa->get($qetaa->QetaaID, collect())))
+                ->values(),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    private function nestQetaa(object $qetaa, Collection $groupsInQetaa): array
+    {
+        $teams = $groupsInQetaa->where('GroupTypeID', 2)->values();
+        $teamIds = $teams->pluck('GroupID')->map(fn ($id) => (int) $id)->all();
+        $talaea = $groupsInQetaa->where('GroupTypeID', 3);
+
+        return [
+            'qetaa_id' => (int) $qetaa->QetaaID,
+            'qetaa_name' => $qetaa->QetaaName,
+            'teams' => $teams->map(function ($team) use ($talaea) {
+                $teamId = (int) $team->GroupID;
+
+                return [
+                    'group_id' => $teamId,
+                    'group_name' => $team->GroupName,
+                    'talaea' => $talaea
+                        ->filter(fn ($patrol) => (int) $patrol->IncludedUnderGroupID === $teamId)
+                        ->map(fn ($patrol) => $this->groupRef($patrol))
+                        ->values(),
+                ];
+            })->values(),
+            // Root patrols, plus any whose parent is not a team in this sector.
+            'direct_talaea' => $talaea
+                ->filter(function ($patrol) use ($teamIds) {
+                    $parent = (int) $patrol->IncludedUnderGroupID;
+
+                    return $parent === 0 || ! in_array($parent, $teamIds, true);
+                })
+                ->map(fn ($patrol) => $this->groupRef($patrol))
+                ->values(),
+        ];
+    }
+
+    private function groupRef(object $group): array
+    {
+        return [
+            'group_id' => (int) $group->GroupID,
+            'group_name' => $group->GroupName,
+        ];
+    }
+
     public function auxiliary(Request $request)
     {
         $userId = Auth::id();
