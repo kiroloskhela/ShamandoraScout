@@ -289,7 +289,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
     Route::delete('/sana-marhala/destroy/{id}', [SanaMarhalaDeraseyyaController::class, 'destroy'])->name('sana-marhala.destroy');
 
     // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/create', [NotificationController::class, 'create']);
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
