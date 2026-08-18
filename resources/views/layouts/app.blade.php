@@ -101,6 +101,11 @@
                     @php
                         $isSuperAdmin = $isSuperAdmin ?? false;
                         $canPerm = $canPerm ?? [];
+                        $canEventsAttendance = $isSuperAdmin
+                            || ($isSecretary ?? false)
+                            || ($isAdminSecretary ?? false)
+                            || ($isFinance ?? false)
+                            || ($isAdminFinance ?? false);
                     @endphp
 
                     {{-- ===================== SuperAdmin: System Constants ===================== --}}
@@ -201,8 +206,6 @@
                                     @if ($isSuperAdmin)
                                         <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                             href="{{ url('/new-enrolments/migrations') }}">{{ __('Migrate requests to main system') }}</a>
-                                        <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                            href="{{ url('/person/change-qetaa') }}">{{ __('Change person sector') }}</a>
                                     @endif
                                 </div>
                             </div>
@@ -362,6 +365,10 @@
                                     href="{{ route('CurriculaCategory.index') }}">{{ __('Add categories') }}</a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('curricula.index') }}">{{ __('Add lecture') }}</a>
+                                @if ($isSuperAdmin)
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('curriculum-plan.index') }}">{{ __('Curriculum plans') }}</a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -491,12 +498,6 @@
                                 </a>
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('attendance.manage') }}">{{ __('Attendance') }}</a>
-                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                    href="{{ route('attendance.scan') }}">{{ __('Scan attendance') }}</a>
-                                @if ($canPerm['web.attendance.live'] ?? false)
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('attendance.live') }}">{{ __('Live attendance') }}</a>
-                                @endif
                                 @if ($canPerm['web.people.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('personspecialcase.index') }}">{{ __('Special cases') }}</a>
@@ -510,6 +511,31 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- ===================== Events attendance ===================== --}}
+                    @if ($canEventsAttendance)
+                        <div class="px-3 mb-2">
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">{{ __('Events attendance') }}</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('attendance.scan') }}">{{ __('Scan attendance') }}</a>
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('attendance.live') }}">{{ __('Live attendance') }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- ===================== SuperAdmin tools ===================== --}}
                     @if ($isSuperAdmin)
@@ -536,25 +562,33 @@
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('audit-logs.index') }}">{{ __('Audit log') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('whatsapp.status') }}">{{ __('WhatsApp') }}</a>
+                                        href="{{ route('person.changeQetaa') }}">{{ __('Change person sector') }}</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-3 mb-2">
+                            <div x-data="{ open: false }">
+                                <button @click="open = !open"
+                                    class="w-full flex items-center justify-between p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    :class="{ 'bg-emerald-50 text-emerald-600': open }">
+                                    <span class="font-medium">{{ __('WhatsApp') }}</span>
+                                    <svg class="w-4 h-4 transition-transform" :class="{ '-rotate-90': open }"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="open" x-transition class="mt-2 pe-4 space-y-1">
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('whatsapp.status') }}">{{ __('WhatsApp status') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('whatsapp.campaigns.index') }}">{{ __('WhatsApp campaigns') }}</a>
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('event-program.index') }}">{{ __('Camp leader programs') }}</a>
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('curriculum-plan.index') }}">{{ __('Curriculum plans') }}</a>
                                 </div>
                             </div>
                         </div>
                     @endif
-
-                    {{-- ===================== My Program ===================== --}}
-                    <div class="px-3 mb-2">
-                        <a href="{{ route('my-program.index') }}"
-                            class="block w-full p-3 text-gray-700 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors {{ request()->routeIs('my-program.*') ? 'bg-emerald-50 text-emerald-600' : '' }}">
-                            <span class="font-medium">{{ __('My program tab') }}</span>
-                        </a>
-                    </div>
 
                     {{-- ===================== Profile ===================== --}}
                     <div class="px-3 mb-2">

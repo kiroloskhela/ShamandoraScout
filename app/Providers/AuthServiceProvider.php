@@ -40,12 +40,8 @@ class AuthServiceProvider extends ServiceProvider
         // Keep string abilities used by GamesApiController; delegate to GamePolicy.
         Gate::define('games.view', fn (?User $user) => $user !== null && $user->can('viewAny', Game::class));
         Gate::define('games.create', fn (?User $user) => $user !== null && $user->can('create', Game::class));
-        Gate::define('games.update', function (?User $user) {
-            return $user !== null && (new GamePolicy)->create($user);
-        });
-        Gate::define('games.delete', function (?User $user) {
-            return $user !== null && (new GamePolicy)->create($user);
-        });
+        Gate::define('games.update', fn (?User $user) => $user !== null && $user->can('update', new Game));
+        Gate::define('games.delete', fn (?User $user) => $user !== null && $user->can('delete', new Game));
 
         Gate::define('curricula.view', fn (?User $user) => $user !== null && (new CurriculaPolicy)->viewAny($user));
         Gate::define('curricula.create', fn (?User $user) => $user !== null && (new CurriculaPolicy)->create($user));

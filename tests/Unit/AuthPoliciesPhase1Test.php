@@ -78,13 +78,13 @@ class AuthPoliciesPhase1Test extends TestCase
         ]);
     }
 
-    public function test_games_gates_allow_view_but_deny_mutate_for_regular_user(): void
+    public function test_games_gates_allow_create_and_update_but_deny_delete_for_regular_user(): void
     {
         $user = $this->createUser();
 
         $this->assertTrue(Gate::forUser($user)->allows('games.view'));
-        $this->assertTrue(Gate::forUser($user)->denies('games.create'));
-        $this->assertTrue(Gate::forUser($user)->denies('games.update'));
+        $this->assertTrue(Gate::forUser($user)->allows('games.create'));
+        $this->assertTrue(Gate::forUser($user)->allows('games.update'));
         $this->assertTrue(Gate::forUser($user)->denies('games.delete'));
     }
 
@@ -106,7 +106,7 @@ class AuthPoliciesPhase1Test extends TestCase
         $this->assertTrue(Gate::forUser(null)->denies('games.view'));
     }
 
-    public function test_game_policy_allows_view_but_denies_mutate_for_regular_user(): void
+    public function test_game_policy_allows_create_and_update_but_denies_delete_for_regular_user(): void
     {
         $user = $this->createUser();
         $policy = new GamePolicy;
@@ -114,8 +114,8 @@ class AuthPoliciesPhase1Test extends TestCase
 
         $this->assertTrue($policy->viewAny($user));
         $this->assertTrue($policy->view($user, $game));
-        $this->assertFalse($policy->create($user));
-        $this->assertFalse($policy->update($user, $game));
+        $this->assertTrue($policy->create($user));
+        $this->assertTrue($policy->update($user, $game));
         $this->assertFalse($policy->delete($user, $game));
     }
 
