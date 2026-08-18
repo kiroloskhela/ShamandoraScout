@@ -71,6 +71,7 @@ class GamesController extends Controller
     {
         $this->authorize('update', new Game);
         $game = DB::table('Games')->where('GameID', $id)->first();
+        abort_unless($game, 404);
 
         return view('games.edit', ['game' => $game, 'title' => __('Edit game')]);
     }

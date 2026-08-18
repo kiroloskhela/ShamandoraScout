@@ -10,7 +10,6 @@
 
             <form method="POST" action="{{ route('games.update', $game->GameID) }}">
                 @csrf
-                @method('PUT')
 
                 <div class="space-y-6">
                     <div>
@@ -24,7 +23,7 @@
                         <label for="description" class="mb-2 block text-sm font-medium text-gray-700">{{ __('Description') }}</label>
                         <textarea id="description" name="description" required rows="4"
                             class="w-full rounded-xl border border-slate-200 px-4 py-3 text-right text-slate-700 focus:border-blue-500 focus:outline-none"
-                            placeholder="{{ __('Enter game description') }}">{{ old('description', $game->Description ?? '') }}</textarea>
+                            placeholder="{{ __('Enter game description') }}">{{ old('description', $game->GameDescription ?? '') }}</textarea>
                     </div>
 
                     <div>
