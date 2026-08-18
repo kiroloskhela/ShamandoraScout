@@ -13,11 +13,7 @@ class NotificationController extends Controller
 {
     public function index()
     {
-        $users = DB::table('PersonInformation')
-            ->select('PersonID', 'FirstName', 'SecondName', 'ThirdName')
-            ->get();
-
-        return view('notifications.create', compact('users'));
+        return view('notifications.create');
     }
 
     public function create()
@@ -29,7 +25,7 @@ class NotificationController extends Controller
     {
         // ✅ Validation
         $request->validate([
-            'person_id' => 'required',
+            'person_id' => 'required|integer|exists:PersonInformation,PersonID',
             'title'     => 'required|string|max:255',
             'body'      => 'required|string',
         ]);
