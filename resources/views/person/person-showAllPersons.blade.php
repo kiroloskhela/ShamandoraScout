@@ -28,6 +28,18 @@
                 'cssClass' => 'text-blue-600 font-bold text-sm',
             ],
             [
+                'key' => 'FatherMobileNumber',
+                'label' => __('Father mobile'),
+                'type' => 'label',
+                'cssClass' => 'text-blue-600 font-bold text-sm',
+            ],
+            [
+                'key' => 'MotherMobileNumber',
+                'label' => __('Mother mobile'),
+                'type' => 'label',
+                'cssClass' => 'text-blue-600 font-bold text-sm',
+            ],
+            [
                 'key' => 'SanaMarhalaName',
                 'label' => __('Stage'),
                 'type' => 'label',
