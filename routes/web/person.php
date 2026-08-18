@@ -100,7 +100,9 @@ Route::middleware(['auth'])->group(function () {
 // Person directory list + Excel export (scoped to caller's groups)
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem', 'can.permission:web.people.directory'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
-    Route::get('/export/scouts', [ExportController::class, 'exportScoutsExcel'])->name('export.scouts.excel');
+    Route::get('/export/served-people', [ExportController::class, 'form'])->name('export.served-people');
+    Route::post('/export/served-people', [ExportController::class, 'download'])->name('export.served-people.download');
+    Route::get('/export/scouts', fn () => redirect()->route('export.served-people'))->name('export.scouts.excel');
 });
 
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance', 'can.permission:web.enrolments.manage'])->group(function () {

@@ -496,6 +496,10 @@
                                     href="{{ route('person.index', ['id' => Auth::user()->id]) }}">
                                     {{ __('Members data') }}
                                 </a>
+                                @if ($canPerm['web.people.directory'] ?? false)
+                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                        href="{{ route('export.served-people') }}">{{ __('Download served people data') }}</a>
+                                @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('attendance.manage') }}">{{ __('Attendance') }}</a>
                                 @if ($canPerm['web.people.manage'] ?? false)

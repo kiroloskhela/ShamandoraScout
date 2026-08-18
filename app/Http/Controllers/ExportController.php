@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\TableColumnFilters;
+use App\Domain\Person\ServedPeopleExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -16,164 +17,59 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExportController extends Controller
 {
-    /** @var array<string, string> */
-    private const FILTER_COLUMNS = [
-        'SanaMarhalaName' => 'sm.SanaMarhalaName',
-        'QetaaName' => 'q.QetaaName',
-    ];
+    public function __construct(
+        private readonly ServedPeopleExportService $export,
+    ) {}
 
-    public function exportScoutsExcel(Request $request)
+    public function form()
     {
-        // Production nginx often times out at 60s; keep room for large scoped exports.
-        @set_time_limit(300);
+        $user = Auth::user();
 
-        $userId = (int) Auth::id();
-        $filters = TableColumnFilters::fromRequest($request, array_keys(self::FILTER_COLUMNS));
-        $filterFrag = TableColumnFilters::sqlEquals($filters, self::FILTER_COLUMNS);
-        $filterSql = $filterFrag['sql'] !== '' ? ' AND '.$filterFrag['sql'] : '';
-        $filterBindings = $filterFrag['bindings'];
-        $scopeSql = $this->orgScopeSql();
+        return view('person.served-export', [
+            'qetaas' => $this->export->allowedQetaas($user),
+            'seasons' => DB::table('Season')
+                ->orderByDesc('SeasonYear')
+                ->orderBy('SeasonName')
+                ->get(['SeasonID', 'SeasonName', 'SeasonYear']),
+        ]);
+    }
 
-        // ─── Sheet 1: Personal Details ────────────────────────────────────────
-        $sheet1Data = DB::select("
-            SELECT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                pi.FirstName,
-                pi.SecondName,
-                pi.ThirdName,
-                pi.FourthName,
-                q.QetaaName,
-                pi.ScoutJoiningYear,
-                sm.SanaMarhalaName,
-                pi.RaqamQawmy,
-                ppn.PersonPersonalMobileNumber,
-                ppn.MotherMobileNumber
-            FROM PersonInformation pi
-            LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonPhoneNumbers ppn    ON pi.PersonID = ppn.PersonID
-            WHERE {$scopeSql}
-            {$filterSql}
-            GROUP BY
-                pi.PersonID, pi.ShamandoraCode, pi.FirstName, pi.SecondName,
-                pi.ThirdName, pi.FourthName, q.QetaaName, pi.ScoutJoiningYear,
-                sm.SanaMarhalaName, pi.RaqamQawmy, ppn.PersonPersonalMobileNumber,
-                ppn.MotherMobileNumber
-            ORDER BY pi.ShamandoraCode ASC
-        ", array_merge([$userId], $filterBindings));
+    public function download(Request $request)
+    {
+        set_time_limit(300);
 
-        // ─── Sheet 2: Medical & Allergies ─────────────────────────────────────
-        $sheet2Data = DB::select("
-            SELECT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                pi.FirstName,
-                pi.SecondName,
-                pi.ThirdName,
-                pi.FourthName,
-                q.QetaaName,
-                GROUP_CONCAT(DISTINCT CASE WHEN pa.AllergyType = 'Food'     THEN pa.AllergyName END SEPARATOR ' | ') AS FoodAllergies,
-                GROUP_CONCAT(DISTINCT CASE WHEN pa.AllergyType = 'Medicine' THEN pa.AllergyName END SEPARATOR ' | ') AS MedicineAllergies,
-                GROUP_CONCAT(DISTINCT pmh.Disease          SEPARATOR ' | ') AS Diseases,
-                GROUP_CONCAT(DISTINCT pmh.Medication       SEPARATOR ' | ') AS Medications,
-                MAX(pmh.HasEmergencyCase)                                    AS HasEmergencyCase,
-                GROUP_CONCAT(DISTINCT pmh.EmergencyDetails SEPARATOR ' | ') AS EmergencyDetails
-            FROM PersonInformation pi
-            LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PeopleAllergies pa        ON pa.PersonID = pi.PersonID
-            LEFT JOIN PeopleMedicalHistory pmh  ON pmh.PersonID = pi.PersonID
-            WHERE {$scopeSql}
-            {$filterSql}
-            GROUP BY
-                pi.PersonID, pi.ShamandoraCode, pi.FirstName,
-                pi.SecondName, pi.ThirdName, pi.FourthName, q.QetaaName
-            HAVING
-                FoodAllergies     IS NOT NULL OR
-                MedicineAllergies IS NOT NULL OR
-                Diseases          IS NOT NULL
-            ORDER BY pi.ShamandoraCode ASC
-        ", array_merge([$userId], $filterBindings));
+        $data = $request->validate([
+            'qetaa_id' => ['required', 'integer'],
+            'season_id' => ['required', 'integer', 'exists:Season,SeasonID'],
+        ]);
 
-        // ─── Sheet 3: Questions & Answers (dynamic pivot) ─────────────────────
-        DB::statement('SET SESSION group_concat_max_len = 1000000');
+        $user = Auth::user();
+        $qetaaId = (int) $data['qetaa_id'];
+        $seasonId = (int) $data['season_id'];
 
-        $colsFilterSql = '';
-        $colsBindings = [$userId];
-        if (isset($filters['QetaaName'])) {
-            $colsFilterSql = ' AND q.QetaaName = ?';
-            $colsBindings[] = $filters['QetaaName'];
+        if (! $this->export->canExportQetaa($user, $qetaaId)) {
+            abort(403);
         }
 
-        $colsResult = DB::selectOne("
-            SELECT GROUP_CONCAT(
-                DISTINCT CONCAT(
-                    'MAX(CASE WHEN peq.QuestionID = ', meq.QuestionID,
-                    ' THEN peq.Answer END) AS `',
-                    REPLACE(meq.QuestionText, '`', ''), '`'
-                )
-                ORDER BY meq.QuestionID ASC
-                SEPARATOR ', '
-            ) AS cols
-            FROM MarhalaEntryQuestions meq
-            LEFT JOIN Qetaa q ON q.QetaaID = meq.QetaaID
-            WHERE meq.QetaaID IN (
-                SELECT gq2.QetaaID FROM GroupQetaa gq2
-                WHERE gq2.GroupID IN (
-                    SELECT pg3.GroupID FROM PersonGroup pg3
-                    WHERE pg3.PersonID = ?
-                )
-            )
-            {$colsFilterSql}
-        ", $colsBindings);
+        $workbook = $this->export->build($qetaaId, $seasonId);
 
-        $sheet3Data = [];
-        if ($colsResult && $colsResult->cols) {
-            $dynamicQuery = "
-                SELECT
-                    pi.PersonID,
-                    pi.ShamandoraCode,
-                    pi.FirstName,
-                    pi.SecondName,
-                    pi.ThirdName,
-                    pi.FourthName,
-                    q.QetaaName,
-                    {$colsResult->cols}
-                FROM PersonInformation pi
-                LEFT JOIN PersonQetaa pq            ON pi.PersonID = pq.PersonID
-                LEFT JOIN Qetaa q                   ON pq.QetaaID = q.QetaaID
-                LEFT JOIN PersonSanaMarhala psm     ON pi.PersonID = psm.PersonID
-                LEFT JOIN SanaMarhala sm            ON sm.SanaMarhalaID = psm.SanaMarhalaID
-                LEFT JOIN PersonEntryQuestions peq  ON pi.PersonID = peq.PersonID
-                                                    AND peq.QuestionID IN (
-                                                        SELECT QuestionID
-                                                        FROM MarhalaEntryQuestions
-                                                        WHERE QetaaID = q.QetaaID
-                                                    )
-                WHERE {$scopeSql}
-                {$filterSql}
-                GROUP BY
-                    pi.PersonID, pi.ShamandoraCode, pi.FirstName,
-                    pi.SecondName, pi.ThirdName, pi.FourthName, q.QetaaName
-                ORDER BY pi.ShamandoraCode ASC
-            ";
-            $sheet3Data = DB::select($dynamicQuery, array_merge([$userId], $filterBindings));
-        }
+        Log::info('served_people.export', [
+            'person_id' => (int) $user->PersonID,
+            'qetaa_id' => $qetaaId,
+            'season_id' => $seasonId,
+            'people_count' => $workbook['people_count'],
+        ]);
 
         $spreadsheet = new Spreadsheet;
-
-        $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('البيانات الشخصية'), $sheet1Data);
-        $this->fillSheet($spreadsheet->createSheet()->setTitle('الحساسية والتاريخ الطبي'), $sheet2Data);
-        $this->fillSheet($spreadsheet->createSheet()->setTitle('الأسئلة والأجوبة'), $sheet3Data);
-
+        $first = true;
+        foreach ($workbook['sheets'] as $sheet) {
+            $worksheet = $first ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $first = false;
+            $this->fillSheet($worksheet->setTitle($sheet['title']), $sheet['rows']);
+        }
         $spreadsheet->setActiveSheetIndex(0);
 
-        $filename = 'scouts_export_'.now()->format('Y-m-d_H-i-s').'.xlsx';
+        $filename = 'served_export_'.$qetaaId.'_'.$seasonId.'_'.now()->format('Y-m-d_H-i-s').'.xlsx';
         $writer = new Xlsx($spreadsheet);
 
         return response()->streamDownload(function () use ($writer) {
@@ -184,17 +80,9 @@ class ExportController extends Controller
         ]);
     }
 
-    private function orgScopeSql(): string
-    {
-        return 'q.QetaaID IN (
-            SELECT gq2.QetaaID FROM GroupQetaa gq2
-            WHERE gq2.GroupID IN (
-                SELECT pg3.GroupID FROM PersonGroup pg3
-                WHERE pg3.PersonID = ?
-            )
-        )';
-    }
-
+    /**
+     * @param  list<array<string, mixed>>  $data
+     */
     private function fillSheet(Worksheet $sheet, array $data): void
     {
         if ($data === []) {
@@ -203,12 +91,12 @@ class ExportController extends Controller
             return;
         }
 
-        $headers = array_keys((array) $data[0]);
-        $rows = [array_values($headers)];
+        $headers = array_map(fn ($header) => self::excelCell($header), array_keys($data[0]));
+        $rows = [$headers];
         foreach ($data as $record) {
             $rows[] = array_map(
-                static fn ($value) => $value ?? '',
-                array_values((array) $record)
+                static fn ($value) => self::excelCell($value),
+                array_values($record)
             );
         }
 
@@ -237,5 +125,15 @@ class ExportController extends Controller
 
         $sheet->freezePane('A2');
         $sheet->setRightToLeft(true);
+    }
+
+    private static function excelCell(mixed $value): string
+    {
+        $text = (string) ($value ?? '');
+        if ($text !== '' && in_array($text[0], ['=', '+', '-', '@'], true)) {
+            return "'".$text;
+        }
+
+        return $text;
     }
 }
