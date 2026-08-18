@@ -37,7 +37,8 @@ class HotPathSmokeTest extends TestCase
 
     public function test_unprivileged_user_cannot_open_person_directory_index(): void
     {
-        $user = $this->createUserWithRole('Media');
+        // Media is staff and may open /person; Mkhdom must still be denied.
+        $user = $this->createUserWithRole('Mkhdom');
 
         $this->actingAs($user)
             ->get(route('person.index'))
