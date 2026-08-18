@@ -158,7 +158,7 @@
 
     <!-- TABLE -->
     <div class="overflow-x-auto">
-        <table class="w-full min-w-[640px] md:min-w-0">
+        <table class="w-full min-w-[640px]">
             <thead class="bg-gray-100 dark:bg-slate-800">
                 <tr>
                     <template x-for="(column, colIndex) in columns" :key="column.key">
@@ -226,26 +226,22 @@
                         <td x-show="actions.length > 0"
                             class="sticky end-0 z-10 px-2 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm font-medium bg-white dark:bg-slate-900 group-hover/row:bg-gray-50 dark:group-hover/row:bg-slate-800/80 border-s border-slate-200/70 dark:border-slate-700 md:static md:border-s-0">
 
-                            {{-- Desktop: inline action buttons --}}
-                            <div class="hidden md:flex md:flex-wrap md:items-center md:gap-2">
+                            {{-- Desktop: all actions stay on one row --}}
+                            <div class="hidden md:flex md:flex-nowrap md:items-center md:gap-1.5 min-w-max whitespace-nowrap">
                                 <template x-for="action in actions" :key="action.name">
-                                    <template x-if="!isActionDisabled(action, item)">
-                                        <a :href="buildActionRoute(action, item)"
-                                            :class="action.cssClass ||
-                                                'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200'"
+                                    <span class="inline-flex shrink-0">
+                                        <a x-show="!isActionDisabled(action, item)"
+                                            :href="buildActionRoute(action, item)"
+                                            :class="(action.cssClass ||
+                                                'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200') + ' shrink-0'"
                                             x-text="action.label">
                                         </a>
-                                    </template>
-                                </template>
-
-                                <template x-for="action in actions" :key="action.name + '-disabled'">
-                                    <template x-if="isActionDisabled(action, item)">
-                                        <span
-                                            :class="action.disabledClass ||
-                                                'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed'"
+                                        <span x-show="isActionDisabled(action, item)"
+                                            :class="(action.disabledClass ||
+                                                'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed') + ' shrink-0'"
                                             x-text="action.disabledLabel || action.label">
                                         </span>
-                                    </template>
+                                    </span>
                                 </template>
                             </div>
 

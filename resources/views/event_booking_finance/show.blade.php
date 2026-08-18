@@ -199,7 +199,7 @@
                                 <td class="px-4 py-3">{{ $payment->ServentFullName ?: '-' }}</td>
                                 <td class="px-4 py-3">{{ $payment->Notes ?: '-' }}</td>
                                 <td class="px-4 py-3">
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-nowrap items-center gap-2 min-w-max whitespace-nowrap">
                                         <a href="{{ route('eventBookingFinance.printReceipt', $payment->PaymentID) }}"
                                             class="inline-flex items-center px-3 py-2 text-xs font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-200">
                                             {{ __('Print receipt') }}
