@@ -24,6 +24,8 @@ class AttendanceApiAllowListTest extends TestCase
             'GroupQetaa',
             'PersonGroup',
             'SeasonEvent',
+            'Event',
+            'EventType',
             'PersonRole',
             'Roles',
             'PersonInformation',
@@ -49,6 +51,18 @@ class AttendanceApiAllowListTest extends TestCase
             $table->increments('PersonRoleID');
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('RoleID');
+        });
+
+        Schema::create('EventType', function (Blueprint $table) {
+            $table->increments('EventTypeID');
+            $table->string('EventTypeName')->nullable();
+            $table->boolean('TakesReservation')->default(false);
+        });
+
+        Schema::create('Event', function (Blueprint $table) {
+            $table->increments('EventID');
+            $table->unsignedInteger('EventTypeID')->nullable();
+            $table->string('EventName')->nullable();
         });
 
         Schema::create('SeasonEvent', function (Blueprint $table) {
@@ -118,6 +132,11 @@ class AttendanceApiAllowListTest extends TestCase
         $allowedPersonId = 100;
         $blockedPersonId = 999;
 
+        $typeId = (int) DB::table('EventType')->insertGetId([
+            'EventTypeName' => 'Meeting',
+            'TakesReservation' => 0,
+        ]);
+        DB::table('Event')->insert(['EventID' => 7, 'EventTypeID' => $typeId, 'EventName' => 'Weekly']);
         DB::table('SeasonEvent')->insert(['SeasonEventID' => 1, 'EventID' => 7]);
         DB::table('PersonGroup')->insert(['PersonID' => $servant->PersonID, 'GroupID' => 5]);
         DB::table('GroupQetaa')->insert(['GroupID' => 5, 'QetaaID' => 3]);
