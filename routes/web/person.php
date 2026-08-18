@@ -70,7 +70,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa', 'can.permission:we
     Route::get('/person/entry-questions/insert/{id}', [PersonDirectoryController::class, 'getQuestions'])->name('person.entry-questions');
     Route::post('/person/entry-questions/submit', [PersonDirectoryController::class, 'submitQuestions'])->name('person.entry-questions-submit');
 
-    Route::get('/person/show/{id}', [PersonDirectoryController::class, 'show'])->name('person.show');
     Route::get('/person/edit/{id}', [PersonDirectoryController::class, 'edit'])->name('person.edit');
     Route::patch('/person/update/{id}', [PersonDirectoryController::class, 'updates'])->name('person.update');
 
@@ -97,9 +96,14 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
 });
 
-// Person directory list + Excel export (scoped to caller's groups)
-Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem', 'can.permission:web.people.directory'])->group(function () {
+// Full profile + served directory for all staff except Mkhdom.
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Finance|AdminInventory|Inventory|AdminFirstAid|Khadem|Media', 'can.permission:web.people.view_served|web.people.directory'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
+    Route::get('/person/show/{id}', [PersonDirectoryController::class, 'show'])->name('person.show');
+});
+
+// Person directory Excel export (scoped to caller's groups)
+Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Khadem', 'can.permission:web.people.directory'])->group(function () {
     Route::get('/export/served-people', [ExportController::class, 'form'])->name('export.served-people');
     Route::post('/export/served-people', [ExportController::class, 'download'])->name('export.served-people.download');
     Route::get('/export/scouts', fn () => redirect()->route('export.served-people'))->name('export.scouts.excel');

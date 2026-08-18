@@ -52,5 +52,15 @@ class PermissionCatalogTest extends TestCase
         $this->assertNotContains('mobile.attendance.take', $keys);
         $this->assertNotContains('mobile.members.list', $keys);
         $this->assertNotContains('web.people.manage', $keys);
+        $this->assertNotContains('web.people.view_served', $keys);
+    }
+
+    public function test_every_staff_role_seeds_view_served(): void
+    {
+        foreach (config('permissions.staff_roles') as $role) {
+            $keys = config('permissions.seed.'.$role);
+            $this->assertIsArray($keys, $role.' missing from seed map');
+            $this->assertContains('web.people.view_served', $keys, $role.' must seed view_served');
+        }
     }
 }

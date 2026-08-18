@@ -15,6 +15,7 @@ class TreePolicyTest extends TestCase
     {
         parent::setUp();
 
+        Schema::dropIfExists('PersonQetaa');
         Schema::dropIfExists('GroupQetaa');
         Schema::dropIfExists('PersonGroup');
         Schema::dropIfExists('PersonInformation');
@@ -36,6 +37,11 @@ class TreePolicyTest extends TestCase
         Schema::create('GroupQetaa', function (Blueprint $table) {
             $table->increments('GroupQetaaID');
             $table->unsignedInteger('GroupID');
+            $table->unsignedInteger('QetaaID');
+        });
+        Schema::create('PersonQetaa', function (Blueprint $table) {
+            $table->increments('PersonQetaaID');
+            $table->unsignedInteger('PersonID');
             $table->unsignedInteger('QetaaID');
         });
     }
@@ -75,5 +81,39 @@ class TreePolicyTest extends TestCase
 
         $this->assertTrue($policy->manageGroup($user, 2));
         $this->assertFalse($policy->manageGroup($user, 9));
+    }
+
+    public function test_serves_person_requires_group_in_target_qetaa(): void
+    {
+        $servant = User::create([
+            'FirstName' => 'A',
+            'SecondName' => 'B',
+            'ThirdName' => 'C',
+            'ShamandoraCode' => 'T3',
+        ]);
+        $served = User::create([
+            'FirstName' => 'S',
+            'SecondName' => 'B',
+            'ThirdName' => 'C',
+            'ShamandoraCode' => 'T4',
+        ]);
+        $other = User::create([
+            'FirstName' => 'O',
+            'SecondName' => 'B',
+            'ThirdName' => 'C',
+            'ShamandoraCode' => 'T5',
+        ]);
+
+        DB::table('PersonGroup')->insert(['PersonID' => $servant->PersonID, 'GroupID' => 3]);
+        DB::table('GroupQetaa')->insert(['GroupID' => 3, 'QetaaID' => 11]);
+        DB::table('PersonQetaa')->insert([
+            ['PersonID' => $served->PersonID, 'QetaaID' => 11],
+            ['PersonID' => $other->PersonID, 'QetaaID' => 22],
+        ]);
+
+        $policy = new TreePolicy;
+
+        $this->assertTrue($policy->servesPerson($servant, $served));
+        $this->assertFalse($policy->servesPerson($servant, $other));
     }
 }
