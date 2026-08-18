@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: ["main"]
 
+# Overlapping main deploys share one SSH session to the VPS. The second
+# handshake then hits `dial tcp :22: i/o timeout` (PR #57 after #56).
+# Queue main; cancel stale PR checks only.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -135,7 +142,7 @@ jobs:
           port: 22
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          timeout: 60s
+          timeout: 180s
           command_timeout: 30m
           script: |
             set -euo pipefail
