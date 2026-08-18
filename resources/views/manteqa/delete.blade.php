@@ -3,7 +3,7 @@
 
 
 <x-form-card :title="__('Delete residential area')" :action="route('manteqa.destroy', $manteqa->ManteqaID)" method="DELETE"
-    inputPlaceholder="{{ __('Form label ff17c5a8') }}" inputLabel="{{ __('Form label ff17c5a8') }}" submitText="{{ __('Form label e1e31f22') }}"
+    inputPlaceholder="{{ __('Enter residential area name') }}" inputLabel="{{ __('Enter residential area name') }}" submitText="{{ __('Delete residential area') }}"
     submitColor="red" inputName="manteqa_name" :inputValue="$manteqa->ManteqaName" />
 
 @endsection

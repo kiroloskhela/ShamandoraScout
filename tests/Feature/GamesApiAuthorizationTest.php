@@ -213,6 +213,18 @@ class GamesApiAuthorizationTest extends TestCase
             ->assertOk();
     }
 
+    public function test_web_edit_is_allowed_for_staff_role(): void
+    {
+        $this->withoutVite();
+        $gameId = $this->seedGame();
+        $user = $this->createUserWithRoles(['Finance']);
+
+        $this->actingAs($user)
+            ->get("/games/edit/{$gameId}")
+            ->assertOk()
+            ->assertSee('Original Title', false);
+    }
+
     public function test_web_delete_is_forbidden_for_staff_role(): void
     {
         $gameId = $this->seedGame();

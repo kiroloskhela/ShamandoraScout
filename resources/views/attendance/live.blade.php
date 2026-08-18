@@ -188,7 +188,7 @@
                                 <td class="px-4 py-2 text-sm font-mono text-slate-700 dark:text-slate-200">${escapeHtml(row.code || '')}</td>
                                 <td class="px-4 py-2 text-sm font-bold">${escapeHtml(statusText)}</td>
                                 <td class="px-4 py-2">
-                                    <div class="flex flex-wrap items-center justify-center gap-1">
+                                    <div class="flex flex-nowrap items-center justify-center gap-1 min-w-max whitespace-nowrap">
                                         <button type="button" data-mark="present" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-green-600 text-white">{{ __('Present') }}</button>
                                         <button type="button" data-mark="absent" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-red-600 text-white">{{ __('Absent') }}</button>
                                         <button type="button" data-mark="outside" data-booking="${row.booking_id}" class="roster-mark h-8 px-2 rounded-lg text-[11px] font-bold bg-amber-500 text-white">{{ __('Outside') }}</button>

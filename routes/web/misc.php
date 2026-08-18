@@ -133,7 +133,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/games/create', [GamesController::class, 'create'])->name('games.create');
     Route::post('/games/insert', [GamesController::class, 'insert'])->name('games.insert');
     Route::get('/games/edit/{id}', [GamesController::class, 'edit'])->name('games.edit');
-    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.updates');
+    Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.update');
     Route::middleware('superadmin.only')->group(function () {
         Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
         Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
