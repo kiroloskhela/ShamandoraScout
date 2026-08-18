@@ -1197,7 +1197,16 @@ return [
                 'Search by name, code, phone, or sector.',
                 'Use stage or sector column filters to narrow the list.',
                 'Open View to read a member’s full record, or Edit to update it.',
-                'Use Add user to register a new member, or Download Excel if you need an export.',
+                'Use Add user to register a new member.',
+            ],
+        ],
+        'export.served-people' => [
+            'title' => 'Download served people data',
+            'intro' => 'Export one sector for one season as an Excel file with personal data, medical notes, sector questions, and attendance.',
+            'steps' => [
+                'Choose a sector you serve. SuperAdmin can choose any sector.',
+                'Choose the season for the attendance sheet.',
+                'Press Download Excel. Unmarked attendance stays blank.',
             ],
         ],
         'person.new-enrolments-analytics' => [

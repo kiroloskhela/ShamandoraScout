@@ -58,18 +58,31 @@ class PersonExportAuthzTest extends TestCase
             ->assertStatus(403);
 
         $this->actingAs($user)
+            ->get(route('export.served-people'))
+            ->assertStatus(403);
+
+        $this->actingAs($user)
             ->get(route('export.scouts.excel'))
             ->assertStatus(403);
     }
 
-    public function test_khadem_is_authorized_for_export_route(): void
+    public function test_khadem_legacy_export_url_redirects_to_form(): void
     {
         $user = $this->createUserWithRole('Khadem');
 
-        // SQLite cannot run the MySQL export SQL; auth must pass (not 403).
-        $response = $this->actingAs($user)->get(route('export.scouts.excel'));
+        $this->actingAs($user)
+            ->get(route('export.scouts.excel'))
+            ->assertRedirect(route('export.served-people'));
+    }
 
-        $this->assertNotSame(403, $response->status());
+    public function test_khadem_can_open_served_people_export_form(): void
+    {
+        $user = $this->createUserWithRole('Khadem');
+
+        $this->actingAs($user)
+            ->get(route('export.served-people'))
+            ->assertOk()
+            ->assertSee(__('Download served people data'), false);
     }
 
     public function test_export_route_has_no_user_id_parameter(): void
@@ -116,7 +129,7 @@ class PersonExportAuthzTest extends TestCase
 
     private function createAuthSchema(): void
     {
-        foreach (['PersonRole', 'Roles', 'PersonImages', 'PersonInformation'] as $table) {
+        foreach (['PersonGroup', 'GroupQetaa', 'Qetaa', 'Season', 'PersonRole', 'Roles', 'PersonImages', 'PersonInformation'] as $table) {
             Schema::dropIfExists($table);
         }
 
@@ -144,6 +157,25 @@ class PersonExportAuthzTest extends TestCase
             $table->increments('PersonRoleID');
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('RoleID');
+        });
+        Schema::create('Qetaa', function (Blueprint $table) {
+            $table->increments('QetaaID');
+            $table->string('QetaaName')->nullable();
+        });
+        Schema::create('Season', function (Blueprint $table) {
+            $table->increments('SeasonID');
+            $table->string('SeasonName')->nullable();
+            $table->integer('SeasonYear')->nullable();
+        });
+        Schema::create('PersonGroup', function (Blueprint $table) {
+            $table->increments('PersonGroupID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('GroupID');
+        });
+        Schema::create('GroupQetaa', function (Blueprint $table) {
+            $table->increments('GroupQetaaID');
+            $table->unsignedInteger('GroupID');
+            $table->unsignedInteger('QetaaID');
         });
     }
 }
