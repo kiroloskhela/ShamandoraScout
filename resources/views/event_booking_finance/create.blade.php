@@ -61,7 +61,7 @@
 
                         <div>
                             <label class="block mb-2 text-sm text-gray-700 dark:text-slate-200">{{ __('First payment amount') }}</label>
-                            <input type="number" step="1" min="1" name="first_payment_amount"
+                            <input type="number" step="1" min="0" name="first_payment_amount"
                                 value="{{ old('first_payment_amount') }}" id="first_payment_amount"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-600 dark:text-slate-300 focus:border-blue-500 focus:outline-none">
                         </div>
