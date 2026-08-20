@@ -73,10 +73,10 @@ class SeasonEventBookingService
      *   guest_id?: int|null,
      *   family_id?: int|null,
      *   first_payment_date: string,
-     *   first_payment_amount: float|int|string,
+     *   first_payment_amount: int|string,
      *   is_not_able_to_pay_all?: mixed,
      *   special_case_type?: string|null,
-     *   discount_amount?: float|int|string|null,
+     *   discount_amount?: int|string|null,
      *   special_case_note?: string|null,
      *   shirt_size?: string|null,
      *   notes?: string|null,
@@ -158,24 +158,33 @@ class SeasonEventBookingService
             : 'NONE';
 
         $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB') ? 1 : 0;
-        $discountAmount = (float) ($payload['discount_amount'] ?? 0);
+        $discountAmount = (int) ($payload['discount_amount'] ?? 0);
         $specialCaseNote = $payload['special_case_note'] ?? null;
-        $originalPrice = (float) $priceRow->Price;
-        $finalRequiredAmount = max(0, $originalPrice - $discountAmount);
-        $firstPaymentAmount = (float) $payload['first_payment_amount'];
+        $originalPrice = (int) $priceRow->Price;
+        $firstPaymentAmount = (int) $payload['first_payment_amount'];
         $installmentsNumber = (int) $plan->MaxInstallmentsNumber;
 
-        if ($finalRequiredAmount <= 0) {
-            return ['ok' => false, 'field' => 'discount_amount', 'message' => 'المبلغ النهائي المطلوب يجب أن يكون أكبر من صفر.'];
+        if ($bookingType === 'PERSON' && ! in_array($specialCaseType, ['AKHOH_RAB', 'HAS_BROTHERS', 'OTHER'], true)) {
+            $discountAmount = 0;
         }
+
+        if ($discountAmount > $originalPrice) {
+            return ['ok' => false, 'field' => 'discount_amount', 'message' => 'مبلغ الخصم لا يمكن أن يكون أكبر من سعر الفعالية.'];
+        }
+
+        $finalRequiredAmount = $originalPrice - $discountAmount;
 
         if ($firstPaymentAmount > $finalRequiredAmount) {
             return ['ok' => false, 'field' => 'first_payment_amount', 'message' => 'لا يمكن أن تكون أول دفعة أكبر من المبلغ المطلوب النهائي.'];
         }
 
+        if ($finalRequiredAmount > 0 && $firstPaymentAmount === 0) {
+            return ['ok' => false, 'field' => 'first_payment_amount', 'message' => 'لا يمكن أن تكون أول دفعة صفرًا ما دام هناك مبلغ متبقٍ.'];
+        }
+
         $isSpecialBehavior = $isPermanentSpecial || $specialCaseType === 'AKHOH_RAB';
 
-        if (! $isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (float) $plan->MinimumDeposit) {
+        if ($finalRequiredAmount > 0 && ! $isSpecialBehavior && (int) $plan->AllowBelowMinimumDeposit === 0 && $firstPaymentAmount < (int) $plan->MinimumDeposit) {
             return ['ok' => false, 'field' => 'first_payment_amount', 'message' => 'لا يمكن أن تكون أول دفعة أقل من الحد الأدنى للمقدم.'];
         }
 
