@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import pino from 'pino';
-import { getStatus, sendImage, sendText, startWhatsApp } from './whatsapp.js';
+import { getStatus, reconnectFromDisk, sendImage, sendText, startWhatsApp } from './whatsapp.js';
 
 // Load sibling .env without a dotenv dependency (pm2 often omits env files).
 const envPath = join(dirname(fileURLToPath(import.meta.url)), '..', '.env');
@@ -51,7 +51,14 @@ function requireToken(req, res, next) {
 
 app.get('/health', (_req, res) => {
   const status = getStatus();
-  res.json({ ok: status.ok, connected: status.connected });
+  res.json({
+    ok: status.ok,
+    connected: status.connected,
+    hasReusableSession: status.hasReusableSession,
+    pairingRequired: status.pairingRequired,
+    reconnecting: status.reconnecting,
+    lastDisconnectCode: status.lastDisconnectCode,
+  });
 });
 
 app.get('/qr', (_req, res) => {
@@ -61,6 +68,20 @@ app.get('/qr', (_req, res) => {
     connected: status.connected,
     qr: status.qr,
   });
+});
+
+app.post('/reconnect', requireToken, async (_req, res) => {
+  try {
+    const result = await reconnectFromDisk();
+    const { qr: _qr, ...status } = result;
+    return res.json({ ok: true, ...status });
+  } catch (err) {
+    logger.error({ err }, 'Reconnect failed');
+    return res.status(500).json({
+      ok: false,
+      error: err?.message || 'Reconnect failed',
+    });
+  }
 });
 
 app.post('/send', requireToken, async (req, res) => {

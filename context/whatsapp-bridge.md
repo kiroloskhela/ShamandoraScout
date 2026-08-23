@@ -38,9 +38,14 @@ BRIDGE_TOKEN=<same as WHATSAPP_BRIDGE_TOKEN>
 
 Reconnect uses exponential backoff with saved creds; no re-scan after normal restarts.
 
+The bridge keeps the socket alive (WebSocket ping + presence heartbeat) and reconnects from `auth_session/` when the connection drops. A Laravel schedule `whatsapp:wake` (every 2 minutes) asks the bridge to reconnect if it is down but still has a reusable session.
+
+If WhatsApp **unlinks** the device from the phone (Linked devices → log out), the bridge retries the saved session **once**. A second 401/403 clears `auth_session` so a **new QR** can be issued. Transient drops do not require a scan.
+
 ## Tests
 
-`tests/Feature/WhatsAppStatusControllerTest.php` — bridge down / connected (`Http::fake`).
+`tests/Feature/WhatsAppStatusControllerTest.php` — bridge down / connected / reconnect (`Http::fake`).
+`tests/Feature/WakeWhatsAppSessionTest.php` — scheduled wake reconnects saved session, skips pairing and non-local URLs.
 
 ## Out of scope
 

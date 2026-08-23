@@ -108,4 +108,58 @@ class WhatsAppStatusControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('متصل', false);
     }
+
+    public function test_status_page_shows_reconnect_when_session_exists(): void
+    {
+        config([
+            'services.whatsapp.bridge_base_url' => 'http://127.0.0.1:3010',
+            'services.whatsapp.bridge_url' => 'http://127.0.0.1:3010/send',
+        ]);
+
+        Http::fake([
+            'http://127.0.0.1:3010/health' => Http::response([
+                'ok' => true,
+                'connected' => false,
+                'hasReusableSession' => true,
+                'pairingRequired' => false,
+                'reconnecting' => false,
+            ], 200),
+            'http://127.0.0.1:3010/qr' => Http::response([
+                'ok' => true,
+                'connected' => false,
+                'qr' => null,
+            ], 200),
+        ]);
+
+        $user = $this->createSuperAdmin();
+
+        $response = $this->actingAs($user)->get('/whatsapp/status');
+
+        $response->assertOk();
+        $response->assertSee('إعادة توصيل الجلسة المحفوظة', false);
+    }
+
+    public function test_reconnect_posts_to_local_bridge(): void
+    {
+        config([
+            'services.whatsapp.bridge_base_url' => 'http://127.0.0.1:3010',
+            'services.whatsapp.bridge_url' => 'http://127.0.0.1:3010/send',
+            'services.whatsapp.bridge_token' => 'test-token',
+        ]);
+
+        Http::fake([
+            'http://127.0.0.1:3010/reconnect' => Http::response(['ok' => true, 'connected' => false], 200),
+        ]);
+
+        $user = $this->createSuperAdmin();
+
+        $response = $this->actingAs($user)->post('/whatsapp/reconnect');
+
+        $response->assertRedirect(route('whatsapp.status'));
+        Http::assertSent(function ($request) {
+            return $request->url() === 'http://127.0.0.1:3010/reconnect'
+                && $request->method() === 'POST'
+                && $request->hasHeader('X-Bridge-Token', 'test-token');
+        });
+    }
 }

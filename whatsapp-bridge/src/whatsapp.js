@@ -1,3 +1,4 @@
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
@@ -9,9 +10,20 @@ import makeWASocket, {
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import QRCode from 'qrcode';
+import {
+  credsLookRegistered,
+  isPairingStatus,
+  nextLogoutAction,
+  reconnectDelayMs,
+  shouldWatchdogReconnect,
+} from './reconnectPolicy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const AUTH_DIR = path.join(__dirname, '..', 'auth_session');
+const CREDS_FILE = path.join(AUTH_DIR, 'creds.json');
+// keepAliveIntervalMs (socket) + HEARTBEAT_MS (presence) + WATCHDOG_MS (restart from disk)
+const HEARTBEAT_MS = 5 * 60 * 1000;
+const WATCHDOG_MS = 60 * 1000;
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info'});
 
@@ -20,6 +32,13 @@ let connected = false;
 let latestQrDataUrl = null;
 let reconnectAttempt = 0;
 let starting = false;
+let reconnecting = false;
+let pairingRequired = false;
+let lastDisconnectCode = null;
+let consecutiveLoggedOut = 0;
+let reconnectTimer = null;
+let heartbeatTimer = null;
+let watchdogTimer = null;
 
 /** Recent outbound messages for Baileys retry / decrypt recovery */
 const recentMessages = new Map();
@@ -97,12 +116,139 @@ function enqueueSend(task) {
   return run;
 }
 
+function hasReusableSession() {
+  if (!existsSync(CREDS_FILE)) {
+    return false;
+  }
+
+  try {
+    return credsLookRegistered(JSON.parse(readFileSync(CREDS_FILE, 'utf8')));
+  } catch {
+    return false;
+  }
+}
+
+function stopHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  heartbeatTimer = setInterval(() => {
+    if (!sock || !connected) {
+      return;
+    }
+    Promise.resolve(sock.sendPresenceUpdate('available')).catch((err) => {
+      logger.warn({ err: err?.message }, 'Presence heartbeat failed');
+    });
+  }, HEARTBEAT_MS);
+}
+
+function disposeSocket() {
+  stopHeartbeat();
+  const current = sock;
+  sock = null;
+  connected = false;
+  if (!current) {
+    return;
+  }
+  try {
+    current.ev.removeAllListeners();
+  } catch {
+    // ignore
+  }
+  try {
+    current.end(undefined);
+  } catch {
+    // ignore
+  }
+  try {
+    current.ws?.close();
+  } catch {
+    // ignore
+  }
+}
+
+function resetAuthDir() {
+  try {
+    rmSync(AUTH_DIR, { recursive: true, force: true });
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'Failed to clear auth_session');
+  }
+  mkdirSync(AUTH_DIR, { recursive: true });
+}
+
+function scheduleReconnect(statusCode, reason, { force = false } = {}) {
+  if (pairingRequired && !force) {
+    logger.warn({ statusCode, reason }, 'Not auto-reconnecting; pairing required');
+    return;
+  }
+  if (reconnectTimer || starting) {
+    return;
+  }
+
+  reconnecting = true;
+  reconnectAttempt += 1;
+  const delay = reconnectDelayMs(statusCode, reconnectAttempt);
+  logger.info({ delay, reconnectAttempt, statusCode, reason }, 'Reconnecting with saved session');
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    reconnecting = false;
+    startWhatsApp().catch((err) => logger.error({ err }, 'Reconnect failed'));
+  }, delay);
+}
+
+function ensureWatchdog() {
+  if (watchdogTimer) {
+    return;
+  }
+  watchdogTimer = setInterval(() => {
+    const busy = starting || reconnecting || Boolean(reconnectTimer);
+    if (!shouldWatchdogReconnect({
+      connected,
+      hasReusableSession: hasReusableSession(),
+      pairingRequired,
+      busy,
+    })) {
+      return;
+    }
+    logger.warn('Watchdog reconnecting from saved session');
+    startWhatsApp().catch((err) => logger.error({ err }, 'Watchdog reconnect failed'));
+  }, WATCHDOG_MS);
+}
+
 export function getStatus() {
   return {
     ok: true,
     connected,
     qr: connected ? null : latestQrDataUrl,
+    hasReusableSession: hasReusableSession(),
+    pairingRequired,
+    reconnecting: starting || reconnecting || Boolean(reconnectTimer),
+    lastDisconnectCode,
   };
+}
+
+export async function reconnectFromDisk() {
+  if (connected) {
+    return { ...getStatus(), skipped: true, reason: 'already_connected' };
+  }
+  if (starting || reconnecting || reconnectTimer) {
+    return { ...getStatus(), skipped: true, reason: 'already_reconnecting' };
+  }
+
+  consecutiveLoggedOut = 0;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  logger.info('Manual reconnect from saved session');
+  await startWhatsApp();
+
+  return getStatus();
 }
 
 export async function sendText(fullNumber, message) {
@@ -165,10 +311,12 @@ export async function sendImage(fullNumber, imageBase64, caption = '', mimeType 
 }
 
 export async function startWhatsApp() {
-  if (starting) {
+  if (starting || reconnecting) {
     return;
   }
   starting = true;
+  ensureWatchdog();
+  disposeSocket();
 
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
@@ -183,7 +331,10 @@ export async function startWhatsApp() {
       },
       logger: silent,
       syncFullHistory: false,
-      markOnlineOnConnect: false,
+      markOnlineOnConnect: true,
+      keepAliveIntervalMs: 20_000,
+      connectTimeoutMs: 60_000,
+      browser: ['ShamandoraScout', 'Chrome', '126.0.0'],
       // Critical for WhatsApp retry requests when a phone cannot decrypt yet
       getMessage: async (key) => {
         if (key?.id && recentMessages.has(key.id)) {
@@ -212,45 +363,61 @@ export async function startWhatsApp() {
         connected = true;
         latestQrDataUrl = null;
         reconnectAttempt = 0;
+        consecutiveLoggedOut = 0;
+        pairingRequired = false;
+        lastDisconnectCode = null;
+        starting = false;
+        reconnecting = false;
+        startHeartbeat();
         logger.info('WhatsApp connected');
       }
 
       if (connection === 'close') {
+        stopHeartbeat();
         connected = false;
+        starting = false;
+        latestQrDataUrl = null;
         const statusCode =
           lastDisconnect?.error instanceof Boom
             ? lastDisconnect.error.output?.statusCode
             : lastDisconnect?.error?.output?.statusCode;
+        lastDisconnectCode = statusCode ?? null;
 
-        const loggedOut = statusCode === DisconnectReason.loggedOut;
-        logger.warn({ statusCode, loggedOut }, 'WhatsApp disconnected');
+        const pairingStatus = isPairingStatus(statusCode);
+        logger.warn({ statusCode, pairingStatus, pairingRequired }, 'WhatsApp disconnected');
 
-        if (loggedOut) {
-          latestQrDataUrl = null;
-          logger.error(
-            'Logged out of WhatsApp. Delete auth_session only if you intend to re-pair, then restart.'
-          );
-          starting = false;
+        disposeSocket();
+
+        if (pairingRequired) {
+          scheduleReconnect(statusCode, 'pair-qr', { force: true });
           return;
         }
 
-        reconnectAttempt += 1;
-        const delay = Math.min(30_000, 1000 * 2 ** Math.min(reconnectAttempt, 5));
-        logger.info({ delay, reconnectAttempt }, 'Reconnecting with saved session');
-        starting = false;
-        await sleep(delay);
-        startWhatsApp().catch((err) => logger.error({ err }, 'Reconnect failed'));
-        return;
+        if (pairingStatus) {
+          consecutiveLoggedOut += 1;
+          const action = nextLogoutAction(consecutiveLoggedOut);
+          if (action === 'pairing_required') {
+            pairingRequired = true;
+            resetAuthDir();
+            logger.error(
+              'WhatsApp unlinked this device. Cleared auth_session so a new QR can be issued.'
+            );
+            scheduleReconnect(statusCode, 'pair-qr', { force: true });
+            return;
+          }
+          logger.warn('Logged out once — retrying saved session without deleting auth_session');
+          scheduleReconnect(statusCode, 'logged-out-retry');
+          return;
+        }
+
+        consecutiveLoggedOut = 0;
+        scheduleReconnect(statusCode, 'disconnected');
       }
     });
   } catch (err) {
     logger.error({ err }, 'Failed to start WhatsApp socket');
     starting = false;
-    const delay = Math.min(30_000, 1000 * 2 ** Math.min(reconnectAttempt + 1, 5));
-    reconnectAttempt += 1;
-    await sleep(delay);
-    return startWhatsApp();
+    disposeSocket();
+    scheduleReconnect(lastDisconnectCode, 'start-failed');
   }
-
-  starting = false;
 }
