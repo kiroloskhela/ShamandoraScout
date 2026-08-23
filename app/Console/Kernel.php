@@ -20,6 +20,11 @@ class Kernel extends ConsoleKernel
             ->hourly()
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/failed_jobs_report.log'));
+
+        $schedule->command('whatsapp:wake')
+            ->everyTwoMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/whatsapp_wake.log'));
     }
 
     /**

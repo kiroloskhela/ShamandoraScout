@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Thin HTTP client for the Baileys WhatsApp bridge (/send).
+ * HTTP client for the Baileys WhatsApp bridge (/send, /health, /reconnect).
  */
 class WhatsAppBridgeClient
 {
@@ -121,5 +121,57 @@ class WhatsAppBridgeClient
         ]);
 
         throw new RuntimeException('WhatsApp bridge error: ' . $res->body());
+    }
+
+    public function baseUrl(): string
+    {
+        $explicit = config('services.whatsapp.bridge_base_url');
+        if (is_string($explicit) && $explicit !== '') {
+            return rtrim($explicit, '/');
+        }
+
+        $sendUrl = (string) config('services.whatsapp.bridge_url', 'http://127.0.0.1:3010/send');
+        $base = preg_replace('#/send/?$#', '', $sendUrl);
+
+        return $base !== '' ? rtrim((string) $base, '/') : 'http://127.0.0.1:3010';
+    }
+
+    public function assertLoopbackBaseUrl(): string
+    {
+        $base = $this->baseUrl();
+        $host = strtolower((string) parse_url($base, PHP_URL_HOST));
+        $allowed = ['127.0.0.1', 'localhost', '::1'];
+        if (! in_array($host, $allowed, true)) {
+            throw new RuntimeException('WhatsApp reconnect is only allowed to a local bridge.');
+        }
+
+        return $base;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function reconnectSavedSession(): array
+    {
+        $base = $this->assertLoopbackBaseUrl();
+        $token = (string) config('services.whatsapp.bridge_token');
+        if ($token === '') {
+            throw new RuntimeException('WhatsApp bridge is not configured.');
+        }
+
+        $res = Http::timeout(20)
+            ->withHeaders(['X-Bridge-Token' => $token])
+            ->post($base.'/reconnect');
+
+        if ($res->successful() && $res->json('ok') === true) {
+            return $res->json() ?? ['ok' => true];
+        }
+
+        Log::warning('WhatsApp bridge reconnect failed', [
+            'status' => $res->status(),
+            'body' => $res->body(),
+        ]);
+
+        throw new RuntimeException('WhatsApp bridge reconnect error: ' . $res->body());
     }
 }

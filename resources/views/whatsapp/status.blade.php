@@ -8,6 +8,18 @@
                 class="bg-gray-800 dark:bg-slate-700 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-700 dark:hover:bg-slate-600 transition">{{ __('Refresh') }}</a>
         </div>
 
+        @if (session('success'))
+            <div class="mb-4 rounded-lg border border-emerald-200 dark:border-slate-700 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-200 px-4 py-3">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="mb-4 rounded-lg border border-red-200 dark:border-slate-700 bg-red-50 dark:bg-red-900/40 text-red-900 dark:text-red-200 px-4 py-3">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @if ($error)
             <div class="mb-4 rounded-lg border border-amber-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 px-4 py-3">
                 {{ $error }}
@@ -26,10 +38,31 @@
                     <span class="inline-block px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-sm font-semibold">{{ __('Unavailable') }}</span>
                 @elseif ($connected)
                     <span class="inline-block px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 text-sm font-semibold">{{ __('Connected') }}</span>
+                @elseif ($reconnecting)
+                    <span class="inline-block px-3 py-1 rounded-full bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 text-sm font-semibold">{{ __('Reconnecting') }}</span>
+                @elseif ($pairingRequired)
+                    <span class="inline-block px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-sm font-semibold">{{ __('Waiting for QR scan') }}</span>
+                @elseif ($hasReusableSession)
+                    <span class="inline-block px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-sm font-semibold">{{ __('Disconnected — saved session') }}</span>
                 @else
                     <span class="inline-block px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-sm font-semibold">{{ __('Waiting for QR scan') }}</span>
                 @endif
             </div>
+
+            @if ($reachable && !$connected && $pairingRequired)
+                <p class="text-sm text-amber-800 dark:text-amber-200">{{ __('WhatsApp unlinked this device. Scan the new QR. The old session was cleared after two rejected reconnects.') }}</p>
+            @endif
+
+            @if ($reachable && !$connected)
+                <form method="POST" action="{{ route('whatsapp.reconnect') }}" class="pt-2">
+                    @csrf
+                    <button type="submit"
+                        @if ($reconnecting) disabled @endif
+                        class="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 text-white px-4 py-2 rounded-lg font-semibold text-sm transition">
+                        {{ __('Reconnect saved session') }}
+                    </button>
+                </form>
+            @endif
 
             @if ($reachable && !$connected && $qr)
                 <div>

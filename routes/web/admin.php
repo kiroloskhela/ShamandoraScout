@@ -98,6 +98,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
 
     // Whatsapp
     Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');
+    Route::post('/whatsapp/reconnect', [WhatsAppStatusController::class, 'reconnect'])->name('whatsapp.reconnect');
     Route::post('/whatsapp/send', [WhatsAppBridgeController::class, 'send'])->name('whatsapp.send');
     Route::post('/whatsapp/sendWithHeader', [WhatsAppBridgeController::class, 'sendWithHeader'])->name('whatsapp.sendWithHeader');
 
