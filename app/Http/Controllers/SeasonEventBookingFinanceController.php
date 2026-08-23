@@ -325,6 +325,8 @@ class SeasonEventBookingFinanceController extends Controller
             ->orderBy('QetaaName')
             ->get();
 
+        $haveShirt = (int) ($this->bookings->getFinancePlan((int) $seasonEventID)?->HaveShirt ?? 0);
+
         return view('event_booking_finance.index', [
             'event' => $event,
             'bookings' => $bookings,
@@ -333,6 +335,7 @@ class SeasonEventBookingFinanceController extends Controller
             'selectedDaySummary' => $selectedDaySummary,
             'totalSummary' => $totalSummary,
             'qetaaCounts' => $qetaaCounts,
+            'haveShirt' => $haveShirt,
         ]);
     }
 
