@@ -398,13 +398,13 @@
                     'filter' => true,
                     'cssClass' => 'text-sm text-slate-700 dark:text-slate-200',
                 ],
-                [
+                ...((int) $haveShirt === 1 ? [[
                     'key' => 'ShirtSize',
                     'label' => __('Size'),
                     'type' => 'text',
                     'filter' => true,
                     'cssClass' => 'text-sm text-slate-700 dark:text-slate-200',
-                ],
+                ]] : []),
                 [
                     'key' => 'BookingStatusText',
                     'label' => __('Status'),
