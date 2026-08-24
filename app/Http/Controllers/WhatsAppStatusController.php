@@ -39,11 +39,9 @@ class WhatsAppStatusController extends Controller
 
         if ($reachable && !$connected) {
             try {
-                $qrRes = Http::timeout(5)->get(rtrim($base, '/') . '/qr');
-                if ($qrRes->successful()) {
-                    $qr = $qrRes->json('qr');
-                    $connected = (bool) ($qrRes->json('connected') ?? $connected);
-                }
+                $qrPayload = $bridge->fetchQr();
+                $qr = $qrPayload['qr'] ?? null;
+                $connected = (bool) ($qrPayload['connected'] ?? $connected);
             } catch (Throwable $e) {
                 Log::warning('WhatsApp bridge QR failed', ['error' => $e->getMessage()]);
             }

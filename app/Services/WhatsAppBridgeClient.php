@@ -136,6 +136,26 @@ class WhatsAppBridgeClient
         return $base !== '' ? rtrim((string) $base, '/') : 'http://127.0.0.1:3010';
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function fetchQr(): array
+    {
+        $base = $this->baseUrl();
+        $token = (string) config('services.whatsapp.bridge_token');
+        $request = Http::timeout(5);
+        if ($token !== '') {
+            $request = $request->withHeaders(['X-Bridge-Token' => $token]);
+        }
+
+        $res = $request->get($base.'/qr');
+        if (! $res->successful()) {
+            throw new RuntimeException('WhatsApp bridge QR HTTP '.$res->status());
+        }
+
+        return $res->json() ?? [];
+    }
+
     public function assertLoopbackBaseUrl(): string
     {
         $base = $this->baseUrl();

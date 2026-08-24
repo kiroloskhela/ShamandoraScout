@@ -61,7 +61,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.get('/qr', (_req, res) => {
+app.get('/qr', requireToken, (_req, res) => {
   const status = getStatus();
   res.json({
     ok: status.ok,
@@ -76,7 +76,7 @@ app.post('/reconnect', requireToken, async (_req, res) => {
     const { qr: _qr, ...status } = result;
     return res.json({ ok: true, ...status });
   } catch (err) {
-    logger.error({ err }, 'Reconnect failed');
+    logger.error({ err: err?.message }, 'Reconnect failed');
     return res.status(500).json({
       ok: false,
       error: err?.message || 'Reconnect failed',
@@ -111,8 +111,9 @@ app.post('/send', requireToken, async (req, res) => {
       : await sendText(fullNumber, message);
     return res.json(result);
   } catch (err) {
-    const code = err?.code === 'NOT_CONNECTED' ? 503 : 500;
-    logger.error({ err }, 'Send failed');
+    const missingNumber = err?.message === 'WhatsApp number does not exist';
+    const code = err?.code === 'NOT_CONNECTED' ? 503 : (missingNumber ? 422 : 500);
+    logger.error({ err: err?.message }, 'Send failed');
     return res.status(code).json({
       ok: false,
       error: err?.message || 'Send failed',

@@ -114,6 +114,7 @@ class WhatsAppStatusControllerTest extends TestCase
         config([
             'services.whatsapp.bridge_base_url' => 'http://127.0.0.1:3010',
             'services.whatsapp.bridge_url' => 'http://127.0.0.1:3010/send',
+            'services.whatsapp.bridge_token' => 'test-token',
         ]);
 
         Http::fake([
@@ -137,6 +138,11 @@ class WhatsAppStatusControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('إعادة توصيل الجلسة المحفوظة', false);
+        Http::assertSent(function ($request) {
+            return $request->url() === 'http://127.0.0.1:3010/qr'
+                && $request->method() === 'GET'
+                && $request->hasHeader('X-Bridge-Token', 'test-token');
+        });
     }
 
     public function test_reconnect_posts_to_local_bridge(): void
