@@ -52,7 +52,7 @@ class WhatsAppBridgeClient
             throw new RuntimeException('WhatsApp bridge is not configured.');
         }
 
-        $res = Http::timeout(20)
+        $res = Http::timeout(45)
             ->withHeaders(['X-Bridge-Token' => $token])
             ->post($url, [
                 'full_number' => $normalized,

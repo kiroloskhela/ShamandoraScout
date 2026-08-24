@@ -4,11 +4,22 @@ import { fileURLToPath } from 'node:url';
 import makeWASocket, {
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
+  USyncQuery,
+  USyncUser,
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import QRCode from 'qrcode';
-import { pickSendJid, toPnJid } from './jid.js';
+import {
+  extractTrustedContactToken,
+  isLidJid,
+  newChatCapBlocksSend,
+  normalizeLid,
+  pickIssuanceJid,
+  pickSendJid,
+  toPnJid,
+  usyncRowMatchesPn,
+} from './jid.js';
 import {
   credsLookRegistered,
   isPairingStatus,
@@ -68,39 +79,206 @@ async function lookupLidForPn(pnJid) {
 
   try {
     const lid = await mapping.getLIDForPN(pnJid);
-    return typeof lid === 'string' && lid.includes('@lid') ? lid : null;
+    return normalizeLid(lid);
   } catch (err) {
-    logger.warn({ err: err?.message }, 'LID lookup failed; continuing with PN');
+    logger.warn({ err: err?.message }, 'LID lookup failed');
     return null;
+  }
+}
+
+async function usyncContactAndLid(pnJid) {
+  if (typeof sock?.executeUSyncQuery !== 'function') {
+    return { exists: undefined, lid: null, jid: null };
+  }
+
+  const user = pnJid.split('@')[0]?.split(':')[0] || '';
+  const phone = `+${user.replace(/^\+/, '')}`;
+
+  try {
+    const query = new USyncQuery()
+      .withContactProtocol()
+      .withLIDProtocol()
+      .withContext('interactive')
+      .withUser(new USyncUser().withId(pnJid).withPhone(phone));
+    const results = await sock.executeUSyncQuery(query);
+    const list = Array.isArray(results?.list) ? results.list : [];
+    const row =
+      list.find((item) => usyncRowMatchesPn(item, pnJid)) ||
+      (list.length === 1 ? list[0] : null);
+    if (!row) {
+      return { exists: undefined, lid: null, jid: null };
+    }
+
+    const lid = normalizeLid(typeof row.lid === 'string' ? row.lid : null);
+    return {
+      exists: typeof row.contact === 'boolean' ? row.contact : undefined,
+      lid,
+      jid: row.id ?? null,
+    };
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'USync contact/LID lookup failed');
+    return { exists: undefined, lid: null, jid: null };
   }
 }
 
 async function resolveSendJid(fullNumber) {
   const pnJid = toPnJid(fullNumber);
+  const cachedLid = await lookupLidForPn(pnJid);
+  let lid = cachedLid;
   let exists;
   let onWaJid = null;
 
-  try {
-    if (typeof sock?.onWhatsApp === 'function') {
-      const info = await sock.onWhatsApp(pnJid);
-      const row = Array.isArray(info) ? info[0] : null;
-      if (row) {
-        exists = row.exists;
-        onWaJid = row.jid ?? null;
-      }
-    }
-  } catch (err) {
-    if (err?.message === 'WhatsApp number does not exist') {
-      throw err;
-    }
-    logger.warn({ err: err?.message }, 'onWhatsApp check failed; continuing');
+  if (!lid) {
+    const usync = await usyncContactAndLid(pnJid);
+    exists = usync.exists;
+    onWaJid = usync.jid;
+    lid = usync.lid || await lookupLidForPn(pnJid);
   }
 
-  const lid = await lookupLidForPn(pnJid);
+  if (exists === undefined && !lid) {
+    try {
+      if (typeof sock?.onWhatsApp === 'function') {
+        const info = await sock.onWhatsApp(pnJid);
+        const row = Array.isArray(info) ? info[0] : null;
+        if (row) {
+          exists = row.exists;
+          onWaJid = row.jid ?? onWaJid;
+        }
+      }
+    } catch (err) {
+      if (err?.message === 'WhatsApp number does not exist') {
+        throw err;
+      }
+      logger.warn({ err: err?.message }, 'onWhatsApp check failed; continuing');
+    }
+
+    if (!lid) {
+      lid = await lookupLidForPn(pnJid);
+    }
+  }
+
   const sendJid = pickSendJid({ exists, lid, jid: onWaJid }, pnJid);
   logger.info({ addressing: sendJid.includes('@lid') ? 'lid' : 'pn' }, 'Resolved send JID');
 
-  return sendJid;
+  return {
+    sendJid,
+    pnJid,
+    needsNewChatHandshake: !cachedLid && isLidJid(sendJid),
+  };
+}
+
+async function hasUsableTcToken(storageJid) {
+  try {
+    const data = await sock.authState.keys.get('tctoken', [storageJid]);
+    const token = data?.[storageJid]?.token;
+    return Boolean(token?.length);
+  } catch {
+    return false;
+  }
+}
+
+async function persistLidMapping(pnJid, lid) {
+  if (!isLidJid(lid) || typeof sock.signalRepository?.lidMapping?.storeLIDPNMappings !== 'function') {
+    return;
+  }
+
+  await sock.signalRepository.lidMapping.storeLIDPNMappings([{ pn: pnJid, lid }]);
+}
+
+async function assertNewChatAllowed() {
+  if (typeof sock.fetchNewChatMessageCap !== 'function') {
+    throw new Error('WhatsApp cannot verify new-chat limits on this device.');
+  }
+
+  try {
+    const cap = await sock.fetchNewChatMessageCap();
+    if (newChatCapBlocksSend(cap)) {
+      throw new Error('WhatsApp has capped new chats on this linked device.');
+    }
+  } catch (err) {
+    if (
+      err?.message?.includes('capped new chats') ||
+      err?.message?.includes('cannot verify new-chat')
+    ) {
+      throw err;
+    }
+    throw new Error('WhatsApp cannot verify new-chat limits on this device.');
+  }
+
+  if (typeof sock.fetchAccountReachoutTimelock !== 'function') {
+    throw new Error('WhatsApp cannot verify new-chat limits on this device.');
+  }
+
+  try {
+    const lock = await sock.fetchAccountReachoutTimelock();
+    if (lock?.isActive) {
+      throw new Error('WhatsApp is temporarily blocking new chats on this linked device.');
+    }
+  } catch (err) {
+    if (
+      err?.message?.includes('blocking new chats') ||
+      err?.message?.includes('cannot verify new-chat')
+    ) {
+      throw err;
+    }
+    throw new Error('WhatsApp cannot verify new-chat limits on this device.');
+  }
+}
+
+async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
+  if (typeof sock.issuePrivacyTokens !== 'function') {
+    throw new Error('WhatsApp cannot start a new chat from this device.');
+  }
+
+  const issueToLid = sock.serverProps?.lidTrustedTokenIssueToLid === true;
+  const issueJid = pickIssuanceJid({ sendJid: storageJid, pnJid, issueToLid });
+  const result = await sock.issuePrivacyTokens([issueJid]);
+  const extracted = extractTrustedContactToken(result);
+  if (!extracted) {
+    throw new Error('WhatsApp refused to start a new chat with this number.');
+  }
+
+  await sock.authState.keys.set({
+    tctoken: {
+      [storageJid]: {
+        token: Buffer.from(extracted.token),
+        timestamp: extracted.timestamp,
+      },
+    },
+  });
+}
+
+async function prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake) {
+  if (!needsNewChatHandshake) {
+    return;
+  }
+
+  await assertNewChatAllowed();
+  if (!(await hasUsableTcToken(sendJid))) {
+    await issueAndStoreTrustedContactToken(sendJid, pnJid);
+  }
+  await persistLidMapping(pnJid, sendJid);
+}
+
+async function deliverContent(fullNumber, content) {
+  if (!sock || !connected) {
+    const err = new Error('WhatsApp not connected');
+    err.code = 'NOT_CONNECTED';
+    throw err;
+  }
+
+  const { sendJid, pnJid, needsNewChatHandshake } = await resolveSendJid(fullNumber);
+  await prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake);
+  await prepareRecipient(sendJid);
+
+  const result = await sock.sendMessage(sendJid, content);
+  rememberMessage(result?.key, content);
+
+  return {
+    ok: true,
+    to: fullNumber,
+    messageId: result?.key?.id || null,
+  };
 }
 
 /**
@@ -270,26 +448,7 @@ export async function reconnectFromDisk() {
 }
 
 export async function sendText(fullNumber, message) {
-  return enqueueSend(async () => {
-    if (!sock || !connected) {
-      const err = new Error('WhatsApp not connected');
-      err.code = 'NOT_CONNECTED';
-      throw err;
-    }
-
-    const jid = await resolveSendJid(fullNumber);
-    await prepareRecipient(jid);
-
-    const content = { text: String(message) };
-    const result = await sock.sendMessage(jid, content);
-    rememberMessage(result?.key, content);
-
-    return {
-      ok: true,
-      to: fullNumber,
-      messageId: result?.key?.id || null,
-    };
-  });
+  return enqueueSend(() => deliverContent(fullNumber, { text: String(message) }));
 }
 
 /**
@@ -308,23 +467,11 @@ export async function sendImage(fullNumber, imageBase64, caption = '', mimeType 
       throw new Error('image_base64 is required');
     }
 
-    const jid = await resolveSendJid(fullNumber);
-    await prepareRecipient(jid);
-
-    const content = {
+    return deliverContent(fullNumber, {
       image: Buffer.from(raw, 'base64'),
       caption: caption ? String(caption) : undefined,
       mimetype: mimeType || 'image/png',
-    };
-
-    const result = await sock.sendMessage(jid, content);
-    rememberMessage(result?.key, content);
-
-    return {
-      ok: true,
-      to: fullNumber,
-      messageId: result?.key?.id || null,
-    };
+    });
   });
 }
 
