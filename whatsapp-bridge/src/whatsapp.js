@@ -2,14 +2,13 @@ import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
-  DisconnectReason,
-  fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import QRCode from 'qrcode';
+import { pickSendJid, toPnJid } from './jid.js';
 import {
   credsLookRegistered,
   isPairingStatus,
@@ -57,45 +56,65 @@ function rememberMessage(key, message) {
   }
 }
 
-function toJid(fullNumber) {
-  const digits = String(fullNumber || '').replace(/\D+/g, '');
-  if (!digits) {
-    throw new Error('Invalid phone number');
-  }
-  return `${digits}@s.whatsapp.net`;
-}
-
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Warm crypto session with the peer before sending (reduces "Waiting for this message").
- */
-async function prepareRecipient(jid) {
-  if (!sock) return;
+async function lookupLidForPn(pnJid) {
+  const mapping = sock?.signalRepository?.lidMapping;
+  if (!mapping || typeof mapping.getLIDForPN !== 'function') {
+    return null;
+  }
 
   try {
-    if (typeof sock.onWhatsApp === 'function') {
-      const info = await sock.onWhatsApp(jid);
+    const lid = await mapping.getLIDForPN(pnJid);
+    return typeof lid === 'string' && lid.includes('@lid') ? lid : null;
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'LID lookup failed; continuing with PN');
+    return null;
+  }
+}
+
+async function resolveSendJid(fullNumber) {
+  const pnJid = toPnJid(fullNumber);
+  let exists;
+  let onWaJid = null;
+
+  try {
+    if (typeof sock?.onWhatsApp === 'function') {
+      const info = await sock.onWhatsApp(pnJid);
       const row = Array.isArray(info) ? info[0] : null;
-      if (row && row.exists === false) {
-        throw new Error('WhatsApp number does not exist');
+      if (row) {
+        exists = row.exists;
+        onWaJid = row.jid ?? null;
       }
     }
   } catch (err) {
     if (err?.message === 'WhatsApp number does not exist') {
       throw err;
     }
-    logger.warn({ err: err?.message, jid }, 'onWhatsApp check failed; continuing');
+    logger.warn({ err: err?.message }, 'onWhatsApp check failed; continuing');
   }
+
+  const lid = await lookupLidForPn(pnJid);
+  const sendJid = pickSendJid({ exists, lid, jid: onWaJid }, pnJid);
+  logger.info({ addressing: sendJid.includes('@lid') ? 'lid' : 'pn' }, 'Resolved send JID');
+
+  return sendJid;
+}
+
+/**
+ * Warm crypto session with the already-resolved send JID.
+ */
+async function prepareRecipient(jid) {
+  if (!sock) return;
 
   try {
     if (typeof sock.assertSessions === 'function') {
       await sock.assertSessions([jid], true);
     }
   } catch (err) {
-    logger.warn({ err: err?.message, jid }, 'assertSessions failed; continuing');
+    logger.warn({ err: err?.message }, 'assertSessions failed; continuing');
   }
 
   try {
@@ -106,7 +125,6 @@ async function prepareRecipient(jid) {
     // optional
   }
 
-  // Small pause so Signal session can settle before media/text
   await sleep(400);
 }
 
@@ -197,7 +215,7 @@ function scheduleReconnect(statusCode, reason, { force = false } = {}) {
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
     reconnecting = false;
-    startWhatsApp().catch((err) => logger.error({ err }, 'Reconnect failed'));
+    startWhatsApp().catch((err) => logger.error({ err: err?.message }, 'Reconnect failed'));
   }, delay);
 }
 
@@ -216,7 +234,7 @@ function ensureWatchdog() {
       return;
     }
     logger.warn('Watchdog reconnecting from saved session');
-    startWhatsApp().catch((err) => logger.error({ err }, 'Watchdog reconnect failed'));
+    startWhatsApp().catch((err) => logger.error({ err: err?.message }, 'Watchdog reconnect failed'));
   }, WATCHDOG_MS);
 }
 
@@ -259,7 +277,7 @@ export async function sendText(fullNumber, message) {
       throw err;
     }
 
-    const jid = toJid(fullNumber);
+    const jid = await resolveSendJid(fullNumber);
     await prepareRecipient(jid);
 
     const content = { text: String(message) };
@@ -290,7 +308,7 @@ export async function sendImage(fullNumber, imageBase64, caption = '', mimeType 
       throw new Error('image_base64 is required');
     }
 
-    const jid = toJid(fullNumber);
+    const jid = await resolveSendJid(fullNumber);
     await prepareRecipient(jid);
 
     const content = {
@@ -320,11 +338,9 @@ export async function startWhatsApp() {
 
   try {
     const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-    const { version } = await fetchLatestBaileysVersion();
     const silent = pino({ level: 'silent' });
 
     sock = makeWASocket({
-      version,
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, silent),
@@ -354,7 +370,7 @@ export async function startWhatsApp() {
           latestQrDataUrl = await QRCode.toDataURL(qr);
           logger.info('QR ready — scan via SuperAdmin /whatsapp/status or terminal');
         } catch (e) {
-          logger.error({ err: e }, 'Failed to render QR data URL');
+          logger.error({ err: e?.message }, 'Failed to render QR data URL');
           latestQrDataUrl = null;
         }
       }
@@ -415,7 +431,7 @@ export async function startWhatsApp() {
       }
     });
   } catch (err) {
-    logger.error({ err }, 'Failed to start WhatsApp socket');
+    logger.error({ err: err?.message }, 'Failed to start WhatsApp socket');
     starting = false;
     disposeSocket();
     scheduleReconnect(lastDisconnectCode, 'start-failed');

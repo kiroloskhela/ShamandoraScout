@@ -43,12 +43,14 @@ If unset, Laravel derives the base from `WHATSAPP_BRIDGE_URL` by stripping a tra
 
 **Do not delete `auth_session/`** for normal restarts. The process keeps the socket alive (ping + presence) and reconnects from disk. If WhatsApp unlinks the device, the bridge retries the saved session once, then clears `auth_session` so a new QR can appear.
 
+After a **Baileys major bump** (v6 → v7), stop the process, wipe `auth_session/`, `npm install`, start, then scan a **new** QR. Old session files will not decrypt messages on phones even if `/health` says connected.
+
 ## Endpoints
 
 | Method | Path | Auth | Response |
 |--------|------|------|----------|
 | GET | `/health` | none | `{ ok, connected, hasReusableSession, pairingRequired, reconnecting, lastDisconnectCode }` |
-| GET | `/qr` | none | `{ ok, connected, qr: null\|dataUrl }` |
+| GET | `/qr` | `X-Bridge-Token` | `{ ok, connected, qr: null\|dataUrl }` |
 | POST | `/reconnect` | `X-Bridge-Token` | `{ ok: true, ...status }` — reuse saved session (no QR in the body) |
 | POST | `/send` | `X-Bridge-Token` | `{ ok: true, to, messageId }` |
 
