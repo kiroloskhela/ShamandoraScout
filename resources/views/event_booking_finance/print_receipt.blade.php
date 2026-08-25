@@ -40,7 +40,8 @@
 
         .receipt {
             position: relative;
-            height: 110mm;
+            min-height: 110mm;
+            height: auto;
             border: 1.5px solid #222;
             border-radius: 10px;
             padding: 5mm 6mm 4mm 6mm;
@@ -73,6 +74,11 @@
             margin-bottom: 5px;
             padding-bottom: 4px;
             border-bottom: 1px solid #333;
+        }
+
+        .receipt:has(.qr-box) .header {
+            padding-left: 24mm;
+            padding-right: 24mm;
         }
 
         .logo-top {
@@ -154,6 +160,37 @@
             padding: 4px 8px;
             text-align: center;
             background: #fafafa;
+        }
+
+        .qr-box {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 22mm;
+            text-align: center;
+            background: #fff;
+            padding: 1mm;
+            border: 1px solid #222;
+            border-radius: 7px;
+            z-index: 2;
+        }
+
+        .qr-box img {
+            width: 20mm;
+            height: 20mm;
+            display: block;
+            margin: 0 auto;
+            background: #fff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .qr-caption {
+            font-size: 8px;
+            font-weight: 700;
+            margin-top: 1px;
+            word-break: break-all;
+            line-height: 1.2;
         }
 
         .amount-title {
@@ -243,7 +280,8 @@
             }
 
             .receipt {
-                height: 130mm;
+                min-height: 130mm;
+                height: auto;
             }
 
             .receipt,
@@ -264,6 +302,14 @@
         @foreach ($copies as $copyLabel)
             <div class="receipt">
                 <div class="receipt-content">
+                    @if ($qrPayload)
+                        <div class="qr-box">
+                            @if ($qrPng)
+                                <img src="data:image/png;base64,{{ $qrPng }}" alt="{{ __('Attendance QR') }}">
+                            @endif
+                            <div class="qr-caption">{{ $qrPayload }}</div>
+                        </div>
+                    @endif
                     <div class="header">
                         <img src="{{ asset('img/shamandora.webp') }}" alt="Logo" class="logo-top">
                         <div class="title">{{ __('Receipt') }} {{ $receipt->PaymentType === 'REFUND' ? __('Refund') : __('Pay') }}</div>
