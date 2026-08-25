@@ -13,10 +13,12 @@ import QRCode from 'qrcode';
 import {
   extractTrustedContactToken,
   isLidJid,
+  lidFromMappingRecord,
   newChatCapBlocksSend,
   normalizeLid,
   pickIssuanceJid,
   pickSendJid,
+  pnUserPart,
   toPnJid,
   usyncRowMatchesPn,
 } from './jid.js';
@@ -56,6 +58,8 @@ const RECENT_MESSAGE_LIMIT = 300;
 
 /** Serialize sends so bulk QR blasts don't corrupt sessions */
 let sendChain = Promise.resolve();
+/** One crypto rebuild per recipient per live socket (stale sessions survive pm2 restart) */
+const refreshedCryptoUsers = new Set();
 
 function rememberMessage(key, message) {
   if (!key?.id) return;
@@ -69,6 +73,15 @@ function rememberMessage(key, message) {
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function lidFromLocalStore(pnJid) {
+  try {
+    const stored = await sock.authState.keys.get('lid-mapping', [pnUserPart(pnJid)]);
+    return lidFromMappingRecord(stored, pnJid);
+  } catch {
+    return null;
+  }
 }
 
 async function lookupLidForPn(pnJid) {
@@ -123,7 +136,7 @@ async function usyncContactAndLid(pnJid) {
 
 async function resolveSendJid(fullNumber) {
   const pnJid = toPnJid(fullNumber);
-  const cachedLid = await lookupLidForPn(pnJid);
+  const cachedLid = await lidFromLocalStore(pnJid);
   let lid = cachedLid;
   let exists;
   let onWaJid = null;
@@ -158,12 +171,19 @@ async function resolveSendJid(fullNumber) {
   }
 
   const sendJid = pickSendJid({ exists, lid, jid: onWaJid }, pnJid);
-  logger.info({ addressing: sendJid.includes('@lid') ? 'lid' : 'pn' }, 'Resolved send JID');
+  const needsNewChatHandshake = !cachedLid && isLidJid(sendJid);
+  logger.info(
+    {
+      addressing: sendJid.includes('@lid') ? 'lid' : 'pn',
+      handshake: needsNewChatHandshake,
+    },
+    'Resolved send JID'
+  );
 
   return {
     sendJid,
     pnJid,
-    needsNewChatHandshake: !cachedLid && isLidJid(sendJid),
+    needsNewChatHandshake,
   };
 }
 
@@ -282,18 +302,52 @@ async function deliverContent(fullNumber, content) {
 }
 
 /**
+ * Drop desynced Signal sessions, then fetch fresh prekeys for every device.
+ * Open-but-stale sessions survive assertSessions(force) on the user JID only.
+ */
+async function refreshRecipientCrypto(jid) {
+  const user = pnUserPart(jid);
+  if (!user || refreshedCryptoUsers.has(user)) {
+    return false;
+  }
+
+  let jids = [jid];
+  try {
+    if (typeof sock.getUSyncDevices === 'function') {
+      const devices = await sock.getUSyncDevices([jid], false, false);
+      const deviceJids = (devices || []).map((device) => device?.jid).filter(Boolean);
+      if (deviceJids.length) {
+        jids = deviceJids;
+      }
+    }
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'Device list for session refresh failed');
+  }
+
+  try {
+    if (typeof sock.signalRepository?.deleteSession === 'function') {
+      await sock.signalRepository.deleteSession(jids);
+    }
+    if (typeof sock.assertSessions === 'function') {
+      await sock.assertSessions(jids, true);
+    }
+  } catch (err) {
+    logger.warn({ err: err?.message }, 'Recipient crypto refresh failed');
+    throw new Error('WhatsApp could not rebuild the chat session.');
+  }
+
+  refreshedCryptoUsers.add(user);
+  logger.info({ devices: jids.length }, 'Refreshed recipient crypto');
+  return true;
+}
+
+/**
  * Warm crypto session with the already-resolved send JID.
  */
 async function prepareRecipient(jid) {
   if (!sock) return;
 
-  try {
-    if (typeof sock.assertSessions === 'function') {
-      await sock.assertSessions([jid], true);
-    }
-  } catch (err) {
-    logger.warn({ err: err?.message }, 'assertSessions failed; continuing');
-  }
+  const refreshed = await refreshRecipientCrypto(jid);
 
   try {
     if (typeof sock.presenceSubscribe === 'function') {
@@ -303,7 +357,7 @@ async function prepareRecipient(jid) {
     // optional
   }
 
-  await sleep(400);
+  await sleep(refreshed ? 800 : 400);
 }
 
 function enqueueSend(task) {
@@ -345,6 +399,7 @@ function startHeartbeat() {
 
 function disposeSocket() {
   stopHeartbeat();
+  refreshedCryptoUsers.clear();
   const current = sock;
   sock = null;
   connected = false;

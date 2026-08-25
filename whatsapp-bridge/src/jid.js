@@ -34,6 +34,16 @@ export function pnUserPart(jid) {
   return String(jid || '').split('@')[0]?.split(':')[0] || '';
 }
 
+export function lidFromMappingRecord(record, pnJid) {
+  const user = pnUserPart(pnJid);
+  const lidUser = record?.[user];
+  if (typeof lidUser !== 'string' || lidUser === '') {
+    return null;
+  }
+
+  return normalizeLid(lidUser.includes('@') ? lidUser : `${lidUser}@lid`);
+}
+
 export function usyncRowMatchesPn(row, pnJid) {
   const want = pnUserPart(pnJid);
   const got = pnUserPart(row?.id || '');
