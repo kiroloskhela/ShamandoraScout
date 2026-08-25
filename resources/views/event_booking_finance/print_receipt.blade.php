@@ -16,7 +16,7 @@
 
         @page {
             size: A4;
-            margin: 6mm;
+            margin: 4mm;
         }
 
         html,
@@ -264,15 +264,19 @@
 
             html,
             body {
-                width: 180mm;
-
+                width: 202mm;
+                height: 289mm;
+                overflow: hidden;
             }
 
             .page {
-                width: 198mm;
-                max-width: 198mm;
-
-
+                width: 202mm;
+                max-width: 202mm;
+                height: 289mm;
+                display: flex;
+                flex-direction: column;
+                break-inside: avoid;
+                page-break-after: avoid;
             }
 
             .actions {
@@ -280,14 +284,60 @@
             }
 
             .receipt {
-                min-height: 130mm;
+                flex: 1 1 0;
+                min-height: 0;
                 height: auto;
+                overflow: hidden;
+                padding: 3mm 4mm 2mm 4mm;
             }
 
-            .receipt,
             .cut-line {
-                break-inside: avoid;
-                page-break-inside: avoid;
+                flex: 0 0 4mm;
+                height: 4mm;
+                margin: 0.8mm 0;
+            }
+
+            .logo-top {
+                width: 20px;
+                margin-bottom: 1px;
+            }
+
+            .title,
+            .subtitle,
+            .copy-badge,
+            .section-title,
+            .cell,
+            .amount-title,
+            .footer-note {
+                font-size: 11px;
+            }
+
+            .amount {
+                font-size: 13px;
+            }
+
+            .header {
+                margin-bottom: 2px;
+                padding-bottom: 2px;
+            }
+
+            .section {
+                margin-top: 2px;
+                padding-top: 2px;
+            }
+
+            .qr-box {
+                width: 18mm;
+            }
+
+            .qr-box img {
+                width: 16mm;
+                height: 16mm;
+            }
+
+            .receipt:has(.qr-box) .header {
+                padding-left: 20mm;
+                padding-right: 20mm;
             }
         }
     </style>
