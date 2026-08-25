@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import makeWASocket, {
@@ -11,14 +11,17 @@ import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import QRCode from 'qrcode';
 import {
+  describePrivacyIq,
   extractTrustedContactToken,
   isLidJid,
   lidFromMappingRecord,
+  newChatBlockedMessage,
   newChatCapBlocksSend,
   normalizeLid,
   pickIssuanceJid,
   pickSendJid,
   pnUserPart,
+  privacyIqError,
   toPnJid,
   usyncRowMatchesPn,
 } from './jid.js';
@@ -38,6 +41,41 @@ const HEARTBEAT_MS = 5 * 60 * 1000;
 const WATCHDOG_MS = 60 * 1000;
 
 const logger = pino({ level: process.env.LOG_LEVEL || 'info'});
+
+// #region agent log
+const AGENT_DEBUG_FILES = [
+  '/Users/kiroloskhela/Desktop/scout/ShamandoraScout/.cursor/debug-81393e.log',
+  path.join(__dirname, '..', 'debug-81393e.log'),
+];
+function agentLog(hypothesisId, location, message, data) {
+  const payload = {
+    sessionId: '81393e',
+    runId: 'post-fix',
+    hypothesisId,
+    location,
+    message,
+    data,
+    timestamp: Date.now(),
+  };
+  fetch('http://127.0.0.1:7324/ingest/d3545aea-1897-47a6-8b9c-2c3bb23ece7d', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '81393e' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+  const line = JSON.stringify(payload) + '\n';
+  for (const file of AGENT_DEBUG_FILES) {
+    try {
+      appendFileSync(file, line);
+    } catch {
+      // VPS has no local Cursor path; bridge-local file still writes.
+    }
+  }
+  logger.info({ debug: payload }, 'agent-debug');
+}
+function last4Digits(value) {
+  return String(value || '').replace(/\D+/g, '').slice(-4);
+}
+// #endregion
 
 let sock = null;
 let connected = false;
@@ -181,12 +219,26 @@ async function resolveSendJid(fullNumber) {
     },
     'Resolved send JID'
   );
+  // #region agent log
+  agentLog('C', 'whatsapp.js:resolveSendJid', 'resolved recipient', {
+    last4: last4Digits(fullNumber),
+    addressing: isLidJid(sendJid) ? 'lid' : 'pn',
+    exists: exists ?? null,
+    usyncLid: Boolean(lid),
+    cachedLid: Boolean(cachedLid),
+    hasToken,
+    handshake: needsNewChatHandshake,
+    privacyTokenOn1to1: sock?.serverProps?.privacyTokenOn1to1 ?? null,
+    lidTrustedTokenIssueToLid: sock?.serverProps?.lidTrustedTokenIssueToLid ?? null,
+  });
+  // #endregion
 
   return {
     sendJid,
     pnJid,
     cachedLid: Boolean(cachedLid),
     needsNewChatHandshake,
+    hasToken,
   };
 }
 
@@ -234,12 +286,14 @@ async function assertNewChatAllowed() {
 
   try {
     const lock = await sock.fetchAccountReachoutTimelock();
-    if (lock?.isActive) {
-      throw new Error('WhatsApp is temporarily blocking new chats on this linked device.');
+    const blocked = newChatBlockedMessage(lock);
+    if (blocked) {
+      throw new Error(blocked);
     }
   } catch (err) {
     if (
       err?.message?.includes('blocking new chats') ||
+      err?.message?.includes('only allows this linked device') ||
       err?.message?.includes('cannot verify new-chat')
     ) {
       throw err;
@@ -257,9 +311,21 @@ async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
   const issueToLid = sock.serverProps?.lidTrustedTokenIssueToLid === true;
   const issueJid = pickIssuanceJid({ sendJid: storageJid, pnJid, issueToLid });
   const result = await sock.issuePrivacyTokens([issueJid]);
+  const iq = describePrivacyIq(result);
+  const iqError = privacyIqError(result);
   const extracted = extractTrustedContactToken(result);
-  if (!extracted) {
-    logger.warn('Privacy IQ returned no trusted-contact token');
+  // #region agent log
+  agentLog('B', 'whatsapp.js:issueAndStoreTrustedContactToken', 'privacy token IQ', {
+    issueToLid,
+    issueJidIsLid: isLidJid(issueJid),
+    extracted: Boolean(extracted),
+    tokenBytes: extracted?.token?.length ?? 0,
+    iq,
+  });
+  // #endregion
+  logger.warn({ iq }, extracted ? 'Privacy IQ parsed token' : 'Privacy IQ returned no trusted-contact token');
+
+  if (iqError || !extracted) {
     return false;
   }
 
@@ -277,14 +343,28 @@ async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
 
 async function prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake, cachedLid) {
   if (!needsNewChatHandshake) {
+    // #region agent log
+    agentLog('C', 'whatsapp.js:prepareNewChatIfNeeded', 'handshake skipped', {
+      cachedLid: Boolean(cachedLid),
+      sendJidIsLid: isLidJid(sendJid),
+    });
+    // #endregion
     return;
   }
 
-  if (!cachedLid) {
-    await assertNewChatAllowed();
-  }
+  await assertNewChatAllowed();
   if (!(await hasUsableTcToken(sendJid))) {
-    await issueAndStoreTrustedContactToken(sendJid, pnJid);
+    const issued = await issueAndStoreTrustedContactToken(sendJid, pnJid);
+    const hasTokenAfter = await hasUsableTcToken(sendJid);
+    // #region agent log
+    agentLog('B', 'whatsapp.js:prepareNewChatIfNeeded', 'token issue result', {
+      issued,
+      hasTokenAfter,
+    });
+    // #endregion
+    if (!issued && !hasTokenAfter) {
+      throw new Error('WhatsApp refused to start a new chat with this number.');
+    }
   }
   await persistLidMapping(pnJid, sendJid);
 }
@@ -296,12 +376,58 @@ async function deliverContent(fullNumber, content) {
     throw err;
   }
 
-  const { sendJid, pnJid, cachedLid, needsNewChatHandshake } = await resolveSendJid(fullNumber);
+  const { sendJid, pnJid, cachedLid, needsNewChatHandshake, hasToken } = await resolveSendJid(fullNumber);
+  // #region agent log
+  let capStatus = null;
+  let timelockActive = null;
+  let timelockType = null;
+  let timelockEnds = null;
+  try {
+    if (typeof sock.fetchNewChatMessageCap === 'function') {
+      const cap = await sock.fetchNewChatMessageCap();
+      capStatus = cap?.capping_status ?? 'unknown';
+    }
+  } catch (err) {
+    capStatus = `err:${err?.message || 'fail'}`;
+  }
+  try {
+    if (typeof sock.fetchAccountReachoutTimelock === 'function') {
+      const lock = await sock.fetchAccountReachoutTimelock();
+      timelockActive = Boolean(lock?.isActive);
+      timelockType = lock?.enforcementType ?? null;
+      timelockEnds =
+        lock?.timeEnforcementEnds instanceof Date
+          ? lock.timeEnforcementEnds.toISOString()
+          : lock?.timeEnforcementEnds ?? null;
+    }
+  } catch (err) {
+    timelockActive = `err:${err?.message || 'fail'}`;
+  }
+  agentLog('A', 'whatsapp.js:deliverContent', 'pre-send gates', {
+    last4: last4Digits(fullNumber),
+    handshake: needsNewChatHandshake,
+    cachedLid,
+    hasToken,
+    wouldAttachTcToken: Boolean(hasToken) && sock?.serverProps?.privacyTokenOn1to1 === true,
+    privacyTokenOn1to1: sock?.serverProps?.privacyTokenOn1to1 ?? null,
+    capStatus,
+    timelockActive,
+    timelockType,
+    timelockEnds,
+  });
+  // #endregion
   await prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake, cachedLid);
   const refreshed = await prepareRecipient(sendJid);
 
   const result = await sock.sendMessage(sendJid, content);
   rememberMessage(result?.key, content);
+  // #region agent log
+  agentLog('D', 'whatsapp.js:deliverContent', 'sent', {
+    last4: last4Digits(fullNumber),
+    hasMessageId: Boolean(result?.key?.id),
+    refreshed,
+  });
+  // #endregion
 
   // First send after a session rebuild is often a prekey message that the phone
   // cannot decrypt. Wait for the incoming prekey, then send once more.
@@ -310,6 +436,12 @@ async function deliverContent(fullNumber, content) {
     const settled = await sock.sendMessage(sendJid, content);
     rememberMessage(settled?.key, content);
     logger.info('Sent follow-up after crypto refresh');
+    // #region agent log
+    agentLog('E', 'whatsapp.js:deliverContent', 'follow-up sent', {
+      last4: last4Digits(fullNumber),
+      hasMessageId: Boolean(settled?.key?.id),
+    });
+    // #endregion
     return {
       ok: true,
       to: fullNumber,
@@ -361,6 +493,12 @@ async function refreshRecipientCrypto(jid) {
 
   refreshedCryptoUsers.add(user);
   logger.info({ devices: jids.length }, 'Refreshed recipient crypto');
+  // #region agent log
+  agentLog('E', 'whatsapp.js:refreshRecipientCrypto', 'crypto rebuilt', {
+    deviceCount: jids.length,
+    jidIsLid: isLidJid(jid),
+  });
+  // #endregion
   return true;
 }
 
@@ -571,7 +709,7 @@ export async function startWhatsApp() {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, silent),
       },
-      logger: silent,
+      logger: pino({ level: 'warn' }),
       syncFullHistory: false,
       markOnlineOnConnect: true,
       keepAliveIntervalMs: 20_000,
@@ -587,6 +725,20 @@ export async function startWhatsApp() {
     });
 
     sock.ev.on('creds.update', saveCreds);
+
+    // #region agent log
+    sock.ev.on('messages.update', (updates) => {
+      for (const item of updates || []) {
+        const stub = item?.update?.messageStubParameters;
+        if (item?.update?.status == null && !stub) continue;
+        agentLog('D', 'whatsapp.js:messages.update', 'message status', {
+          status: item.update?.status ?? null,
+          stub: stub ?? null,
+          fromMe: item.key?.fromMe ?? null,
+        });
+      }
+    });
+    // #endregion
 
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
