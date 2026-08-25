@@ -62,13 +62,88 @@ export function newChatCapBlocksSend(cap) {
   return cap?.capping_status === 'CAPPED';
 }
 
+export function newChatBlockedMessage(lock) {
+  if (!lock?.isActive) {
+    return null;
+  }
+
+  const type = String(lock.enforcementType || 'DEFAULT');
+  let ends = null;
+  if (lock.timeEnforcementEnds instanceof Date && !Number.isNaN(lock.timeEnforcementEnds.valueOf())) {
+    ends = lock.timeEnforcementEnds.toISOString();
+  } else if (typeof lock.timeEnforcementEnds === 'string' && lock.timeEnforcementEnds !== '') {
+    ends = lock.timeEnforcementEnds;
+  }
+
+  if (type === 'WEB_COMPANION_ONLY') {
+    return 'WhatsApp only allows this linked device to message existing chats. Open the chat once on the phone that scanned the QR, then send again.';
+  }
+  if (ends) {
+    return `WhatsApp is temporarily blocking new chats on this linked device until ${ends}.`;
+  }
+  return 'WhatsApp is temporarily blocking new chats on this linked device.';
+}
+
+export function privacyIqError(result) {
+  const nodes = [];
+  if (result?.tag === 'error') {
+    nodes.push(result);
+  }
+  if (Array.isArray(result?.content)) {
+    nodes.push(...result.content.filter((node) => node?.tag === 'error'));
+  }
+  const err = nodes[0];
+  if (!err) {
+    return null;
+  }
+
+  return {
+    code: err.attrs?.code ?? null,
+    text: err.attrs?.text ?? null,
+  };
+}
+
+export function describePrivacyIq(result) {
+  if (!result || typeof result !== 'object') {
+    return { empty: true };
+  }
+
+  const content = Array.isArray(result.content) ? result.content : [];
+  const tokensNode = content.find((node) => node?.tag === 'tokens');
+  const tokenNodes = Array.isArray(tokensNode?.content) ? tokensNode.content : [];
+
+  return {
+    tag: result.tag ?? null,
+    childTags: content.map((node) => node?.tag).filter(Boolean),
+    contentIsArray: Array.isArray(result.content),
+    contentType: result.content == null ? 'null' : result.content.constructor?.name || typeof result.content,
+    tokenCount: tokenNodes.length,
+    tokensContentType:
+      tokensNode?.content == null
+        ? 'null'
+        : tokensNode.content.constructor?.name || typeof tokensNode.content,
+    tokens: tokenNodes.map((node) => ({
+      tag: node?.tag ?? null,
+      type: node?.attrs?.type ?? null,
+      attrKeys: Object.keys(node?.attrs || {}),
+      hasT: Boolean(node?.attrs?.t),
+      contentType: node?.content == null ? 'null' : node.content.constructor?.name || typeof node.content,
+      contentLen: node?.content?.length ?? 0,
+    })),
+    error: privacyIqError(result),
+  };
+}
+
 export function extractTrustedContactToken(result) {
   if (!result || typeof result !== 'object') {
     return null;
   }
 
-  if (result.tag === 'tokens' && Array.isArray(result.content)) {
-    return tokenFromNodes(result.content);
+  if (result.tag === 'tokens') {
+    const found = tokenFromNode(result);
+    if (found) {
+      return found;
+    }
   }
 
   const content = result.content;
@@ -77,8 +152,8 @@ export function extractTrustedContactToken(result) {
   }
 
   const tokensNode = content.find((node) => node?.tag === 'tokens');
-  if (tokensNode && Array.isArray(tokensNode.content)) {
-    const found = tokenFromNodes(tokensNode.content);
+  if (tokensNode) {
+    const found = tokenFromNode(tokensNode);
     if (found) {
       return found;
     }
@@ -94,21 +169,49 @@ export function extractTrustedContactToken(result) {
   return null;
 }
 
-function tokenFromNodes(nodes) {
-  for (const tokenNode of nodes) {
-    if (tokenNode?.tag !== 'token' || tokenNode.attrs?.type !== 'trusted_contact') {
-      continue;
-    }
-    const raw = tokenNode.content;
-    const usable = (raw instanceof Uint8Array || Buffer.isBuffer(raw)) && raw.length > 0;
-    if (!tokenNode.attrs?.t || !usable) {
-      continue;
-    }
-
-    return { token: raw, timestamp: tokenNode.attrs.t };
+function tokenFromNode(node) {
+  if (node?.tag === 'token') {
+    return tokenFromAttrs(node);
   }
-
+  if (!Array.isArray(node?.content)) {
+    return null;
+  }
+  for (const child of node.content) {
+    const found = tokenFromAttrs(child);
+    if (found) {
+      return found;
+    }
+  }
   return null;
+}
+
+function coerceTokenBytes(raw) {
+  if (raw instanceof Uint8Array || Buffer.isBuffer(raw)) {
+    return raw.length > 0 ? Buffer.from(raw) : null;
+  }
+  if (typeof raw === 'string' && raw.length > 0) {
+    return Buffer.from(raw, 'base64');
+  }
+  if (Array.isArray(raw) && raw.length > 0 && raw.every((n) => Number.isInteger(n))) {
+    return Buffer.from(raw);
+  }
+  return null;
+}
+
+function tokenFromAttrs(tokenNode) {
+  if (tokenNode?.tag !== 'token') {
+    return null;
+  }
+  const type = tokenNode.attrs?.type;
+  if (type && type !== 'trusted_contact') {
+    return null;
+  }
+  const bytes = coerceTokenBytes(tokenNode.content);
+  const timestamp = tokenNode.attrs?.t;
+  if (!timestamp || !bytes) {
+    return null;
+  }
+  return { token: bytes, timestamp };
 }
 
 /**
