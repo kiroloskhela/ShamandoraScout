@@ -671,7 +671,7 @@ class SeasonEventBookingFinanceController extends Controller
         }
     }
 
-    public function printReceipt($paymentID)
+    public function printReceipt($paymentID, AttendanceQrService $qr)
     {
         $receipt = DB::table('SeasonEventParticipantFinanceReceipt as r')
             ->join('SeasonEventParticipantFinancePayment as p', 'r.PaymentID', '=', 'p.PaymentID')
@@ -709,6 +709,7 @@ class SeasonEventBookingFinanceController extends Controller
                 's.SeasonYear',
                 'e.EventName',
                 'et.EventTypeName',
+                'et.TakesReservation',
                 DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, guest.MobileNumber, family.MobileNumber, '-') as PersonPersonalMobileNumber"),
                 DB::raw("
                 CASE
@@ -741,11 +742,27 @@ class SeasonEventBookingFinanceController extends Controller
             abort(404);
         }
 
+        $qrPng = null;
+        $qrPayload = null;
+        $entity = $qr->entityFromBooking($receipt);
+        if (
+            $entity
+            && $receipt->PaymentType !== 'REFUND'
+            && ! empty($receipt->TakesReservation)
+        ) {
+            $qrPayload = $qr->payloadForEntity($entity['type'], $entity['id']);
+            try {
+                $qrPng = $qr->pngBase64ForEntity($entity['type'], $entity['id']);
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
         $safePersonName = preg_replace('/[^A-Za-z0-9\-]+/', '-', $receipt->PersonFullName);
         $safePersonName = trim($safePersonName, '-');
         $fileName = 'Receipt-'.$receipt->ReceiptNumber.'-'.$safePersonName.'-'.date('Y').'.pdf';
 
-        return view('event_booking_finance.print_receipt', compact('receipt', 'fileName'));
+        return view('event_booking_finance.print_receipt', compact('receipt', 'fileName', 'qrPng', 'qrPayload'));
     }
 
     private function getSeasonEventFullInfo($seasonEventID)
