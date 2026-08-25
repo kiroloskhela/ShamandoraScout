@@ -15,8 +15,8 @@
         }
 
         @page {
-            size: A4;
-            margin: 4mm;
+            size: A4 portrait;
+            margin: 10mm;
         }
 
         html,
@@ -67,6 +67,8 @@
             position: relative;
             z-index: 1;
             height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .header {
@@ -206,7 +208,8 @@
         }
 
         .footer-note {
-            margin-top: 4px;
+            margin-top: auto;
+            padding-top: 4px;
             text-align: center;
             font-size: 14px;
             color: #555;
@@ -264,66 +267,36 @@
 
             html,
             body {
-                width: 202mm;
-                height: 289mm;
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 overflow: hidden;
             }
 
             .page {
-                width: 202mm;
-                max-width: 202mm;
-                height: 289mm;
-                display: flex;
-                flex-direction: column;
-                break-inside: avoid;
-                page-break-after: avoid;
+                width: 100% !important;
+                max-width: none !important;
+                height: 100% !important;
+                margin: 0 !important;
+                display: grid;
+                grid-template-rows: 1fr 6mm 1fr;
             }
 
             .actions {
-                display: none;
+                display: none !important;
             }
 
             .receipt {
-                flex: 1 1 0;
-                min-height: 0;
-                height: auto;
+                min-height: 132mm;
+                height: 100%;
                 overflow: hidden;
-                padding: 3mm 4mm 2mm 4mm;
+                padding: 4mm 5mm 3mm 5mm;
             }
 
             .cut-line {
-                flex: 0 0 4mm;
-                height: 4mm;
-                margin: 0.8mm 0;
-            }
-
-            .logo-top {
-                width: 20px;
-                margin-bottom: 1px;
-            }
-
-            .title,
-            .subtitle,
-            .copy-badge,
-            .section-title,
-            .cell,
-            .amount-title,
-            .footer-note {
-                font-size: 11px;
-            }
-
-            .amount {
-                font-size: 13px;
-            }
-
-            .header {
-                margin-bottom: 2px;
-                padding-bottom: 2px;
-            }
-
-            .section {
-                margin-top: 2px;
-                padding-top: 2px;
+                height: 6mm;
+                margin: 0;
             }
 
             .qr-box {
