@@ -171,11 +171,13 @@ async function resolveSendJid(fullNumber) {
   }
 
   const sendJid = pickSendJid({ exists, lid, jid: onWaJid }, pnJid);
-  const needsNewChatHandshake = !cachedLid && isLidJid(sendJid);
+  const hasToken = isLidJid(sendJid) && (await hasUsableTcToken(sendJid));
+  const needsNewChatHandshake = isLidJid(sendJid) && !hasToken;
   logger.info(
     {
       addressing: sendJid.includes('@lid') ? 'lid' : 'pn',
       handshake: needsNewChatHandshake,
+      storedLid: Boolean(cachedLid),
     },
     'Resolved send JID'
   );
@@ -183,6 +185,7 @@ async function resolveSendJid(fullNumber) {
   return {
     sendJid,
     pnJid,
+    cachedLid: Boolean(cachedLid),
     needsNewChatHandshake,
   };
 }
@@ -247,7 +250,8 @@ async function assertNewChatAllowed() {
 
 async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
   if (typeof sock.issuePrivacyTokens !== 'function') {
-    throw new Error('WhatsApp cannot start a new chat from this device.');
+    logger.warn('Privacy token API missing');
+    return false;
   }
 
   const issueToLid = sock.serverProps?.lidTrustedTokenIssueToLid === true;
@@ -255,7 +259,8 @@ async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
   const result = await sock.issuePrivacyTokens([issueJid]);
   const extracted = extractTrustedContactToken(result);
   if (!extracted) {
-    throw new Error('WhatsApp refused to start a new chat with this number.');
+    logger.warn('Privacy IQ returned no trusted-contact token');
+    return false;
   }
 
   await sock.authState.keys.set({
@@ -266,14 +271,18 @@ async function issueAndStoreTrustedContactToken(storageJid, pnJid) {
       },
     },
   });
+  logger.info('Stored trusted-contact token');
+  return true;
 }
 
-async function prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake) {
+async function prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake, cachedLid) {
   if (!needsNewChatHandshake) {
     return;
   }
 
-  await assertNewChatAllowed();
+  if (!cachedLid) {
+    await assertNewChatAllowed();
+  }
   if (!(await hasUsableTcToken(sendJid))) {
     await issueAndStoreTrustedContactToken(sendJid, pnJid);
   }
@@ -287,12 +296,26 @@ async function deliverContent(fullNumber, content) {
     throw err;
   }
 
-  const { sendJid, pnJid, needsNewChatHandshake } = await resolveSendJid(fullNumber);
-  await prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake);
-  await prepareRecipient(sendJid);
+  const { sendJid, pnJid, cachedLid, needsNewChatHandshake } = await resolveSendJid(fullNumber);
+  await prepareNewChatIfNeeded(sendJid, pnJid, needsNewChatHandshake, cachedLid);
+  const refreshed = await prepareRecipient(sendJid);
 
   const result = await sock.sendMessage(sendJid, content);
   rememberMessage(result?.key, content);
+
+  // First send after a session rebuild is often a prekey message that the phone
+  // cannot decrypt. Wait for the incoming prekey, then send once more.
+  if (refreshed) {
+    await sleep(2500);
+    const settled = await sock.sendMessage(sendJid, content);
+    rememberMessage(settled?.key, content);
+    logger.info('Sent follow-up after crypto refresh');
+    return {
+      ok: true,
+      to: fullNumber,
+      messageId: settled?.key?.id || result?.key?.id || null,
+    };
+  }
 
   return {
     ok: true,
@@ -345,7 +368,7 @@ async function refreshRecipientCrypto(jid) {
  * Warm crypto session with the already-resolved send JID.
  */
 async function prepareRecipient(jid) {
-  if (!sock) return;
+  if (!sock) return false;
 
   const refreshed = await refreshRecipientCrypto(jid);
 
@@ -358,6 +381,7 @@ async function prepareRecipient(jid) {
   }
 
   await sleep(refreshed ? 800 : 400);
+  return refreshed;
 }
 
 function enqueueSend(task) {
