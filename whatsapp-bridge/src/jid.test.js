@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   extractTrustedContactToken,
   isLidJid,
+  lidFromMappingRecord,
   newChatCapBlocksSend,
   normalizeLid,
   pickIssuanceJid,
@@ -55,6 +56,14 @@ test('pickSendJid throws when WhatsApp says the number does not exist', () => {
     () => pickSendJid({ exists: false, jid: pn }, pn),
     /WhatsApp number does not exist/
   );
+});
+
+test('lidFromMappingRecord only reads the local store shape', () => {
+  const pn = '201008021921@s.whatsapp.net';
+  assert.equal(lidFromMappingRecord({ '201008021921': '1234567890' }, pn), '1234567890@lid');
+  assert.equal(lidFromMappingRecord({ '201008021921': '1234567890@lid' }, pn), '1234567890@lid');
+  assert.equal(lidFromMappingRecord({ '201000485402': '999' }, pn), null);
+  assert.equal(lidFromMappingRecord({}, pn), null);
 });
 
 test('usyncRowMatchesPn binds the returned row to the requested PN', () => {
