@@ -149,16 +149,18 @@ class ExpandedPoliciesTest extends TestCase
         $this->assertTrue(Gate::forUser($regular)->denies('viewAny', WhatsAppCampaign::class));
     }
 
-    public function test_enrolment_policy_scopes_admin_qetaa_and_migrate_superadmin(): void
+    public function test_enrolment_policy_admin_qetaa_unscoped_and_migrate_superadmin(): void
     {
-        $adminQetaa = $this->createUser('E1');
-        $this->attachRole($adminQetaa, 'AdminQetaa');
+        $adminWithSector = $this->createUser('E1');
+        $this->attachRole($adminWithSector, 'AdminQetaa');
+        $adminWithoutSector = $this->createUser('E3');
+        $this->attachRole($adminWithoutSector, 'AdminQetaa');
         $super = $this->createUser('E2');
         $this->attachRole($super, 'SuperAdmin');
         $policy = new EnrolmentPolicy;
 
         DB::table('PersonQetaa')->insert([
-            'PersonID' => $adminQetaa->PersonID,
+            'PersonID' => $adminWithSector->PersonID,
             'QetaaID' => 1,
         ]);
 
@@ -171,14 +173,19 @@ class ExpandedPoliciesTest extends TestCase
             'FirstName' => 'Other',
         ]);
 
-        $this->assertTrue($policy->view($adminQetaa, $sharedId));
-        $this->assertTrue($policy->approve($adminQetaa, $sharedId));
-        $this->assertFalse($policy->view($adminQetaa, $otherId));
+        $this->assertTrue($policy->view($adminWithSector, $sharedId));
+        $this->assertTrue($policy->approve($adminWithSector, $sharedId));
+        $this->assertTrue($policy->update($adminWithSector, $otherId));
+        $this->assertTrue($policy->delete($adminWithSector, $otherId));
+        $this->assertTrue($policy->approve($adminWithoutSector, $otherId));
+        $this->assertFalse($policy->view($adminWithSector, 99999));
         $this->assertTrue($policy->view($super, $otherId));
         $this->assertTrue($policy->migrate($super));
-        $this->assertFalse($policy->migrate($adminQetaa));
-        $this->assertTrue(Gate::forUser($adminQetaa)->allows('enrolment.view', $sharedId));
-        $this->assertTrue(Gate::forUser($adminQetaa)->denies('enrolment.view', $otherId));
+        $this->assertFalse($policy->migrate($adminWithSector));
+        $this->assertTrue(Gate::forUser($adminWithSector)->allows('enrolment.view', $otherId));
+        $this->assertTrue(Gate::forUser($adminWithSector)->allows('enrolment.approve', $otherId));
+        $this->assertTrue(Gate::forUser($adminWithSector)->allows('enrolment.update', $otherId));
+        $this->assertTrue(Gate::forUser($adminWithSector)->allows('enrolment.delete', $otherId));
         $this->assertTrue(Gate::forUser($super)->allows('enrolment.migrate'));
     }
 }

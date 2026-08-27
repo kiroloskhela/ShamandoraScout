@@ -55,6 +55,14 @@ class PermissionCatalogTest extends TestCase
         $this->assertNotContains('web.people.view_served', $keys);
     }
 
+    public function test_admin_qetaa_seeds_unscoped_enrolment_review(): void
+    {
+        $keys = config('permissions.seed.AdminQetaa');
+        $this->assertContains('web.enrolments.manage', $keys);
+        $this->assertContains('web.enrolments.unscoped', $keys);
+        $this->assertNotContains('web.enrolments.migrate', $keys);
+    }
+
     public function test_every_staff_role_seeds_view_served(): void
     {
         foreach (config('permissions.staff_roles') as $role) {
