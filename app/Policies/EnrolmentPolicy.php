@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * New enrolments admin: capability gate + AdminQetaa scoped to shared sector.
- * Unscoped review and migration are separate keys.
+ * New enrolments admin: web.enrolments.manage required; sector-scoped unless
+ * web.enrolments.unscoped. Migration is a separate key.
  */
 class EnrolmentPolicy
 {

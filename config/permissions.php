@@ -77,7 +77,8 @@ $mkhdom = [
 
 $seed = [
         'AdminQetaa' => array_values(array_unique(array_merge($mobileStaff, [
-            'web.people.manage', 'web.people.directory', 'web.enrolments.manage',
+            'web.people.manage', 'web.people.directory',
+            'web.enrolments.manage', 'web.enrolments.unscoped',
             'api.special_cases.manage', 'mobile.special_cases.manage',
         ]))),
         'AdminSecretary' => array_values(array_unique(array_merge($mobileStaff, [
