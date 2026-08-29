@@ -29,8 +29,6 @@
 
 @once
     @push('styles')
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.css">
-
         <style>
             .sc-calendar-card {
                 background: #fff;
