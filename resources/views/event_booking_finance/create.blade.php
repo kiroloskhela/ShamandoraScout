@@ -27,7 +27,7 @@
                 <div><strong>{{ __('Allow below minimum deposit:') }}</strong> {{ $plan->AllowBelowMinimumDeposit ? __('Yes') : __('No') }}</div>
             </div>
 
-            <form method="POST" action="{{ route('eventBookingFinance.store', $event->SeasonEventID) }}">
+            <form method="POST" action="{{ route('eventBookingFinance.store', $event->SeasonEventID) }}" data-skip-loading="1">
                 @csrf
 
                 <div class="space-y-6">

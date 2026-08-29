@@ -330,9 +330,7 @@
                 <div class="receipt-content">
                     @if ($qrPayload)
                         <div class="qr-box">
-                            @if ($qrPng)
-                                <img src="data:image/png;base64,{{ $qrPng }}" alt="{{ __('Attendance QR') }}">
-                            @endif
+                            <img class="js-qr" data-qr="{{ $qrPayload }}" alt="{{ __('Attendance QR') }}" width="120" height="120">
                             <div class="qr-caption">{{ $qrPayload }}</div>
                         </div>
                     @endif
@@ -470,10 +468,51 @@
         @endforeach
 
         <div class="actions">
-            <button type="button" onclick="window.print()">{{ __('Print') }}</button>
+            <button type="button" id="print-btn" disabled>{{ __('Print') }}</button>
             <a class="secondary" href="{{ route('eventBookingFinance.index', $receipt->SeasonEventID) }}">{{ __('Back') }}</a>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script>
+        (function () {
+            const printBtn = document.getElementById('print-btn');
+            const payload = @json($qrPayload);
+            const returnToEvent = @json(request()->boolean('return'));
+            const eventIndexUrl = @json(route('eventBookingFinance.index', $receipt->SeasonEventID));
+            const imgs = document.querySelectorAll('img.js-qr[data-qr]');
+
+            function goToEvent() {
+                if (returnToEvent && eventIndexUrl) {
+                    window.location.href = eventIndexUrl;
+                }
+            }
+
+            function printReceipt() {
+                window.addEventListener('afterprint', goToEvent, { once: true });
+                window.print();
+            }
+
+            try {
+                if (typeof qrcode === 'function' && payload) {
+                    imgs.forEach(function (img) {
+                        const qr = qrcode(0, 'M');
+                        qr.addData(payload);
+                        qr.make();
+                        img.src = qr.createDataURL(4, 4);
+                    });
+                }
+            } catch (e) {}
+
+            if (printBtn) {
+                printBtn.disabled = false;
+                printBtn.addEventListener('click', printReceipt);
+            }
+
+            if (returnToEvent) {
+                printReceipt();
+            }
+        })();
+    </script>
 </body>
 
 </html>

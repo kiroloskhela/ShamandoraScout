@@ -40,6 +40,7 @@
         </div>
 
         <form method="POST" action="{{ route('eventBookingFinance.store', $event->SeasonEventID) }}"
+            data-skip-loading="1"
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
             @csrf
 

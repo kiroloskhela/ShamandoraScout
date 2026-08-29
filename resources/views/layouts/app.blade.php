@@ -915,8 +915,10 @@
                     });
                 }
 
-                showLoadingDelayed();
-                setTimeout(hideLoading, 25000);
+                if (form.dataset.skipLoading !== '1') {
+                    showLoadingDelayed();
+                    setTimeout(hideLoading, 25000);
+                }
             });
         });
 
