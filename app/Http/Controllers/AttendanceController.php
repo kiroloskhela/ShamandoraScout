@@ -198,6 +198,10 @@ class AttendanceController extends Controller
             }
         }
 
+        if (! $this->qr->shouldSendViaWhatsApp()) {
+            return back()->with('error', __('WhatsApp QR sending is temporarily disabled.'));
+        }
+
         $eventName = $seasonEventId ? $this->qr->eventName($seasonEventId) : null;
 
         try {
@@ -220,6 +224,10 @@ class AttendanceController extends Controller
         $seasonEventId = (int) $data['season_event_id'];
         if (! $this->canAccessEvent($meId, $seasonEventId)) {
             return back()->with('error', __('Not allowed to take attendance for this event'));
+        }
+
+        if (! $this->qr->shouldSendViaWhatsApp()) {
+            return back()->with('error', __('WhatsApp QR sending is temporarily disabled.'));
         }
 
         $eventName = $this->qr->eventName($seasonEventId);

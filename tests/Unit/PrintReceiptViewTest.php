@@ -12,6 +12,7 @@ class PrintReceiptViewTest extends TestCase
             'PaymentType' => 'PAY',
             'ReceiptNumber' => 'REC-1',
             'IssuedAt' => '2026-08-25 22:27:13',
+            'SeasonEventID' => 87,
             'SeasonName' => '2026',
             'SeasonYear' => '2026',
             'EventTypeName' => 'Games Complex',
@@ -66,5 +67,13 @@ class PrintReceiptViewTest extends TestCase
 
         $this->assertSame(0, substr_count($html, 'class="qr-box"'));
         $this->assertSame(0, substr_count($html, 'data:image/png;base64,'));
+    }
+
+    public function test_back_links_to_event_bookings_index(): void
+    {
+        $html = $this->render(null, null);
+
+        $this->assertStringContainsString('event-booking-finance/event/87', $html);
+        $this->assertStringNotContainsString('window.history.back()', $html);
     }
 }

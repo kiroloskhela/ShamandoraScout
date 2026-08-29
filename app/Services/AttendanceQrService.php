@@ -158,6 +158,11 @@ class AttendanceQrService
     /**
      * @return array{ok: true, to: mixed, messageId: mixed}
      */
+    public function shouldSendViaWhatsApp(): bool
+    {
+        return (bool) config('services.whatsapp.send_qr');
+    }
+
     public function sendQrViaWhatsApp(int $personId, ?string $eventName = null): array
     {
         return $this->sendEntityQrViaWhatsApp(self::TYPE_PERSON, $personId, $eventName);
@@ -168,6 +173,10 @@ class AttendanceQrService
      */
     public function sendEntityQrViaWhatsApp(string $type, int $id, ?string $eventName = null): array
     {
+        if (! $this->shouldSendViaWhatsApp()) {
+            throw new RuntimeException(__('WhatsApp QR sending is temporarily disabled.'));
+        }
+
         $card = $this->entityCard($type, $id);
         if (! $card) {
             throw new RuntimeException(__('Person not found.'));
