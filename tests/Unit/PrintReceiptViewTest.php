@@ -45,11 +45,13 @@ class PrintReceiptViewTest extends TestCase
 
     public function test_both_copies_include_attendance_qr_image_and_payload(): void
     {
-        $html = $this->render('dGVzdA==', 'SHAM:7');
+        $html = $this->render(null, 'SHAM:7');
 
-        $this->assertSame(2, substr_count($html, 'data:image/png;base64,dGVzdA=='));
-        $this->assertSame(2, substr_count($html, 'SHAM:7'));
+        $this->assertSame(2, substr_count($html, 'data-qr="SHAM:7"'));
+        $this->assertSame(2, substr_count($html, 'class="js-qr"'));
+        $this->assertGreaterThanOrEqual(2, substr_count($html, 'SHAM:7'));
         $this->assertSame(2, substr_count($html, 'class="qr-box"'));
+        $this->assertStringContainsString('qrcode-generator@1.4.4', $html);
     }
 
     public function test_payload_renders_on_both_copies_when_image_is_missing(): void
@@ -57,7 +59,7 @@ class PrintReceiptViewTest extends TestCase
         $html = $this->render(null, 'GUEST:7');
 
         $this->assertSame(0, substr_count($html, 'data:image/png;base64,'));
-        $this->assertSame(2, substr_count($html, 'GUEST:7'));
+        $this->assertGreaterThanOrEqual(2, substr_count($html, 'GUEST:7'));
         $this->assertSame(2, substr_count($html, 'class="qr-box"'));
     }
 
@@ -75,5 +77,6 @@ class PrintReceiptViewTest extends TestCase
 
         $this->assertStringContainsString('event-booking-finance/event/87', $html);
         $this->assertStringNotContainsString('window.history.back()', $html);
+        $this->assertStringContainsString('eventIndexUrl', $html);
     }
 }

@@ -65,7 +65,8 @@
             @endif
 
             <form method="POST"
-                action="{{ route('eventBookingFinance.storeInstallment', $booking->SeasonEventParticipantFinanceID) }}">
+                action="{{ route('eventBookingFinance.storeInstallment', $booking->SeasonEventParticipantFinanceID) }}"
+                data-skip-loading="1">
                 @csrf
 
                 <div class="space-y-6">

@@ -410,8 +410,10 @@ class SeasonEventBookingFinanceController extends Controller
             ])->withInput();
         }
 
-        return redirect()->route('eventBookingFinance.printReceipt', $result['payment_id'])
-            ->with('success', __('Booking created successfully.'));
+        return $this->redirectToPrintReceipt(
+            (int) $result['payment_id'],
+            __('Booking created successfully.')
+        );
     }
 
     public function createGuestFamily($seasonEventID)
@@ -526,8 +528,10 @@ class SeasonEventBookingFinanceController extends Controller
                 $installment,
             );
 
-            return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', __('Payment recorded and receipt issued successfully.'));
+            return $this->redirectToPrintReceipt(
+                (int) $paymentID,
+                __('Payment recorded and receipt issued successfully.')
+            );
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
                 'general' => __('An error occurred while recording the payment.'),
@@ -617,8 +621,10 @@ class SeasonEventBookingFinanceController extends Controller
                 $payment->Notes,
             );
 
-            return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', __('Last payment amount updated successfully.'));
+            return $this->redirectToPrintReceipt(
+                (int) $paymentID,
+                __('Last payment amount updated successfully.')
+            );
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
                 'general' => __('An error occurred while updating the last payment.'),
@@ -663,8 +669,10 @@ class SeasonEventBookingFinanceController extends Controller
                 $this->bookings->countPayments($bookingID) + 1,
             );
 
-            return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', __('Full paid amount refunded successfully.'));
+            return $this->redirectToPrintReceipt(
+                (int) $paymentID,
+                __('Full paid amount refunded successfully.')
+            );
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
                 'general' => __('An error occurred during refund.'),
@@ -753,11 +761,6 @@ class SeasonEventBookingFinanceController extends Controller
             && ! empty($receipt->TakesReservation)
         ) {
             $qrPayload = $qr->payloadForEntity($entity['type'], $entity['id']);
-            try {
-                $qrPng = $qr->pngBase64ForEntity($entity['type'], $entity['id']);
-            } catch (Throwable $e) {
-                report($e);
-            }
         }
 
         $safePersonName = preg_replace('/[^A-Za-z0-9\-]+/', '-', $receipt->PersonFullName);
@@ -773,6 +776,16 @@ class SeasonEventBookingFinanceController extends Controller
             ->view($view, $data)
             ->header('Cache-Control', 'private, no-store, no-cache, must-revalidate')
             ->header('Pragma', 'no-cache');
+    }
+
+    private function redirectToPrintReceipt(int $paymentId, string $message)
+    {
+        return redirect()
+            ->route('eventBookingFinance.printReceipt', [
+                'paymentID' => $paymentId,
+                'return' => 1,
+            ])
+            ->with('success', $message);
     }
 
     private function getSeasonEventFullInfo($seasonEventID)
@@ -852,8 +865,10 @@ class SeasonEventBookingFinanceController extends Controller
                 $request->filled('notes') ? $request->notes : null,
             );
 
-            return redirect()->route('eventBookingFinance.printReceipt', $paymentID)
-                ->with('success', __('Amount refunded successfully after partial deduction.'));
+            return $this->redirectToPrintReceipt(
+                (int) $paymentID,
+                __('Amount refunded successfully after partial deduction.')
+            );
         } catch (Exception $e) {
             return redirect()->back()->withErrors([
                 'general' => __('An error occurred while processing partial refund.'),
