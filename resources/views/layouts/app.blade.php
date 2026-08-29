@@ -863,7 +863,17 @@
 
         document.addEventListener('DOMContentLoaded', hideLoading);
         window.addEventListener('load', hideLoading);
-        window.addEventListener('pageshow', hideLoading);
+        window.addEventListener('pageshow', (event) => {
+            hideLoading();
+            if (event.persisted) {
+                document.querySelectorAll('form[data-submitting="1"]').forEach((form) => {
+                    delete form.dataset.submitting;
+                    form.querySelectorAll('[type="submit"]').forEach((btn) => {
+                        btn.disabled = false;
+                    });
+                });
+            }
+        });
 
         document.querySelectorAll('a[href]').forEach((link) => {
             const href = link.getAttribute('href');
@@ -891,8 +901,22 @@
         });
 
         document.querySelectorAll('form').forEach((form) => {
-            form.addEventListener('submit', () => {
+            form.addEventListener('submit', (event) => {
+                if (form.dataset.submitting === '1') {
+                    event.preventDefault();
+                    return;
+                }
+
+                const method = (form.getAttribute('method') || 'get').toLowerCase();
+                if (method === 'post') {
+                    form.dataset.submitting = '1';
+                    form.querySelectorAll('[type="submit"]').forEach((btn) => {
+                        btn.disabled = true;
+                    });
+                }
+
                 showLoadingDelayed();
+                setTimeout(hideLoading, 25000);
             });
         });
 

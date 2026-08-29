@@ -292,6 +292,10 @@ class SeasonEventBookingService
         ?int $familyID,
     ): void {
         try {
+            if (! app(AttendanceQrService::class)->shouldSendViaWhatsApp()) {
+                return;
+            }
+
             $event = $this->getEventInfo($seasonEventId);
             if (! $event || empty($event->TakesReservation)) {
                 return;
@@ -322,7 +326,10 @@ class SeasonEventBookingService
                 return;
             }
 
-            SendAttendanceQrWhatsApp::dispatch($entityType, $entityId, (string) $event->EventName);
+            $eventName = (string) $event->EventName;
+            app()->terminating(function () use ($entityType, $entityId, $eventName) {
+                SendAttendanceQrWhatsApp::dispatch($entityType, $entityId, $eventName);
+            });
         } catch (Throwable $e) {
             Log::warning('Failed to queue attendance QR after booking', [
                 'seasonEventId' => $seasonEventId,

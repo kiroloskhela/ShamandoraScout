@@ -12,6 +12,7 @@ use App\Support\LikeSearch;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -327,7 +328,7 @@ class SeasonEventBookingFinanceController extends Controller
 
         $haveShirt = (int) ($this->bookings->getFinancePlan((int) $seasonEventID)?->HaveShirt ?? 0);
 
-        return view('event_booking_finance.index', [
+        return $this->noStoreView('event_booking_finance.index', [
             'event' => $event,
             'bookings' => $bookings,
             'paymentDays' => $paymentDays,
@@ -696,6 +697,7 @@ class SeasonEventBookingFinanceController extends Controller
                 'p.PaymentType',
                 'p.InstallmentNumber',
                 'b.SeasonEventParticipantFinanceID',
+                'b.SeasonEventID',
                 'b.PersonID',
                 'b.GuestID',
                 'b.FamilyID',
@@ -762,7 +764,15 @@ class SeasonEventBookingFinanceController extends Controller
         $safePersonName = trim($safePersonName, '-');
         $fileName = 'Receipt-'.$receipt->ReceiptNumber.'-'.$safePersonName.'-'.date('Y').'.pdf';
 
-        return view('event_booking_finance.print_receipt', compact('receipt', 'fileName', 'qrPng', 'qrPayload'));
+        return $this->noStoreView('event_booking_finance.print_receipt', compact('receipt', 'fileName', 'qrPng', 'qrPayload'));
+    }
+
+    private function noStoreView(string $view, array $data): Response
+    {
+        return response()
+            ->view($view, $data)
+            ->header('Cache-Control', 'private, no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache');
     }
 
     private function getSeasonEventFullInfo($seasonEventID)
@@ -1126,6 +1136,10 @@ class SeasonEventBookingFinanceController extends Controller
 
         if (empty($booking->TakesReservation) || empty($booking->SendQrWhatsApp)) {
             return back()->with('error', __('This event type does not take reservation QR codes.'));
+        }
+
+        if (! $qr->shouldSendViaWhatsApp()) {
+            return back()->with('error', __('WhatsApp QR sending is temporarily disabled.'));
         }
 
         $entity = $qr->entityFromBooking($booking);

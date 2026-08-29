@@ -248,7 +248,9 @@
             margin-top: 8px;
         }
 
-        .actions button {
+        .actions button,
+        .actions a.secondary {
+            display: inline-block;
             border: none;
             background: #222;
             color: #fff;
@@ -257,9 +259,10 @@
             border-radius: 6px;
             font-size: 12px;
             cursor: pointer;
+            text-decoration: none;
         }
 
-        .actions button.secondary {
+        .actions a.secondary {
             background: #666;
         }
 
@@ -467,8 +470,8 @@
         @endforeach
 
         <div class="actions">
-            <button onclick="window.print()">{{ __('Print') }}</button>
-            <button class="secondary" onclick="window.history.back()">{{ __('Back') }}</button>
+            <button type="button" onclick="window.print()">{{ __('Print') }}</button>
+            <a class="secondary" href="{{ route('eventBookingFinance.index', $receipt->SeasonEventID) }}">{{ __('Back') }}</a>
         </div>
     </div>
 </body>

@@ -33,6 +33,10 @@ class SendAttendanceQrWhatsApp implements ShouldQueue
 
     public function handle(AttendanceQrService $qr): void
     {
+        if (! $qr->shouldSendViaWhatsApp()) {
+            return;
+        }
+
         $qr->sendEntityQrViaWhatsApp($this->entityType, $this->entityId, $this->eventName);
     }
 

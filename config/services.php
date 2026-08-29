@@ -41,6 +41,8 @@ return [
         'bridge_url' => env('WHATSAPP_BRIDGE_URL', 'http://127.0.0.1:3010/send'),
         'bridge_base_url' => env('WHATSAPP_BRIDGE_BASE_URL'),
         'bridge_token' => env('WHATSAPP_BRIDGE_TOKEN'),
+        // ponytail: WA bridge is down — set true when it is back
+        'send_qr' => (bool) env('WHATSAPP_SEND_QR', false),
     ],
 
     'gemini' => [

@@ -38,4 +38,9 @@ class AttendanceQrServiceTest extends TestCase
         $this->assertNotSame('', $png);
         $this->assertNotFalse(base64_decode($png, true));
     }
+
+    public function test_whatsapp_qr_send_is_disabled_by_default(): void
+    {
+        $this->assertFalse($this->service()->shouldSendViaWhatsApp());
+    }
 }
