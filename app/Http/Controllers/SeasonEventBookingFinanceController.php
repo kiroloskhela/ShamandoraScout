@@ -255,6 +255,7 @@ class SeasonEventBookingFinanceController extends Controller
                 'pay.FirstPaymentAt',
                 'pay.LastPaymentAt'
             )
+            ->orderByDesc('pay.LastPaymentAt')
             ->orderBy('PersonFullName')
             ->orderBy('b.SeasonEventParticipantFinanceID')
             ->get()

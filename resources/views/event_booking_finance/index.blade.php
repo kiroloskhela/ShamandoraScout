@@ -156,7 +156,7 @@
 
         <details class="mb-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden group">
             <summary
-                class="cursor-pointer list-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                class="cursor-pointer list-none px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between [&::-webkit-details-marker]:hidden [&::marker]:hidden">
                 <div class="flex items-center gap-3">
                     <div
                         class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-200 flex items-center justify-center text-base font-bold">
@@ -169,8 +169,10 @@
                 </div>
 
                 <span
-                    class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center text-xs group-open:rotate-180 transition-transform duration-200">
-                    ⌄
+                    class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center group-open:rotate-180 transition-transform duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </span>
             </summary>
 
@@ -183,7 +185,7 @@
 
                             <div class="relative">
                                 <select name="summary_date" id="summary_date"
-                                    class="w-full h-11 ps-4 pe-10 border rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none appearance-none cursor-pointer">
+                                    class="w-full h-11 ps-4 pe-10 border rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:border-blue-500 focus:outline-none appearance-none bg-none cursor-pointer">
                                     @forelse($paymentDays as $day)
                                         <option value="{{ $day }}"
                                             {{ $selectedSummaryDate == $day ? 'selected' : '' }}>
@@ -439,18 +441,21 @@
                 ],
                 [
                     'key' => 'FirstPaymentDateFormatted',
+                    'sortKey' => 'FirstPaymentAt',
                     'label' => __('First payment'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 dark:text-slate-100',
                 ],
                 [
                     'key' => 'LastPaymentDateFormatted',
+                    'sortKey' => 'LastPaymentAt',
                     'label' => __('Last payment'),
                     'type' => 'text',
                     'cssClass' => 'text-sm text-gray-900 dark:text-slate-100',
                 ],
             ]" :actions="$bookingActions" :searchable="true"
-                :sortable="true" :pagination="true" :per-page="25" />
+                :sortable="true" :pagination="true" :per-page="25"
+                initial-sort-column="LastPaymentAt" initial-sort-direction="desc" />
         </div>
     </div>
 @endsection
