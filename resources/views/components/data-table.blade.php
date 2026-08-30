@@ -20,6 +20,8 @@
     // When true, the search box navigates via ?q= instead of filtering loaded rows.
     'serverSearch' => false,
     'activeSearch' => null,
+    'initialSortColumn' => '',
+    'initialSortDirection' => 'asc',
 ])
 
 @php
@@ -45,7 +47,9 @@
     serverSearch: @js((bool) $serverSearch),
     filterOptions: @js($filterOptions),
     activeServerFilters: @js($activeServerFilters),
-    activeSearch: @js((string) $activeSearch)
+    activeSearch: @js((string) $activeSearch),
+    initialSortColumn: @js((string) $initialSortColumn),
+    initialSortDirection: @js((string) $initialSortDirection)
 })" x-init="init()">
 
     <!-- Header: Title, Search, Add Button -->
@@ -135,7 +139,7 @@
                                 :class="activeFilters[col.key] ?
                                     'border-emerald-400 ring-1 ring-emerald-300 bg-emerald-50 text-emerald-800 font-medium' :
                                     'border-gray-300 bg-white text-gray-700 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-200'"
-                                class="w-full text-sm border rounded-lg px-3 py-2 pe-8 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
+                                class="w-full text-sm border rounded-lg px-3 py-2 pe-8 appearance-none bg-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 cursor-pointer transition-colors duration-150">
                                 <option value="__all__">{{ __('— All —') }}</option>
                                 <template x-for="option in getDistinctValues(col.key)" :key="option">
                                     <option :value="option" x-text="option"></option>
@@ -185,12 +189,12 @@
                             <div class="flex items-center justify-between gap-1">
                                 <span x-text="column.label"></span>
 
-                                <button x-show="sortable && column.sortable !== false" @click="sort(column.key)"
+                                <button x-show="sortable && column.sortable !== false" @click="sort(column.sortKey || column.key)"
                                     class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 shrink-0">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            :class="sortColumn === column.key ? 'text-blue-500 dark:text-teal-400' : ''"
-                                            :d="sortColumn === column.key ?
+                                            :class="sortColumn === (column.sortKey || column.key) ? 'text-blue-500 dark:text-teal-400' : ''"
+                                            :d="sortColumn === (column.sortKey || column.key) ?
                                                 (sortDirection === 'desc' ?
                                                     'M19 9l-7 7-7-7' :
                                                     'M5 15l7-7 7 7') :
@@ -424,8 +428,8 @@
             filterOptions: options.filterOptions || {},
 
             searchTerm: options.activeSearch || '',
-            sortColumn: '',
-            sortDirection: 'asc',
+            sortColumn: options.initialSortColumn || '',
+            sortDirection: options.initialSortDirection === 'desc' ? 'desc' : 'asc',
             currentPage: 1,
             activeFilters: options.activeServerFilters || {},
             mobileActionItem: null,
