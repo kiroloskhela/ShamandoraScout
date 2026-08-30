@@ -34,6 +34,9 @@ class TableColumnFilters
             if ($value === '' || $value === '__all__') {
                 continue;
             }
+            if (mb_strlen($value) > 100) {
+                $value = mb_substr($value, 0, 100);
+            }
             $out[$key] = $value;
         }
 

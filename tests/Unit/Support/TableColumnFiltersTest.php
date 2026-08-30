@@ -23,6 +23,17 @@ class TableColumnFiltersTest extends TestCase
         $this->assertSame(['QetaaName' => 'أشبال'], $filters);
     }
 
+    public function test_from_request_truncates_long_values(): void
+    {
+        $req = Request::create('/', 'GET', [
+            'f' => ['QetaaName' => str_repeat('a', 150)],
+        ]);
+
+        $filters = TableColumnFilters::fromRequest($req, ['QetaaName']);
+
+        $this->assertSame(100, mb_strlen($filters['QetaaName']));
+    }
+
     public function test_sql_equals_builds_and_bindings(): void
     {
         $frag = TableColumnFilters::sqlEquals(

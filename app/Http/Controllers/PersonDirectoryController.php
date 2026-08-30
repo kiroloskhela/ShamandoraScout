@@ -8,6 +8,7 @@ use App\Domain\Person\PersonSearchService;
 use App\Domain\Person\PersonSeasonActivityService;
 use App\Models\User;
 use App\Support\LikeSearch;
+use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,19 +29,32 @@ class PersonDirectoryController extends Controller
         $userId = Auth::id();
         Log::info('Fetching persons for user ID: '.$userId);
 
-        $persons = $this->personSearch->paginateScopedToPerson((int) $userId, clientSearch: true);
+        $filters = TableColumnFilters::fromRequest($request, ['SanaMarhalaName', 'QetaaName']);
+        $persons = $this->personSearch->paginateScopedToPerson(
+            (int) $userId,
+            LikeSearch::fromRequest($request),
+            $filters,
+        );
 
         return view('person.person-index', [
             'persons' => $persons,
+            'filterOptions' => $this->personSearch->directoryFilterOptions((int) $userId),
+            'activeServerFilters' => $filters,
         ]);
     }
 
     public function ShowPersons(Request $request)
     {
-        $persons = $this->personSearch->paginateAllPersons(null, clientSearch: true);
+        $filters = TableColumnFilters::fromRequest($request, ['SanaMarhalaName', 'QetaaName']);
+        $persons = $this->personSearch->paginateAllPersons(
+            LikeSearch::fromRequest($request),
+            $filters,
+        );
 
         return view('person.person-showAllPersons', [
             'persons' => $persons,
+            'filterOptions' => $this->personSearch->directoryFilterOptions(),
+            'activeServerFilters' => $filters,
         ]);
     }
 

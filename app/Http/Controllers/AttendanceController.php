@@ -264,19 +264,21 @@ class AttendanceController extends Controller
                 ->map(fn ($id) => (int) $id)
                 ->all();
 
-            foreach ($personIds as $personId) {
-                $phone = DB::table('PersonPhoneNumbers')
-                    ->where('PersonID', $personId)
-                    ->value('PersonPersonalMobileNumber');
-                if (! $phone) {
-                    continue;
+            foreach (array_chunk($personIds, 500) as $chunk) {
+                $personIdsWithPhone = DB::table('PersonPhoneNumbers')
+                    ->whereIn('PersonID', $chunk)
+                    ->whereNotNull('PersonPersonalMobileNumber')
+                    ->where('PersonPersonalMobileNumber', '<>', '')
+                    ->pluck('PersonID');
+
+                foreach ($personIdsWithPhone as $personId) {
+                    SendAttendanceQrWhatsApp::dispatch(
+                        AttendanceQrService::TYPE_PERSON,
+                        (int) $personId,
+                        $eventName
+                    );
+                    $queued++;
                 }
-                SendAttendanceQrWhatsApp::dispatch(
-                    AttendanceQrService::TYPE_PERSON,
-                    $personId,
-                    $eventName
-                );
-                $queued++;
             }
         }
 

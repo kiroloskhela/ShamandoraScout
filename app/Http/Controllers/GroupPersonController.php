@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\OrgTree\GroupTreeService;
+use App\Support\LikeSearch;
+use App\Support\SqlPaginator;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,26 +21,50 @@ class GroupPersonController extends Controller
      */
     public function index(Request $request)
     {
-        $sql = "
-                                    SELECT PersonGroup.PersonGroupRoleID,
-                                        PersonGroup.PersonID,
-                                        PersonGroup.GroupID,
-                                        PersonGroup.GroupRoleID,
-                                        PersonInformation.ShamandoraCode,
-                                        CONCAT(PersonInformation.FirstName, ' ',
-                                        PersonInformation.SecondName, ' ', PersonInformation.ThirdName) AS PersonFullName,
-                                        GroupRole.GroupRoleName,
-                                        CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupDetails
-                                    FROM PersonGroup
-                                    LEFT JOIN PersonInformation ON PersonGroup.PersonID = PersonInformation.PersonID
-                                    LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = PersonInformation.PersonID
-                                    LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
-                                    LEFT JOIN GroupRole ON GroupRole.GroupRoleID = PersonGroup.GroupRoleID
-                                    LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
-                                    ORDER BY PersonInformation.ShamandoraCode ASC
-                                    ";
+        $bindings = [];
+        $searchSql = '';
+        $term = LikeSearch::fromRequest($request);
+        if ($term !== null) {
+            $fragment = LikeSearch::sqlFlexibleOr(
+                [
+                    'PersonInformation.ShamandoraCode',
+                    'PersonInformation.FirstName',
+                    'PersonInformation.SecondName',
+                    'PersonInformation.ThirdName',
+                    'GroupRole.GroupRoleName',
+                    'GroupTable.GroupName',
+                    'GroupType.GroupTypeName',
+                    'CAST(PersonGroup.PersonID AS CHAR)',
+                    'CAST(PersonGroup.GroupID AS CHAR)',
+                ],
+                $term,
+                LikeSearch::personPhoneColumns('ppn'),
+            );
+            $searchSql = ' WHERE '.$fragment['sql'];
+            $bindings = $fragment['bindings'];
+        }
 
-        $groupPersons = collect(DB::select($sql));
+        $sql = "
+            SELECT PersonGroup.PersonGroupRoleID,
+                PersonGroup.PersonID,
+                PersonGroup.GroupID,
+                PersonGroup.GroupRoleID,
+                PersonInformation.ShamandoraCode,
+                CONCAT(PersonInformation.FirstName, ' ',
+                PersonInformation.SecondName, ' ', PersonInformation.ThirdName) AS PersonFullName,
+                GroupRole.GroupRoleName,
+                CONCAT(GroupType.GroupTypeName, ' ', GroupTable.GroupName) AS GroupDetails
+            FROM PersonGroup
+            LEFT JOIN PersonInformation ON PersonGroup.PersonID = PersonInformation.PersonID
+            LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = PersonInformation.PersonID
+            LEFT JOIN GroupTable ON GroupTable.GroupID = PersonGroup.GroupID
+            LEFT JOIN GroupRole ON GroupRole.GroupRoleID = PersonGroup.GroupRoleID
+            LEFT JOIN GroupType ON GroupTable.GroupTypeID = GroupType.GroupTypeID
+            {$searchSql}
+            ORDER BY PersonInformation.ShamandoraCode ASC
+        ";
+
+        $groupPersons = SqlPaginator::paginate($sql, $bindings, 25);
 
         return view('group-person.index', [
             'groupPersons' => $groupPersons,

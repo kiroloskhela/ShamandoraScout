@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
@@ -10,24 +9,23 @@ class HomeController extends Controller
     public function index()
     {
         $userId = auth()->id();
+        $today = now()->toDateString();
 
-        // 1️⃣ Persons count
-        $row = DB::selectOne("
-            SELECT COUNT(DISTINCT pi.PersonID) AS total
-            FROM PersonInformation pi
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
-            JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
+        $row = DB::selectOne('
+            SELECT COUNT(DISTINCT pq.PersonID) AS total
+            FROM PersonGroup pg2
+            JOIN GroupQetaa gq ON gq.GroupID = pg2.GroupID
+            JOIN PersonQetaa pq ON pq.QetaaID = gq.QetaaID
             WHERE pg2.PersonID = ?
-        ", [$userId]);
+        ', [$userId]);
 
         $personsCount = $row ? (int) $row->total : 0;
 
-        // 2️⃣ Calendar events
-        $events = DB::select("
-            SELECT e.EventID, e.EventName, e.EventStartDate, e.EventEndDate,
-                   et.EventTypeName, S.SeasonName, S.SeasonYear
+        // Upcoming (and undated) events only; cap keeps the home calendar bounded.
+        $events = DB::select('
+            SELECT DISTINCT
+                e.EventID, e.EventName, e.EventStartDate, e.EventEndDate,
+                et.EventTypeName, S.SeasonName, S.SeasonYear
             FROM PersonGroup pg
             JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
             JOIN Qetaa q ON gq.QetaaID = q.QetaaID
@@ -37,10 +35,11 @@ class HomeController extends Controller
             JOIN SeasonEvent se ON se.EventID = e.EventID
             JOIN Season S ON S.SeasonID = se.SeasonID
             WHERE pg.PersonID = ?
-            ORDER BY e.EventStartDate ASC
-        ", [$userId]);
+              AND (e.EventEndDate IS NULL OR e.EventEndDate >= ?)
+            ORDER BY e.EventStartDate ASC, e.EventID ASC
+            LIMIT 150
+        ', [$userId, $today]);
 
-        // 3️⃣ Pass to view
         return view('index', compact('personsCount', 'events'));
     }
 }

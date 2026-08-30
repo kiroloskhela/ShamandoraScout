@@ -37,4 +37,17 @@ class SqlPaginatorTest extends TestCase
         $this->assertCount(10, $page->items());
         $this->assertSame(1, (int) $page->items()[0]->id);
     }
+
+    public function test_uses_optional_count_sql(): void
+    {
+        $page = SqlPaginator::paginate(
+            'SELECT id, name FROM sql_paginator_demo ORDER BY id ASC',
+            [],
+            10,
+            'SELECT 7 AS aggregate',
+        );
+
+        $this->assertSame(7, $page->total());
+        $this->assertCount(10, $page->items());
+    }
 }

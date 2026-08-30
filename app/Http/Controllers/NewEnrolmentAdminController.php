@@ -27,7 +27,7 @@ class NewEnrolmentAdminController extends Controller
         ];
     }
 
-    private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index', bool $clientSearch = false)
+    private function paginateNewUsers(Request $request, string $extraWhere = '', array $extraBindings = [], string $view = 'person.new-enrolments-index')
     {
         $bindings = $extraBindings;
         $whereParts = [];
@@ -36,23 +36,21 @@ class NewEnrolmentAdminController extends Controller
             $whereParts[] = '('.$extraWhere.')';
         }
 
-        if (! $clientSearch) {
-            $term = LikeSearch::fromRequest($request);
-            if ($term !== null) {
-                $fragment = LikeSearch::sqlOr($this->newUsersSearchColumns(), $term);
-                $whereParts[] = $fragment['sql'];
-                $bindings = array_merge($bindings, $fragment['bindings']);
-            }
+        $term = LikeSearch::fromRequest($request);
+        if ($term !== null) {
+            $fragment = LikeSearch::sqlOr($this->newUsersSearchColumns(), $term);
+            $whereParts[] = $fragment['sql'];
+            $bindings = array_merge($bindings, $fragment['bindings']);
+        }
 
-            $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
-            $filterFrag = TableColumnFilters::sqlEquals($filters, [
-                'QetaaName' => 'nui.QetaaName',
-                'SanaMarhalaName' => 'sm.SanaMarhalaName',
-            ]);
-            if ($filterFrag['sql'] !== '') {
-                $whereParts[] = $filterFrag['sql'];
-                $bindings = array_merge($bindings, $filterFrag['bindings']);
-            }
+        $filters = TableColumnFilters::fromRequest($request, ['QetaaName', 'SanaMarhalaName']);
+        $filterFrag = TableColumnFilters::sqlEquals($filters, [
+            'QetaaName' => 'nui.QetaaName',
+            'SanaMarhalaName' => 'sm.SanaMarhalaName',
+        ]);
+        if ($filterFrag['sql'] !== '') {
+            $whereParts[] = $filterFrag['sql'];
+            $bindings = array_merge($bindings, $filterFrag['bindings']);
         }
 
         $whereSql = $whereParts === [] ? '' : (' WHERE '.implode(' AND ', $whereParts));
@@ -73,21 +71,47 @@ class NewEnrolmentAdminController extends Controller
                                                     nui.RaqamQawmy,
                                                     nui.IsApproved,
                                                     nui.PersonPersonalMobileNumber,
-                                                    IF(nupq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
+                                                    CASE WHEN EXISTS (
+                                                        SELECT 1 FROM NewUsersPersonEntryQuestions nupq
+                                                        WHERE nupq.PersonID = nui.PersonID
+                                                    ) THEN 'نعم' ELSE 'لا' END AS HasAnsweredQuestions,
                                                     DATE_FORMAT(nui.CreatedAt, '%Y-%m-%d %H:%i') AS CreatedAt
                                                 FROM NewUsersInformation nui
-                                                LEFT JOIN NewUsersPersonEntryQuestions nupq ON nui.PersonID = nupq.PersonID
                                                 LEFT JOIN SanaMarhala sm ON nui.SanaMarhalaID = sm.SanaMarhalaID
                                                 {$whereSql}
                                                 ORDER BY nui.CreatedAt DESC, nui.PersonID DESC";
 
-        $persons = $clientSearch
-            ? collect(DB::select($sql, $bindings))
-            : SqlPaginator::paginate($sql, $bindings, 25);
+        $persons = SqlPaginator::paginate($sql, $bindings, 25);
 
         return view($view, [
             'persons' => $persons,
+            'filterOptions' => $this->enrolmentFilterOptions(),
+            'activeServerFilters' => $filters,
         ]);
+    }
+
+    /**
+     * @return array{SanaMarhalaName: list<string>, QetaaName: list<string>}
+     */
+    private function enrolmentFilterOptions(): array
+    {
+        $stages = DB::table('SanaMarhala')
+            ->whereNotNull('SanaMarhalaName')
+            ->where('SanaMarhalaName', '<>', '')
+            ->orderBy('SanaMarhalaName')
+            ->pluck('SanaMarhalaName');
+
+        $sectors = DB::table('NewUsersInformation')
+            ->whereNotNull('QetaaName')
+            ->where('QetaaName', '<>', '')
+            ->distinct()
+            ->orderBy('QetaaName')
+            ->pluck('QetaaName');
+
+        return [
+            'SanaMarhalaName' => $stages->map(fn ($v) => (string) $v)->values()->all(),
+            'QetaaName' => $sectors->map(fn ($v) => (string) $v)->values()->all(),
+        ];
     }
 
     public function indexNewEnrolmentsAndMigrations()
@@ -122,12 +146,12 @@ class NewEnrolmentAdminController extends Controller
     {
         $this->authorize('enrolment.viewAny');
 
-        return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-index', true);
+        return $this->paginateNewUsers($request, '', [], 'person.new-enrolments-index');
     }
 
     public function showNewEnrolmentsByQetaaID(Request $request, $id)
     {
-        return $this->paginateNewUsers($request, 'nui.QetaaID = ?', [$id], 'person.new-enrolments-index', true);
+        return $this->paginateNewUsers($request, 'nui.QetaaID = ?', [$id], 'person.new-enrolments-index');
     }
 
     public function analyticsNewEnrolments()

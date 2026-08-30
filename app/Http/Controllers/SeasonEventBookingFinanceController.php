@@ -145,6 +145,15 @@ class SeasonEventBookingFinanceController extends Controller
             ->leftJoin('PersonInformation as s', 'b.ServentID', '=', 's.PersonID')
             ->leftJoin('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->leftJoin('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+            ->leftJoin(DB::raw('(
+                SELECT
+                    SeasonEventParticipantFinanceID,
+                    SUM(CASE WHEN PaymentType = \'PAYMENT\' THEN 1 ELSE 0 END) AS PaymentsCount,
+                    MIN(CASE WHEN PaymentType = \'PAYMENT\' THEN PaymentDate END) AS FirstPaymentAt,
+                    MAX(PaymentDate) AS LastPaymentAt
+                FROM SeasonEventParticipantFinancePayment
+                GROUP BY SeasonEventParticipantFinanceID
+            ) as pay'), 'pay.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
             ->where('b.SeasonEventID', $seasonEventID)
             ->select(
                 'b.SeasonEventParticipantFinanceID',
@@ -210,17 +219,9 @@ class SeasonEventBookingFinanceController extends Controller
                 END as QetaaNames
             "),
 
-                DB::raw("(SELECT COUNT(*) FROM SeasonEventParticipantFinancePayment p2
-                      WHERE p2.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
-                      AND p2.PaymentType = 'PAYMENT') as PaymentsCount"),
-
-                DB::raw("(SELECT MIN(p0.PaymentDate) FROM SeasonEventParticipantFinancePayment p0
-                      WHERE p0.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
-                      AND p0.PaymentType = 'PAYMENT') as FirstPaymentAt"),
-
-                DB::raw('(SELECT MAX(p3.PaymentDate) FROM SeasonEventParticipantFinancePayment p3
-                      WHERE p3.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID) as LastPaymentAt'),
-
+                DB::raw('COALESCE(pay.PaymentsCount, 0) as PaymentsCount'),
+                DB::raw('pay.FirstPaymentAt as FirstPaymentAt'),
+                DB::raw('pay.LastPaymentAt as LastPaymentAt'),
                 DB::raw('(SELECT p4.PaymentID FROM SeasonEventParticipantFinancePayment p4
                       WHERE p4.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
                       ORDER BY p4.PaymentDate DESC, p4.PaymentID DESC
@@ -249,7 +250,10 @@ class SeasonEventBookingFinanceController extends Controller
                 'p.FirstName', 'p.SecondName', 'p.ThirdName', 'p.FourthName',
                 'g.FirstName', 'g.SecondName', 'g.ThirdName', 'g.FourthName',
                 'f.FirstName', 'f.SecondName', 'f.ThirdName', 'f.FourthName',
-                's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName'
+                's.FirstName', 's.SecondName', 's.ThirdName', 's.FourthName',
+                'pay.PaymentsCount',
+                'pay.FirstPaymentAt',
+                'pay.LastPaymentAt'
             )
             ->orderBy('PersonFullName')
             ->orderBy('b.SeasonEventParticipantFinanceID')
