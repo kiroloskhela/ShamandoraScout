@@ -46,14 +46,27 @@ class SeasonEventFinanceController extends Controller
             ->orderByDesc('s.SeasonYear')
             ->orderBy('s.SeasonName')
             ->orderBy('e.EventStartDate')
-            ->get()
-            ->map(function ($row) {
-                $row->AllowBelowMinimumDepositText = $row->AllowBelowMinimumDeposit ? 'نعم' : 'لا';
-                $row->CanEditDelete = ! $this->hasPayments($row->SeasonEventID);
-                $row->CanEditDeleteText = $row->CanEditDelete ? 'نعم' : 'لا، يوجد مدفوعات';
+            ->get();
 
-                return $row;
-            });
+        $paidSeasonEventIds = [];
+        $seasonEventIds = $finance->pluck('SeasonEventID')->all();
+        if ($seasonEventIds !== []) {
+            $paidSeasonEventIds = DB::table('SeasonEventParticipantFinance as sepf')
+                ->join('SeasonEventParticipantFinancePayment as p', 'sepf.SeasonEventParticipantFinanceID', '=', 'p.SeasonEventParticipantFinanceID')
+                ->whereIn('sepf.SeasonEventID', $seasonEventIds)
+                ->distinct()
+                ->pluck('sepf.SeasonEventID')
+                ->all();
+        }
+        $paidSet = array_fill_keys($paidSeasonEventIds, true);
+
+        $finance = $finance->map(function ($row) use ($paidSet) {
+            $row->AllowBelowMinimumDepositText = $row->AllowBelowMinimumDeposit ? 'نعم' : 'لا';
+            $row->CanEditDelete = ! isset($paidSet[$row->SeasonEventID]);
+            $row->CanEditDeleteText = $row->CanEditDelete ? 'نعم' : 'لا، يوجد مدفوعات';
+
+            return $row;
+        });
 
         return view('finance.index', ['finance' => $finance]);
     }

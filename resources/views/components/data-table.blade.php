@@ -17,23 +17,35 @@
     'filterOptions' => [],
     // Currently applied server filters: ['ColumnKey' => 'value']
     'activeServerFilters' => [],
+    // When true, the search box navigates via ?q= instead of filtering loaded rows.
+    'serverSearch' => false,
+    'activeSearch' => null,
 ])
 
+@php
+    $serverPaginator = $data instanceof \Illuminate\Contracts\Pagination\Paginator ? $data : null;
+    $tableData = $serverPaginator ? $serverPaginator->items() : $data;
+    $alpinePagination = $serverPaginator ? false : $pagination;
+    $activeSearch = $activeSearch ?? request('q', '');
+@endphp
+
 <div class="bg-white dark:bg-slate-900 shadow-lg rounded-lg overflow-hidden border border-transparent dark:border-slate-800" x-data="dataTable({
-    data: @js($data),
+    data: @js($tableData),
     columns: @js($columns),
     actions: @js($actions),
     searchable: @js($searchable),
     sortable: @js($sortable),
-    pagination: @js($pagination),
+    pagination: @js($alpinePagination),
     perPage: @js($perPage),
     title: @js($title),
     addButton: @js($addButton),
     headerButtons: @js($headerButtons),
     tableId: @js($tableId),
     serverFilters: @js((bool) $serverFilters),
+    serverSearch: @js((bool) $serverSearch),
     filterOptions: @js($filterOptions),
-    activeServerFilters: @js($activeServerFilters)
+    activeServerFilters: @js($activeServerFilters),
+    activeSearch: @js((string) $activeSearch)
 })" x-init="init()">
 
     <!-- Header: Title, Search, Add Button -->
@@ -64,7 +76,10 @@
             <!-- Search -->
             <div x-show="searchable" class="order-3">
                 <div class="relative">
-                    <input type="text" x-model="searchTerm" @input.debounce.300ms="search()" placeholder="{{ __('Search...') }}"
+                    <input type="text" x-model="searchTerm"
+                        @input.debounce.300ms="onSearchInput()"
+                        @keydown.enter.prevent="search()"
+                        placeholder="{{ __('Search...') }}"
                         class="w-full sm:w-64 ps-10 pe-4 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-teal-500/40 focus:border-transparent">
                     <div class="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -379,6 +394,12 @@
             </div>
         </div>
     </div>
+
+    @if ($serverPaginator)
+        <div class="border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3">
+            {{ $serverPaginator->links() }}
+        </div>
+    @endif
 </div>
 
 <script>
@@ -399,9 +420,10 @@
             pagination: options.pagination ?? true,
             perPage: options.perPage || 10,
             serverFilters: options.serverFilters ?? false,
+            serverSearch: options.serverSearch ?? false,
             filterOptions: options.filterOptions || {},
 
-            searchTerm: '',
+            searchTerm: options.activeSearch || '',
             sortColumn: '',
             sortDirection: 'asc',
             currentPage: 1,
@@ -453,9 +475,10 @@
             },
 
             init() {
-                if (this.serverFilters) {
-                    // Server filters come from the URL; do not restore stale localStorage filters.
+                if (this.serverFilters || this.serverSearch) {
+                    // Server query state comes from the URL; do not restore stale localStorage.
                     this.activeFilters = { ...(options.activeServerFilters || {}) };
+                    this.searchTerm = options.activeSearch || '';
                     this.applyAll(false);
                     return;
                 }
@@ -608,8 +631,8 @@
             applyAll(resetPage = true) {
                 let result = [...this.originalData];
 
-                // Always allow in-table text search on the loaded rows.
-                if (this.searchTerm.trim()) {
+                // Server search already filtered in SQL; do not re-filter the page.
+                if (!this.serverSearch && this.searchTerm.trim()) {
                     const term = this.searchTerm.toLowerCase();
 
                     result = result.filter(item =>
@@ -666,7 +689,26 @@
             },
 
             search() {
+                if (this.serverSearch) {
+                    const url = new URL(window.location.href);
+                    const q = this.searchTerm.trim();
+                    if (q) {
+                        url.searchParams.set('q', q);
+                    } else {
+                        url.searchParams.delete('q');
+                    }
+                    url.searchParams.delete('page');
+                    window.location.href = url.toString();
+                    return;
+                }
                 this.applyAll(true);
+            },
+
+            onSearchInput() {
+                if (this.serverSearch) {
+                    return;
+                }
+                this.search();
             },
 
             sort(column) {

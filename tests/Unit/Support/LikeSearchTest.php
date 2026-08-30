@@ -15,6 +15,7 @@ class LikeSearchTest extends TestCase
         $this->assertNull(LikeSearch::term('  '));
         $this->assertNull(LikeSearch::term('a', 2));
         $this->assertSame('ab', LikeSearch::term(' ab ', 2));
+        $this->assertSame(100, mb_strlen(LikeSearch::term(str_repeat('x', 150))));
     }
 
     public function test_from_request_accepts_q_or_search(): void

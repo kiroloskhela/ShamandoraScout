@@ -26,6 +26,9 @@ class LikeSearch
         if ($minLength > 0 && mb_strlen($term) < $minLength) {
             return null;
         }
+        if (mb_strlen($term) > 100) {
+            $term = mb_substr($term, 0, 100);
+        }
 
         return $term;
     }

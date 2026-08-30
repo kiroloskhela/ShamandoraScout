@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Domain\Person\PersonSearchService;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -21,11 +21,7 @@ class PersonExportAuthzTest extends TestCase
 
     public function test_khadem_can_open_person_directory_index(): void
     {
-        $this->mock(PersonSearchService::class, function ($mock) {
-            $mock->shouldReceive('paginateScopedToPerson')
-                ->once()
-                ->andReturn(new Collection);
-        });
+        $this->mockDirectorySearch();
 
         $user = $this->createUserWithRole('Khadem');
 
@@ -36,11 +32,7 @@ class PersonExportAuthzTest extends TestCase
 
     public function test_secretary_can_open_person_directory_index(): void
     {
-        $this->mock(PersonSearchService::class, function ($mock) {
-            $mock->shouldReceive('paginateScopedToPerson')
-                ->once()
-                ->andReturn(new Collection);
-        });
+        $this->mockDirectorySearch();
 
         $user = $this->createUserWithRole('Secretary');
 
@@ -51,11 +43,7 @@ class PersonExportAuthzTest extends TestCase
 
     public function test_media_can_open_person_directory_but_not_export(): void
     {
-        $this->mock(PersonSearchService::class, function ($mock) {
-            $mock->shouldReceive('paginateScopedToPerson')
-                ->once()
-                ->andReturn(new Collection);
-        });
+        $this->mockDirectorySearch();
 
         $user = $this->createUserWithRole('Media');
 
@@ -131,6 +119,18 @@ class PersonExportAuthzTest extends TestCase
         ]);
 
         return $user->fresh();
+    }
+
+    private function mockDirectorySearch(): void
+    {
+        $this->mock(PersonSearchService::class, function ($mock) {
+            $mock->shouldReceive('paginateScopedToPerson')
+                ->once()
+                ->andReturn(new LengthAwarePaginator([], 0, 25));
+            $mock->shouldReceive('directoryFilterOptions')
+                ->once()
+                ->andReturn(['SanaMarhalaName' => [], 'QetaaName' => []]);
+        });
     }
 
     private function createAuthSchema(): void

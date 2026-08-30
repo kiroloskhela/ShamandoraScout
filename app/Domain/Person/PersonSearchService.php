@@ -26,13 +26,8 @@ class PersonSearchService
      *
      * @param  array<string, string>  $columnFilters
      */
-    public function paginateAllPersons(?string $term, array $columnFilters = [], int $perPage = 25, bool $clientSearch = false): LengthAwarePaginator|Collection
+    public function paginateAllPersons(?string $term, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
     {
-        if ($clientSearch) {
-            $term = null;
-            $columnFilters = [];
-        }
-
         $bindings = [];
         $whereParts = [];
 
@@ -53,49 +48,9 @@ class PersonSearchService
         }
 
         $searchSql = $whereParts === [] ? '' : (' WHERE '.implode(' AND ', $whereParts));
+        $fromSql = $this->directoryFromSql().$searchSql;
 
-        $sql = "
-            SELECT DISTINCT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                pi.FirstName,
-                pi.SecondName,
-                pi.ThirdName,
-                pi.FourthName,
-                q.QetaaName,
-                pi.ScoutJoiningYear,
-                sm.SanaMarhalaName,
-                pi.RaqamQawmy,
-                ppn.PersonPersonalMobileNumber,
-                ppn.FatherMobileNumber,
-                ppn.MotherMobileNumber,
-                q.QetaaID,
-                PG.PersonID AS GroupPersonID,
-                IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-                psm.SanaMarhalaID
-            FROM PersonInformation pi
-            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID
-            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
-            {$searchSql}
-            ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
-        ";
-
-        $mapper = function ($person) {
-            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-
-            return $person;
-        };
-
-        if ($clientSearch) {
-            return collect(DB::select($sql, $bindings))->map($mapper);
-        }
-
-        return SqlPaginator::paginate($sql, $bindings, $perPage)->through($mapper);
+        return $this->paginateDirectory($fromSql, $bindings, $perPage);
     }
 
     /**
@@ -103,13 +58,8 @@ class PersonSearchService
      *
      * @param  array<string, string>  $columnFilters
      */
-    public function paginateScopedToPerson(int $userId, ?string $term = null, array $columnFilters = [], int $perPage = 25, bool $clientSearch = false): LengthAwarePaginator|Collection
+    public function paginateScopedToPerson(int $userId, ?string $term = null, array $columnFilters = [], int $perPage = 25): LengthAwarePaginator
     {
-        if ($clientSearch) {
-            $term = null;
-            $columnFilters = [];
-        }
-
         $bindings = [$userId];
         $searchParts = [];
 
@@ -130,34 +80,7 @@ class PersonSearchService
         }
 
         $searchSql = $searchParts === [] ? '' : (' AND '.implode(' AND ', $searchParts));
-
-        $sql = "
-            SELECT DISTINCT
-                pi.PersonID,
-                pi.ShamandoraCode,
-                pi.FirstName,
-                pi.SecondName,
-                pi.ThirdName,
-                pi.FourthName,
-                q.QetaaName,
-                pi.ScoutJoiningYear,
-                sm.SanaMarhalaName,
-                pi.RaqamQawmy,
-                ppn.PersonPersonalMobileNumber,
-                ppn.FatherMobileNumber,
-                ppn.MotherMobileNumber,
-                q.QetaaID,
-                PG.PersonID AS GroupPersonID,
-                IF(peq.PersonID IS NOT NULL, 'نعم', 'لا') AS HasAnsweredQuestions,
-                psm.SanaMarhalaID
-            FROM PersonInformation pi
-            LEFT JOIN PersonEntryQuestions peq ON pi.PersonID = peq.PersonID
-            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
-            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
-            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
-            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
-            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
-            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+        $fromSql = $this->directoryFromSql().'
             JOIN GroupQetaa gq ON gq.QetaaID = q.QetaaID
             JOIN PersonGroup pg2 ON pg2.GroupID = gq.GroupID
             WHERE q.QetaaID IN (
@@ -169,21 +92,9 @@ class PersonSearchService
                     WHERE pg3.PersonID = ?
                 )
             )
-            {$searchSql}
-            ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
-        ";
+            '.$searchSql;
 
-        $mapper = function ($person) {
-            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
-
-            return $person;
-        };
-
-        if ($clientSearch) {
-            return collect(DB::select($sql, $bindings))->map($mapper);
-        }
-
-        return SqlPaginator::paginate($sql, $bindings, $perPage)->through($mapper);
+        return $this->paginateDirectory($fromSql, $bindings, $perPage);
     }
 
     /**
@@ -343,5 +254,78 @@ class PersonSearchService
             ->orderBy('pi.ShamandoraCode')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Shared FROM/JOIN for directory lists. Question answers use EXISTS in SELECT
+     * so PersonEntryQuestions cannot multiply rows.
+     */
+    private function directoryFromSql(): string
+    {
+        return '
+            FROM PersonInformation pi
+            LEFT JOIN PersonSanaMarhala psm ON pi.PersonID = psm.PersonID
+            LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = psm.SanaMarhalaID
+            LEFT JOIN PersonQetaa pq ON pi.PersonID = pq.PersonID
+            LEFT JOIN Qetaa q ON pq.QetaaID = q.QetaaID
+            LEFT JOIN PersonPhoneNumbers ppn ON pi.PersonID = ppn.PersonID
+            LEFT JOIN PersonGroup PG ON PG.PersonID = pi.PersonID
+        ';
+    }
+
+    /**
+     * @param  list<mixed>  $bindings
+     */
+    private function paginateDirectory(string $fromSql, array $bindings, int $perPage): LengthAwarePaginator
+    {
+        $sql = '
+            SELECT DISTINCT
+                pi.PersonID,
+                pi.ShamandoraCode,
+                pi.FirstName,
+                pi.SecondName,
+                pi.ThirdName,
+                pi.FourthName,
+                q.QetaaName,
+                pi.ScoutJoiningYear,
+                sm.SanaMarhalaName,
+                pi.RaqamQawmy,
+                ppn.PersonPersonalMobileNumber,
+                ppn.FatherMobileNumber,
+                ppn.MotherMobileNumber,
+                q.QetaaID,
+                PG.PersonID AS GroupPersonID,
+                '.$this->hasAnsweredQuestionsSelect().' AS HasAnsweredQuestions,
+                psm.SanaMarhalaID
+            '.$fromSql.'
+            ORDER BY pi.ShamandoraCode ASC, pi.PersonID ASC
+        ';
+
+        $mapper = function ($person) {
+            $person->full_name = trim("{$person->FirstName} {$person->SecondName} {$person->ThirdName} {$person->FourthName}");
+
+            return $person;
+        };
+
+        $countSql = '
+            SELECT COUNT(*) AS aggregate FROM (
+                SELECT DISTINCT
+                    pi.PersonID,
+                    q.QetaaID,
+                    psm.SanaMarhalaID,
+                    PG.PersonID AS GroupPersonID,
+                    ppn.PersonPersonalMobileNumber,
+                    ppn.FatherMobileNumber,
+                    ppn.MotherMobileNumber
+                '.$fromSql.'
+            ) AS pagination_count_sub
+        ';
+
+        return SqlPaginator::paginate($sql, $bindings, $perPage, $countSql)->through($mapper);
+    }
+
+    private function hasAnsweredQuestionsSelect(): string
+    {
+        return "CASE WHEN EXISTS (SELECT 1 FROM PersonEntryQuestions peq WHERE peq.PersonID = pi.PersonID) THEN 'نعم' ELSE 'لا' END";
     }
 }
