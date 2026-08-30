@@ -33,9 +33,12 @@ db_backups/
 *.sql
 *.sql.gz
 
+# Load-test credentials (never commit)
+/loadtests/k6.env
+**/k6.env
+
 # WhatsApp bridge
 /whatsapp-bridge/node_modules
 /whatsapp-bridge/auth_session/*
 !/whatsapp-bridge/auth_session/.gitignore
 /whatsapp-bridge/.env
-
