@@ -243,7 +243,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
     Route::post('/season/insert', [SeasonController::class, 'insert'])->name('season.insert');
     Route::get('/season/edit/{id}', [SeasonController::class, 'edit'])->name('season.edit');
     Route::patch('/season/update/{id}', [SeasonController::class, 'updates'])->name('season.update');
-    Route::get('/season/activate/{id}', [SeasonController::class, 'activate'])->name('season.activate');
+    Route::post('/season/activate/{id}', [SeasonController::class, 'activate'])->name('season.activate');
     Route::get('/season/delete/{id}', [SeasonController::class, 'deletes'])->name('season.delete');
     Route::delete('/season/destroy/{id}', [SeasonController::class, 'destroy'])->name('season.destroy');
 
@@ -295,8 +295,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
     Route::post('/notifications/send', [NotificationController::class, 'send'])->name('notifications.send');
 
     // Migrate New Enrolments
-    Route::get('/migrate-new-enrolments/all', [MigrateNewEnrolments::class, 'migrateAll'])->name('person.migrate-new-enrolments-all');
-    Route::get('/migrate-new-enrolments/{qetaaID}', [MigrateNewEnrolments::class, 'migrate'])->name('person.migrate-new-enrolments');
+    Route::post('/migrate-new-enrolments/all', [MigrateNewEnrolments::class, 'migrateAll'])->name('person.migrate-new-enrolments-all');
+    Route::post('/migrate-new-enrolments/{qetaaID}', [MigrateNewEnrolments::class, 'migrate'])->name('person.migrate-new-enrolments');
     Route::get('/new-enrolments/migrations', [NewEnrolmentAdminController::class, 'indexNewEnrolmentsAndMigrations'])->name('person.new-enrolments-migrate-index');
 
 });

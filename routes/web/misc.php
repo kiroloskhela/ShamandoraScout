@@ -7,7 +7,6 @@ use App\Http\Controllers\CurriculaController;
 use App\Http\Controllers\CustodyRequestController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GamesController;
-use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\MediaController;
@@ -15,14 +14,6 @@ use App\Http\Controllers\PersonProfileController;
 use App\Http\Controllers\PlaceBookingController;
 use App\Http\Controllers\QetaaTreeController;
 use App\Http\Controllers\TestingController;
-
-/*
-|--------------------------------------------------------------------------
-| Health (public)
-|--------------------------------------------------------------------------
-*/
-Route::get('/health', HealthController::class)->name('health');
-Route::get('/up', HealthController::class);
 
 /*
 |--------------------------------------------------------------------------
@@ -42,7 +33,7 @@ Route::get('/up', HealthController::class);
 |--------------------------------------------------------------------------
 */
 Route::view('/feedback', 'feedback.index');
-Route::post('/feedback', [FeedbackController::class, 'create'])->name('feedback.create');
+Route::post('/feedback', [FeedbackController::class, 'create'])->middleware('throttle:10,1')->name('feedback.create');
 /*
 |--------------------------------------------------------------------------
 | Authenticated (Any User)

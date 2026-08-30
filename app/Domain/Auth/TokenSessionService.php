@@ -28,7 +28,7 @@ class TokenSessionService
             'user_agent' => substr((string) $request->userAgent(), 0, 1000),
         ]);
 
-        $access = $user->createToken(self::FAMILY_PREFIX.$familyId, ['*'], now()->addHour())->plainTextToken;
+        $access = $user->createToken(self::FAMILY_PREFIX.$familyId, ['api'], now()->addHour())->plainTextToken;
 
         return [
             'access_token' => $access,
@@ -73,11 +73,26 @@ class TokenSessionService
                 $row->save();
             }
 
-            $access = $user->createToken(self::FAMILY_PREFIX.$familyId, ['*'], now()->addHour())->plainTextToken;
+            $plainRefresh = Str::random(64);
+            $new = RefreshToken::create([
+                'user_id' => $row->user_id,
+                'token_hash' => hash('sha256', $plainRefresh),
+                'family_id' => $familyId,
+                'expires_at' => $row->expires_at,
+                'ip' => $row->ip,
+                'user_agent' => $row->user_agent,
+            ]);
+
+            $row->revoked_at = now();
+            $row->replaced_by_id = $new->id;
+            $row->save();
+
+            $user->tokens()->where('name', self::FAMILY_PREFIX.$familyId)->delete();
+            $access = $user->createToken(self::FAMILY_PREFIX.$familyId, ['api'], now()->addHour())->plainTextToken;
 
             return [
                 'access_token' => $access,
-                'refresh_token' => $plain,
+                'refresh_token' => $plainRefresh,
                 'expires_in_sec' => 3600,
                 'user' => $user,
             ];

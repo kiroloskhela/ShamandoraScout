@@ -33,7 +33,7 @@ Route::get('/version/check', [VersionApiController::class, 'check']);
 
 
 // Protected routes
-Route::middleware(['auth:sanctum', 'token.expiry'])->group(function () {
+Route::middleware(['auth:sanctum', 'token.expiry', 'ability:api'])->group(function () {
 
     Route::post('/logout', [LoginApiController::class, 'apiLogout']);
 

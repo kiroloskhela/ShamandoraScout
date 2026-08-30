@@ -178,6 +178,6 @@ class PersonDirectoryAuthzTest extends TestCase
 
         $this->actingAs($mkhdom)
             ->get('/person/show/'.$target->PersonID)
-            ->assertForbidden();
+            ->assertRedirect(route('login-auth'));
     }
 }

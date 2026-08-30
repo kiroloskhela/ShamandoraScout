@@ -17,11 +17,14 @@ class CheckAuthentication
             return redirect()->route('login-auth');
         }
 
-        if (config('permissions.enforce')) {
+        $rolesArraySentInRequest = explode('|', (string) $role);
+        $superAdminOnly = $rolesArraySentInRequest === ['SuperAdmin'];
+
+        // When the permission matrix is on, skip RoleName checks except SuperAdmin-only
+        // routes — those must stay SuperAdmin even if someone is granted other keys.
+        if (config('permissions.enforce') && ! $superAdminOnly) {
             return $next($request);
         }
-
-        $rolesArraySentInRequest = explode("|",$role);
         $userRole = auth()->user()->role;
         //dd($userRole);
 

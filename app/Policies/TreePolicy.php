@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,14 @@ class TreePolicy
 {
     public function manageQetaa(User $user, int $qetaaId): bool
     {
+        $permissions = app(PermissionService::class);
+        if ($permissions->isSuperAdmin($user)) {
+            return true;
+        }
+        if (! $permissions->isStaff($user)) {
+            return false;
+        }
+
         return $this->servedQetaaIds((int) $user->PersonID)->contains($qetaaId);
     }
 

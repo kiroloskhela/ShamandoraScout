@@ -18,6 +18,8 @@ class TreePolicyTest extends TestCase
         Schema::dropIfExists('PersonQetaa');
         Schema::dropIfExists('GroupQetaa');
         Schema::dropIfExists('PersonGroup');
+        Schema::dropIfExists('PersonRole');
+        Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonInformation');
 
         Schema::create('PersonInformation', function (Blueprint $table) {
@@ -34,6 +36,17 @@ class TreePolicyTest extends TestCase
             $table->unsignedInteger('GroupID');
         });
 
+        Schema::create('Roles', function (Blueprint $table) {
+            $table->increments('RoleID');
+            $table->string('RoleName');
+        });
+
+        Schema::create('PersonRole', function (Blueprint $table) {
+            $table->increments('PersonRoleID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('RoleID');
+        });
+
         Schema::create('GroupQetaa', function (Blueprint $table) {
             $table->increments('GroupQetaaID');
             $table->unsignedInteger('GroupID');
@@ -46,7 +59,7 @@ class TreePolicyTest extends TestCase
         });
     }
 
-    public function test_user_cannot_manage_unserved_qetaa(): void
+    public function test_staff_member_cannot_manage_unserved_qetaa(): void
     {
         $user = User::create([
             'FirstName' => 'A',
@@ -54,6 +67,7 @@ class TreePolicyTest extends TestCase
             'ThirdName' => 'C',
             'ShamandoraCode' => 'T1',
         ]);
+        $this->grantStaffRole($user);
 
         DB::table('PersonGroup')->insert(['PersonID' => $user->PersonID, 'GroupID' => 1]);
         DB::table('GroupQetaa')->insert(['GroupID' => 1, 'QetaaID' => 5]);
@@ -64,6 +78,21 @@ class TreePolicyTest extends TestCase
         $this->assertFalse($policy->manageQetaa($user, 99));
     }
 
+    public function test_group_member_without_staff_role_cannot_manage_qetaa(): void
+    {
+        $user = User::create([
+            'FirstName' => 'A',
+            'SecondName' => 'B',
+            'ThirdName' => 'C',
+            'ShamandoraCode' => 'T1b',
+        ]);
+
+        DB::table('PersonGroup')->insert(['PersonID' => $user->PersonID, 'GroupID' => 1]);
+        DB::table('GroupQetaa')->insert(['GroupID' => 1, 'QetaaID' => 5]);
+
+        $this->assertFalse((new TreePolicy)->manageQetaa($user, 5));
+    }
+
     public function test_manage_group_requires_served_qetaa(): void
     {
         $user = User::create([
@@ -72,6 +101,7 @@ class TreePolicyTest extends TestCase
             'ThirdName' => 'C',
             'ShamandoraCode' => 'T2',
         ]);
+        $this->grantStaffRole($user);
 
         DB::table('PersonGroup')->insert(['PersonID' => $user->PersonID, 'GroupID' => 2]);
         DB::table('GroupQetaa')->insert(['GroupID' => 2, 'QetaaID' => 7]);
@@ -91,6 +121,7 @@ class TreePolicyTest extends TestCase
             'ThirdName' => 'C',
             'ShamandoraCode' => 'T3',
         ]);
+        $this->grantStaffRole($servant);
         $served = User::create([
             'FirstName' => 'S',
             'SecondName' => 'B',

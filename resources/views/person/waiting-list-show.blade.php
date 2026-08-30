@@ -44,13 +44,13 @@
                 {{-- Action Buttons --}}
                 <div class="flex flex-wrap gap-2 shrink-0">
                     <form method="POST" action="{{ route('person.waiting-list-migrate', $person->PersonID) }}"
-                        onsubmit="return confirm(__('Are you sure you want to move this person to the enrolment list?'))">
+                        onsubmit="return confirm(@json(__('Are you sure you want to move this person to the enrolment list?')))">
                         @csrf
                         <button type="submit"
                             class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">{{ __('Move to enrolment') }}</button>
                     </form>
                     <form method="POST" action="{{ route('person.waiting-list-decline', $person->PersonID) }}"
-                        onsubmit="return confirm(__('Are you sure you want to permanently reject and delete this request?'))">
+                        onsubmit="return confirm(@json(__('Are you sure you want to permanently reject and delete this request?')))">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
@@ -146,8 +146,8 @@
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Facebook') }}</dt>
                         <dd class="font-medium text-gray-900 break-all">
-                            @if ($person->FacebookProfileURL ?? false)
-                                <a href="{{ $person->FacebookProfileURL }}" target="_blank"
+                            @if ($href = \App\Support\SafeHttpUrl::sanitize($person->FacebookProfileURL ?? null))
+                                <a href="{{ $href }}" target="_blank"
                                     class="text-blue-600 hover:underline">{{ __('Page link') }}</a>
                             @else
                                 —
@@ -157,8 +157,8 @@
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Instagram') }}</dt>
                         <dd class="font-medium text-gray-900 break-all">
-                            @if ($person->InstagramProfileURL ?? false)
-                                <a href="{{ $person->InstagramProfileURL }}" target="_blank"
+                            @if ($href = \App\Support\SafeHttpUrl::sanitize($person->InstagramProfileURL ?? null))
+                                <a href="{{ $href }}" target="_blank"
                                     class="text-pink-600 hover:underline">{{ __('Page link') }}</a>
                             @else
                                 —

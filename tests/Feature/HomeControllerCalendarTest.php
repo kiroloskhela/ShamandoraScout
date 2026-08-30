@@ -25,6 +25,7 @@ class HomeControllerCalendarTest extends TestCase
             'ThirdName' => 'X',
             'ShamandoraCode' => 'CAL'.uniqid(),
         ]);
+        $this->grantStaffRole($user);
 
         DB::table('PersonGroup')->insert(['PersonID' => $user->PersonID, 'GroupID' => 1]);
         DB::table('Qetaa')->insert(['QetaaID' => 1, 'QetaaName' => 'Alpha']);

@@ -32,7 +32,16 @@ class GamesController extends Controller
     public function insert(Request $request)
     {
         $this->authorize('create', Game::class);
-        // GameID is AUTO_INCREMENT — never compute MAX+1 by hand.
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'rules' => 'nullable|string',
+            'point_system' => 'nullable|string',
+            'age_group' => 'nullable|string|max:255',
+            'target' => 'nullable|string',
+            'require_custody' => 'nullable',
+            'reference_link' => \App\Support\SafeHttpUrl::rules(),
+        ]);
         DB::table('Games')->insert([
             'Title' => $request->title,
             'GameDescription' => $request->description,
@@ -79,6 +88,16 @@ class GamesController extends Controller
     public function updates(Request $request, $id)
     {
         $this->authorize('update', new Game);
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'rules' => 'nullable|string',
+            'point_system' => 'nullable|string',
+            'age_group' => 'nullable|string|max:255',
+            'target' => 'nullable|string',
+            'require_custody' => 'nullable',
+            'reference_link' => \App\Support\SafeHttpUrl::rules(),
+        ]);
         $game = DB::table('Games')->where('GameID', $id)->first();
 
         $affected = DB::table('Games')->where('GameID', $id)->update([

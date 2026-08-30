@@ -9,6 +9,17 @@ use Tests\TestCase;
 
 class LocaleAndThemeShellTest extends TestCase
 {
+    public function test_locale_switch_ignores_off_site_referer(): void
+    {
+        $this->withoutVite();
+
+        $this->from('https://evil.example/phish')
+            ->get(route('locale.switch', 'en'))
+            ->assertRedirect(url('/'));
+
+        $this->assertSame('en', session('locale'));
+    }
+
     public function test_can_switch_locale_to_english(): void
     {
         $this->withoutVite();
@@ -68,6 +79,7 @@ class LocaleAndThemeShellTest extends TestCase
             'ThirdName' => 'X',
             'ShamandoraCode' => 'LOC' . uniqid(),
         ]);
+        $this->grantStaffRole($user);
 
         $response = $this->actingAs($user)
             ->withSession(['locale' => 'en'])

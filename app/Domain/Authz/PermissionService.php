@@ -3,6 +3,7 @@
 namespace App\Domain\Authz;
 
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,9 @@ class PermissionService
 
     /** @var array<string, bool> */
     private array $superAdminMemo = [];
+
+    /** @var array<string, bool> */
+    private array $staffMemo = [];
 
     public function isSuperAdmin(?User $user): bool
     {
@@ -33,11 +37,7 @@ class PermissionService
             return $this->superAdminMemo[$memoKey];
         }
 
-        $this->superAdminMemo[$memoKey] = DB::table('PersonRole as pr')
-            ->join('Roles as r', 'r.RoleID', '=', 'pr.RoleID')
-            ->where('pr.PersonID', $id)
-            ->where('r.RoleName', 'SuperAdmin')
-            ->exists();
+        $this->superAdminMemo[$memoKey] = $this->roleNames($user)->contains('SuperAdmin');
 
         return $this->superAdminMemo[$memoKey];
     }
@@ -111,6 +111,51 @@ class PermissionService
         return $this->clientKeysForUser($user) !== [];
     }
 
+    /**
+     * Blade UI eligibility. SuperAdmin or a role in config staff_roles (not Mkhdom).
+     */
+    public function isStaff(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        $id = (int) $user->PersonID;
+        if ($id <= 0) {
+            return false;
+        }
+
+        $memoKey = $this->memoKey($id);
+        if (array_key_exists($memoKey, $this->staffMemo)) {
+            return $this->staffMemo[$memoKey];
+        }
+
+        if ($this->isSuperAdmin($user)) {
+            return $this->staffMemo[$memoKey] = true;
+        }
+
+        $names = $this->roleNames($user);
+        foreach (config('permissions.staff_roles', []) as $role) {
+            if ($names->contains($role)) {
+                return $this->staffMemo[$memoKey] = true;
+            }
+        }
+
+        return $this->staffMemo[$memoKey] = false;
+    }
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function roleNames(User $user): Collection
+    {
+        if (! $user->relationLoaded('role')) {
+            $user->load('role');
+        }
+
+        return $user->role->pluck('RoleName')->filter()->values();
+    }
+
     public function bumpVersion(): int
     {
         $next = $this->version() + 1;
@@ -118,6 +163,7 @@ class PermissionService
 
         $this->requestMemo = [];
         $this->superAdminMemo = [];
+        $this->staffMemo = [];
 
         return $next;
     }
@@ -224,7 +270,7 @@ class PermissionService
      */
     private function seedKeysFor(User $user): array
     {
-        $names = $user->role()->pluck('Roles.RoleName');
+        $names = $this->roleNames($user);
         $set = [];
 
         foreach (config('permissions.seed', []) as $role => $keys) {

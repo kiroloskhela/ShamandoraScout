@@ -130,6 +130,7 @@ return [
         'web.roles.assign_superadmin',
         'web.audit.purge',
         'web.security.config',
+        'web.system.manage',
     ],
     'keys' => $keys,
     'seed' => $seed,

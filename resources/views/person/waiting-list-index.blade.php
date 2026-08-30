@@ -59,6 +59,8 @@
                 'label' => __('Move to enrolment'),
                 'route' => route('person.waiting-list-migrate', ':id'),
                 'idField' => 'PersonID',
+                'method' => 'POST',
+                'confirm' => __('Are you sure you want to move this person to the enrolment list?'),
                 'cssClass' =>
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ml-2',
             ],
@@ -75,6 +77,8 @@
                 'label' => __('Reject'),
                 'route' => route('person.waiting-list-decline', ':id'),
                 'idField' => 'PersonID',
+                'method' => 'DELETE',
+                'confirm' => __('Are you sure you want to permanently reject and delete this request?'),
                 'cssClass' =>
                     'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200 ml-2',
             ],

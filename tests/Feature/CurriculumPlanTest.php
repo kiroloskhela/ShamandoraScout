@@ -188,7 +188,7 @@ class CurriculumPlanTest extends TestCase
 
     public function test_non_super_admin_cannot_mutate(): void
     {
-        $user = $this->createUserWithRoles(['Servant']);
+        $user = $this->createUserWithRoles(['Khadem']);
 
         $this->actingAs($user)
             ->post(route('curriculum-plan.insert'), [

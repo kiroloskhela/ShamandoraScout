@@ -649,6 +649,12 @@
             const modalToQetaa = document.getElementById('modalToQetaa');
 
             /* ── Helpers ── */
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text ?? '';
+                return div.innerHTML;
+            }
+
             function initials(name) {
                 return (name || '؟').split(' ').slice(0, 2).map(w => w[0]).join('');
             }
@@ -675,14 +681,14 @@
                     }
 
                     searchResults.innerHTML = data.map(p => `
-                <div class="cq-result-item" data-id="${p.PersonID}"
-                     data-name="${p.FullName}"
-                     data-qetaa-id="${p.QetaaID ?? ''}"
-                     data-qetaa-name="${p.QetaaName ?? 'غير محدد'}">
-                    <div class="cq-result-avatar">${initials(p.FullName)}</div>
+                <div class="cq-result-item" data-id="${escapeHtml(p.PersonID)}"
+                     data-name="${escapeHtml(p.FullName)}"
+                     data-qetaa-id="${escapeHtml(p.QetaaID ?? '')}"
+                     data-qetaa-name="${escapeHtml(p.QetaaName ?? 'غير محدد')}">
+                    <div class="cq-result-avatar">${escapeHtml(initials(p.FullName))}</div>
                     <div>
-                        <div class="cq-result-name">${p.FullName}</div>
-                        <div class="cq-result-meta">هوية: ${p.NationalID ?? p.PersonID} &nbsp;|&nbsp; قطاع: ${p.QetaaName ?? 'غير محدد'}</div>
+                        <div class="cq-result-name">${escapeHtml(p.FullName)}</div>
+                        <div class="cq-result-meta">هوية: ${escapeHtml(p.NationalID ?? p.PersonID)} &nbsp;|&nbsp; قطاع: ${escapeHtml(p.QetaaName ?? 'غير محدد')}</div>
                     </div>
                 </div>
             `).join('');

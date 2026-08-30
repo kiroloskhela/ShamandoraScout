@@ -20,11 +20,17 @@ class PermissionCatalogTest extends TestCase
         }
     }
 
-    public function test_non_grantable_keys_are_not_in_the_catalog(): void
+    public function test_non_grantable_catalog_keys_are_marked_danger(): void
     {
         $catalog = config('permissions.keys', []);
         foreach (config('permissions.non_grantable', []) as $key) {
-            $this->assertArrayNotHasKey($key, $catalog);
+            if (! isset($catalog[$key])) {
+                continue;
+            }
+            $this->assertTrue(
+                (bool) ($catalog[$key]['danger'] ?? false),
+                "Catalog key [{$key}] is non-grantable and must be marked danger."
+            );
         }
     }
 

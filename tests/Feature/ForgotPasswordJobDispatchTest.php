@@ -128,4 +128,21 @@ class ForgotPasswordJobDispatchTest extends TestCase
             'email' => 'person-' . $personId . '@password-reset.local',
         ]);
     }
+
+    public function test_forgot_password_unknown_match_returns_generic_success(): void
+    {
+        Bus::fake();
+        Http::fake();
+
+        $response = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01000000000',
+            'dob' => '1990-01-01',
+        ]);
+
+        $response->assertRedirect('/forgot-password');
+        $response->assertSessionHas('success');
+        $response->assertSessionMissing('error');
+        Bus::assertNothingDispatched();
+        Http::assertNothingSent();
+    }
 }

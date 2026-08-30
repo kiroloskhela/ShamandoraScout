@@ -8,11 +8,14 @@ use Illuminate\Http\Request;
 class TrustProxies extends Middleware
 {
     /**
-     * The trusted proxies for this application.
+     * Local reverse proxy only (nginx/caddy on this host). Do not use '*'.
      *
      * @var array<int, string>|string|null
      */
-    // Trust all proxies For Testing Purposes with Ngrok
+    protected $proxies = [
+        '127.0.0.1',
+        '::1',
+    ];
 
 
     /**

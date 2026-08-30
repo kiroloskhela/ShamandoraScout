@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Authz\PermissionService;
 use App\Http\Requests\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\GenericUser;
-use Illuminate\Contracts\Auth\Authenticatable;
 
 class LoginController extends Controller
 {
+    private const DUMMY_HASH = '$2y$10$usesomesillystringfore7hnbRJHxMlgFlAcQFRY3NmR7N2146wo';
+
     public function show()
     {
         return view('login');
@@ -19,35 +20,19 @@ class LoginController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $personId = (string) $request->validated()['person_id'];
+        $personId = (int) $request->validated()['person_id'];
         $plainPassword = (string) $request->validated()['person_password'];
 
-        $user = DB::table('PersonInformation')
-            ->where('PersonID', $personId)
-            ->first();
+        $user = User::query()->find($personId);
+        $hashed = $user?->password?->Password ?: self::DUMMY_HASH;
+        $passwordOk = Hash::check($plainPassword, $hashed);
+        $staffOk = app(PermissionService::class)->isStaff($user);
 
-        if (!$user) {
+        if (! $user || ! $user->password?->Password || ! $passwordOk || ! $staffOk) {
             return $this->invalidLogin($request);
         }
 
-        $pwdRow = DB::table('PersonSystemPassword')
-            ->where('PersonID', $personId)
-            ->first();
-
-        if (!$pwdRow || empty($pwdRow->Password)) {
-            return $this->invalidLogin($request);
-        }
-
-        if (!Hash::check($plainPassword, $pwdRow->Password)) {
-            return $this->invalidLogin($request);
-        }
-
-        $userData = (array) $user;
-        $userData['id'] = $user->PersonID;
-
-        $genericUser = new GenericUser($userData);
-
-        Auth::login($genericUser);
+        Auth::login($user);
         $request->session()->regenerate();
 
         return redirect()->intended('/');
@@ -60,10 +45,5 @@ class LoginController extends Controller
                 'login' => __('These credentials do not match our records.'),
             ])
             ->withInput($request->only('person_id'));
-    }
-
-    protected function authenticated(Request $request, Authenticatable $user)
-    {
-        return redirect()->intended('/');
     }
 }

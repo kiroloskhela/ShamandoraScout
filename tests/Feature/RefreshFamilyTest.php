@@ -72,7 +72,7 @@ class RefreshFamilyTest extends TestCase
         });
     }
 
-    public function test_refresh_keeps_the_same_refresh_token_and_issues_new_access(): void
+    public function test_refresh_rotates_token_and_reuse_kills_family(): void
     {
         $user = $this->staffUser();
         $login = $this->postJson('/api/login', [
@@ -85,11 +85,33 @@ class RefreshFamilyTest extends TestCase
         $this->assertContains('api.me.view', $login->json('permissions'));
 
         $first = $this->postJson('/api/refresh', ['refresh_token' => $refresh])->assertOk();
-        $second = $this->postJson('/api/refresh', ['refresh_token' => $refresh])->assertOk();
+        $rotated = $first->json('refresh_token');
+        $this->assertNotSame($refresh, $rotated);
+        $this->assertNotEmpty($first->json('access_token'));
 
-        $this->assertSame($refresh, $first->json('refresh_token'));
-        $this->assertSame($refresh, $second->json('refresh_token'));
-        $this->assertNotSame($first->json('access_token'), $second->json('access_token'));
+        $this->postJson('/api/refresh', ['refresh_token' => $refresh])
+            ->assertUnauthorized();
+
+        $this->assertSame(0, RefreshToken::where('user_id', $user->PersonID)->whereNull('revoked_at')->count());
+    }
+
+    public function test_rotated_refresh_token_can_be_used_once(): void
+    {
+        $user = $this->staffUser();
+        $login = $this->postJson('/api/login', [
+            'id' => $user->PersonID,
+            'password' => 'secret12',
+        ])->assertOk();
+
+        $first = $this->postJson('/api/refresh', [
+            'refresh_token' => $login->json('refresh_token'),
+        ])->assertOk();
+
+        $second = $this->postJson('/api/refresh', [
+            'refresh_token' => $first->json('refresh_token'),
+        ])->assertOk();
+
+        $this->assertNotSame($first->json('refresh_token'), $second->json('refresh_token'));
         $this->assertSame(1, RefreshToken::where('user_id', $user->PersonID)->whereNull('revoked_at')->count());
     }
 

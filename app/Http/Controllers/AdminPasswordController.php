@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Auth\PasswordResetLinkService;
 use App\Domain\Auth\TokenSessionService;
+use App\Services\WhatsAppBridgeClient;
 use Illuminate\Http\Request;
-use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -41,10 +42,10 @@ class AdminPasswordController extends Controller
         return view('admin.passwords-edit', compact('user'));
     }
 
-    public function update(HttpRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'password' => 'required|min:6',
+            'password' => 'required|min:8',
         ]);
 
         $plain = (string) $request->input('password');
@@ -57,34 +58,31 @@ class AdminPasswordController extends Controller
             app(TokenSessionService::class)->revokeAllForUser((int) $id);
         });
 
+        $person = DB::table('PersonInformation')->where('PersonID', $id)->first();
         $phone = DB::table('PersonPhoneNumbers')
             ->where('PersonID', $id)
             ->value('PersonPersonalMobileNumber');
 
         if ($phone) {
             try {
+                $resets = app(PasswordResetLinkService::class);
+                $email = trim((string) ($person->PersonalEmail ?? ''));
+                $tokenKey = $resets->tokenKeyForPerson((int) $id, $email !== '' ? $email : null);
+                $resetUrl = $resets->issueResetUrl($tokenKey);
                 $loginUrl = route('login-auth');
                 $message = __('Your password was changed by an administrator.')."\n\n"
-                    .__('User ID: :id', ['id' => $id])."\n"
-                    .__('New password: :password', ['password' => $plain])."\n\n"
+                    .__('If you did not expect this, set a new password with this link:')."\n{$resetUrl}\n\n"
                     .__('Log in here:')."\n{$loginUrl}";
 
-                $payload = [
-                    'full_number' => $phone,
-                    'message' => $message,
-                ];
-
-                $fake = HttpRequest::create('/whatsapp/send-with-header', 'POST', $payload);
-
-                app(WhatsAppBridgeController::class)->sendWithHeader($fake);
+                app(WhatsAppBridgeClient::class)->sendText((string) $phone, $message);
             } catch (\Throwable $e) {
-                Log::error('Failed to send WA new password via sendWithHeader', [
+                Log::error('Failed to send WA password-change notice', [
                     'person_id' => $id,
                     'error' => $e->getMessage(),
                 ]);
             }
         } else {
-            Log::warning('No phone found for WA new password', ['person_id' => $id]);
+            Log::warning('No phone found for WA password change notice', ['person_id' => $id]);
         }
 
         return Redirect::route('admin.passwords')->with('success', __('Password updated. WhatsApp sent if a number was available.'));

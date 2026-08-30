@@ -69,6 +69,8 @@
                         'field' => 'IsApproved',
                         'value' => 1,
                     ],
+                    'method' => 'POST',
+                    'confirm' => __('Approve this enrolment?'),
                     'route' => route('person.new-enrolments-approve', ':id'),
                     'idField' => 'PersonID',
                     'cssClass' =>

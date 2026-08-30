@@ -33,14 +33,17 @@
         </section>
 
         <section class="space-y-3">
-            <a href="{{ route('person.migrate-new-enrolments-all') }}"
-                onclick="return confirm(@json(__('Migrate all approved enrolments into the main system?')))"
-                class="block w-full rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-center font-extrabold text-base sm:text-lg px-5 py-5 shadow-sm transition-colors duration-200">
-                {{ __('Migrate all approved people into the main system') }}
-                <span class="mt-1 block text-sm font-semibold text-emerald-100">
-                    {{ __('Total:') }} {{ number_format($totalApproved) }}
-                </span>
-            </a>
+            <form method="POST" action="{{ route('person.migrate-new-enrolments-all') }}"
+                onsubmit="return confirm(@json(__('Migrate all approved enrolments into the main system?')))">
+                @csrf
+                <button type="submit"
+                    class="block w-full rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-center font-extrabold text-base sm:text-lg px-5 py-5 shadow-sm transition-colors duration-200">
+                    {{ __('Migrate all approved people into the main system') }}
+                    <span class="mt-1 block text-sm font-semibold text-emerald-100">
+                        {{ __('Total:') }} {{ number_format($totalApproved) }}
+                    </span>
+                </button>
+            </form>
         </section>
 
         <section class="space-y-3">
@@ -53,16 +56,19 @@
                     @php
                         $color = $palette[$index % count($palette)];
                     @endphp
-                    <a href="{{ route('person.migrate-new-enrolments', $qetaa->QetaaID) }}"
-                        onclick="return confirm(@json(__('Migrate approved enrolments for this sector?')))"
-                        class="block rounded-2xl {{ $color }} text-white px-5 py-4 shadow-sm transition-colors duration-200">
-                        <div class="font-extrabold text-base leading-snug">
-                            {{ $qetaa->QetaaName }}
-                        </div>
-                        <div class="mt-2 text-sm font-semibold text-white/90">
-                            {{ __('Approved:') }} {{ number_format($qetaa->approved_count) }}
-                        </div>
-                    </a>
+                    <form method="POST" action="{{ route('person.migrate-new-enrolments', $qetaa->QetaaID) }}"
+                        onsubmit="return confirm(@json(__('Migrate approved enrolments for this sector?')))">
+                        @csrf
+                        <button type="submit"
+                            class="block w-full rounded-2xl {{ $color }} text-white px-5 py-4 shadow-sm transition-colors duration-200 text-start">
+                            <div class="font-extrabold text-base leading-snug">
+                                {{ $qetaa->QetaaName }}
+                            </div>
+                            <div class="mt-2 text-sm font-semibold text-white/90">
+                                {{ __('Approved:') }} {{ number_format($qetaa->approved_count) }}
+                            </div>
+                        </button>
+                    </form>
                 @endforeach
             </div>
         </section>

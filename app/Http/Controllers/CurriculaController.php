@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CurriculaController extends Controller
 {
@@ -61,11 +61,13 @@ public function index()
 
         // File handling
         $uploaded = $request->file('curricula_file');
-        $ext = $uploaded->getClientOriginalExtension();
+        $ext = strtolower((string) $uploaded->getClientOriginalExtension());
+        $allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
+        if (! in_array($ext, $allowed, true)) {
+            return back()->withErrors(['curricula_file' => __('Invalid file type.')])->withInput();
+        }
 
-        $safeName = str_replace(['/', '\\', ':'], '-', $request->curricula_name);
-        $fileName = "{$safeName}." . $ext;
-
+        $fileName = Str::uuid()->toString().'.'.$ext;
         $path = $uploaded->storeAs('CurriculaDocuments', $fileName);
 
         // Insert into DB

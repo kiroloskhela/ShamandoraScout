@@ -17,13 +17,14 @@
 
 return [
 
-    'paths' => ['*'],
+    'paths' => ['api/*'],
 
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
         'https://shamandora.web.app',
-        'http://localhost:PORT',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
     ],
 
     'allowed_origins_patterns' => [],

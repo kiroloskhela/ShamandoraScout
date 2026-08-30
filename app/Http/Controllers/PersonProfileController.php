@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Auth\TokenSessionService;
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSeasonActivityService;
+use App\Support\SafeHttpUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -74,8 +75,8 @@ class PersonProfileController extends Controller
             'joining_year_input' => 'nullable|integer|min:1950|max:2100',
             'blood_type_input' => 'nullable|integer',
             'email_input' => 'nullable|email|max:255',
-            'inputFacebookLink' => 'nullable|max:1000',
-            'inputInstagramLink' => 'nullable|max:1000',
+            'inputFacebookLink' => SafeHttpUrl::rules(),
+            'inputInstagramLink' => SafeHttpUrl::rules(),
 
             'personal_phone_number' => 'nullable|digits_between:11,11',
             'father_phone_number' => 'nullable|digits_between:11,11',
@@ -132,7 +133,7 @@ class PersonProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = Auth::user();
