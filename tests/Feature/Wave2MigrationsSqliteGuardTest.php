@@ -16,7 +16,22 @@ use Tests\TestCase;
  */
 class Wave2MigrationsSqliteGuardTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase {
+        refreshDatabase as runLaravelRefreshDatabase;
+    }
+
+    /**
+     * migrate:fresh cannot rebuild legacy PersonInformation on MySQL.
+     * Skip before RefreshDatabase or the FK in refresh_tokens fails first.
+     */
+    protected function refreshDatabase(): void
+    {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Wave 2 sqlite guard is sqlite-only.');
+        }
+
+        $this->runLaravelRefreshDatabase();
+    }
 
     public function test_wave2_package_migrations_run_cleanly_on_sqlite(): void
     {

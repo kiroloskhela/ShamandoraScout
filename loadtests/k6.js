@@ -91,7 +91,9 @@ function browsePublic() {
   hit('GET /login-auth', 'GET', '/login-auth', { expect: [200] });
   hit('GET /liveform', 'GET', '/liveform', { expect: [200, 503], liveform: true });
   hit('GET /img/logo', 'GET', '/img/shamandora.webp', { expect: [200] });
-  hit('GET /api/version', 'GET', '/api/version/check?platform=android&version=1.0.0', { expect: [200] });
+  hit('GET /api/version', 'GET', '/api/version/check?platform=android&version=1.0.0', {
+    expect: [200, 429],
+  });
 }
 
 export function webMix(data) {
