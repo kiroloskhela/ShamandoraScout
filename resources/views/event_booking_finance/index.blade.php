@@ -95,24 +95,14 @@
                                     </div>
 
                                     @foreach ($qetaaCounts as $qetaa)
-                                        @php
-                                            $full = $qetaa->booked_count >= 50;
-                                        @endphp
-
                                         <div
-                                            class="inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-sm
-                                    {{ $full ? 'border-red-200 dark:border-slate-700 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200' : 'border-amber-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200' }}">
+                                            class="inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold shadow-sm border-amber-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200">
                                             <span class="truncate max-w-[180px]">{{ $qetaa->QetaaName ?? '-' }}</span>
 
                                             <span
-                                                class="inline-flex items-center justify-center min-w-[32px] h-7 rounded-full px-2
-                                        {{ $full ? 'bg-red-200 dark:bg-red-900/60 text-red-900 dark:text-red-100' : 'bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100' }}">
+                                                class="inline-flex items-center justify-center min-w-[32px] h-7 rounded-full px-2 bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100">
                                                 {{ $qetaa->booked_count }}
                                             </span>
-
-                                            @if ($full)
-                                                <span class="hidden sm:inline text-[11px] text-red-700 dark:text-red-300">{{ __('Full') }}</span>
-                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
