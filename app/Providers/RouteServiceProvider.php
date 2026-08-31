@@ -29,6 +29,10 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
+            // Outside the web group so probes skip session, CSRF, and the staff gate.
+            Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
+            Route::get('/up', \App\Http\Controllers\HealthController::class);
+
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));

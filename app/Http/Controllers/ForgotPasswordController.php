@@ -68,13 +68,8 @@ class ForgotPasswordController extends Controller
         $matches = $q->limit(2)->get();
 
         if ($matches->isEmpty()) {
-            if ($nid) {
-                return back()->with('error', __('Data does not match any user. Please verify the national ID.'))
-                    ->withInput();
-            }
-
-            return back()->with('error', __('No user found matching phone number and date of birth.'))
-                ->withInput();
+            // Same generic success as a real send — do not reveal whether the phone exists.
+            return back()->with('success', __('Password reset link sent via WhatsApp.'));
         }
 
         if ($matches->count() > 1 && ! $nid) {
@@ -119,8 +114,8 @@ class ForgotPasswordController extends Controller
                 )->withInput();
             }
 
-            return back()->with('error', __('Failed to send reset link via WhatsApp. Password was not changed.'))
-                ->withInput();
+            // Production: same generic success so WA outages do not confirm the account.
+            return back()->with('success', __('Password reset link sent via WhatsApp.'));
         }
 
         if ($email !== '') {

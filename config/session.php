@@ -168,7 +168,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Empty SESSION_SECURE_COOKIE= must not override the production default.
+    'secure' => ($secureCookie = env('SESSION_SECURE_COOKIE')) === null || $secureCookie === ''
+        ? env('APP_ENV') === 'production'
+        : filter_var($secureCookie, FILTER_VALIDATE_BOOLEAN),
 
     /*
     |--------------------------------------------------------------------------

@@ -54,6 +54,8 @@
                 'name' => 'activate',
                 'label' => __('Activate'),
                 'route' => route('season.activate', ':id'),
+                'method' => 'POST',
+                'confirm' => __('Activate this season? Other seasons will be deactivated.'),
                 'idField' => 'SeasonID',
                 'disableWhen' => ['field' => 'IsActiveFlag', 'value' => 1],
                 'disabledLabel' => __('Active'),

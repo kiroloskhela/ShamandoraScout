@@ -80,8 +80,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa', 'can.permission:we
     // Waiting List Management
     Route::get('/persons/waiting-list', [WaitingListController::class, 'indexWaitingList'])->name('person.waiting-list-index');
     Route::get('/persons/waiting-list/{id}', [WaitingListController::class, 'showWaitingList'])->name('person.waiting-list-show');
-    Route::get('/persons/waiting-list/{id}/migrate', [WaitingListController::class, 'migrateWaitingList'])->name('person.waiting-list-migrate');
-    Route::get('/persons/waiting-list/{id}/decline', [WaitingListController::class, 'declineWaitingList'])->name('person.waiting-list-decline');
+    Route::post('/persons/waiting-list/{id}/migrate', [WaitingListController::class, 'migrateWaitingList'])->name('person.waiting-list-migrate');
+    Route::delete('/persons/waiting-list/{id}/decline', [WaitingListController::class, 'declineWaitingList'])->name('person.waiting-list-decline');
 
 });
 
@@ -113,8 +113,8 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secre
 
     Route::get('/new-enrolments/show/qetaa/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolmentsByQetaaID'])->name('person.new-enrolments-show-qetaa');
     Route::get('/new-enrolments/show/{id}', [NewEnrolmentAdminController::class, 'showNewEnrolments'])->name('person.new-enrolments-show');
-    Route::get('/new-enrolments/person/approve/{id}', [NewEnrolmentAdminController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
-    Route::get('/new-enrolments/person/approve-again/{id}', [NewEnrolmentAdminController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
+    Route::post('/new-enrolments/person/approve/{id}', [NewEnrolmentAdminController::class, 'approveNewEnrolments'])->name('person.new-enrolments-approve');
+    Route::post('/new-enrolments/person/approve-again/{id}', [NewEnrolmentAdminController::class, 'approveAgainNewEnrolments'])->name('person.new-enrolments-approve-again');
     Route::get('/new-enrolments/person/delete/{id}', [NewEnrolmentAdminController::class, 'deleteNewEnrolments'])->name('person.new-enrolments-delete');
     Route::delete('/new-enrolments/person/destroy/{id}', [NewEnrolmentAdminController::class, 'destroyNewEnrolments'])->name('person.new-enrolments-destroy');
 

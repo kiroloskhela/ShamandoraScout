@@ -185,8 +185,8 @@
                         <div>
                             <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-xs">{{ $r->kind }}</span>
                             {{ $r->title }}
-                            @if ($r->url)
-                                — <a href="{{ $r->url }}" target="_blank" class="text-emerald-600">link</a>
+                            @if ($href = \App\Support\SafeHttpUrl::sanitize($r->url ?? null))
+                                — <a href="{{ $href }}" target="_blank" class="text-emerald-600">link</a>
                             @endif
                         </div>
                         <form method="post" action="{{ route('event-program.resources.destroy', $r->id) }}">@csrf @method('DELETE')

@@ -6,6 +6,7 @@ use App\Http\Middleware\SetLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Str;
 
 class LocaleController extends Controller
 {
@@ -18,9 +19,22 @@ class LocaleController extends Controller
         $request->session()->put('locale', $locale);
         App::setLocale($locale);
 
-        $previous = url()->previous();
         $fallback = url('/');
-        $target = ($previous && $previous !== url()->current()) ? $previous : $fallback;
+        $previous = url()->previous();
+        $bases = array_filter([
+            rtrim((string) config('app.url'), '/'),
+            rtrim($request->getSchemeAndHttpHost(), '/'),
+        ]);
+        $target = $fallback;
+
+        if ($previous && $previous !== url()->current()) {
+            foreach ($bases as $base) {
+                if ($previous === $base || Str::startsWith($previous, $base.'/')) {
+                    $target = $previous;
+                    break;
+                }
+            }
+        }
 
         return redirect()
             ->to($target)

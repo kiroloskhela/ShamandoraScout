@@ -42,7 +42,7 @@ class HotPathSmokeTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('person.index'))
-            ->assertStatus(403);
+            ->assertRedirect(route('login-auth'));
     }
 
     private function createUserWithRole(string $roleName): User

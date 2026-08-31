@@ -28,8 +28,8 @@
                                 <li class="border-t dark:border-slate-700 pt-2">
                                     <span class="uppercase text-xs text-gray-400">{{ $r['kind'] }}</span>
                                     <div>{{ $r['title'] }}</div>
-                                    @if (!empty($r['url']))
-                                        <a href="{{ $r['url'] }}" target="_blank" rel="noopener" class="text-emerald-600 break-all">{{ $r['url'] }}</a>
+                                    @if ($href = \App\Support\SafeHttpUrl::sanitize($r['url'] ?? null))
+                                        <a href="{{ $href }}" target="_blank" rel="noopener" class="text-emerald-600 break-all">{{ $href }}</a>
                                     @endif
                                 </li>
                             @endforeach

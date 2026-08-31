@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 
 class SecretaryController extends Controller
@@ -29,11 +30,13 @@ class SecretaryController extends Controller
 
         // Store uploaded file locally
         $uploaded = $request->file('document_file');
-        $originalName = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
-        $ext = $uploaded->getClientOriginalExtension();
-        $safeDate = str_replace(['/', '\\', ':'], '-', $request->document_date);
-        $fileName = " محضر اجتماع يوم  ({$safeDate}).{$ext}";
+        $ext = strtolower((string) $uploaded->getClientOriginalExtension());
+        $allowed = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'];
+        if (! in_array($ext, $allowed, true)) {
+            return back()->withErrors(['document_file' => __('Invalid file type.')])->withInput();
+        }
 
+        $fileName = Str::uuid()->toString().'.'.$ext;
         $path = $uploaded->storeAs('SecretaryDocuments', $fileName);
 
         // Save to DB: store file name and storage path
@@ -78,7 +81,9 @@ public function download($id)
             return back()->with('error', '❌ File not found on disk.');
         }
 
-        return response()->download($full, $document->DocumentName ?? basename($full));
+        $downloadName = basename(str_replace(["\r", "\n", '"'], '', (string) ($document->DocumentName ?? basename($full))));
+
+        return response()->download($full, $downloadName);
     }
 
 

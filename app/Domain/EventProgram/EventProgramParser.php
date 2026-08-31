@@ -2,6 +2,7 @@
 
 namespace App\Domain\EventProgram;
 
+use App\Support\SafeHttpUrl;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -357,7 +358,7 @@ final class EventProgramParser
                 'day_number' => $this->intOrNull($row[1] ?? null),
                 'slot_label' => trim((string) ($row[2] ?? '')) ?: null,
                 'title' => $title !== '' ? $title : trim((string) ($row[3] ?? '')),
-                'url' => trim((string) ($row[4] ?? '')) ?: null,
+                'url' => SafeHttpUrl::sanitize(trim((string) ($row[4] ?? ''))),
             ];
         }
 
@@ -414,7 +415,7 @@ final class EventProgramParser
                     'day_number' => $dayNumber,
                     'slot_label' => 'العاب',
                     'title' => $title,
-                    'url' => $cell,
+                    'url' => SafeHttpUrl::sanitize($cell),
                 ];
             }
         }
@@ -465,7 +466,7 @@ final class EventProgramParser
                 }
             }
 
-            if (! $url) {
+            if (! $safe = SafeHttpUrl::sanitize($url)) {
                 continue;
             }
 
@@ -474,7 +475,7 @@ final class EventProgramParser
                 'day_number' => $dayNumber,
                 'slot_label' => $currentSection,
                 'title' => $title ?: $currentSection,
-                'url' => $url,
+                'url' => $safe,
             ];
         }
 

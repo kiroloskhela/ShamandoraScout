@@ -35,11 +35,8 @@ class ShareAuthRoleFlags
         $roleNames = [];
 
         if (Auth::check()) {
-            $roleNames = Auth::user()
-                ->role()
-                ->pluck('Roles.RoleName')
-                ->filter()
-                ->values()
+            $roleNames = app(PermissionService::class)
+                ->roleNames(Auth::user())
                 ->all();
         }
 

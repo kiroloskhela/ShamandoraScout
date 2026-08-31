@@ -2,35 +2,38 @@
 
 namespace App\Policies;
 
+use App\Domain\Authz\PermissionService;
 use App\Models\User;
 
-/**
- * Curricula: any authenticated user may view/download and publish (create/update/delete).
- */
 class CurriculaPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true;
+        return $this->staff($user);
     }
 
     public function view(User $user): bool
     {
-        return true;
+        return $this->staff($user);
     }
 
     public function create(User $user): bool
     {
-        return true;
+        return $this->staff($user);
     }
 
     public function update(User $user): bool
     {
-        return true;
+        return $this->staff($user);
     }
 
     public function delete(User $user): bool
     {
-        return true;
+        return $this->staff($user);
+    }
+
+    private function staff(User $user): bool
+    {
+        return app(PermissionService::class)->isStaff($user);
     }
 }

@@ -61,9 +61,9 @@
                 <div class="relative">
                     <label class="block mb-2 text-sm text-gray-700">الرابط المرجعي</label>
                     <div class="w-full min-h-12 px-4 py-3 border rounded-lg bg-gray-50 text-slate-700">
-                        @if ($game->ReferenceLink)
-                            <a href="{{ $game->ReferenceLink }}" target="_blank" class="text-blue-600 hover:underline">
-                                {{ $game->ReferenceLink }}
+                        @if ($href = \App\Support\SafeHttpUrl::sanitize($game->ReferenceLink ?? null))
+                            <a href="{{ $href }}" target="_blank" class="text-blue-600 hover:underline">
+                                {{ $href }}
                             </a>
                         @else
                             لا يوجد

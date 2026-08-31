@@ -231,7 +231,7 @@ class PhaseASecurityTest extends TestCase
 
     public function test_web_attendance_save_skips_person_ids_outside_allow_list(): void
     {
-        $servant = $this->createUserWithRoles(['Servant'], 'SRV1');
+        $servant = $this->createUserWithRoles(['Khadem'], 'SRV1');
         $allowed = $this->createUserWithRoles([], 'ALL1');
         $blocked = $this->createUserWithRoles([], 'BLK1');
 

@@ -316,8 +316,8 @@ class PersonDirectoryController extends Controller
             'input_raqam_qawmy' => 'nullable|digits:14',
             'blood_type_input' => 'nullable|integer',
             'email_input' => 'nullable|email|max:255',
-            'inputFacebookLink' => 'nullable|max:1000',
-            'inputInstagramLink' => 'nullable|max:1000',
+            'inputFacebookLink' => \App\Support\SafeHttpUrl::rules(),
+            'inputInstagramLink' => \App\Support\SafeHttpUrl::rules(),
 
             'personal_phone_number' => 'nullable|digits_between:11,11',
             'father_phone_number' => 'nullable|digits_between:11,11',

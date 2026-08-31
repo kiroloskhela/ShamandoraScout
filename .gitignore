@@ -22,6 +22,11 @@ yarn-error.log
 /node_modules
 /storage/*.key
 /storage/app/public
+/storage/app/firebase.json
+/storage/app/google-drive-credentials.json
+/google-drive-service.json
+firebase.json
+google-drive-service.json
 /storage/framework
 /storage/logs
 /public/build

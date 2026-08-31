@@ -96,7 +96,7 @@ Watch k6’s end-of-run summary **and** the VPS while the test runs.
 
 Custom k6 counters:
 
-- `api_throttled` — Laravel `ThrottleRequests:api` (60/min/user). On baseline the API probe is 50/min; a few 429s mean you are at the **product** cap, not the hardware cap.
+- `api_throttled` — Laravel `ThrottleRequests:api` (60/min per user or IP). Public `GET /api/version/check` is on that limiter; many VUs from one IP will 429. That is counted here, not as `unexpected_fail`.
 - `liveform_closed` — enrolment is off (`503`). Public mix still valid; that path is cheap.
 - `authz_denied` — 403. High is normal for a Khadem hitting SuperAdmin routes.
 

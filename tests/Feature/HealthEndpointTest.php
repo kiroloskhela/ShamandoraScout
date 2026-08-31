@@ -44,4 +44,15 @@ class HealthEndpointTest extends TestCase
                 'time',
             ]);
     }
+
+    public function test_health_details_accept_header_token(): void
+    {
+        config(['app.health_token' => 'secret-ops-token']);
+
+        $this->withHeaders(['X-Health-Token' => 'secret-ops-token'])
+            ->getJson('/health')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonStructure(['release', 'log_channel']);
+    }
 }

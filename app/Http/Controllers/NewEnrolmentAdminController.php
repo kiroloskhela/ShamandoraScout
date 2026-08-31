@@ -335,6 +335,8 @@ class NewEnrolmentAdminController extends Controller
             'birthdate_input' => 'required',
             'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
             'personal_phone_number' => 'required|min_digits:11|max_digits:11',
+            'facebook_profile_url' => \App\Support\SafeHttpUrl::rules(),
+            'instagram_profile_url' => \App\Support\SafeHttpUrl::rules(),
         ]);
 
         if ($validator->fails()) {

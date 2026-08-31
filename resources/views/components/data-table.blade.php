@@ -35,6 +35,7 @@
     data: @js($tableData),
     columns: @js($columns),
     actions: @js($actions),
+    csrfToken: @js(csrf_token()),
     searchable: @js($searchable),
     sortable: @js($sortable),
     pagination: @js($alpinePagination),
@@ -249,12 +250,24 @@
                             <div class="hidden md:flex md:flex-nowrap md:items-center md:gap-1.5 min-w-max whitespace-nowrap">
                                 <template x-for="action in actions" :key="action.name">
                                     <span class="inline-flex shrink-0">
-                                        <a x-show="!isActionDisabled(action, item)"
+                                        <a x-show="!isActionDisabled(action, item) && !isMutatingAction(action)"
                                             :href="buildActionRoute(action, item)"
                                             :class="(action.cssClass ||
                                                 'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200') + ' shrink-0'"
                                             x-text="action.label">
                                         </a>
+                                        <form x-show="!isActionDisabled(action, item) && isMutatingAction(action)"
+                                            :action="buildActionRoute(action, item)" method="POST" class="inline"
+                                            @submit="if (action.confirm && !confirm(action.confirm)) { $event.preventDefault(); }">
+                                            <input type="hidden" name="_token" :value="csrfToken">
+                                            {{-- Disable _method on POST so Laravel does not method-spoof a POST as POST. --}}
+                                            <input type="hidden" name="_method" :value="actionMethod(action)"
+                                                :disabled="actionMethod(action) === 'POST'">
+                                            <button type="submit"
+                                                :class="(action.cssClass ||
+                                                'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200') + ' shrink-0'"
+                                                x-text="action.label"></button>
+                                        </form>
                                         <span x-show="isActionDisabled(action, item)"
                                             :class="(action.disabledClass ||
                                                 'inline-flex items-center px-3 py-2 text-sm font-medium rounded-md text-white bg-gray-400 cursor-not-allowed') + ' shrink-0'"
@@ -315,13 +328,24 @@
                 </div>
                 <div class="px-2 pb-2" role="menu">
                     <template x-for="action in actions" :key="'sheet-' + action.name">
-                        <template x-if="mobileActionItem && !isActionDisabled(action, mobileActionItem)">
+                        <template x-if="mobileActionItem && !isActionDisabled(action, mobileActionItem) && !isMutatingAction(action)">
                             <a :href="buildActionRoute(action, mobileActionItem)"
                                 @click="closeMobileActions()"
                                 role="menuitem"
                                 class="block rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
                                 x-text="action.label">
                             </a>
+                        </template>
+                        <template x-if="mobileActionItem && !isActionDisabled(action, mobileActionItem) && isMutatingAction(action)">
+                            <form :action="buildActionRoute(action, mobileActionItem)" method="POST"
+                                @submit="if (action.confirm && !confirm(action.confirm)) { $event.preventDefault(); }">
+                                <input type="hidden" name="_token" :value="csrfToken">
+                                <input type="hidden" name="_method" :value="actionMethod(action)"
+                                    :disabled="actionMethod(action) === 'POST'">
+                                <button type="submit" role="menuitem"
+                                    class="block w-full text-start rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    x-text="action.label"></button>
+                            </form>
                         </template>
                     </template>
 
@@ -414,6 +438,7 @@
             paginatedData: [],
             columns: options.columns || [],
             actions: options.actions || [],
+            csrfToken: options.csrfToken || '',
             title: options.title || '',
             addButton: options.addButton || null,
             headerButtons: options.headerButtons || [],
@@ -748,6 +773,14 @@
 
                 const fieldValue = this.getNestedValue(item, action.disableWhen.field);
                 return String(fieldValue) === String(action.disableWhen.value);
+            },
+
+            actionMethod(action) {
+                return String(action.method || 'GET').toUpperCase();
+            },
+
+            isMutatingAction(action) {
+                return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(this.actionMethod(action));
             },
 
             buildActionRoute(action, item) {

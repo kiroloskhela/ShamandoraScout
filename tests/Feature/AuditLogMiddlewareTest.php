@@ -73,6 +73,7 @@ class AuditLogMiddlewareTest extends TestCase
             'ThirdName' => 'علي',
             'ShamandoraCode' => 'AUD' . uniqid(),
         ]);
+        $this->grantStaffRole($user);
 
         $this->actingAs($user)
             ->post('/__audit-test', ['note' => 'hello'])
@@ -96,6 +97,7 @@ class AuditLogMiddlewareTest extends TestCase
             'ThirdName' => 'X',
             'ShamandoraCode' => 'AUD' . uniqid(),
         ]);
+        $this->grantStaffRole($user);
 
         $this->actingAs($user)
             ->get('/__audit-test')
@@ -112,6 +114,7 @@ class AuditLogMiddlewareTest extends TestCase
             'ThirdName' => 'X',
             'ShamandoraCode' => 'AUD' . uniqid(),
         ]);
+        $this->grantStaffRole($user);
 
         $this->actingAs($user)
             ->post('/__audit-test', [

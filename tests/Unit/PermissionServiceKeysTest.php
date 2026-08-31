@@ -61,4 +61,29 @@ class PermissionServiceKeysTest extends TestCase
             $this->assertTrue(str_starts_with($key, 'api.') || str_starts_with($key, 'mobile.'));
         }
     }
+
+    public function test_is_staff_excludes_mkhdom(): void
+    {
+        $staff = User::create([
+            'FirstName' => 'K',
+            'SecondName' => 'H',
+            'ThirdName' => 'X',
+            'ShamandoraCode' => 'K2',
+        ]);
+        $this->grantStaffRole($staff, 'Khadem');
+
+        $mkhdom = User::create([
+            'FirstName' => 'M',
+            'SecondName' => 'K',
+            'ThirdName' => 'X',
+            'ShamandoraCode' => 'M1',
+        ]);
+        $roleId = DB::table('Roles')->insertGetId(['RoleName' => 'Mkhdom']);
+        DB::table('PersonRole')->insert(['PersonID' => $mkhdom->PersonID, 'RoleID' => $roleId]);
+
+        $permissions = app(PermissionService::class);
+        $this->assertTrue($permissions->isStaff($staff));
+        $this->assertFalse($permissions->isStaff($mkhdom));
+        $this->assertFalse($permissions->isStaff(null));
+    }
 }

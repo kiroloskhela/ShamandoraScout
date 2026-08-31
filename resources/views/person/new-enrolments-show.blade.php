@@ -77,10 +77,13 @@
                                 {{ __('Edit') }}
                             </a>
                             @if ((int) ($person->IsApproved ?? 0) !== 1)
-                                <a href="{{ route('person.new-enrolments-approve', $person->PersonID) }}"
-                                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">
-                                    {{ __('Approve') }}
-                                </a>
+                                <form method="POST" action="{{ route('person.new-enrolments-approve', $person->PersonID) }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors">
+                                        {{ __('Approve') }}
+                                    </button>
+                                </form>
                             @endif
                             <a href="{{ route('person.new-enrolments-delete', $person->PersonID) }}"
                                 class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors">

@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\SecurityHeaders::class,
     ];
 
     /**
@@ -38,6 +39,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\ShareAuthRoleFlags::class,
+            \App\Http\Middleware\EnsureStaffWebAccess::class,
             \App\Http\Middleware\LogAuthenticatedMutations::class,
         ],
 
@@ -73,6 +75,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'token.expiry' => \App\Http\Middleware\CheckTokenExpiry::class,
         'liveform.open' => \App\Http\Middleware\EnsureLiveFormIsOpen::class,
+        'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+        'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         
     ];
 }

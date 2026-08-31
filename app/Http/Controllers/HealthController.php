@@ -64,8 +64,23 @@ class HealthController extends Controller
             return false;
         }
 
-        $provided = (string) $request->query('token', '');
+        $provided = $this->providedToken($request);
 
         return $provided !== '' && hash_equals($token, $provided);
+    }
+
+    private function providedToken(Request $request): string
+    {
+        $header = (string) $request->header('X-Health-Token', '');
+        if ($header !== '') {
+            return $header;
+        }
+
+        $auth = (string) $request->header('Authorization', '');
+        if (str_starts_with($auth, 'Bearer ')) {
+            return substr($auth, 7);
+        }
+
+        return (string) $request->query('token', '');
     }
 }

@@ -63,6 +63,7 @@ class QetaaTreeRenameGroupTest extends TestCase
     public function test_served_user_can_rename_team_or_patrol(int $typeId): void
     {
         $user = $this->createUser();
+        $this->grantStaffRole($user);
         $this->seedServedGroup($user->PersonID, groupId: 20, qetaaId: 5, typeId: $typeId, parentId: 4, name: 'Old');
 
         $this->actingAs($user)
@@ -91,6 +92,7 @@ class QetaaTreeRenameGroupTest extends TestCase
     public function test_user_cannot_rename_group_in_unserved_qetaa(): void
     {
         $user = $this->createUser();
+        $this->grantStaffRole($user);
         DB::table('PersonGroup')->insert(['PersonID' => $user->PersonID, 'GroupID' => 1]);
         DB::table('GroupQetaa')->insert(['GroupID' => 1, 'QetaaID' => 5]);
         DB::table('GroupTable')->insert([
@@ -111,6 +113,7 @@ class QetaaTreeRenameGroupTest extends TestCase
     public function test_wrong_group_type_is_rejected(): void
     {
         $user = $this->createUser();
+        $this->grantStaffRole($user);
         $this->seedServedGroup($user->PersonID, groupId: 8, qetaaId: 5, typeId: 1, parentId: 0, name: 'Sector');
 
         $this->actingAs($user)

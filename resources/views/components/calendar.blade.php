@@ -563,6 +563,12 @@
             const modalBodyEl = document.getElementById('{{ $calId }}_modal_body');
             const calendarEl = document.getElementById('{{ $calId }}');
 
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text ?? '';
+                return div.innerHTML;
+            }
+
             const uniqueTypes = [...new Set(raw.map(e => e.extendedProps?.type).filter(Boolean))];
 
             legendEl.innerHTML = uniqueTypes.map(type => {
@@ -570,7 +576,7 @@
                 return `
                     <div class="sc-legend-item">
                         <span class="sc-legend-color" style="background:${color.bg}"></span>
-                        <span>${type}</span>
+                        <span>${escapeHtml(type)}</span>
                     </div>
                 `;
             }).join('');
@@ -672,7 +678,7 @@
                                                 <div class="sc-event-label">${i18n.eventType}</div>
                                                 <div class="sc-event-value">
                                                     <span class="sc-event-badge" style="background:${color.light}; color:${color.bg};">
-                                                        ${props.type}
+                                                        ${escapeHtml(props.type)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -681,14 +687,14 @@
                         ${props.season ? `
                                             <div class="sc-event-detail">
                                                 <div class="sc-event-label">${i18n.season}</div>
-                                                <div class="sc-event-value">${props.season}</div>
+                                                <div class="sc-event-value">${escapeHtml(props.season)}</div>
                                             </div>
                                         ` : ''}
 
                         ${props.year ? `
                                             <div class="sc-event-detail">
                                                 <div class="sc-event-label">${i18n.year}</div>
-                                                <div class="sc-event-value">${props.year}</div>
+                                                <div class="sc-event-value">${escapeHtml(props.year)}</div>
                                             </div>
                                         ` : ''}
                     `;
