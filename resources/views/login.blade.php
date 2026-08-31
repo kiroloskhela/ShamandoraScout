@@ -31,9 +31,8 @@
     <script>
         tailwind.config = { darkMode: 'class' }
     </script>
+    @include('partials.fonts')
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-
         body {
             font-family: 'Cairo', sans-serif;
         }

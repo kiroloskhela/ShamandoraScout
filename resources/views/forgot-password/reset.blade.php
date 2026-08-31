@@ -12,8 +12,8 @@
     <title>تعيين كلمة سر جديدة</title>
     <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('partials.fonts')
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
         body { font-family: 'Cairo', sans-serif; }
         .no-copy {
             -webkit-user-select: none;

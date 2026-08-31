@@ -12,7 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
     <title>{{ __('Combined camp evaluation 2025') }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    @include('partials.fonts')
     <style>
     :root {
         --primary-color: #333;
