@@ -5,6 +5,7 @@ namespace App\Domain\EventFinance;
 use App\Jobs\SendAttendanceQrWhatsApp;
 use App\Services\AttendanceQrService;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -38,6 +39,183 @@ class SeasonEventBookingService
     public function getFinancePlan(int $seasonEventId): ?object
     {
         return DB::table('SeasonEventFinance')->where('SeasonEventID', $seasonEventId)->first();
+    }
+
+    /**
+     * Booking rows for the finance index: one row per booking, scoped to this event.
+     *
+     * @return Collection<int, object>
+     */
+    public function listFinanceIndexBookings(int $seasonEventId): Collection
+    {
+        $eventPersonIds = function ($query) use ($seasonEventId) {
+            $query->select('PersonID')
+                ->from('SeasonEventParticipantFinance')
+                ->where('SeasonEventID', $seasonEventId)
+                ->whereNotNull('PersonID');
+        };
+
+        $qetaaNames = DB::table('PersonQetaa as pq')
+            ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
+            ->whereIn('pq.PersonID', $eventPersonIds)
+            ->groupBy('pq.PersonID')
+            ->select('pq.PersonID', DB::raw($this->qetaaNamesConcatSql().' as QetaaNames'));
+
+        $phones = DB::table('PersonPhoneNumbers as ppn')
+            ->whereIn('ppn.PersonID', $eventPersonIds)
+            ->groupBy('ppn.PersonID')
+            ->select(
+                'ppn.PersonID',
+                DB::raw('MIN(ppn.PersonPersonalMobileNumber) as PersonPersonalMobileNumber')
+            );
+
+        $paymentStats = DB::table('SeasonEventParticipantFinancePayment as pay')
+            ->join(
+                'SeasonEventParticipantFinance as b2',
+                'pay.SeasonEventParticipantFinanceID',
+                '=',
+                'b2.SeasonEventParticipantFinanceID'
+            )
+            ->where('b2.SeasonEventID', $seasonEventId)
+            ->groupBy('pay.SeasonEventParticipantFinanceID')
+            ->select(
+                'pay.SeasonEventParticipantFinanceID',
+                DB::raw("SUM(CASE WHEN pay.PaymentType = 'PAYMENT' THEN 1 ELSE 0 END) AS PaymentsCount"),
+                DB::raw("MIN(CASE WHEN pay.PaymentType = 'PAYMENT' THEN pay.PaymentDate END) AS FirstPaymentAt"),
+                DB::raw('MAX(pay.PaymentDate) AS LastPaymentAt')
+            );
+
+        return DB::table('SeasonEventParticipantFinance as b')
+            ->leftJoin('PersonInformation as p', 'b.PersonID', '=', 'p.PersonID')
+            ->leftJoinSub($phones, 'ppn', 'ppn.PersonID', '=', 'b.PersonID')
+            ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
+            ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
+            ->leftJoin('PersonInformation as s', 'b.ServentID', '=', 's.PersonID')
+            ->leftJoinSub($qetaaNames, 'qetaa_names', 'qetaa_names.PersonID', '=', 'b.PersonID')
+            ->leftJoinSub($paymentStats, 'pay', 'pay.SeasonEventParticipantFinanceID', '=', 'b.SeasonEventParticipantFinanceID')
+            ->where('b.SeasonEventID', $seasonEventId)
+            ->select(
+                'b.SeasonEventParticipantFinanceID',
+                'b.PersonID',
+                'b.GuestID',
+                'b.FamilyID',
+                'b.FirstPaymentDate',
+                'b.OriginalPrice',
+                'b.DiscountAmount',
+                'b.FinalRequiredAmount',
+                'b.AmountPaid',
+                'b.RemainingAmount',
+                'b.InstallmentsNumber',
+                'b.SpecialCaseType',
+                'b.SpecialCaseNote',
+                'b.IsRefunded',
+                'b.ShirtSize',
+                'b.HasPersonSpecialCase',
+                DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN 'PERSON'
+                    WHEN b.FamilyID IS NOT NULL THEN 'FAMILY'
+                    WHEN b.GuestID IS NOT NULL THEN 'GUEST'
+                    ELSE 'UNKNOWN'
+                END as BookingEntityType
+            "),
+                DB::raw("
+                CASE
+                    WHEN b.PersonID IS NOT NULL THEN ".$this->sqlConcat("'SH-'", 'b.PersonID')."
+                    WHEN b.FamilyID IS NOT NULL THEN ".$this->sqlConcat("'FM-'", 'b.FamilyID')."
+                    WHEN b.GuestID IS NOT NULL THEN ".$this->sqlConcat("'GU-'", 'b.GuestID')."
+                    ELSE '-'
+                END as BookingCode
+            "),
+                DB::raw('TRIM('.$this->sqlConcat(
+                    "COALESCE(p.FirstName, g.FirstName, f.FirstName, '')",
+                    "' '",
+                    "COALESCE(p.SecondName, g.SecondName, f.SecondName, '')",
+                    "' '",
+                    "COALESCE(p.ThirdName, g.ThirdName, f.ThirdName, '')",
+                    "' '",
+                    "COALESCE(p.FourthName, g.FourthName, f.FourthName, '')"
+                ).') as PersonFullName'),
+                DB::raw("COALESCE(ppn.PersonPersonalMobileNumber, g.MobileNumber, f.MobileNumber, '-') as PersonPersonalMobileNumber"),
+                DB::raw('TRIM('.$this->sqlConcat(
+                    "COALESCE(s.FirstName,'')",
+                    "' '",
+                    "COALESCE(s.SecondName,'')",
+                    "' '",
+                    "COALESCE(s.ThirdName,'')",
+                    "' '",
+                    "COALESCE(s.FourthName,'')"
+                ).') as ServentFullName'),
+                DB::raw("
+                CASE
+                    WHEN b.FamilyID IS NOT NULL THEN 'اهالي'
+                    WHEN b.GuestID IS NOT NULL THEN 'ضيوف'
+                    ELSE COALESCE(qetaa_names.QetaaNames, '-')
+                END as QetaaNames
+            "),
+                DB::raw('COALESCE(pay.PaymentsCount, 0) as PaymentsCount'),
+                DB::raw('pay.FirstPaymentAt as FirstPaymentAt'),
+                DB::raw('pay.LastPaymentAt as LastPaymentAt'),
+                DB::raw('(SELECT p4.PaymentID FROM SeasonEventParticipantFinancePayment p4
+                      WHERE p4.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
+                      ORDER BY p4.PaymentDate DESC, p4.PaymentID DESC
+                      LIMIT 1) as LastPaymentID')
+            )
+            ->orderByDesc('pay.LastPaymentAt')
+            ->orderBy('PersonFullName')
+            ->orderBy('b.SeasonEventParticipantFinanceID')
+            ->get()
+            ->map(fn ($booking) => $this->presentFinanceIndexBooking($booking));
+    }
+
+    /**
+     * Day + event totals for the finance index cards.
+     *
+     * @return array{
+     *   selected_day: array{people_count: int, payments_amount: float, refund_amount: float},
+     *   total: array{people_count: int, payments_amount: float, refund_amount: float}
+     * }
+     */
+    public function getFinanceIndexSummaries(int $seasonEventId, string $selectedSummaryDate): array
+    {
+        $people = DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventID', $seasonEventId)
+            ->selectRaw(
+                'COUNT(*) as people_count,
+                 SUM(CASE WHEN DATE(FirstPaymentDate) = ? THEN 1 ELSE 0 END) as day_people_count',
+                [$selectedSummaryDate]
+            )
+            ->first();
+
+        $money = DB::table('SeasonEventParticipantFinancePayment as p')
+            ->join(
+                'SeasonEventParticipantFinance as b',
+                'p.SeasonEventParticipantFinanceID',
+                '=',
+                'b.SeasonEventParticipantFinanceID'
+            )
+            ->where('b.SeasonEventID', $seasonEventId)
+            ->selectRaw(
+                "SUM(CASE WHEN p.PaymentType = 'PAYMENT' THEN p.Amount ELSE 0 END) as payments_amount,
+                 SUM(CASE WHEN p.PaymentType = 'REFUND' THEN p.Amount ELSE 0 END) as refund_amount,
+                 SUM(CASE WHEN p.PaymentType = 'PAYMENT' AND DATE(p.PaymentDate) = ? THEN p.Amount ELSE 0 END) as day_payments_amount,
+                 SUM(CASE WHEN p.PaymentType = 'REFUND' AND DATE(p.PaymentDate) = ? THEN p.Amount ELSE 0 END) as day_refund_amount",
+                [$selectedSummaryDate, $selectedSummaryDate]
+            )
+            ->first();
+
+        return [
+            'selected_day' => [
+                'people_count' => (int) ($people->day_people_count ?? 0),
+                'payments_amount' => (float) ($money->day_payments_amount ?? 0),
+                'refund_amount' => (float) ($money->day_refund_amount ?? 0),
+            ],
+            'total' => [
+                'people_count' => (int) ($people->people_count ?? 0),
+                'payments_amount' => (float) ($money->payments_amount ?? 0),
+                'refund_amount' => (float) ($money->refund_amount ?? 0),
+            ],
+        ];
     }
 
     public function isBlacklisted(int $personId): bool
@@ -450,5 +628,72 @@ class SeasonEventBookingService
         });
 
         return $booking;
+    }
+
+    private function presentFinanceIndexBooking(object $booking): object
+    {
+        if ($booking->SpecialCaseType === 'AKHOH_RAB' || (int) $booking->HasPersonSpecialCase === 1) {
+            $booking->BookingStatusText = 'أخوه رب';
+        } elseif ($booking->SpecialCaseType === 'HAS_BROTHERS') {
+            $booking->BookingStatusText = 'له إخوة';
+        } elseif ($booking->SpecialCaseType === 'OTHER') {
+            $booking->BookingStatusText = 'أخرى';
+        } else {
+            $booking->BookingStatusText = 'عادي';
+        }
+
+        if ((int) $booking->IsRefunded === 1) {
+            $booking->BookingStatusText .= ' - مسترد';
+        }
+
+        $booking->QetaaNames = $booking->QetaaNames ?: '-';
+        $booking->ShirtSize = $booking->ShirtSize ?: '-';
+        $booking->PersonPersonalMobileNumber = $booking->PersonPersonalMobileNumber ?: '-';
+
+        $booking->FirstPaymentDateFormatted = $booking->FirstPaymentAt
+            ? Carbon::parse($booking->FirstPaymentAt)->format('Y-m-d h:i A')
+            : '-';
+
+        $booking->LastPaymentDateFormatted = $booking->LastPaymentAt
+            ? Carbon::parse($booking->LastPaymentAt)->format('Y-m-d h:i A')
+            : '-';
+
+        $booking->OriginalPriceFormatted = number_format((float) $booking->OriginalPrice, 2);
+        $booking->DiscountAmountFormatted = number_format((float) $booking->DiscountAmount, 2);
+        $booking->FinalRequiredAmountFormatted = number_format((float) $booking->FinalRequiredAmount, 2);
+        $booking->AmountPaidFormatted = number_format((float) $booking->AmountPaid, 2);
+        $booking->RemainingAmountFormatted = number_format((float) $booking->RemainingAmount, 2);
+        $booking->PaymentsProgress = ((int) $booking->PaymentsCount).' / '.((int) $booking->InstallmentsNumber);
+
+        $booking->CanAddInstallment =
+            ((int) $booking->IsRefunded === 0
+                && (float) $booking->RemainingAmount > 0
+                && (int) $booking->PaymentsCount < (int) $booking->InstallmentsNumber) ? 1 : 0;
+
+        $booking->CanEditLastPayment = ! empty($booking->LastPaymentID) ? 1 : 0;
+        $booking->CanPrintReceipt = ! empty($booking->LastPaymentID) ? 1 : 0;
+        $booking->CanRefund = ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
+        $booking->CanPartialRefund = ((int) $booking->IsRefunded === 0 && (float) $booking->AmountPaid > 0) ? 1 : 0;
+
+        return $booking;
+    }
+
+    private function qetaaNamesConcatSql(): string
+    {
+        // SQLite has no DISTINCT+separator GROUP_CONCAT; production MySQL keeps DISTINCT + order.
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return "GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ')";
+        }
+
+        return "GROUP_CONCAT(q.QetaaName, ' , ')";
+    }
+
+    private function sqlConcat(string ...$parts): string
+    {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            return implode(' || ', $parts);
+        }
+
+        return 'CONCAT('.implode(', ', $parts).')';
     }
 }
