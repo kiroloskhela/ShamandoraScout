@@ -119,11 +119,11 @@ class SeasonEventBookingService
                     ELSE 'UNKNOWN'
                 END as BookingEntityType
             "),
-                DB::raw("
+                DB::raw('
                 CASE
-                    WHEN b.PersonID IS NOT NULL THEN ".$this->sqlConcat("'SH-'", 'b.PersonID')."
-                    WHEN b.FamilyID IS NOT NULL THEN ".$this->sqlConcat("'FM-'", 'b.FamilyID')."
-                    WHEN b.GuestID IS NOT NULL THEN ".$this->sqlConcat("'GU-'", 'b.GuestID')."
+                    WHEN b.PersonID IS NOT NULL THEN '.$this->sqlConcat("'SH-'", 'b.PersonID').'
+                    WHEN b.FamilyID IS NOT NULL THEN '.$this->sqlConcat("'FM-'", 'b.FamilyID').'
+                    WHEN b.GuestID IS NOT NULL THEN '.$this->sqlConcat("'GU-'", 'b.GuestID')."
                     ELSE '-'
                 END as BookingCode
             "),
