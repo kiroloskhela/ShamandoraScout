@@ -11,7 +11,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+    @include('partials.fonts')
 
     <link rel="icon" type="image/webp" href="{{ asset('img/shamandora.webp') }}">
 

@@ -3,8 +3,6 @@
 @section('title', __('Family tree'))
 
 @section('content')
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --bg: #f5f7fa;
