@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\OrgTree\GroupTreeService;
 use App\Http\Requests\LookupStoreRequest;
 use App\Http\Requests\LookupUpdateRequest;
+use App\Support\LookupCache;
 use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +18,7 @@ class LookupTableController extends Controller
     public function index()
     {
         $config = $this->lookupConfig();
-        $records = DB::table($config['table'])->get();
+        $records = LookupCache::all($config['table']);
 
         return view($config['views']['index'], $this->viewData($config, 'index', [
             $config['variables']['index'] => $records,
@@ -38,6 +40,7 @@ class LookupTableController extends Controller
         $payload[$config['primary_key']] = ManualPrimaryKey::next($config['table'], $config['primary_key']);
 
         DB::table($config['table'])->insert($payload);
+        $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'store', $request);
     }
@@ -64,6 +67,7 @@ class LookupTableController extends Controller
         DB::table($config['table'])
             ->where($config['primary_key'], $id)
             ->update($this->payload($config, $request));
+        $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'update', $request);
     }
@@ -85,6 +89,7 @@ class LookupTableController extends Controller
         DB::table($config['table'])
             ->where($config['primary_key'], $id)
             ->delete();
+        $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'destroy');
     }
@@ -149,5 +154,14 @@ class LookupTableController extends Controller
         }
 
         return $redirect->with('status', $message);
+    }
+
+    protected function afterLookupWrite(string $table): void
+    {
+        LookupCache::forget($table);
+
+        if ($table === 'GroupType') {
+            app(GroupTreeService::class)->bustCache();
+        }
     }
 }

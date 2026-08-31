@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\OrgTree\GroupTreeService;
 use App\Policies\TreePolicy;
 use App\Support\LikeSearch;
+use App\Support\LookupCache;
 use App\Support\PersonAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -286,13 +287,10 @@ class QetaaTreeController extends Controller
     private function buildTree($visibleQetaaIds = null, $servedQetaaIds = null)
     {
         $servedQetaaIds = $servedQetaaIds ?? collect();
-        $allQetaas = DB::table('Qetaa')->orderBy('QetaaID');
-
+        $allQetaas = LookupCache::ordered('Qetaa', 'QetaaID');
         if ($visibleQetaaIds !== null) {
-            $allQetaas->whereIn('QetaaID', $visibleQetaaIds);
+            $allQetaas = $allQetaas->whereIn('QetaaID', collect($visibleQetaaIds)->all())->values();
         }
-
-        $allQetaas = $allQetaas->get();
 
         $groups = DB::table('GroupTable as gt')
             ->join('GroupQetaa as gq', 'gq.GroupID', '=', 'gt.GroupID')

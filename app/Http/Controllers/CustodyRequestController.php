@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Custody\CustodyRequestService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,8 +22,8 @@ class CustodyRequestController extends Controller
         $this->authorize('custody.create');
 
         $inventory = DB::table('Inventory')->orderBy('ItemName')->get();
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
-        $eventTypes = DB::table('EventType')->orderBy('EventTypeName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
+        $eventTypes = LookupCache::ordered('EventType', 'EventTypeName');
 
         return view('custody_requests.create', compact('inventory', 'qetaat', 'eventTypes'));
     }
@@ -294,8 +295,8 @@ class CustodyRequestController extends Controller
             ->get();
 
         // Dropdown data
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
-        $eventTypes = DB::table('EventType')->orderBy('EventTypeName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
+        $eventTypes = LookupCache::ordered('EventType', 'EventTypeName');
 
         // Request items from DB
         $itemsRows = DB::table('CustodyRequestItems')

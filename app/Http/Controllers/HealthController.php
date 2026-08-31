@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -27,7 +29,11 @@ class HealthController extends Controller
             $checks['database'] = false;
         }
 
-        $ok = $checks['app'] && $checks['database'];
+        if ($this->redisRequired()) {
+            $checks['redis'] = $this->redisOk();
+        }
+
+        $ok = $checks['app'] && $checks['database'] && ($checks['redis'] ?? true);
 
         $payload = [
             'ok' => $ok,
@@ -82,5 +88,32 @@ class HealthController extends Controller
         }
 
         return (string) $request->query('token', '');
+    }
+
+    private function redisRequired(): bool
+    {
+        return config('cache.default') === 'redis'
+            || config('session.driver') === 'redis';
+    }
+
+    private function redisOk(): bool
+    {
+        try {
+            if (config('cache.default') === 'redis') {
+                Cache::store('redis')->put('health.ping', 1, 5);
+                if ((int) Cache::store('redis')->get('health.ping') !== 1) {
+                    return false;
+                }
+            }
+
+            if (config('session.driver') === 'redis') {
+                $name = (string) (config('session.connection') ?: 'default');
+                Redis::connection($name)->ping();
+            }
+
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 }

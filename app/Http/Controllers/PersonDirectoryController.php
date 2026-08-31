@@ -8,6 +8,7 @@ use App\Domain\Person\PersonSearchService;
 use App\Domain\Person\PersonSeasonActivityService;
 use App\Models\User;
 use App\Support\LikeSearch;
+use App\Support\LookupCache;
 use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -163,17 +164,17 @@ class PersonDirectoryController extends Controller
 
         $this->authorize('update', $target);
 
-        $marahel = DB::table('Marhala')->get();
-        $rotab = DB::table('RotbaInformation')->get();
-        $seneen_marahel = DB::table('SanaMarhala')->get();
-        $questionTypes = DB::table('QuestionsTypes')->get();
-        $blood = DB::table('BloodType')->get();
+        $marahel = LookupCache::all('Marhala');
+        $rotab = LookupCache::all('RotbaInformation');
+        $seneen_marahel = LookupCache::all('SanaMarhala');
+        $questionTypes = LookupCache::all('QuestionsTypes');
+        $blood = LookupCache::all('BloodType');
         $betakat = DB::table('EgazetBetakatTaqaddom')->get();
-        $manateq = DB::table('Manteqa')->get();
-        $districts = DB::table('Districts')->get();
-        $qetaat = DB::table('Qetaa')->get();
-        $faculties = DB::table('Faculty')->get();
-        $universities = DB::table('University')->get();
+        $manateq = LookupCache::all('Manteqa');
+        $districts = LookupCache::all('Districts');
+        $qetaat = LookupCache::all('Qetaa');
+        $faculties = LookupCache::all('Faculty');
+        $universities = LookupCache::all('University');
 
         $person = DB::table('PersonInformation')
             ->leftJoin('BloodType', 'BloodType.BloodTypeID', '=', 'PersonInformation.BloodTypeID')
@@ -427,10 +428,7 @@ class PersonDirectoryController extends Controller
 
     public function showChangeQetaa()
     {
-        $qetaaList = DB::table('Qetaa')
-            ->select('QetaaID', 'QetaaName')
-            ->orderBy('QetaaName')
-            ->get();
+        $qetaaList = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return view('person.ChangeQetaa', compact('qetaaList'));
     }
@@ -475,17 +473,17 @@ class PersonDirectoryController extends Controller
     public function create()
     {
         return view('person.person-create', [
-            'marahel' => DB::table('Marhala')->get(),
-            'rotab' => DB::table('RotbaInformation')->get(),
-            'seneen_marahel' => DB::table('SanaMarhala')->get(),
-            'questionTypes' => DB::table('QuestionsTypes')->get(),
-            'blood' => DB::table('BloodType')->get(),
+            'marahel' => LookupCache::all('Marhala'),
+            'rotab' => LookupCache::all('RotbaInformation'),
+            'seneen_marahel' => LookupCache::all('SanaMarhala'),
+            'questionTypes' => LookupCache::all('QuestionsTypes'),
+            'blood' => LookupCache::all('BloodType'),
             'betakat' => DB::table('EgazetBetakatTaqaddom')->get(),
-            'manateq' => DB::table('Manteqa')->get(),
-            'districts' => DB::table('Districts')->get(),
-            'qetaat' => DB::table('Qetaa')->get(),
-            'faculties' => DB::table('Faculty')->get(),
-            'universities' => DB::table('University')->get(),
+            'manateq' => LookupCache::all('Manteqa'),
+            'districts' => LookupCache::all('Districts'),
+            'qetaat' => LookupCache::all('Qetaa'),
+            'faculties' => LookupCache::all('Faculty'),
+            'universities' => LookupCache::all('University'),
         ]);
     }
 

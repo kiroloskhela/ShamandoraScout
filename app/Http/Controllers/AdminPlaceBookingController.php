@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -84,7 +85,7 @@ class AdminPlaceBookingController extends Controller
             ->orderBy('P.PlaceName')
             ->get();
 
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return view('admin.place_bookings.show', compact('booking', 'locations', 'places', 'qetaat'));
     }

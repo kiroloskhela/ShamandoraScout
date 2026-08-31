@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\OrgTree\GroupTreeService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -37,7 +39,7 @@ class GroupController extends Controller
 
     public function create()
     {
-        $groupTypes = DB::table('GroupType')->get();
+        $groupTypes = LookupCache::all('GroupType');
 
         $groups = DB::select("
             SELECT g1.GroupID,
@@ -66,6 +68,7 @@ class GroupController extends Controller
             'GroupTypeID' => $request->group_type_id,
             'IncludedUnderGroupID' => $request->included_under_group_id
         ]);
+        app(GroupTreeService::class)->bustCache();
 
         return redirect()->route('group.index');
     }
@@ -91,7 +94,7 @@ class GroupController extends Controller
             WHERE g1.GroupID = ?
         ", [$id]);
 
-        $groupTypes = DB::table('GroupType')->get();
+        $groupTypes = LookupCache::all('GroupType');
 
         $groups = DB::select("
             SELECT g1.GroupID,
@@ -122,6 +125,7 @@ class GroupController extends Controller
                 'GroupTypeID' => $request->group_type_id,
                 'IncludedUnderGroupID' => $request->included_under_group_id
             ]);
+        app(GroupTreeService::class)->bustCache();
 
         return redirect()->route('group.index');
     }
@@ -135,6 +139,7 @@ class GroupController extends Controller
     public function destroy($id)
     {
         DB::table('GroupTable')->where('GroupID',$id)->delete();
+        app(GroupTreeService::class)->bustCache();
         return redirect()->route('group.index');
     }
 }

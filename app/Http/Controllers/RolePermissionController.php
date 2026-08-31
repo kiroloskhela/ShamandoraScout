@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Authz\PermissionService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,7 @@ class RolePermissionController extends Controller
 
     public function edit(Request $request)
     {
-        $roles = DB::table('Roles')->orderBy('RoleName')->get(['RoleID', 'RoleName', 'RoleDescription']);
+        $roles = LookupCache::ordered('Roles', 'RoleName');
         $selectedId = (int) $request->query('role_id', $roles->first()->RoleID ?? 0);
         $selected = $roles->firstWhere('RoleID', $selectedId) ?? $roles->first();
 

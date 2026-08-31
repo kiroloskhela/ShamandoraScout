@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Curriculum\CurriculumPlanService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -43,7 +44,7 @@ public function index()
         Gate::authorize('curricula.create');
 
         $categories = DB::table('CurriculaCategory')->get();
-        $marhalat   = DB::table('Marhala')->get();
+        $marhalat   = LookupCache::all('Marhala');
 
         return view('Curricula.create', compact('categories', 'marhalat'));
     }
@@ -100,7 +101,7 @@ public function index()
         }
 
         $categories = DB::table('CurriculaCategory')->get();
-        $marhalat   = DB::table('Marhala')->get();
+        $marhalat   = LookupCache::all('Marhala');
 
         return view('Curricula.edit', compact('curriculum', 'categories', 'marhalat'));
     }
