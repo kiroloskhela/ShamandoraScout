@@ -42,6 +42,15 @@ class VersionApiTest extends TestCase
             ->assertJsonPath('data.force_update', true);
     }
 
+    public function test_set_busts_settings_bag_immediately(): void
+    {
+        AppSettings::set('maintenance_message', 'first');
+        $this->assertSame('first', AppSettings::get('maintenance_message'));
+
+        AppSettings::set('maintenance_message', 'second');
+        $this->assertSame('second', AppSettings::get('maintenance_message'));
+    }
+
     public function test_version_check_falls_back_to_config_when_unset(): void
     {
         $response = $this->getJson('/api/version/check?platform=ios&version=9.9.9');

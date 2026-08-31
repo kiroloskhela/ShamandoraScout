@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\PlaceBooking\PlaceBookingService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +17,7 @@ class PlaceBookingController extends Controller
     public function create()
     {
         $locations = DB::table('Locations')->orderBy('LocationName')->get();
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return view('place_bookings.create', compact('locations', 'qetaat'));
     }
@@ -174,7 +175,7 @@ class PlaceBookingController extends Controller
         }
 
         $locations = DB::table('Locations')->orderBy('LocationName')->get();
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         // to pre-load places for selected location:
         $selectedPlace = DB::table('Place')->where('PlaceID', $booking->PlaceID)->first();

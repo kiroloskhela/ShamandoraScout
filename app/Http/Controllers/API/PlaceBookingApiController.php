@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Requests\StorePlaceBookingRequest;
 use App\Http\Resources\ApprovedPlaceResource;
 use App\Http\Resources\PlaceBookingResource;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -208,10 +209,7 @@ class PlaceBookingApiController extends Controller
             ->orderBy('LocationName')
             ->get();
 
-        $qetaat = DB::table('Qetaa')
-            ->select('QetaaID', 'QetaaName')
-            ->orderBy('QetaaName')
-            ->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return response()->json([
             'ok'        => true,

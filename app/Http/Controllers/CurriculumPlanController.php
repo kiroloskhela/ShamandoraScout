@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Curriculum\ActiveCurriculumPlan;
 use App\Domain\Curriculum\CurriculumPlanService;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,7 @@ class CurriculumPlanController extends Controller
         $filterQetaaId = ($qetaaId !== null && $qetaaId !== '') ? (int) $qetaaId : null;
 
         $rows = $plans->listForAdmin($filterQetaaId);
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return view('curriculum_plans.index', [
             'plans' => $rows,
@@ -28,7 +29,7 @@ class CurriculumPlanController extends Controller
 
     public function create()
     {
-        $qetaat = DB::table('Qetaa')->orderBy('QetaaName')->get();
+        $qetaat = LookupCache::ordered('Qetaa', 'QetaaName');
 
         return view('curriculum_plans.create', compact('qetaat'));
     }

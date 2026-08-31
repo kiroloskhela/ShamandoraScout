@@ -20,7 +20,8 @@ class HealthEndpointTest extends TestCase
             ])
             ->assertJsonMissingPath('release')
             ->assertJsonMissingPath('log_channel')
-            ->assertJsonMissingPath('checks.failed_jobs');
+            ->assertJsonMissingPath('checks.failed_jobs')
+            ->assertJsonMissingPath('checks.redis');
     }
 
     public function test_health_details_require_configured_token(): void

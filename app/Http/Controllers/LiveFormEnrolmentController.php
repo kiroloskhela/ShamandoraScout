@@ -9,6 +9,7 @@ use App\Domain\Enrolment\LiveFormQetaaResolver;
 use App\Domain\Enrolment\LiveFormSubmitService;
 use App\Domain\Enrolment\LiveFormTempFileService;
 use App\Domain\Enrolment\LiveFormWizardService;
+use App\Support\LookupCache;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +31,7 @@ class LiveFormEnrolmentController extends Controller
 
     public function createLiveForm()
     {
-        $seneen_marahel = DB::table('SanaMarhala')->get();
+        $seneen_marahel = LookupCache::all('SanaMarhala');
 
         return view('person.person-create-liveform-1', [
             'seneen_marahel' => $seneen_marahel,

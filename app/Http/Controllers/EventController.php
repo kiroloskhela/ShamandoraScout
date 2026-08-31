@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 // Facades for database and validation
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -41,8 +42,8 @@ class EventController extends Controller
 
     public function create()
     {
-        $eventTypes = DB::table('EventType')->get();
-        $qetaat = DB::table('Qetaa')->get();
+        $eventTypes = LookupCache::all('EventType');
+        $qetaat = LookupCache::all('Qetaa');
         $seasons = DB::table('Season')->orderByDesc('SeasonYear')->orderBy('SeasonName')->get();
 
         return view("event.create", [
@@ -54,8 +55,8 @@ class EventController extends Controller
 
     public function createRecursive()
     {
-        $eventTypes = DB::table('EventType')->get();
-        $qetaat = DB::table('Qetaa')->get();
+        $eventTypes = LookupCache::all('EventType');
+        $qetaat = LookupCache::all('Qetaa');
         $seasons = DB::table('Season')->orderByDesc('SeasonYear')->orderBy('SeasonName')->get();
 
         return view("event.create-recursive", [
@@ -191,8 +192,8 @@ class EventController extends Controller
 
     public function edit($id)
     {
-        $eventTypes = DB::table('EventType')->get();
-        $qetaat = DB::table('Qetaa')->get();
+        $eventTypes = LookupCache::all('EventType');
+        $qetaat = LookupCache::all('Qetaa');
         $seasons = DB::table('Season')->orderByDesc('SeasonYear')->orderBy('SeasonName')->get();
 
         $event = DB::table('Event')->where('EventID', $id)->first();

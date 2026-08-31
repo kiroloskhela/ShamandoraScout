@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LookupCache;
 use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,7 +17,7 @@ class MarhalaEntryQuestionsController extends Controller
      */
     public function index()
     {
-        $qetaat = DB::table('Qetaa')->get();
+        $qetaat = LookupCache::all('Qetaa');
         $entryQuestions = DB::table('MarhalaEntryQuestions')
             ->Join('Qetaa', 'MarhalaEntryQuestions.QetaaID', '=', 'Qetaa.QetaaID')
             ->Join('QuestionsTypes', 'MarhalaEntryQuestions.RequiredAnswerType', '=', 'QuestionsTypes.QuestionType')
@@ -28,8 +29,8 @@ class MarhalaEntryQuestionsController extends Controller
 
     public function create()
     {
-        $qetaat = DB::table('Qetaa')->get();
-        $questionTypes = DB::table('QuestionsTypes')->get();
+        $qetaat = LookupCache::all('Qetaa');
+        $questionTypes = LookupCache::all('QuestionsTypes');
 
         return view('entry-questions.entry-questions-create', ['qetaat' => $qetaat, 'questionTypes' => $questionTypes]);
     }
@@ -76,13 +77,13 @@ class MarhalaEntryQuestionsController extends Controller
 
     public function edit($id)
     {
-        $qetaat = DB::table('Qetaa')->get();
+        $qetaat = LookupCache::all('Qetaa');
         $qetaaSelected = DB::table('MarhalaEntryQuestions')
             ->where('QuestionID', '=', $id)
             ->Join('Qetaa', 'MarhalaEntryQuestions.QetaaID', '=', 'Qetaa.QetaaID')
             ->select('Qetaa.QetaaID', 'Qetaa.QetaaName')
             ->first();
-        $questionTypes = DB::table('QuestionsTypes')->get();
+        $questionTypes = LookupCache::all('QuestionsTypes');
         // $entryQuestions = DB::table('MarhalaEntryQuestions')->where('QuestionID', $id)->first();
         $entryQuestion = DB::table('MarhalaEntryQuestions')
             ->where('QuestionID', $id)

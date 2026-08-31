@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\LikeSearch;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -194,8 +195,8 @@ class PersonExamMarkController extends Controller
     public function create()
     {
         return view('personexammark.create', [
-            'qetaas' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
-            'sanaMarhalas' => DB::table('SanaMarhala')->orderBy('SanaMarhalaName')->get(),
+            'qetaas' => LookupCache::ordered('Qetaa', 'QetaaName'),
+            'sanaMarhalas' => LookupCache::ordered('SanaMarhala', 'SanaMarhalaName'),
         ]);
     }
 
@@ -233,8 +234,8 @@ class PersonExamMarkController extends Controller
 
         return view('personexammark.edit', [
             'mark' => $mark,
-            'qetaas' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
-            'sanaMarhalas' => DB::table('SanaMarhala')->orderBy('SanaMarhalaName')->get(),
+            'qetaas' => LookupCache::ordered('Qetaa', 'QetaaName'),
+            'sanaMarhalas' => LookupCache::ordered('SanaMarhala', 'SanaMarhalaName'),
         ]);
     }
 

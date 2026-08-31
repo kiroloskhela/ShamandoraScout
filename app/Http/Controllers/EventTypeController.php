@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LookupStoreRequest;
 use App\Http\Requests\LookupUpdateRequest;
+use App\Support\LookupCache;
 use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class EventTypeController extends LookupTableController
     public function index()
     {
         $config = $this->lookupConfig();
-        $records = DB::table($config['table'])->get()->map(function ($row) {
+        $records = LookupCache::all($config['table'])->map(function ($row) {
             $row->TakesReservationLabel = ! empty($row->TakesReservation) ? __('Yes') : __('No');
 
             return $row;
@@ -43,6 +44,7 @@ class EventTypeController extends LookupTableController
         $payload[$config['primary_key']] = ManualPrimaryKey::next($config['table'], $config['primary_key']);
 
         DB::table($config['table'])->insert($payload);
+        $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'store', $request);
     }
@@ -69,6 +71,7 @@ class EventTypeController extends LookupTableController
         DB::table($config['table'])
             ->where($config['primary_key'], $id)
             ->update($this->payload($config, $request));
+        $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'update', $request);
     }

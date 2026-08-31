@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Auth\TokenSessionService;
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSeasonActivityService;
+use App\Support\LookupCache;
 use App\Support\SafeHttpUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,14 +50,14 @@ class PersonProfileController extends Controller
         return view('profile-edit', [
             'user' => $user,
             'person' => $this->loadPerson($personId),
-            'blood' => DB::table('BloodType')->orderBy('BloodTypeName')->get(),
-            'rotab' => DB::table('RotbaInformation')->orderBy('RotbaName')->get(),
+            'blood' => LookupCache::ordered('BloodType', 'BloodTypeName'),
+            'rotab' => LookupCache::ordered('RotbaInformation', 'RotbaName'),
             'betakat' => DB::table('EgazetBetakatTaqaddom')->orderBy('EgazetBetakatTaqaddomName')->get(),
-            'seneen_marahel' => DB::table('SanaMarhala')->orderBy('SanaMarhalaName')->get(),
-            'manateq' => DB::table('Manteqa')->orderBy('ManteqaName')->get(),
-            'districts' => DB::table('Districts')->orderBy('DistrictName')->get(),
-            'faculties' => DB::table('Faculty')->orderBy('FacultyName')->get(),
-            'universities' => DB::table('University')->orderBy('UniversityName')->get(),
+            'seneen_marahel' => LookupCache::ordered('SanaMarhala', 'SanaMarhalaName'),
+            'manateq' => LookupCache::ordered('Manteqa', 'ManteqaName'),
+            'districts' => LookupCache::ordered('Districts', 'DistrictName'),
+            'faculties' => LookupCache::ordered('Faculty', 'FacultyName'),
+            'universities' => LookupCache::ordered('University', 'UniversityName'),
         ]);
     }
 

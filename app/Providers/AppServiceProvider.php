@@ -13,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(\App\Domain\Authz\PermissionService::class);
+        $this->app->singleton(\App\Domain\OrgTree\GroupTreeService::class);
     }
 
     /**

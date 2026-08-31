@@ -6,6 +6,7 @@ use App\Domain\WhatsApp\CampaignRecipientQuery;
 use App\Domain\WhatsApp\MessagePersonalizer;
 use App\Domain\WhatsApp\WhatsAppCampaignService;
 use App\Models\WhatsAppCampaign;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -330,7 +331,7 @@ class WhatsAppCampaignController extends Controller
             ->values();
 
         return [
-            'qetaat' => DB::table('Qetaa')->orderBy('QetaaName')->get(),
+            'qetaat' => LookupCache::ordered('Qetaa', 'QetaaName'),
             'groups' => $groups,
             'variables' => MessagePersonalizer::availableVariables(),
             'highCountThreshold' => WhatsAppCampaignService::HIGH_COUNT_THRESHOLD,

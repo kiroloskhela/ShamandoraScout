@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\LikeSearch;
+use App\Support\LookupCache;
 use App\Support\SqlPaginator;
 use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
@@ -118,9 +119,7 @@ class NewEnrolmentAdminController extends Controller
     {
         $this->authorize('enrolment.migrate');
 
-        $qetaas = DB::table('Qetaa')
-            ->orderBy('QetaaID')
-            ->get(['QetaaID', 'QetaaName']);
+        $qetaas = LookupCache::ordered('Qetaa', 'QetaaID');
 
         $approvedByQetaa = DB::table('NewUsersInformation')
             ->where('IsApproved', 1)
@@ -299,10 +298,10 @@ class NewEnrolmentAdminController extends Controller
             ->orderBy('MarhalaEntryQuestions.QuestionID', 'asc')
             ->get();
 
-        $blood = DB::table('BloodType')->get();
-        $manateq = DB::table('Manteqa')->get();
-        $districts = DB::table('Districts')->get();
-        $seneen_marahel = DB::table('SanaMarhala')->get();
+        $blood = LookupCache::all('BloodType');
+        $manateq = LookupCache::all('Manteqa');
+        $districts = LookupCache::all('Districts');
+        $seneen_marahel = LookupCache::all('SanaMarhala');
 
         return view('person.new-enrolments-edit', [
             'person' => $person,

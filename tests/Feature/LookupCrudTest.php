@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\LookupCache;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -15,6 +17,7 @@ class LookupCrudTest extends TestCase
         parent::setUp();
 
         $this->withoutVite();
+        Cache::flush();
 
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
@@ -91,6 +94,21 @@ class LookupCrudTest extends TestCase
         $this->assertDatabaseMissing('BloodType', [
             'BloodTypeID' => $bloodTypeId,
         ]);
+    }
+
+    public function test_lookup_write_busts_lookup_cache(): void
+    {
+        $admin = $this->createSuperAdmin();
+        DB::table('BloodType')->insert(['BloodTypeName' => 'Cached']);
+        LookupCache::all('BloodType');
+
+        $this->actingAs($admin)
+            ->post(route('blood.insert'), ['blood_name' => 'Fresh'])
+            ->assertRedirect(route('blood.index'));
+
+        $names = LookupCache::all('BloodType')->pluck('BloodTypeName')->all();
+        $this->assertContains('Fresh', $names);
+        $this->assertContains('Cached', $names);
     }
 
     private function createSuperAdmin(): User

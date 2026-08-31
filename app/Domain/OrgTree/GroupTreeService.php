@@ -3,13 +3,20 @@
 namespace App\Domain\OrgTree;
 
 use App\Support\ManualPrimaryKey;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Load GroupTable once and walk the adjacency list in memory.
  */
 class GroupTreeService
 {
+    public const CACHE_KEY = 'tree.groups';
+
+    public const TTL_SECONDS = 1800;
+
     /** @var array<int, object>|null */
     private ?array $byId = null;
 
@@ -22,23 +29,25 @@ class GroupTreeService
             return;
         }
 
-        $rows = DB::table('GroupTable')
-            ->leftJoin('GroupType', 'GroupTable.GroupTypeID', '=', 'GroupType.GroupTypeID')
-            ->select(
-                'GroupTable.GroupID',
-                'GroupTable.IncludedUnderGroupID',
-                'GroupTable.GroupName',
-                'GroupType.GroupTypeName'
-            )
-            ->get();
-
         $this->byId = [];
         $this->children = [];
-        foreach ($rows as $row) {
+        foreach ($this->cachedRows() as $row) {
             $id = (int) $row->GroupID;
             $this->byId[$id] = $row;
             $parent = (int) $row->IncludedUnderGroupID;
             $this->children[$parent][] = $row;
+        }
+    }
+
+    public function bustCache(): void
+    {
+        $this->byId = null;
+        $this->children = null;
+
+        try {
+            Cache::forget(self::CACHE_KEY);
+        } catch (Throwable) {
+            // Next warm() falls back to MySQL.
         }
     }
 
@@ -91,7 +100,7 @@ class GroupTreeService
 
     public function createGroup(string $name, int $typeId, int $parentGroupId, int $qetaaId): int
     {
-        return (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
+        $newId = (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
             // GroupTable.GroupID is not AUTO_INCREMENT in production.
             $newId = ManualPrimaryKey::next('GroupTable', 'GroupID');
 
@@ -109,6 +118,10 @@ class GroupTreeService
 
             return $newId;
         });
+
+        $this->bustCache();
+
+        return $newId;
     }
 
     public function renameGroup(int $groupId, string $name): void
@@ -116,6 +129,7 @@ class GroupTreeService
         DB::table('GroupTable')->where('GroupID', $groupId)->update([
             'GroupName' => $name,
         ]);
+        $this->bustCache();
     }
 
     public function deleteGroups(iterable $groupIds): void
@@ -129,6 +143,8 @@ class GroupTreeService
                 DB::table('GroupTable')->where('GroupID', $groupId)->delete();
             });
         });
+
+        $this->bustCache();
     }
 
     /**
@@ -186,5 +202,37 @@ class GroupTreeService
             ->where('PersonID', $personId)
             ->where('GroupID', $groupId)
             ->delete();
+    }
+
+    /**
+     * @return Collection<int, object>
+     */
+    private function cachedRows(): Collection
+    {
+        try {
+            $rows = Cache::remember(self::CACHE_KEY, self::TTL_SECONDS, function () {
+                return $this->queryRows()->all();
+            });
+
+            return collect($rows)->map(fn ($row) => is_object($row) ? clone $row : $row);
+        } catch (Throwable) {
+            return $this->queryRows();
+        }
+    }
+
+    /**
+     * @return Collection<int, object>
+     */
+    private function queryRows(): Collection
+    {
+        return DB::table('GroupTable')
+            ->leftJoin('GroupType', 'GroupTable.GroupTypeID', '=', 'GroupType.GroupTypeID')
+            ->select(
+                'GroupTable.GroupID',
+                'GroupTable.IncludedUnderGroupID',
+                'GroupTable.GroupName',
+                'GroupType.GroupTypeName'
+            )
+            ->get();
     }
 }

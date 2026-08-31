@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpWord\PhpWord;
@@ -16,7 +17,7 @@ class InventoryIssueController extends Controller
     {
         $inventory = DB::table('Inventory')->get();
         $seasons = DB::table('Season')->orderBy('SeasonYear', 'desc')->get();
-        $qetaat = DB::table('Qetaa')->get();
+        $qetaat = LookupCache::all('Qetaa');
 
         return view('inventory-issue.index', compact('inventory', 'seasons', 'qetaat'));
     }

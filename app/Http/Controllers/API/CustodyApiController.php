@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Requests\StoreCustodyRequestRequest;
 use App\Http\Resources\CustodyRequestItemResource;
 use App\Http\Resources\CustodyRequestResource;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -307,8 +308,8 @@ class CustodyApiController extends Controller
             ->orderBy('ItemName')
             ->get();
 
-        $qetaat     = DB::table('Qetaa')->select('QetaaID', 'QetaaName')->orderBy('QetaaName')->get();
-        $eventTypes = DB::table('EventType')->select('EventTypeID', 'EventTypeName')->orderBy('EventTypeName')->get();
+        $qetaat     = LookupCache::ordered('Qetaa', 'QetaaName');
+        $eventTypes = LookupCache::ordered('EventType', 'EventTypeName');
 
         return response()->json([
             'ok'        => true,

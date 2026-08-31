@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -32,8 +33,8 @@ class LiveFormMaxLimitsController extends Controller
 
         public function create()
         {
-            $qetaat = DB::table('Qetaa')->get();
-            $seneen_marahel = DB::table('SanaMarhala')->get();
+            $qetaat = LookupCache::all('Qetaa');
+            $seneen_marahel = LookupCache::all('SanaMarhala');
             $season = DB::table('Season')->get();
             return view("max-limits.create", array('qetaat'=>$qetaat, 'seneen_marahel'=>$seneen_marahel, 'season'=>$season));
         }

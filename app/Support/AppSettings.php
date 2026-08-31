@@ -10,20 +10,17 @@ use Throwable;
 
 class AppSettings
 {
+    private const BAG_KEY = 'app_settings.bag';
+
     public static function get(string $key, ?string $default = null): ?string
     {
         try {
-            if (! Schema::hasTable('AppSettings')) {
+            $bag = self::bag();
+            if (! array_key_exists($key, $bag)) {
                 return $default;
             }
 
-            $value = Cache::remember("app_setting.{$key}", 60, function () use ($key) {
-                $row = DB::table('AppSettings')->where('SettingKey', $key)->first();
-
-                return $row?->SettingValue;
-            });
-
-            return $value ?? $default;
+            return $bag[$key] ?? $default;
         } catch (Throwable) {
             return $default;
         }
@@ -40,7 +37,31 @@ class AppSettings
             ]
         );
 
-        Cache::forget("app_setting.{$key}");
+        try {
+            Cache::forget(self::BAG_KEY);
+        } catch (Throwable) {
+            // Next read falls back to MySQL.
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function bag(): array
+    {
+        if (! Schema::hasTable('AppSettings')) {
+            return [];
+        }
+
+        try {
+            $bag = Cache::rememberForever(self::BAG_KEY, function () {
+                return DB::table('AppSettings')->pluck('SettingValue', 'SettingKey')->all();
+            });
+
+            return is_array($bag) ? $bag : [];
+        } catch (Throwable) {
+            return DB::table('AppSettings')->pluck('SettingValue', 'SettingKey')->all();
+        }
     }
 
     public static function liveformIsOpen(): bool

@@ -3,6 +3,7 @@
 namespace App\Domain\Season;
 
 use App\Domain\Enrolment\LiveFormQetaaResolver;
+use App\Support\LookupCache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -343,8 +344,8 @@ class SeasonPersonRollService
      */
     private function buildPlanRows(): array
     {
-        $sanaNames = DB::table('SanaMarhala')->pluck('SanaMarhalaName', 'SanaMarhalaID');
-        $qetaaNames = DB::table('Qetaa')->pluck('QetaaName', 'QetaaID');
+        $sanaNames = LookupCache::all('SanaMarhala')->pluck('SanaMarhalaName', 'SanaMarhalaID');
+        $qetaaNames = LookupCache::all('Qetaa')->pluck('QetaaName', 'QetaaID');
 
         $persons = DB::table('PersonInformation as pi')
             ->leftJoin('PersonSanaMarhala as psm', 'psm.PersonID', '=', 'pi.PersonID')

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -195,10 +196,7 @@ class CurriculaApiController extends Controller
             ->orderBy('CurriculaCategoryName')
             ->get();
 
-        $marhalat = DB::table('Marhala')
-            ->select('MarhalaID', 'MarhalaName') // change if needed
-            ->orderBy('MarhalaName')
-            ->get();
+        $marhalat = LookupCache::ordered('Marhala', 'MarhalaName');
 
         return response()->json([
             'ok'         => true,
