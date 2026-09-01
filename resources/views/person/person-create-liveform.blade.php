@@ -9,6 +9,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @include('partials.csrf-keepalive')
     <title>{{ __('Shamandora Scout | Enter data') }}</title>
 
     <script>
@@ -1631,13 +1632,25 @@
                 return;
             }
 
-            document.querySelectorAll('input[data-file]').forEach(input => {
-                const processed = processedFiles.get(input.name);
-                if (!processed) return;
+            if (form.dataset.submitting === '1') {
+                e.preventDefault();
+                return;
+            }
+            form.dataset.submitting = '1';
+            if (submitBtn) submitBtn.disabled = true;
 
-                const dt = new DataTransfer();
-                dt.items.add(processed);
-                input.files = dt.files;
+            e.preventDefault();
+            const refresh = window.refreshCsrfToken ? window.refreshCsrfToken() : Promise.resolve();
+            Promise.resolve(refresh).finally(() => {
+                document.querySelectorAll('input[data-file]').forEach(input => {
+                    const processed = processedFiles.get(input.name);
+                    if (!processed) return;
+
+                    const dt = new DataTransfer();
+                    dt.items.add(processed);
+                    input.files = dt.files;
+                });
+                HTMLFormElement.prototype.submit.call(form);
             });
         });
 

@@ -10,6 +10,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('partials.csrf-keepalive', ['meta' => false])
     <link rel="icon" type="image/webp" href={{ asset('img/shamandora.webp') }}>
     <title>{{ __('Combined camp evaluation 2025') }}</title>
     @include('partials.fonts')

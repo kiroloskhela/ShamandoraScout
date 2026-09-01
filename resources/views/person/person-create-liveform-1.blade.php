@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    @include('partials.csrf-keepalive')
     <title>{{ __('Shamandora Scout - New enrolment') }}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -185,7 +186,17 @@
                         block: 'center'
                     });
                 }
+                return;
             }
+            if (form.dataset.submitting === '1') {
+                e.preventDefault();
+                return;
+            }
+            form.dataset.submitting = '1';
+            submitBtn.disabled = true;
+            e.preventDefault();
+            Promise.resolve(window.refreshCsrfToken ? window.refreshCsrfToken() : null)
+                .finally(() => HTMLFormElement.prototype.submit.call(form));
         });
 
         submitBtn.disabled = true;

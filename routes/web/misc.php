@@ -15,6 +15,14 @@ use App\Http\Controllers\PlaceBookingController;
 use App\Http\Controllers\QetaaTreeController;
 use App\Http\Controllers\TestingController;
 
+Route::get('/csrf-token', function () {
+    return response()
+        ->json(['token' => csrf_token()])
+        ->header('Cache-Control', 'no-store, private')
+        ->header('Pragma', 'no-cache')
+        ->header('Vary', 'Cookie');
+})->middleware('throttle:60,1')->name('csrf.token');
+
 /*
 |--------------------------------------------------------------------------
 | Testing
