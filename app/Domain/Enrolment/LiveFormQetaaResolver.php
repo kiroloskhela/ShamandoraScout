@@ -28,6 +28,9 @@ class LiveFormQetaaResolver
     public const QETAA_EADAD_QADA = 10;
 
     /** @var list<int> */
+    public const LEADER_QETAA_IDS = [self::QETAA_QADA, self::QETAA_EADAD_QADA];
+
+    /** @var list<int> */
     public const YOUTH_QETAA_IDS = [1, 2, 3, 4, 6, 8, 9];
 
     /** @var list<int> */

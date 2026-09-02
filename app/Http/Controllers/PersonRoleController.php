@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Auth\TokenSessionService;
 use App\Domain\Authz\PermissionService;
 use App\Domain\Authz\SuperAdminGuard;
+use App\Domain\Enrolment\LiveFormQetaaResolver;
 use App\Support\ManualPrimaryKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -217,13 +218,12 @@ class PersonRoleController extends Controller
         }
 
         $isLeader = DB::table('PersonQetaa as pq')
-            ->join('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
             ->where('pq.PersonID', $personId)
-            ->where('q.QetaaName', 'قادة')
+            ->whereIn('pq.QetaaID', LiveFormQetaaResolver::LEADER_QETAA_IDS)
             ->exists();
 
         if (! $isLeader) {
-            abort(403, 'Staff roles can only be assigned to people in قادة.');
+            abort(403, 'Staff roles can only be assigned to people in قادة or اعداد قادة.');
         }
     }
 }

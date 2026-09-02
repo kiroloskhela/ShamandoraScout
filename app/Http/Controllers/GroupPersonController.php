@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Enrolment\LiveFormQetaaResolver;
 use App\Domain\OrgTree\GroupTreeService;
 use App\Support\LikeSearch;
 use App\Support\SqlPaginator;
@@ -91,12 +92,13 @@ class GroupPersonController extends Controller
             array_push($groups, $object);
         }
 
-        $persons = DB::select("SELECT PersonInformation.PersonID, PersonInformation.ShamandoraCode, 
+        $leaderQetaaIds = LiveFormQetaaResolver::LEADER_QETAA_IDS;
+        $placeholders = implode(',', array_fill(0, count($leaderQetaaIds), '?'));
+        $persons = DB::select("SELECT DISTINCT PersonInformation.PersonID, PersonInformation.ShamandoraCode, 
                                         CONCAT(PersonInformation.ShamandoraCode, ' ', PersonInformation.FirstName, ' ', PersonInformation.SecondName, ' ', PersonInformation.ThirdName) AS FullName
                                     FROM PersonInformation
-                                    LEFT JOIN PersonQetaa ON PersonInformation.PersonID = PersonQetaa.PersonID
-                                    LEFT JOIN Qetaa ON Qetaa.QetaaID = PersonQetaa.QetaaID
-                                    WHERE Qetaa.QetaaName = ?", ['قادة']);
+                                    INNER JOIN PersonQetaa ON PersonInformation.PersonID = PersonQetaa.PersonID
+                                    WHERE PersonQetaa.QetaaID IN ({$placeholders})", $leaderQetaaIds);
         $groupRoles = DB::select('SELECT * FROM GroupRole WHERE isKhademRole = 1');
 
         $isKhadem = true;

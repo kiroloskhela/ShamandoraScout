@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Enrolment\LiveFormQetaaResolver;
 use App\Http\Controllers\PersonRoleController;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -18,7 +20,7 @@ class PersonRoleAssignabilityTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['PersonQetaa', 'Qetaa', 'PersonRole', 'Roles', 'PersonInformation'] as $table) {
+        foreach (['PersonQetaa', 'PersonRole', 'Roles', 'PersonInformation'] as $table) {
             Schema::dropIfExists($table);
         }
 
@@ -39,10 +41,6 @@ class PersonRoleAssignabilityTest extends TestCase
             $table->unsignedInteger('RoleID');
             $table->unsignedInteger('RequestPersonID')->nullable();
         });
-        Schema::create('Qetaa', function (Blueprint $table) {
-            $table->increments('QetaaID');
-            $table->string('QetaaName');
-        });
         Schema::create('PersonQetaa', function (Blueprint $table) {
             $table->increments('PersonQetaaID');
             $table->unsignedInteger('PersonID');
@@ -54,10 +52,20 @@ class PersonRoleAssignabilityTest extends TestCase
             ['RoleID' => 2, 'RoleName' => 'Khadem'],
             ['RoleID' => 3, 'RoleName' => 'Mkhdom'],
         ]);
-        DB::table('Qetaa')->insert([
-            ['QetaaID' => 1, 'QetaaName' => 'قادة'],
-            ['QetaaID' => 2, 'QetaaName' => 'أشبال'],
-        ]);
+    }
+
+    #[DataProvider('leaderQetaaIds')]
+    public function test_leader_sectors_can_receive_staff_role(int $qetaaId): void
+    {
+        $this->assertStaffRoleAssignableToQetaa($qetaaId);
+    }
+
+    public static function leaderQetaaIds(): array
+    {
+        return [
+            'qada' => [LiveFormQetaaResolver::QETAA_QADA],
+            'eadad_qada' => [LiveFormQetaaResolver::QETAA_EADAD_QADA],
+        ];
     }
 
     public function test_non_leader_can_receive_mkhdom_but_not_staff(): void
@@ -69,7 +77,10 @@ class PersonRoleAssignabilityTest extends TestCase
             'ThirdName' => 'X',
             'ShamandoraCode' => 'C1',
         ]);
-        DB::table('PersonQetaa')->insert(['PersonID' => $served->PersonID, 'QetaaID' => 2]);
+        DB::table('PersonQetaa')->insert([
+            'PersonID' => $served->PersonID,
+            'QetaaID' => LiveFormQetaaResolver::QETAA_ASHBAL,
+        ]);
 
         $ok = Request::create('/person-role/insert', 'POST', [
             'person_id' => $served->PersonID,
@@ -117,8 +128,36 @@ class PersonRoleAssignabilityTest extends TestCase
             'ShamandoraCode' => 'SA1',
         ]);
         DB::table('PersonRole')->insert(['PersonID' => $user->PersonID, 'RoleID' => 1]);
-        DB::table('PersonQetaa')->insert(['PersonID' => $user->PersonID, 'QetaaID' => 1]);
+        DB::table('PersonQetaa')->insert([
+            'PersonID' => $user->PersonID,
+            'QetaaID' => LiveFormQetaaResolver::QETAA_QADA,
+        ]);
 
         return $user;
+    }
+
+    private function assertStaffRoleAssignableToQetaa(int $qetaaId): void
+    {
+        $actor = $this->superAdmin();
+        $person = User::create([
+            'FirstName' => 'Leader',
+            'SecondName' => 'A',
+            'ThirdName' => 'X',
+            'ShamandoraCode' => 'L'.$qetaaId,
+        ]);
+        DB::table('PersonQetaa')->insert([
+            'PersonID' => $person->PersonID,
+            'QetaaID' => $qetaaId,
+        ]);
+
+        $request = Request::create('/person-role/insert', 'POST', [
+            'person_id' => $person->PersonID,
+            'role_id' => 2,
+            'RequestPersonID' => $actor->PersonID,
+        ]);
+        $request->setUserResolver(fn () => $actor);
+        app(PersonRoleController::class)->insert($request);
+
+        $this->assertDatabaseHas('PersonRole', ['PersonID' => $person->PersonID, 'RoleID' => 2]);
     }
 }
