@@ -204,6 +204,7 @@
                     let lastScanAt = 0;
                     let lastCode = '';
                     let lookupInFlight = false;
+                    let cameraStarting = false;
 
                     const els = {
                         startBtn: document.getElementById('startCameraBtn'),
@@ -399,43 +400,67 @@
                         await lookup(decodedText);
                     }
 
+                    function scanConfig() {
+                        return {
+                            fps: 20,
+                            qrbox: (viewfinderWidth, viewfinderHeight) => {
+                                const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+                                return { width: edge, height: edge };
+                            },
+                            disableFlip: false,
+                        };
+                    }
+
+                    async function resetScanner() {
+                        if (!html5QrCode) return;
+                        try { await html5QrCode.stop(); } catch (e) {}
+                        try { html5QrCode.clear(); } catch (e) {}
+                        html5QrCode = null;
+                    }
+
+                    function pickBackCamera(cameras) {
+                        return cameras.find((c) => /back|rear|environment|world/i.test(c.label || ''))
+                            || cameras[cameras.length - 1];
+                    }
+
+                    async function startScanner(cameraConfig) {
+                        if (!html5QrCode) {
+                            html5QrCode = new Html5Qrcode('qr-reader');
+                        }
+                        await html5QrCode.start(cameraConfig, scanConfig(), onScanSuccess, () => {});
+                    }
+
                     async function startCamera() {
                         if (!window.Html5Qrcode) {
                             els.scanStatus.textContent = @json(__('Camera permission denied or unavailable.'));
                             return;
                         }
-                        if (!html5QrCode) {
-                            html5QrCode = new Html5Qrcode('qr-reader');
-                        }
+                        if (cameraStarting) return;
+                        cameraStarting = true;
                         try {
-                            await html5QrCode.start(
-                                { facingMode: 'environment' },
-                                {
-                                    fps: 20,
-                                    qrbox: (viewfinderWidth, viewfinderHeight) => {
-                                        const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
-                                        return { width: edge, height: edge };
-                                    },
-                                    aspectRatio: 1.0,
-                                    disableFlip: false,
-                                },
-                                onScanSuccess,
-                                () => {}
-                            );
+                            try {
+                                await startScanner({ facingMode: 'environment' });
+                            } catch (facingModeError) {
+                                await resetScanner();
+                                const cameras = await Html5Qrcode.getCameras().catch(() => []);
+                                if (!cameras.length) throw facingModeError;
+                                await startScanner(pickBackCamera(cameras).id);
+                            }
                             els.startBtn.classList.add('hidden');
                             els.stopBtn.classList.remove('hidden');
                             els.scanStatus.textContent = @json(__('Scanning…'));
                         } catch (e) {
+                            await resetScanner();
+                            els.startBtn.classList.remove('hidden');
+                            els.stopBtn.classList.add('hidden');
                             els.scanStatus.textContent = @json(__('Camera permission denied or unavailable.'));
+                        } finally {
+                            cameraStarting = false;
                         }
                     }
 
                     async function stopCamera() {
-                        if (!html5QrCode) return;
-                        try {
-                            await html5QrCode.stop();
-                            await html5QrCode.clear();
-                        } catch (e) {}
+                        await resetScanner();
                         els.startBtn.classList.remove('hidden');
                         els.stopBtn.classList.add('hidden');
                         els.scanStatus.textContent = '';
