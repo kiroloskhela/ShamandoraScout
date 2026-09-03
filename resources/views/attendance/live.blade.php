@@ -45,9 +45,15 @@
         @if (!empty($seasonEventId) && $snapshot)
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">{{ $snapshot['event_name'] }}</h2>
-                <span id="liveConnection" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                    {{ __('Polling') }}
-                </span>
+                <div class="flex flex-wrap items-center gap-2">
+                    <a href="{{ route('attendance.live.csv', ['season_event_id' => $seasonEventId]) }}"
+                        class="h-9 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold inline-flex items-center justify-center">
+                        {{ __('Download CSV') }}
+                    </a>
+                    <span id="liveConnection" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        {{ __('Polling') }}
+                    </span>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">

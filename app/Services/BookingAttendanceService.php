@@ -238,6 +238,67 @@ class BookingAttendanceService
     }
 
     /**
+     * @return array<int, array{id: int, name: string, phone: string, qetaa: string, status: string, updated_at: string}>
+     */
+    public function csvRows(int $seasonEventId): array
+    {
+        $roster = $this->roster($seasonEventId);
+        $personIds = [];
+        foreach ($roster as $row) {
+            if (($row['entity_type'] ?? '') === 'PERSON' && (int) $row['entity_id'] > 0) {
+                $personIds[(int) $row['entity_id']] = true;
+            }
+        }
+        $qetaaByPerson = $this->qetaaNamesByPersonId(array_keys($personIds));
+
+        $statusLabels = [
+            'present' => __('Present'),
+            'absent' => __('Absent'),
+            'outside' => __('Outside'),
+        ];
+
+        return array_map(function (array $row) use ($qetaaByPerson, $statusLabels) {
+            $qetaa = match ($row['entity_type']) {
+                'GUEST' => __('Guests'),
+                'FAMILY' => __('Families'),
+                default => $qetaaByPerson[(int) $row['entity_id']] ?? '-',
+            };
+
+            $status = $row['status'] ?? null;
+            $phone = (string) ($row['phone'] ?? '');
+
+            return [
+                'id' => (int) $row['entity_id'],
+                'name' => (string) $row['name'],
+                'phone' => $phone !== '' ? $phone : '-',
+                'qetaa' => $qetaa !== '' ? $qetaa : '-',
+                'status' => $statusLabels[$status] ?? __('Not scanned'),
+                'updated_at' => (string) ($row['updated_at'] ?? ''),
+            ];
+        }, $roster);
+    }
+
+    /**
+     * @param  array<int, int>  $personIds
+     * @return array<int, string>
+     */
+    private function qetaaNamesByPersonId(array $personIds): array
+    {
+        if ($personIds === []) {
+            return [];
+        }
+
+        return DB::table('PersonQetaa as pq')
+            ->join('Qetaa as q', 'q.QetaaID', '=', 'pq.QetaaID')
+            ->whereIn('pq.PersonID', $personIds)
+            ->orderBy('q.QetaaName')
+            ->get(['pq.PersonID', 'q.QetaaName'])
+            ->groupBy(fn ($row) => (int) $row->PersonID)
+            ->map(fn ($rows) => $rows->pluck('QetaaName')->unique()->filter()->implode(' , '))
+            ->all();
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function recentFeed(int $seasonEventId, int $limit = 40): array

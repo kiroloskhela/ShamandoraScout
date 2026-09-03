@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AttendanceLiveController extends Controller
 {
@@ -72,6 +73,62 @@ class AttendanceLiveController extends Controller
             'ok' => true,
             'snapshot' => $this->buildSnapshot($seasonEventId),
         ]);
+    }
+
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $data = $request->validate([
+            'season_event_id' => 'required|integer',
+        ]);
+
+        $seasonEventId = (int) $data['season_event_id'];
+        if (! $this->isReservationEvent($seasonEventId)) {
+            abort(422, __('Use scan attendance for reservation events.'));
+        }
+
+        $rows = $this->bookingAttendance->csvRows($seasonEventId);
+        $fileName = 'attendance-live-'.$seasonEventId.'.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, [
+                __('ID'),
+                __('Name'),
+                __('Phone'),
+                __('Sector'),
+                __('Status'),
+                __('Updated'),
+            ]);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    self::csvCell($row['id']),
+                    self::csvCell($row['name']),
+                    self::csvCell($row['phone']),
+                    self::csvCell($row['qetaa']),
+                    self::csvCell($row['status']),
+                    self::csvCell($row['updated_at']),
+                ]);
+            }
+
+            fclose($handle);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store',
+            'Pragma' => 'no-cache',
+        ]);
+    }
+
+    private static function csvCell(mixed $value): string
+    {
+        $text = ltrim((string) ($value ?? ''), " \t\r\n");
+        if ($text !== '' && in_array($text[0], ['=', '+', '-', '@'], true)) {
+            return "'".$text;
+        }
+
+        return $text;
     }
 
     /**

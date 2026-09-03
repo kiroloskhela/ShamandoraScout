@@ -112,6 +112,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['checkAuth:SuperAdmin|Secretary|AdminSecretary|Finance|AdminFinance', 'can.permission:web.attendance.live'])->group(function () {
         Route::get('/attendance/live', [AttendanceLiveController::class, 'index'])->name('attendance.live');
         Route::get('/attendance/live/snapshot', [AttendanceLiveController::class, 'snapshot'])->name('attendance.live.snapshot');
+        Route::get('/attendance/live/csv', [AttendanceLiveController::class, 'exportCsv'])->name('attendance.live.csv');
     });
 
     // Place Bookings

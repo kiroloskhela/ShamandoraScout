@@ -138,6 +138,7 @@ return [
                 'Choose the season and a reservation event.',
                 'Watch present / absent / outside / not scanned counts update as scanners mark people.',
                 'Use the recent activity list to see who was marked and when.',
+                'Download CSV for ID, name, phone, sector, status, and last update.',
                 'Polling keeps the page live even if websockets are unavailable.',
             ],
         ],
