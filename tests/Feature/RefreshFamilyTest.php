@@ -166,7 +166,7 @@ class RefreshFamilyTest extends TestCase
         ])->assertOk();
 
         $request = Request::create('/admin/passwords/'.$user->PersonID.'/update', 'POST', [
-            'password' => 'newpass12',
+            'password' => 'Newpass12',
         ]);
         app(AdminPasswordController::class)->update($request, $user->PersonID);
 

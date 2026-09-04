@@ -37,15 +37,23 @@ class AdminPasswordController extends Controller
 
     public function edit($id)
     {
-        $user = DB::table('PersonInformation')->where('PersonID', $id)->first();
+        $person = DB::table('PersonInformation')->where('PersonID', $id)->first();
+        abort_if(! $person, 404);
 
-        return view('admin.passwords-edit', compact('user'));
+        return view('admin.passwords-edit', ['user' => $person]);
     }
 
     public function update(Request $request, $id)
     {
+        $person = DB::table('PersonInformation')->where('PersonID', $id)->first();
+        abort_if(! $person, 404);
+
         $request->validate([
-            'password' => 'required|min:8',
+            'password' => ['required', 'string', 'min:8', 'max:72', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
+        ], [
+            'password.min' => __('Password must be at least 8 characters.'),
+            'password.max' => __('Password must be at most 72 characters.'),
+            'password.regex' => __('Password must include at least one uppercase letter, one lowercase letter, and one number.'),
         ]);
 
         $plain = (string) $request->input('password');
@@ -58,7 +66,6 @@ class AdminPasswordController extends Controller
             app(TokenSessionService::class)->revokeAllForUser((int) $id);
         });
 
-        $person = DB::table('PersonInformation')->where('PersonID', $id)->first();
         $phone = DB::table('PersonPhoneNumbers')
             ->where('PersonID', $id)
             ->value('PersonPersonalMobileNumber');
@@ -85,6 +92,7 @@ class AdminPasswordController extends Controller
             Log::warning('No phone found for WA password change notice', ['person_id' => $id]);
         }
 
-        return Redirect::route('admin.passwords')->with('success', __('Password updated. WhatsApp sent if a number was available.'));
+        return Redirect::route('admin.passwords.edit', $id)
+            ->with('success', __('Password updated successfully.'));
     }
 }

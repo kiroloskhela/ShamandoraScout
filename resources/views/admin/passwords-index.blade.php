@@ -2,6 +2,18 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-8">
+        @if (session('success'))
+            <div role="status"
+                class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/40 px-4 py-3 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if (session('error'))
+            <div role="alert"
+                class="mb-4 rounded-lg border border-rose-200 bg-rose-50 dark:bg-rose-900/40 px-4 py-3 text-sm font-semibold text-rose-800 dark:text-rose-200">
+                {{ session('error') }}
+            </div>
+        @endif
         <x-data-table :data="$users" :title="__('Password management')" tableId="PasswordsTable" :columns="[
             [
                 'key' => 'PersonID',
