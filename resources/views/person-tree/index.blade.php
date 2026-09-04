@@ -243,6 +243,13 @@
             z-index: 10;
         }
 
+        a.ft-node {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
         /* Top color bar */
         .ft-node-bar {
             position: absolute;
@@ -708,97 +715,43 @@
 
     @php
         $tree = $tree ?? null;
-
-        $father = $tree['father'] ?? null;
-        $mother = $tree['mother'] ?? null;
-
+        $parents = $tree['parents'] ?? [];
         $siblings = $tree['siblings'] ?? [];
         $children = $tree['children'] ?? [];
-
-        $wives = $tree['wives'] ?? [];
-        $husbands = $tree['husbands'] ?? [];
-        $fiancees = $tree['fiancees'] ?? [];
-        $fiances = $tree['fiances'] ?? [];
-
-        $directGrandfathers = $tree['direct_grandfathers'] ?? [];
-        $directGrandmothers = $tree['direct_grandmothers'] ?? [];
-        $paternalGrandfather = $tree['paternal_grandfather'] ?? null;
-        $paternalGrandmother = $tree['paternal_grandmother'] ?? null;
-        $maternalGrandfather = $tree['maternal_grandfather'] ?? null;
-        $maternalGrandmother = $tree['maternal_grandmother'] ?? null;
-
-        $directUnclesAunts = $tree['direct_uncles_aunts'] ?? [];
-        $allUnclesAunts = $tree['all_uncles_aunts'] ?? [];
-
-        $paternalCousins = $tree['paternal_cousins'] ?? [];
-        $maternalCousins = $tree['maternal_cousins'] ?? [];
-        $allCousins = $tree['all_cousins'] ?? [];
-
+        $partners = $tree['partners'] ?? [];
+        $grandparents = $tree['grandparents'] ?? [];
+        $unclesAunts = $tree['uncles_aunts'] ?? [];
         $nephewsNieces = $tree['nephews_nieces'] ?? [];
+        $cousins = $tree['cousins'] ?? [];
 
-        $allPartners = array_merge($wives, $husbands, $fiancees, $fiances);
-
-        // Deduplicate grandparents
-        $allGrandparents = array_merge($directGrandfathers, $directGrandmothers);
-        foreach ([$paternalGrandfather, $paternalGrandmother, $maternalGrandfather, $maternalGrandmother] as $gp) {
-            if ($gp) {
-                $exists = false;
-                foreach ($allGrandparents as $ag) {
-                    if (($ag['RaqamQawmy'] ?? '') && ($ag['RaqamQawmy'] ?? '') === ($gp['RaqamQawmy'] ?? '')) {
-                        $exists = true;
-                        break;
-                    }
-                }
-                if (!$exists) {
-                    $allGrandparents[] = $gp;
-                }
-            }
-        }
-
-        $hasGrandparents = count($allGrandparents) > 0;
-        $hasParents = $father || $mother;
-        $hasPartners = count($allPartners) > 0;
-        $hasSiblings = count($siblings) > 0;
-        $hasChildren = count($children) > 0;
-        $hasUnclesAunts = count($allUnclesAunts) > 0;
-        $hasCousins = count($allCousins) > 0;
-        $hasNephews = count($nephewsNieces) > 0;
+        // Emoji by node gender: male, female, unknown.
+        $emoji = fn(array $node, string $m, string $f, string $any) => match ($node['gender'] ?? null) {
+            'm' => $m,
+            'f' => $f,
+            default => $any,
+        };
     @endphp
 
     @php
-        // Helper to build a node
-        function nodeHtml(
-            string $cls,
-            string $emoji,
-            string $name,
-            ?string $id,
-            string $badge,
-            string $animClass = 'anim-in',
-            string $delay = '',
-        ): string {
-            $idHtml = $id ? '<div class="ft-node-id">' . e($id) . '</div>' : '';
-            return '<div class="ft-node ' .
-                e($cls) .
-                ' ' .
-                e($animClass) .
-                ' ' .
-                e($delay) .
-                '">
-            <div class="ft-node-bar"></div>
-            <span class="ft-node-emoji">' .
-                $emoji .
-                '</span>
-            <div class="ft-node-name">' .
-                e($name) .
-                '</div>
-            ' .
+        // One relative card. Registered persons link to their own tree; hub-only relatives are plain cards.
+        $nodeHtml = function (string $cls, string $emoji, array $node, string $animation): string {
+            $idHtml = !empty($node['RaqamQawmy']) ? '<div class="ft-node-id">' . e($node['RaqamQawmy']) . '</div>' : '';
+            $badge = e(__($node['label']));
+            if (!empty($node['inferred'])) {
+                $badge = '<span title="' . e(__('Inferred from other family links')) . '">≈ ' . $badge . '</span>';
+            }
+            $inner =
+                '<div class="ft-node-bar"></div>' .
+                '<span class="ft-node-emoji">' . $emoji . '</span>' .
+                '<div class="ft-node-name">' . e($node['FullName']) . '</div>' .
                 $idHtml .
-                '
-            <span class="ft-badge">' .
-                e($badge) .
-                '</span>
-        </div>';
-        }
+                '<span class="ft-badge">' . $badge . '</span>';
+            $attrs = 'class="ft-node ' . e($cls . ' ' . $animation) . '"';
+
+            return !empty($node['PersonID'])
+                ? '<a href="' . e(route('person-tree.index', ['person_id' => (int) $node['PersonID']])) . '" ' . $attrs . '>' . $inner . '</a>'
+                : '<div ' . $attrs . '>' . $inner . '</div>';
+        };
     @endphp
 
     <div class="ft-page">
@@ -858,74 +811,39 @@
                 <div class="ft-tree">
 
                     {{-- ══ TIER 1: GRANDPARENTS ══ --}}
-                    @if ($hasGrandparents)
+                    @if ($grandparents)
                         <div class="ft-section-label anim-in">{{ __('Grandparents') }}</div>
                         <div class="ft-tier">
-                            @foreach ($allGrandparents as $i => $gp)
-                                @php
-                                    $isGrandfather =
-                                        str_contains(strtolower($gp['RelationName'] ?? ''), 'جد') &&
-                                        !str_contains($gp['RelationName'] ?? '', 'جدة');
-                                @endphp
-                                {!! nodeHtml(
-                                    'node-grandparent',
-                                    $isGrandfather ? '👴' : '👵',
-                                    $gp['FullName'],
-                                    $gp['RaqamQawmy'] ?? null,
-                                    $gp['RelationName'] ?? __('Grandfather/grandmother'),
-                                    'anim-down',
-                                    'delay-' . min($i + 1, 8),
-                                ) !!}
+                            @foreach ($grandparents as $i => $gp)
+                                {!! $nodeHtml('node-grandparent', $emoji($gp, '👴', '👵', '🧓'), $gp, 'anim-down delay-' . min($i + 1, 8)) !!}
                             @endforeach
                         </div>
                         <div class="conn-line anim-line delay-2" style="height:32px;"></div>
                     @endif
 
                     {{-- ══ TIER 2: UNCLES/AUNTS (outer row) ══ --}}
-                    @if ($hasUnclesAunts)
+                    @if ($unclesAunts)
                         <div class="ft-section-label anim-in delay-2">{{ __('Uncles and aunts') }}</div>
                         <div class="ft-tier">
-                            @foreach ($allUnclesAunts as $i => $ua)
-                                {!! nodeHtml(
-                                    'node-uncle',
-                                    '🧔',
-                                    $ua['FullName'],
-                                    $ua['RaqamQawmy'] ?? null,
-                                    $ua['RelationName'] ?? __('Uncle/aunt'),
-                                    'anim-down',
-                                    'delay-' . min($i + 1, 8),
-                                ) !!}
+                            @foreach ($unclesAunts as $i => $ua)
+                                {!! $nodeHtml('node-uncle', $emoji($ua, '🧔', '👩‍🦱', '🧑'), $ua, 'anim-down delay-' . min($i + 1, 8)) !!}
                             @endforeach
                         </div>
                         <div class="conn-line anim-line delay-3" style="height:28px;"></div>
                     @endif
 
                     {{-- ══ TIER 3: PARENTS (above center) ══ --}}
-                    @if ($hasParents)
+                    @if ($parents)
                         <div class="ft-section-label anim-in delay-3">{{ __('Parents') }}</div>
                         <div class="ft-tier">
-                            @if ($father)
-                                {!! nodeHtml(
-                                    'node-father',
-                                    '👨',
-                                    $father['FullName'],
-                                    $father['RaqamQawmy'] ?? null,
-                                    $father['RelationName'] ?? __('Father'),
-                                    'anim-down',
-                                    'delay-3',
+                            @foreach ($parents as $i => $parent)
+                                {!! $nodeHtml(
+                                    ($parent['gender'] ?? null) === 'f' ? 'node-mother' : 'node-father',
+                                    $emoji($parent, '👨', '👩', '🧑'),
+                                    $parent,
+                                    'anim-down delay-' . min($i + 3, 8),
                                 ) !!}
-                            @endif
-                            @if ($mother)
-                                {!! nodeHtml(
-                                    'node-mother',
-                                    '👩',
-                                    $mother['FullName'],
-                                    $mother['RaqamQawmy'] ?? null,
-                                    $mother['RelationName'] ?? __('Mother'),
-                                    'anim-down',
-                                    'delay-4',
-                                ) !!}
-                            @endif
+                            @endforeach
                         </div>
                         <div class="conn-line anim-line delay-4" style="height:28px;"></div>
                     @endif
@@ -934,19 +852,11 @@
                     <div class="ft-tier" style="align-items:center; gap: 20px;">
 
                         {{-- Siblings column --}}
-                        @if ($hasSiblings)
+                        @if ($siblings)
                             <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
                                 <div class="ft-section-label anim-in delay-4" style="margin-bottom:0;">{{ __('Siblings') }}</div>
                                 @foreach ($siblings as $i => $sib)
-                                    {!! nodeHtml(
-                                        'node-sibling',
-                                        '🧑‍🤝‍🧑',
-                                        $sib['FullName'],
-                                        $sib['RaqamQawmy'] ?? null,
-                                        $sib['RelationName'] ?? __('Brother/sister'),
-                                        'anim-up',
-                                        'delay-' . min($i + 3, 8),
-                                    ) !!}
+                                    {!! $nodeHtml('node-sibling', $emoji($sib, '👦', '👧', '🧑‍🤝‍🧑'), $sib, 'anim-up delay-' . min($i + 3, 8)) !!}
                                 @endforeach
                             </div>
                             {{-- Horizontal connector --}}
@@ -966,52 +876,20 @@
                         </div>
 
                         {{-- Partners side --}}
-                        @if ($hasPartners)
+                        @if ($partners)
                             <div class="conn-line anim-line delay-4" style="width:28px;height:2px;flex-shrink:0;"></div>
                             <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
                                 <div class="ft-section-label anim-in delay-4" style="margin-bottom:0;">{{ __('Spouse / fiancé(e)') }}</div>
-                                @foreach ($wives as $i => $w)
-                                    {!! nodeHtml(
-                                        'node-wife',
-                                        '👰',
-                                        $w['FullName'],
-                                        $w['RaqamQawmy'] ?? null,
-                                        $w['RelationName'] ?? __('Wife'),
-                                        'anim-up',
-                                        'delay-' . min($i + 3, 8),
-                                    ) !!}
-                                @endforeach
-                                @foreach ($husbands as $i => $h)
-                                    {!! nodeHtml(
-                                        'node-husband',
-                                        '🤵',
-                                        $h['FullName'],
-                                        $h['RaqamQawmy'] ?? null,
-                                        $h['RelationName'] ?? __('Husband'),
-                                        'anim-up',
-                                        'delay-' . min($i + 4, 8),
-                                    ) !!}
-                                @endforeach
-                                @foreach ($fiancees as $i => $f)
-                                    {!! nodeHtml(
-                                        'node-fiancee',
-                                        '💛',
-                                        $f['FullName'],
-                                        $f['RaqamQawmy'] ?? null,
-                                        $f['RelationName'] ?? __('Fiancée'),
-                                        'anim-up',
-                                        'delay-' . min($i + 5, 8),
-                                    ) !!}
-                                @endforeach
-                                @foreach ($fiances as $i => $f)
-                                    {!! nodeHtml(
-                                        'node-fiance',
-                                        '💚',
-                                        $f['FullName'],
-                                        $f['RaqamQawmy'] ?? null,
-                                        $f['RelationName'] ?? __('Fiancé'),
-                                        'anim-up',
-                                        'delay-' . min($i + 5, 8),
+                                @foreach ($partners as $i => $partner)
+                                    @php
+                                        $engaged = ($partner['kind'] ?? null) === 'engaged';
+                                        $female = ($partner['gender'] ?? null) === 'f';
+                                    @endphp
+                                    {!! $nodeHtml(
+                                        $engaged ? ($female ? 'node-fiancee' : 'node-fiance') : ($female ? 'node-wife' : 'node-husband'),
+                                        $engaged ? ($female ? '💛' : '💚') : ($female ? '👰' : '🤵'),
+                                        $partner,
+                                        'anim-up delay-' . min($i + 3, 8),
                                     ) !!}
                                 @endforeach
                             </div>
@@ -1020,66 +898,42 @@
                     </div>
 
                     {{-- ══ CONNECTOR DOWN TO CHILDREN ══ --}}
-                    @if ($hasChildren || $hasNephews || $hasCousins)
+                    @if ($children || $nephewsNieces || $cousins)
                         <div class="conn-line anim-line delay-5" style="height:28px;"></div>
                     @endif
 
                     {{-- ══ TIER 5: CHILDREN ══ --}}
-                    @if ($hasChildren)
+                    @if ($children)
                         <div class="ft-section-label anim-in delay-5">{{ __('Children') }}</div>
                         <div class="ft-tier">
-                            @foreach ($children as $i => $c)
-                                {!! nodeHtml(
-                                    'node-child',
-                                    '👶',
-                                    $c['FullName'],
-                                    $c['RaqamQawmy'] ?? null,
-                                    $c['RelationName'] ?? __('Son/daughter'),
-                                    'anim-up',
-                                    'delay-' . min($i + 5, 8),
-                                ) !!}
+                            @foreach ($children as $i => $child)
+                                {!! $nodeHtml('node-child', $emoji($child, '👦', '👧', '👶'), $child, 'anim-up delay-' . min($i + 5, 8)) !!}
                             @endforeach
                         </div>
                     @endif
 
                     {{-- ══ TIER 6: NEPHEWS/NIECES (below siblings) ══ --}}
-                    @if ($hasNephews)
-                        @if ($hasChildren)
+                    @if ($nephewsNieces)
+                        @if ($children)
                             <div class="conn-line anim-line delay-6" style="height:20px;"></div>
                         @endif
                         <div class="ft-section-label anim-in delay-6">{{ __('Nieces and nephews') }}</div>
                         <div class="ft-tier">
                             @foreach ($nephewsNieces as $i => $n)
-                                {!! nodeHtml(
-                                    'node-nephew',
-                                    '🌱',
-                                    $n['FullName'],
-                                    $n['RaqamQawmy'] ?? null,
-                                    $n['RelationName'] ?? __('Child of sibling'),
-                                    'anim-up',
-                                    'delay-' . min($i + 6, 8),
-                                ) !!}
+                                {!! $nodeHtml('node-nephew', '🌱', $n, 'anim-up delay-' . min($i + 6, 8)) !!}
                             @endforeach
                         </div>
                     @endif
 
                     {{-- ══ TIER 7: COUSINS ══ --}}
-                    @if ($hasCousins)
-                        @if ($hasChildren || $hasNephews)
+                    @if ($cousins)
+                        @if ($children || $nephewsNieces)
                             <div class="conn-line anim-line delay-7" style="height:20px;"></div>
                         @endif
                         <div class="ft-section-label anim-in delay-7">{{ __('Cousins') }}</div>
                         <div class="ft-tier">
-                            @foreach ($allCousins as $i => $c)
-                                {!! nodeHtml(
-                                    'node-cousin',
-                                    '👫',
-                                    $c['FullName'],
-                                    $c['RaqamQawmy'] ?? null,
-                                    $c['RelationName'] ?? __('Child of uncle/aunt'),
-                                    'anim-up',
-                                    'delay-' . min($i + 7, 8),
-                                ) !!}
+                            @foreach ($cousins as $i => $c)
+                                {!! $nodeHtml('node-cousin', '👫', $c, 'anim-up delay-' . min($i + 7, 8)) !!}
                             @endforeach
                         </div>
                     @endif
