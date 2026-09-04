@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\WholeNumberInput;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -107,6 +108,8 @@ class SeasonEventFinanceController extends Controller
 
     public function store(Request $request)
     {
+        $this->coerceWholeNumberFinanceInputs($request);
+
         $validator = Validator::make($request->all(), [
             'season_event_id' => 'required|integer|exists:SeasonEvent,SeasonEventID',
             'max_installments_number' => 'required|integer|min:1',
@@ -124,8 +127,10 @@ class SeasonEventFinanceController extends Controller
             'season_event_id.required' => __('Event is required.'),
             'season_event_id.exists' => __('Selected event does not exist.'),
             'max_installments_number.required' => __('Maximum number of installments is required.'),
+            'max_installments_number.integer' => __('Number of installments must be a whole number.'),
             'max_installments_number.min' => __('Number of installments must be at least 1.'),
             'minimum_deposit.required' => __('Minimum deposit is required.'),
+            'minimum_deposit.integer' => __('Minimum deposit must be a whole number without cents.'),
             'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
             'have_shirt.required' => __('You must specify whether a shirt is included.'),
             'have_shirt.in' => __('Invalid shirt value.'),
@@ -134,6 +139,7 @@ class SeasonEventFinanceController extends Controller
             'start_date.required' => __('At least one price interval is required.'),
             'end_date.required' => __('At least one price interval is required.'),
             'price.required' => __('At least one price interval is required.'),
+            'price.*.integer' => __('Price must be a whole number without cents.'),
         ]);
 
         if ($validator->fails()) {
@@ -272,6 +278,8 @@ class SeasonEventFinanceController extends Controller
             ]);
         }
 
+        $this->coerceWholeNumberFinanceInputs($request);
+
         $validator = Validator::make($request->all(), [
             'max_installments_number' => 'required|integer|min:1',
             'minimum_deposit' => 'required|integer|min:0',
@@ -286,8 +294,10 @@ class SeasonEventFinanceController extends Controller
             'price.*' => 'required|integer|min:0',
         ], [
             'max_installments_number.required' => __('Maximum number of installments is required.'),
+            'max_installments_number.integer' => __('Number of installments must be a whole number.'),
             'max_installments_number.min' => __('Number of installments must be at least 1.'),
             'minimum_deposit.required' => __('Minimum deposit is required.'),
+            'minimum_deposit.integer' => __('Minimum deposit must be a whole number without cents.'),
             'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
             'have_shirt.required' => __('You must specify whether a shirt is included.'),
             'have_shirt.in' => __('Invalid shirt value.'),
@@ -296,6 +306,7 @@ class SeasonEventFinanceController extends Controller
             'start_date.required' => __('At least one price interval is required.'),
             'end_date.required' => __('At least one price interval is required.'),
             'price.required' => __('At least one price interval is required.'),
+            'price.*.integer' => __('Price must be a whole number without cents.'),
         ]);
 
         if ($validator->fails()) {
@@ -426,6 +437,26 @@ class SeasonEventFinanceController extends Controller
             return redirect()->route('finance.index')->withErrors([
                 'general' => __('An error occurred while deleting the finance plan.'),
             ]);
+        }
+    }
+
+    private function coerceWholeNumberFinanceInputs(Request $request): void
+    {
+        $merge = [];
+
+        foreach (['max_installments_number', 'minimum_deposit'] as $key) {
+            if ($request->exists($key)) {
+                $merge[$key] = WholeNumberInput::coerce($request->input($key));
+            }
+        }
+
+        $prices = $request->input('price');
+        if (is_array($prices)) {
+            $merge['price'] = array_map(WholeNumberInput::coerce(...), $prices);
+        }
+
+        if ($merge !== []) {
+            $request->merge($merge);
         }
     }
 

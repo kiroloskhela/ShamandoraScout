@@ -32,14 +32,14 @@
                         <div>
                             <label for="max_installments_number" class="block mb-2 text-sm text-gray-700">{{ __('Max installments') }}</label>
                             <input type="number" min="1" id="max_installments_number" name="max_installments_number"
-                                value="{{ old('max_installments_number', $finance->MaxInstallmentsNumber) }}"
+                                value="{{ old('max_installments_number', (int) $finance->MaxInstallmentsNumber) }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
                         <div>
                             <label for="minimum_deposit" class="block mb-2 text-sm text-gray-700">{{ __('Minimum deposit') }}</label>
                             <input type="number" step="1" min="0" id="minimum_deposit" name="minimum_deposit"
-                                value="{{ old('minimum_deposit', $finance->MinimumDeposit) }}"
+                                value="{{ old('minimum_deposit', (int) $finance->MinimumDeposit) }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
                         </div>
 
@@ -164,7 +164,12 @@
             } else {
                 const existingIntervals = @json($intervals);
                 existingIntervals.forEach(interval => {
-                    createIntervalRow(interval.StartDate, interval.EndDate, interval.Price);
+                    const wholePrice = Number.parseInt(interval.Price, 10);
+                    createIntervalRow(
+                        interval.StartDate,
+                        interval.EndDate,
+                        Number.isNaN(wholePrice) ? interval.Price : wholePrice
+                    );
                 });
             }
 
