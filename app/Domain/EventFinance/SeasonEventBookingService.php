@@ -15,6 +15,13 @@ use Throwable;
  */
 class SeasonEventBookingService
 {
+    private SeasonEventPriceResolver $prices;
+
+    public function __construct(?SeasonEventPriceResolver $prices = null)
+    {
+        $this->prices = $prices ?? new SeasonEventPriceResolver;
+    }
+
     public function getEventInfo(int $seasonEventId): ?object
     {
         return DB::table('SeasonEvent as se')
@@ -319,15 +326,15 @@ class SeasonEventBookingService
         $priceDate = Carbon::parse($payload['first_payment_date'])->format('Y-m-d');
         $paymentDateTime = now();
 
-        $priceRow = DB::table('SeasonEventFinancePrice')
-            ->where('SeasonEventID', $seasonEventId)
-            ->where('StartDate', '<=', $priceDate)
-            ->where('EndDate', '>=', $priceDate)
-            ->orderBy('StartDate')
-            ->first();
+        $resolvedPrice = match ($bookingType) {
+            'PERSON' => $this->prices->personPrice($seasonEventId, $priceDate, $personID),
+            'GUEST' => $this->prices->audiencePrice($seasonEventId, $priceDate, FinancePlanIntervals::GUEST),
+            'FAMILY' => $this->prices->audiencePrice($seasonEventId, $priceDate, FinancePlanIntervals::FAMILY),
+            default => null,
+        };
 
-        if (! $priceRow) {
-            return ['ok' => false, 'field' => 'first_payment_date', 'message' => 'لا يوجد سعر صالح في هذا التاريخ.'];
+        if ($resolvedPrice === null) {
+            return ['ok' => false, 'field' => 'first_payment_date', 'message' => 'لا يوجد سعر صالح لهذا القطاع / الفئة في هذا التاريخ.'];
         }
 
         $isPermanentSpecial = $bookingType === 'PERSON' ? $this->isSpecialCase($personID) : false;
@@ -338,7 +345,7 @@ class SeasonEventBookingService
         $hasPersonSpecialCase = ($isPermanentSpecial || $specialCaseType === 'AKHOH_RAB') ? 1 : 0;
         $discountAmount = (int) ($payload['discount_amount'] ?? 0);
         $specialCaseNote = $payload['special_case_note'] ?? null;
-        $originalPrice = (int) $priceRow->Price;
+        $originalPrice = $resolvedPrice;
         $firstPaymentAmount = (int) $payload['first_payment_amount'];
         $installmentsNumber = (int) $plan->MaxInstallmentsNumber;
 

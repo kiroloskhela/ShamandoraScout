@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\EventFinance\FinancePlanIntervals;
 use App\Domain\EventFinance\SeasonEventBookingEligibilitySearch;
 use App\Domain\EventFinance\SeasonEventBookingPaymentService;
 use App\Domain\EventFinance\SeasonEventBookingService;
+use App\Domain\EventFinance\SeasonEventPriceResolver;
 use App\Http\Requests\StoreBookingInstallmentRequest;
 use App\Http\Requests\StoreSeasonEventBookingRequest;
 use App\Services\AttendanceQrService;
@@ -24,6 +26,7 @@ class SeasonEventBookingFinanceController extends Controller
         private readonly SeasonEventBookingService $bookings,
         private readonly SeasonEventBookingPaymentService $payments,
         private readonly SeasonEventBookingEligibilitySearch $eligibility,
+        private readonly SeasonEventPriceResolver $prices,
     ) {}
 
     public function selector()
@@ -233,7 +236,12 @@ class SeasonEventBookingFinanceController extends Controller
             ]);
         }
 
-        return view('event_booking_finance.create_guest_family', compact('event', 'plan', 'seasonEventID'));
+        $audienceIntervals = [
+            'GUEST' => $this->prices->audienceIntervals((int) $seasonEventID, FinancePlanIntervals::GUEST),
+            'FAMILY' => $this->prices->audienceIntervals((int) $seasonEventID, FinancePlanIntervals::FAMILY),
+        ];
+
+        return view('event_booking_finance.create_guest_family', compact('event', 'plan', 'seasonEventID', 'audienceIntervals'));
     }
 
     public function createInstallment($bookingID)

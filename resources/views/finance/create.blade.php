@@ -94,19 +94,7 @@
                         </div>
                     </div>
 
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-gray-800">{{ __('Price intervals') }}</h3>
-                            <button type="button" id="add-interval-btn"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200">{{ __('Add price interval') }}</button>
-                        </div>
-
-                        <div id="intervals-container" class="space-y-4"></div>
-
-                        <p class="text-xs text-gray-500 mt-4">
-                            {{ __('Note: if the last interval ends before the event starts, remaining days are filled automatically with the last price.') }}
-                        </p>
-                    </div>
+                    @include('finance._interval_rows')
 
                     <div class="flex justify-center">
                         <button type="submit"
@@ -125,62 +113,8 @@
             const eventNameText = document.getElementById('event_name_text');
             const eventStartText = document.getElementById('event_start_text');
             const eventEndText = document.getElementById('event_end_text');
-            const addIntervalBtn = document.getElementById('add-interval-btn');
-            const intervalsContainer = document.getElementById('intervals-container');
 
             let loadedEvents = [];
-            let intervalIndex = 0;
-
-            function createIntervalRow(startValue = '', endValue = '', priceValue = '') {
-                const wrapper = document.createElement('div');
-                wrapper.className =
-                    'grid grid-cols-1 md:grid-cols-4 gap-4 border rounded-lg p-4 bg-white interval-row';
-
-                wrapper.innerHTML = `
-            <div>
-                <label class="block mb-2 text-sm text-gray-700">{{ __('From date') }}</label>
-                <input type="date" name="start_date[]" value="${startValue}"
-                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
-            </div>
-
-            <div>
-                <label class="block mb-2 text-sm text-gray-700">{{ __('To date') }}</label>
-                <input type="date" name="end_date[]" value="${endValue}"
-                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
-            </div>
-
-            <div>
-                <label class="block mb-2 text-sm text-gray-700">{{ __('Price') }}</label>
-                <input type="number" step="1" min="0" name="price[]" value="${priceValue}"
-                    class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none" required>
-            </div>
-
-            <div class="flex items-end">
-                <button type="button"
-                    class="remove-interval-btn w-full inline-flex items-center justify-center h-12 px-4 text-sm font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">{{ __('Delete interval') }}</button>
-            </div>
-        `;
-
-                intervalsContainer.appendChild(wrapper);
-
-                wrapper.querySelector('.remove-interval-btn').addEventListener('click', function() {
-                    wrapper.remove();
-                    ensureAtLeastOneInterval();
-                });
-
-                intervalIndex++;
-            }
-
-            function ensureAtLeastOneInterval() {
-                const rows = document.querySelectorAll('.interval-row');
-                if (rows.length === 0) {
-                    createIntervalRow();
-                }
-            }
-
-            addIntervalBtn.addEventListener('click', function() {
-                createIntervalRow();
-            });
 
             seasonSelect.addEventListener('change', function() {
                 const seasonId = this.value;
@@ -239,23 +173,13 @@
                 } else {
                     eventInfoBox.classList.add('hidden');
                 }
+
+                FinanceIntervals.setSectors(selectedEvent ? selectedEvent.Sectors : []);
             });
 
-            const oldIntervalsStart = @json(old('start_date', []));
-            const oldIntervalsEnd = @json(old('end_date', []));
-            const oldIntervalsPrice = @json(old('price', []));
-
-            if (oldIntervalsStart.length > 0) {
-                for (let i = 0; i < oldIntervalsStart.length; i++) {
-                    createIntervalRow(
-                        oldIntervalsStart[i] ?? '',
-                        oldIntervalsEnd[i] ?? '',
-                        oldIntervalsPrice[i] ?? ''
-                    );
-                }
-            } else {
-                createIntervalRow();
-            }
+            const oldIntervals = @json(old('intervals', []));
+            Object.values(oldIntervals || {}).forEach(row => FinanceIntervals.addRow(row || {}));
+            FinanceIntervals.ensureOne();
 
             const oldSeasonId = @json(old('season_id'));
             if (oldSeasonId) {

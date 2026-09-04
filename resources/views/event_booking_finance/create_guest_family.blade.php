@@ -112,15 +112,21 @@
             <div class="rounded-2xl border border-slate-200 p-4">
                 <h3 class="text-sm font-extrabold text-slate-800 mb-4">{{ __('Booking details') }}</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('First payment date') }}</label>
-                        <input type="date" name="first_payment_date"
+                        <input type="date" name="first_payment_date" id="first_payment_date"
                             value="{{ old('first_payment_date', now()->format('Y-m-d')) }}"
                             class="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-blue-500 focus:outline-none">
                         @error('first_payment_date')
                             <p class="text-red-600 text-xs mt-2">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">{{ __('Price') }}</label>
+                        <div id="resolved_price"
+                            class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center text-sm font-bold text-slate-800">-</div>
                     </div>
 
                     <div>
@@ -196,11 +202,27 @@
             const familyIdInput = document.getElementById('family_id');
 
             const bookingTypeInputs = document.querySelectorAll('.booking-type-radio');
+            const dateInput = document.getElementById('first_payment_date');
+            const priceBox = document.getElementById('resolved_price');
+            const audienceIntervals = @json($audienceIntervals);
 
             function getBookingType() {
                 const checked = document.querySelector('.booking-type-radio:checked');
                 return checked ? checked.value : 'GUEST';
             }
+
+            function refreshPrice() {
+                const date = dateInput.value;
+                const prices = (audienceIntervals[getBookingType()] || [])
+                    .filter(i => i.StartDate <= date && date <= i.EndDate)
+                    .map(i => Number(i.Price));
+
+                priceBox.textContent = prices.length ? String(Math.min(...prices)) : @json(__('No price for this category on this date'));
+                priceBox.classList.toggle('text-red-600', prices.length === 0);
+            }
+
+            dateInput.addEventListener('change', refreshPrice);
+            refreshPrice();
 
             function getEndpoint() {
                 const type = getBookingType();
@@ -348,6 +370,7 @@
                     resetSelectedIds();
                     searchInput.value = '';
                     resultsBox.innerHTML = '';
+                    refreshPrice();
                 });
             });
         });

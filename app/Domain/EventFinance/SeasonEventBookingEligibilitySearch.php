@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\DB;
  */
 class SeasonEventBookingEligibilitySearch
 {
+    private SeasonEventPriceResolver $prices;
+
+    public function __construct(?SeasonEventPriceResolver $prices = null)
+    {
+        $this->prices = $prices ?? new SeasonEventPriceResolver;
+    }
+
     public function searchGuests(int $seasonEventId, ?string $term, int $limit = 20): Collection
     {
         $fields = LikeSearch::namedPartyFields('g', 'GuestID');
@@ -103,6 +110,9 @@ class SeasonEventBookingEligibilitySearch
             return collect();
         }
 
+        // The person booking form always prices by today's date.
+        $sectorPrices = $this->prices->sectorPrices($seasonEventId, now()->toDateString());
+
         return DB::table('PersonInformation as p')
             ->join('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
@@ -125,6 +135,7 @@ class SeasonEventBookingEligibilitySearch
                     COALESCE(p.FourthName,'')
                 )) as PersonFullName"),
                 DB::raw("GROUP_CONCAT(DISTINCT q.QetaaName ORDER BY q.QetaaName SEPARATOR ' , ') as QetaaNames"),
+                DB::raw('GROUP_CONCAT(DISTINCT pq.QetaaID) as QetaaIDs'),
                 DB::raw('CASE WHEN COUNT(DISTINCT pb.BlackListID) > 0 THEN 1 ELSE 0 END as IsBlacklisted'),
                 DB::raw('CASE WHEN COUNT(DISTINCT psc.SpecialCaseID) > 0 THEN 1 ELSE 0 END as IsSpecialCase'),
                 DB::raw('CASE WHEN EXISTS (
@@ -143,6 +154,21 @@ class SeasonEventBookingEligibilitySearch
             )
             ->orderBy('PersonFullName')
             ->limit($limit)
-            ->get();
+            ->get()
+            ->map(fn (object $person) => $this->withResolvedPrice($person, $sectorPrices));
+    }
+
+    /**
+     * Price the person would pay today, from their eligible sectors; null when the plan has none.
+     *
+     * @param  array<int, int>  $sectorPrices  QetaaID => Price
+     */
+    private function withResolvedPrice(object $person, array $sectorPrices): object
+    {
+        $qetaaIds = array_map('intval', array_filter(explode(',', (string) ($person->QetaaIDs ?? ''))));
+        $person->ResolvedPrice = $this->prices->cheapestSectorPrice($sectorPrices, $qetaaIds);
+        unset($person->QetaaIDs);
+
+        return $person;
     }
 }

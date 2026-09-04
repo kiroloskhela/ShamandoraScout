@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\EventFinance\FinancePlanIntervals;
 use App\Support\WholeNumberInput;
-use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 
 class SeasonEventFinanceController extends Controller
 {
+    public function __construct(private readonly FinancePlanIntervals $planIntervals) {}
+
     public function index(Request $request)
     {
         $finance = DB::table('SeasonEventFinance as sef')
@@ -95,6 +97,7 @@ class SeasonEventFinanceController extends Controller
             ->where('et.TakesReservation', 1)
             ->select(
                 'se.SeasonEventID',
+                'se.EventID',
                 'e.EventName',
                 'e.EventStartDate',
                 'e.EventEndDate',
@@ -102,6 +105,16 @@ class SeasonEventFinanceController extends Controller
             )
             ->orderBy('e.EventStartDate')
             ->get();
+
+        $sectorsByEvent = $this->planIntervals->sectorsByEvent(
+            $events->pluck('EventID')->map(fn ($id) => (int) $id)->unique()->values()->all()
+        );
+
+        $events = $events->map(function ($event) use ($sectorsByEvent) {
+            $event->Sectors = $this->sectorOptions($sectorsByEvent[(int) $event->EventID] ?? []);
+
+            return $event;
+        });
 
         return response()->json($events);
     }
@@ -112,34 +125,11 @@ class SeasonEventFinanceController extends Controller
 
         $validator = Validator::make($request->all(), [
             'season_event_id' => 'required|integer|exists:SeasonEvent,SeasonEventID',
-            'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|integer|min:0',
-            'allow_below_minimum_deposit' => 'required|in:0,1',
-            'have_shirt' => 'required|in:0,1',
-            'send_qr_whatsapp' => 'required|in:0,1',
-            'start_date' => 'required|array|min:1',
-            'start_date.*' => 'required|date',
-            'end_date' => 'required|array|min:1',
-            'end_date.*' => 'required|date',
-            'price' => 'required|array|min:1',
-            'price.*' => 'required|integer|min:0',
+            ...$this->planRules(),
         ], [
             'season_event_id.required' => __('Event is required.'),
             'season_event_id.exists' => __('Selected event does not exist.'),
-            'max_installments_number.required' => __('Maximum number of installments is required.'),
-            'max_installments_number.integer' => __('Number of installments must be a whole number.'),
-            'max_installments_number.min' => __('Number of installments must be at least 1.'),
-            'minimum_deposit.required' => __('Minimum deposit is required.'),
-            'minimum_deposit.integer' => __('Minimum deposit must be a whole number without cents.'),
-            'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
-            'have_shirt.required' => __('You must specify whether a shirt is included.'),
-            'have_shirt.in' => __('Invalid shirt value.'),
-            'send_qr_whatsapp.required' => __('You must specify whether to send QR via WhatsApp.'),
-            'send_qr_whatsapp.in' => __('Invalid send QR via WhatsApp value.'),
-            'start_date.required' => __('At least one price interval is required.'),
-            'end_date.required' => __('At least one price interval is required.'),
-            'price.required' => __('At least one price interval is required.'),
-            'price.*.integer' => __('Price must be a whole number without cents.'),
+            ...$this->planMessages(),
         ]);
 
         if ($validator->fails()) {
@@ -176,10 +166,10 @@ class SeasonEventFinanceController extends Controller
                 'season_event_id' => __('Finance plans can only be created for events that accept bookings.'),
             ])->withInput();
         }
-        $intervalsResult = $this->prepareAndValidateIntervals(
-            $request->start_date,
-            $request->end_date,
-            $request->price,
+
+        $intervalsResult = $this->planIntervals->prepare(
+            $request->input('intervals'),
+            $this->planIntervals->eventSectors((int) $seasonEventID),
             $event->EventStartDate
         );
 
@@ -201,14 +191,7 @@ class SeasonEventFinanceController extends Controller
                 'SendQrWhatsApp' => $request->send_qr_whatsapp,
             ]);
 
-            foreach ($intervalsResult['intervals'] as $interval) {
-                DB::table('SeasonEventFinancePrice')->insert([
-                    'SeasonEventID' => $seasonEventID,
-                    'StartDate' => $interval['StartDate'],
-                    'EndDate' => $interval['EndDate'],
-                    'Price' => $interval['Price'],
-                ]);
-            }
+            $this->planIntervals->replace((int) $seasonEventID, $intervalsResult['intervals']);
 
             DB::commit();
 
@@ -254,12 +237,10 @@ class SeasonEventFinanceController extends Controller
             ]);
         }
 
-        $intervals = DB::table('SeasonEventFinancePrice')
-            ->where('SeasonEventID', $id)
-            ->orderBy('StartDate')
-            ->get();
+        $intervals = $this->planIntervals->forEdit((int) $id);
+        $sectors = $this->sectorOptions($this->planIntervals->eventSectors((int) $id));
 
-        return view('finance.edit', compact('finance', 'intervals'));
+        return view('finance.edit', compact('finance', 'intervals', 'sectors'));
     }
 
     public function update(Request $request, $id)
@@ -280,34 +261,7 @@ class SeasonEventFinanceController extends Controller
 
         $this->coerceWholeNumberFinanceInputs($request);
 
-        $validator = Validator::make($request->all(), [
-            'max_installments_number' => 'required|integer|min:1',
-            'minimum_deposit' => 'required|integer|min:0',
-            'allow_below_minimum_deposit' => 'required|in:0,1',
-            'have_shirt' => 'required|in:0,1',
-            'send_qr_whatsapp' => 'required|in:0,1',
-            'start_date' => 'required|array|min:1',
-            'start_date.*' => 'required|date',
-            'end_date' => 'required|array|min:1',
-            'end_date.*' => 'required|date',
-            'price' => 'required|array|min:1',
-            'price.*' => 'required|integer|min:0',
-        ], [
-            'max_installments_number.required' => __('Maximum number of installments is required.'),
-            'max_installments_number.integer' => __('Number of installments must be a whole number.'),
-            'max_installments_number.min' => __('Number of installments must be at least 1.'),
-            'minimum_deposit.required' => __('Minimum deposit is required.'),
-            'minimum_deposit.integer' => __('Minimum deposit must be a whole number without cents.'),
-            'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
-            'have_shirt.required' => __('You must specify whether a shirt is included.'),
-            'have_shirt.in' => __('Invalid shirt value.'),
-            'send_qr_whatsapp.required' => __('You must specify whether to send QR via WhatsApp.'),
-            'send_qr_whatsapp.in' => __('Invalid send QR via WhatsApp value.'),
-            'start_date.required' => __('At least one price interval is required.'),
-            'end_date.required' => __('At least one price interval is required.'),
-            'price.required' => __('At least one price interval is required.'),
-            'price.*.integer' => __('Price must be a whole number without cents.'),
-        ]);
+        $validator = Validator::make($request->all(), $this->planRules(), $this->planMessages());
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -320,10 +274,9 @@ class SeasonEventFinanceController extends Controller
             ])->withInput();
         }
 
-        $intervalsResult = $this->prepareAndValidateIntervals(
-            $request->start_date,
-            $request->end_date,
-            $request->price,
+        $intervalsResult = $this->planIntervals->prepare(
+            $request->input('intervals'),
+            $this->planIntervals->eventSectors((int) $id),
             $event->EventStartDate
         );
 
@@ -346,18 +299,7 @@ class SeasonEventFinanceController extends Controller
                     'SendQrWhatsApp' => $request->send_qr_whatsapp,
                 ]);
 
-            DB::table('SeasonEventFinancePrice')
-                ->where('SeasonEventID', $id)
-                ->delete();
-
-            foreach ($intervalsResult['intervals'] as $interval) {
-                DB::table('SeasonEventFinancePrice')->insert([
-                    'SeasonEventID' => $id,
-                    'StartDate' => $interval['StartDate'],
-                    'EndDate' => $interval['EndDate'],
-                    'Price' => $interval['Price'],
-                ]);
-            }
+            $this->planIntervals->replace((int) $id, $intervalsResult['intervals']);
 
             DB::commit();
 
@@ -420,9 +362,7 @@ class SeasonEventFinanceController extends Controller
         DB::beginTransaction();
 
         try {
-            DB::table('SeasonEventFinancePrice')
-                ->where('SeasonEventID', $id)
-                ->delete();
+            $this->planIntervals->deleteAll((int) $id);
 
             DB::table('SeasonEventFinance')
                 ->where('SeasonEventID', $id)
@@ -450,14 +390,84 @@ class SeasonEventFinanceController extends Controller
             }
         }
 
-        $prices = $request->input('price');
-        if (is_array($prices)) {
-            $merge['price'] = array_map(WholeNumberInput::coerce(...), $prices);
+        $intervals = $request->input('intervals');
+        if (is_array($intervals)) {
+            foreach ($intervals as $key => $row) {
+                if (is_array($row) && array_key_exists('price', $row)) {
+                    $intervals[$key]['price'] = WholeNumberInput::coerce($row['price']);
+                }
+            }
+            $merge['intervals'] = $intervals;
         }
 
         if ($merge !== []) {
             $request->merge($merge);
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function planRules(): array
+    {
+        return [
+            'max_installments_number' => 'required|integer|min:1',
+            'minimum_deposit' => 'required|integer|min:0',
+            'allow_below_minimum_deposit' => 'required|in:0,1',
+            'have_shirt' => 'required|in:0,1',
+            'send_qr_whatsapp' => 'required|in:0,1',
+            'intervals' => 'required|array|min:1|max:'.FinancePlanIntervals::MAX_ROWS,
+            'intervals.*.start_date' => 'required|date',
+            'intervals.*.end_date' => 'required|date',
+            'intervals.*.price' => 'required|integer|min:0',
+            'intervals.*.audience' => 'required|array|min:1|max:100',
+            'intervals.*.audience.*' => 'required|string|max:20',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function planMessages(): array
+    {
+        return [
+            'max_installments_number.required' => __('Maximum number of installments is required.'),
+            'max_installments_number.integer' => __('Number of installments must be a whole number.'),
+            'max_installments_number.min' => __('Number of installments must be at least 1.'),
+            'minimum_deposit.required' => __('Minimum deposit is required.'),
+            'minimum_deposit.integer' => __('Minimum deposit must be a whole number without cents.'),
+            'minimum_deposit.min' => __('Minimum deposit cannot be less than 0.'),
+            'have_shirt.required' => __('You must specify whether a shirt is included.'),
+            'have_shirt.in' => __('Invalid shirt value.'),
+            'send_qr_whatsapp.required' => __('You must specify whether to send QR via WhatsApp.'),
+            'send_qr_whatsapp.in' => __('Invalid send QR via WhatsApp value.'),
+            'intervals.required' => __('At least one price interval is required.'),
+            'intervals.max' => __('Too many price intervals (max :max).', ['max' => FinancePlanIntervals::MAX_ROWS]),
+            'intervals.*.start_date.required' => __('All price interval fields must be filled.'),
+            'intervals.*.end_date.required' => __('All price interval fields must be filled.'),
+            'intervals.*.price.required' => __('All price interval fields must be filled.'),
+            'intervals.*.start_date.date' => __('One of the interval dates is invalid.'),
+            'intervals.*.end_date.date' => __('One of the interval dates is invalid.'),
+            'intervals.*.price.integer' => __('Price must be a whole number without cents.'),
+            'intervals.*.price.min' => __('Price must be a whole number without cents.'),
+            'intervals.*.audience.required' => __('Each price interval must apply to at least one sector, families, or guests.'),
+            'intervals.*.audience.*.string' => __('Price interval audience is invalid.'),
+            'intervals.*.audience.*.max' => __('Price interval audience is invalid.'),
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $sectors  QetaaID => QetaaName
+     * @return list<array{QetaaID: int, QetaaName: string}>
+     */
+    private function sectorOptions(array $sectors): array
+    {
+        $options = [];
+        foreach ($sectors as $id => $name) {
+            $options[] = ['QetaaID' => (int) $id, 'QetaaName' => $name];
+        }
+
+        return $options;
     }
 
     private function hasPayments($seasonEventID)
@@ -483,104 +493,5 @@ class SeasonEventFinanceController extends Controller
                 'e.EventEndDate'
             )
             ->first();
-    }
-
-    private function prepareAndValidateIntervals($startDates, $endDates, $prices, $eventStartDate)
-    {
-        $intervals = [];
-
-        if (
-            ! is_array($startDates) ||
-            ! is_array($endDates) ||
-            ! is_array($prices) ||
-            count($startDates) !== count($endDates) ||
-            count($endDates) !== count($prices)
-        ) {
-            return [
-                'success' => false,
-                'message' => __('Price interval data is invalid.'),
-            ];
-        }
-
-        $count = count($startDates);
-
-        for ($i = 0; $i < $count; $i++) {
-            $start = trim((string) $startDates[$i]);
-            $end = trim((string) $endDates[$i]);
-            $price = $prices[$i];
-
-            if ($start === '' || $end === '' || $price === '' || $price === null) {
-                return [
-                    'success' => false,
-                    'message' => __('All price interval fields must be filled.'),
-                ];
-            }
-
-            try {
-                $startCarbon = Carbon::parse($start);
-                $endCarbon = Carbon::parse($end);
-                $eventStartCarbon = Carbon::parse($eventStartDate);
-            } catch (Exception $e) {
-                return [
-                    'success' => false,
-                    'message' => __('One of the interval dates is invalid.'),
-                ];
-            }
-
-            if ($startCarbon->gt($endCarbon)) {
-                return [
-                    'success' => false,
-                    'message' => __('Interval start date must be on or before the end date.'),
-                ];
-            }
-
-            if ($startCarbon->gt($eventStartCarbon) || $endCarbon->gt($eventStartCarbon)) {
-                return [
-                    'success' => false,
-                    'message' => __('No price interval may exceed the event start date.'),
-                ];
-            }
-
-            $intervals[] = [
-                'StartDate' => $startCarbon->format('Y-m-d'),
-                'EndDate' => $endCarbon->format('Y-m-d'),
-                'Price' => $price,
-            ];
-        }
-
-        usort($intervals, function ($a, $b) {
-            return strcmp($a['StartDate'], $b['StartDate']);
-        });
-
-        for ($i = 1; $i < count($intervals); $i++) {
-            $previousEnd = Carbon::parse($intervals[$i - 1]['EndDate']);
-            $expectedStart = $previousEnd->copy()->addDay()->format('Y-m-d');
-
-            if ($intervals[$i]['StartDate'] !== $expectedStart) {
-                return [
-                    'success' => false,
-                    'message' => __('Each interval must start the day after the previous interval ends, with no gaps or overlap.'),
-                ];
-            }
-        }
-
-        $lastInterval = end($intervals);
-        $lastEnd = Carbon::parse($lastInterval['EndDate']);
-        $eventStartCarbon = Carbon::parse($eventStartDate);
-
-        if ($lastEnd->lt($eventStartCarbon)) {
-            $autoStart = $lastEnd->copy()->addDay();
-
-            $intervals[] = [
-                'StartDate' => $autoStart->format('Y-m-d'),
-                'EndDate' => $eventStartCarbon->format('Y-m-d'),
-                'Price' => $lastInterval['Price'],
-            ];
-        }
-
-        return [
-            'success' => true,
-            'intervals' => $intervals,
-        ];
     }
 }

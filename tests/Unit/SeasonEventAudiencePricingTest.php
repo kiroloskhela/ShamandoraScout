@@ -3,160 +3,180 @@
 namespace Tests\Unit;
 
 use App\Domain\EventFinance\SeasonEventBookingService;
+use App\Domain\EventFinance\SeasonEventPriceResolver;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class SeasonEventBookingZeroPaymentTest extends TestCase
+/**
+ * Booking price depends on (payment date × who books): sector, family or guest.
+ */
+class SeasonEventAudiencePricingTest extends TestCase
 {
+    private const SECTOR_A = 1;
+
+    private const SECTOR_D = 2;
+
+    private const SECTOR_UNPRICED = 3;
+
     private SeasonEventBookingService $bookings;
+
+    private SeasonEventPriceResolver $prices;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->bookings = new SeasonEventBookingService;
+        $this->prices = new SeasonEventPriceResolver;
+        $this->bookings = new SeasonEventBookingService($this->prices);
         $this->createSchema();
-        $this->seedEvent(price: 200, maxInstallments: 1, minimumDeposit: 50);
+        $this->seedEvent();
     }
 
-    public function test_person_akhoh_rab_full_discount_allows_zero_first_payment(): void
+    public function test_person_price_follows_their_sector(): void
     {
-        $result = $this->bookings->createBooking(1, [
-            'booking_type' => 'PERSON',
-            'person_id' => 7,
-            'first_payment_date' => '2026-08-20',
-            'first_payment_amount' => 0,
-            'is_not_able_to_pay_all' => 1,
-            'special_case_type' => 'AKHOH_RAB',
-            'discount_amount' => 200,
+        $this->seedPerson(10, [self::SECTOR_A]);
+        $this->seedPerson(20, [self::SECTOR_D]);
+
+        $a = $this->bookings->createBooking(1, $this->personPayload(10, 200), 7);
+        $d = $this->bookings->createBooking(1, $this->personPayload(20, 400), 7);
+
+        $this->assertTrue($a['ok'], $a['message'] ?? '');
+        $this->assertTrue($d['ok'], $d['message'] ?? '');
+        $this->assertSame(200, (int) DB::table('SeasonEventParticipantFinance')->where('PersonID', 10)->value('OriginalPrice'));
+        $this->assertSame(400, (int) DB::table('SeasonEventParticipantFinance')->where('PersonID', 20)->value('OriginalPrice'));
+    }
+
+    public function test_guest_uses_guest_price_and_family_without_price_is_refused(): void
+    {
+        $guest = $this->bookings->createBooking(1, [
+            'booking_type' => 'GUEST',
+            'guest_id' => 1,
+            'first_payment_date' => '2026-05-06',
+            'first_payment_amount' => 150,
+        ], 7);
+        $family = $this->bookings->createBooking(1, [
+            'booking_type' => 'FAMILY',
+            'family_id' => 1,
+            'first_payment_date' => '2026-05-06',
+            'first_payment_amount' => 150,
         ], 7);
 
-        $this->assertTrue($result['ok']);
-        $booking = DB::table('SeasonEventParticipantFinance')->first();
-        $this->assertSame(0, (int) $booking->FinalRequiredAmount);
-        $this->assertSame(0, (int) $booking->AmountPaid);
-        $this->assertSame(0, (int) $booking->RemainingAmount);
-        $this->assertSame('AKHOH_RAB', $booking->SpecialCaseType);
+        $this->assertTrue($guest['ok'], $guest['message'] ?? '');
+        $this->assertSame(150, (int) DB::table('SeasonEventParticipantFinance')->where('GuestID', 1)->value('OriginalPrice'));
+        $this->assertFalse($family['ok']);
+        $this->assertSame('first_payment_date', $family['field']);
     }
 
-    public function test_full_discount_allows_zero_first_payment(): void
+    public function test_price_row_without_audience_never_applies(): void
     {
-        $result = $this->bookings->createBooking(1, $this->guestPayload([
-            'first_payment_amount' => 0,
-            'discount_amount' => 200,
-        ]), 7);
+        $this->seedPerson(30, [self::SECTOR_UNPRICED]);
 
-        $this->assertTrue($result['ok']);
-        $this->assertArrayHasKey('payment_id', $result);
-
-        $booking = DB::table('SeasonEventParticipantFinance')->first();
-        $this->assertSame(200, (int) $booking->OriginalPrice);
-        $this->assertSame(200, (int) $booking->DiscountAmount);
-        $this->assertSame(0, (int) $booking->FinalRequiredAmount);
-        $this->assertSame(0, (int) $booking->AmountPaid);
-        $this->assertSame(0, (int) $booking->RemainingAmount);
-
-        $payment = DB::table('SeasonEventParticipantFinancePayment')->first();
-        $this->assertSame(0, (int) $payment->Amount);
-        $this->assertSame(1, (int) $payment->InstallmentNumber);
-    }
-
-    public function test_zero_first_payment_is_rejected_when_amount_remains(): void
-    {
-        $result = $this->bookings->createBooking(1, $this->guestPayload([
-            'first_payment_amount' => 0,
-            'discount_amount' => 0,
-        ]), 7);
+        $result = $this->bookings->createBooking(1, $this->personPayload(30, 100), 7);
 
         $this->assertFalse($result['ok']);
-        $this->assertSame('first_payment_amount', $result['field']);
+        $this->assertSame('first_payment_date', $result['field']);
         $this->assertSame(0, DB::table('SeasonEventParticipantFinance')->count());
     }
 
-    public function test_discount_greater_than_price_is_rejected(): void
+    public function test_person_in_two_priced_sectors_gets_the_cheapest(): void
     {
-        $result = $this->bookings->createBooking(1, $this->guestPayload([
-            'first_payment_amount' => 0,
-            'discount_amount' => 250,
-        ]), 7);
+        $this->seedPerson(40, [self::SECTOR_A, self::SECTOR_D]);
 
-        $this->assertFalse($result['ok']);
-        $this->assertSame('discount_amount', $result['field']);
-        $this->assertSame(0, DB::table('SeasonEventParticipantFinance')->count());
+        $this->assertSame(200, $this->prices->personPrice(1, '2026-05-06', 40));
     }
 
-    public function test_payment_above_zero_is_rejected_when_discount_covers_price(): void
+    public function test_date_outside_every_interval_has_no_price(): void
     {
-        $result = $this->bookings->createBooking(1, $this->guestPayload([
-            'first_payment_amount' => 50,
-            'discount_amount' => 200,
-        ]), 7);
+        $this->seedPerson(10, [self::SECTOR_A]);
 
-        $this->assertFalse($result['ok']);
-        $this->assertSame('first_payment_amount', $result['field']);
-        $this->assertSame(0, DB::table('SeasonEventParticipantFinance')->count());
+        $this->assertNull($this->prices->personPrice(1, '2026-01-01', 10));
+        $this->assertNull($this->prices->audiencePrice(1, '2026-01-01', 'GUEST'));
+    }
+
+    public function test_audience_intervals_lists_only_that_audience(): void
+    {
+        $rows = $this->prices->audienceIntervals(1, 'GUEST');
+
+        $this->assertCount(1, $rows);
+        $this->assertSame(150, $rows->first()->Price);
+        $this->assertCount(0, $this->prices->audienceIntervals(1, 'FAMILY'));
     }
 
     /**
-     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
-    private function guestPayload(array $overrides): array
+    private function personPayload(int $personId, int $amount): array
     {
-        return array_merge([
-            'booking_type' => 'GUEST',
-            'guest_id' => 1,
-            'first_payment_date' => '2026-08-20',
-            'first_payment_amount' => 200,
-            'discount_amount' => 0,
-        ], $overrides);
+        return [
+            'booking_type' => 'PERSON',
+            'person_id' => $personId,
+            'first_payment_date' => '2026-05-06',
+            'first_payment_amount' => $amount,
+        ];
     }
 
-    private function seedEvent(int $price, int $maxInstallments, int $minimumDeposit): void
+    /**
+     * @param  list<int>  $sectorIds
+     */
+    private function seedPerson(int $personId, array $sectorIds): void
     {
-        DB::table('Season')->insert([
-            'SeasonID' => 1,
-            'SeasonName' => 'Test',
-            'SeasonYear' => 2026,
-        ]);
-        DB::table('EventType')->insert([
-            'EventTypeID' => 1,
-            'EventTypeName' => 'Camp',
-            'TakesReservation' => 0,
-        ]);
+        foreach ($sectorIds as $sectorId) {
+            DB::table('PersonQetaa')->insert(['PersonID' => $personId, 'QetaaID' => $sectorId]);
+        }
+    }
+
+    private function seedEvent(): void
+    {
+        DB::table('Season')->insert(['SeasonID' => 1, 'SeasonName' => 'Test', 'SeasonYear' => 2026]);
+        DB::table('EventType')->insert(['EventTypeID' => 1, 'EventTypeName' => 'Camp', 'TakesReservation' => 0]);
         DB::table('Event')->insert([
             'EventID' => 1,
             'EventTypeID' => 1,
             'EventName' => 'Trip',
-            'EventStartDate' => '2026-08-20',
-            'EventEndDate' => '2026-08-22',
+            'EventStartDate' => '2026-05-10',
+            'EventEndDate' => '2026-05-12',
         ]);
-        DB::table('SeasonEvent')->insert([
-            'SeasonEventID' => 1,
-            'SeasonID' => 1,
-            'EventID' => 1,
-        ]);
+        DB::table('SeasonEvent')->insert(['SeasonEventID' => 1, 'SeasonID' => 1, 'EventID' => 1]);
         DB::table('SeasonEventFinance')->insert([
             'SeasonEventID' => 1,
-            'MaxInstallmentsNumber' => $maxInstallments,
-            'MinimumDeposit' => $minimumDeposit,
-            'AllowBelowMinimumDeposit' => 0,
+            'MaxInstallmentsNumber' => 1,
+            'MinimumDeposit' => 0,
+            'AllowBelowMinimumDeposit' => 1,
             'SendQrWhatsApp' => 0,
         ]);
+        foreach ([self::SECTOR_A, self::SECTOR_D, self::SECTOR_UNPRICED] as $sectorId) {
+            DB::table('EventQetaa')->insert(['EventID' => 1, 'QetaaID' => $sectorId]);
+        }
+
+        $this->seedPrice(200, [['QETAA', self::SECTOR_A]]);
+        $this->seedPrice(400, [['QETAA', self::SECTOR_D]]);
+        $this->seedPrice(150, [['GUEST', null]]);
+        $this->seedPrice(50, []);
+
+        DB::table('Guests')->insert(['GuestID' => 1, 'FirstName' => 'Guest']);
+        DB::table('FamilyMembers')->insert(['FamilyID' => 1, 'FirstName' => 'Family']);
+    }
+
+    /**
+     * @param  list<array{0: string, 1: int|null}>  $audiences
+     */
+    private function seedPrice(int $price, array $audiences): void
+    {
         $priceId = DB::table('SeasonEventFinancePrice')->insertGetId([
             'SeasonEventID' => 1,
-            'StartDate' => '2026-01-01',
-            'EndDate' => '2026-12-31',
+            'StartDate' => '2026-05-05',
+            'EndDate' => '2026-05-10',
             'Price' => $price,
         ]);
-        DB::table('SeasonEventFinancePriceAudience')->insert([
-            ['SeasonEventFinancePriceID' => $priceId, 'AudienceType' => 'QETAA', 'QetaaID' => 1],
-            ['SeasonEventFinancePriceID' => $priceId, 'AudienceType' => 'GUEST', 'QetaaID' => null],
-        ]);
-        DB::table('Guests')->insert(['GuestID' => 1, 'FirstName' => 'Guest']);
-        DB::table('EventQetaa')->insert(['EventID' => 1, 'QetaaID' => 1]);
-        DB::table('PersonQetaa')->insert(['PersonID' => 7, 'QetaaID' => 1]);
+
+        foreach ($audiences as [$type, $qetaaId]) {
+            DB::table('SeasonEventFinancePriceAudience')->insert([
+                'SeasonEventFinancePriceID' => $priceId,
+                'AudienceType' => $type,
+                'QetaaID' => $qetaaId,
+            ]);
+        }
     }
 
     private function createSchema(): void
@@ -173,6 +193,7 @@ class SeasonEventBookingZeroPaymentTest extends TestCase
             'EventType',
             'Season',
             'Guests',
+            'FamilyMembers',
             'EventQetaa',
             'PersonQetaa',
             'PersonBlackList',
@@ -228,13 +249,15 @@ class SeasonEventBookingZeroPaymentTest extends TestCase
             $table->increments('GuestID');
             $table->string('FirstName')->nullable();
         });
+        Schema::create('FamilyMembers', function (Blueprint $table) {
+            $table->increments('FamilyID');
+            $table->string('FirstName')->nullable();
+        });
         Schema::create('EventQetaa', function (Blueprint $table) {
-            $table->increments('EventQetaaID');
             $table->unsignedInteger('EventID');
             $table->unsignedInteger('QetaaID');
         });
         Schema::create('PersonQetaa', function (Blueprint $table) {
-            $table->increments('PersonQetaaID');
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('QetaaID');
         });

@@ -48,6 +48,7 @@
                         <div><strong>{{ __('Mobile:') }}</strong> <span id="selected-person-mobile"></span></div>
                         <div><strong>{{ __('Sector:') }}</strong> <span id="selected-person-qetaa"></span></div>
                         <div><strong>{{ __('Status:') }}</strong> <span id="selected-person-status"></span></div>
+                        <div><strong>{{ __('Price:') }}</strong> <span id="selected-person-price" class="font-bold"></span></div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -175,6 +176,7 @@
             const selectedMobile = document.getElementById('selected-person-mobile');
             const selectedQetaa = document.getElementById('selected-person-qetaa');
             const selectedStatus = document.getElementById('selected-person-status');
+            const selectedPrice = document.getElementById('selected-person-price');
             const firstPaymentAmountInput = document.getElementById('first_payment_amount');
             const submitBtn = document.getElementById('submit-btn');
             const minimumDeposit = {{ (float) $plan->MinimumDeposit }};
@@ -251,11 +253,16 @@
 
                             data.forEach(person => {
                                 const item = document.createElement('div');
+                                const hasPrice = person.ResolvedPrice !== null && person.ResolvedPrice !== undefined;
                                 const disabled = parseInt(person.IsBlacklisted) === 1 ||
-                                    parseInt(person.AlreadyBooked) === 1;
+                                    parseInt(person.AlreadyBooked) === 1 || !hasPrice;
                                 item.className = 'p-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0';
 
                                 let statusBadges = '';
+                                if (!hasPrice) {
+                                    statusBadges +=
+                                        '<span class="inline-block bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 px-2 py-1 rounded text-xs ml-1">{{ __('No price for this sector today') }}</span>';
+                                }
                                 if (parseInt(person.IsBlacklisted) === 1) {
                                     statusBadges +=
                                         '<span class="inline-block bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-200 px-2 py-1 rounded text-xs ml-1">{{ __('Blacklisted') }}</span>';
@@ -275,6 +282,7 @@
                                         <div class="text-xs mt-1">PersonID: ${escapeHtml(person.PersonID)}</div>
                                         <div class="text-xs">${@json(__('Mobile:'))} ${escapeHtml(person.PersonPersonalMobileNumber ?? '-')}</div>
                                         <div class="text-xs">${@json(__('Sector:'))} ${escapeHtml(person.QetaaNames ?? '-')}</div>
+                                        <div class="text-xs font-bold">${@json(__('Price:'))} ${escapeHtml(hasPrice ? person.ResolvedPrice : '-')}</div>
                                         <div class="mt-2">${statusBadges}</div>
                                     </div>
                                 `;
@@ -297,6 +305,7 @@
                                         selectedStatus.textContent = parseInt(
                                                 person.IsSpecialCase) === 1 ?
                                             @json(__('Brotherhood case')) : @json(__('Normal'));
+                                        selectedPrice.textContent = String(person.ResolvedPrice);
                                         selectedBox.classList.remove('hidden');
                                         resultsBox.classList.add('hidden');
                                     });
