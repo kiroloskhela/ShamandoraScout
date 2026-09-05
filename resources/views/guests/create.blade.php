@@ -64,6 +64,9 @@
                         <div>
                             <label for="mobile_number" class="block mb-2 text-sm text-gray-700">{{ __('Mobile number') }}</label>
                             <input type="text" id="mobile_number" name="mobile_number" value="{{ old('mobile_number') }}"
+                                inputmode="numeric" pattern="\d{11}" maxlength="11" minlength="11"
+                                title="رقم الموبايل يجب أن يكون 11 رقم"
+                                oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
                                 class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                         </div>
 
@@ -76,6 +79,9 @@
                         <div>
                             <label for="raqam_qawmy" class="block mb-2 text-sm text-gray-700">{{ __('National ID') }}</label>
                             <input type="text" id="raqam_qawmy" name="raqam_qawmy" value="{{ old('raqam_qawmy') }}"
+                                inputmode="numeric" pattern="\d{14}" maxlength="14" minlength="14"
+                                title="الرقم القومي يجب أن يكون 14 رقم"
+                                oninput="this.value=this.value.replace(/\D/g,'').slice(0,14)"
                                 class="w-full h-12 px-4 border rounded-lg border-slate-200 text-slate-700 focus:border-blue-500 focus:outline-none">
                         </div>
 
