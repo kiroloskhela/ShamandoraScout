@@ -17,6 +17,7 @@ class PersonExamMark extends Model
         'ServentID',
         'QetaaID',
         'SanaMarhalaID',
+        'SeasonID',
         'TheoreticalMark',
         'PracticalMark',
         'ExamDate',
@@ -25,6 +26,7 @@ class PersonExamMark extends Model
 
     protected $casts = [
         'ExamDate' => 'date',
+        'SeasonID' => 'integer',
         'TheoreticalMark' => 'integer',
         'PracticalMark' => 'integer',
     ];

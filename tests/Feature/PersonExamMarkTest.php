@@ -28,6 +28,7 @@ class PersonExamMarkTest extends TestCase
             'PersonQetaa',
             'SanaMarhala',
             'Qetaa',
+            'Season',
             'PersonRole',
             'Roles',
             'PersonImages',
@@ -85,6 +86,13 @@ class PersonExamMarkTest extends TestCase
             $table->unsignedInteger('MarhalaID')->nullable();
         });
 
+        Schema::create('Season', function (Blueprint $table) {
+            $table->increments('SeasonID');
+            $table->string('SeasonName');
+            $table->integer('SeasonYear');
+            $table->unsignedTinyInteger('IsActive')->default(0);
+        });
+
         Schema::create('PersonQetaa', function (Blueprint $table) {
             $table->unsignedInteger('PersonID');
             $table->unsignedInteger('QetaaID');
@@ -115,6 +123,7 @@ class PersonExamMarkTest extends TestCase
             $table->unsignedInteger('ServentID');
             $table->unsignedInteger('QetaaID');
             $table->unsignedInteger('SanaMarhalaID');
+            $table->unsignedInteger('SeasonID')->nullable();
             $table->integer('TheoreticalMark');
             $table->integer('PracticalMark');
             $table->date('ExamDate');
@@ -141,6 +150,11 @@ class PersonExamMarkTest extends TestCase
 
         $qetaaId = DB::table('Qetaa')->insertGetId(['QetaaName' => 'أشبال']);
         $sanaId = DB::table('SanaMarhala')->insertGetId(['SanaMarhalaName' => 'ثالثة إعدادي']);
+        $seasonId = DB::table('Season')->insertGetId([
+            'SeasonName' => 'موسم 2026',
+            'SeasonYear' => 2026,
+            'IsActive' => 1,
+        ]);
 
         $scout = User::create([
             'FirstName' => 'John',
@@ -156,18 +170,39 @@ class PersonExamMarkTest extends TestCase
         DB::table('PersonGroup')->insert(['PersonID' => $admin->PersonID, 'GroupID' => $groupId]);
         DB::table('PersonGroup')->insert(['PersonID' => $scout->PersonID, 'GroupID' => $groupId]);
 
-        return compact('admin', 'scout', 'qetaaId', 'sanaId');
+        return compact('admin', 'scout', 'qetaaId', 'sanaId', 'seasonId');
     }
 
-    public function test_can_store_whole_number_marks_including_over_100(): void
+    public function test_rejects_marks_over_100(): void
     {
-        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId] = $this->createAdminAndScout();
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
+
+        $response = $this->actingAs($admin)->from(route('personexammark.create'))->post(route('personexammark.insert'), [
+            'person_id' => $scout->PersonID,
+            'qetaa_id' => $qetaaId,
+            'sana_marhala_id' => $sanaId,
+            'season_id' => $seasonId,
+            'theoretical_mark' => 110,
+            'practical_mark' => 70,
+            'exam_date' => '2024-05-01',
+            'note' => 'نهائي',
+        ]);
+
+        $response->assertRedirect(route('personexammark.create'));
+        $response->assertSessionHasErrors('theoretical_mark');
+        $this->assertDatabaseCount('PersonExamMark', 0);
+    }
+
+    public function test_can_store_marks_at_100_with_season(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
 
         $response = $this->actingAs($admin)->post(route('personexammark.insert'), [
             'person_id' => $scout->PersonID,
             'qetaa_id' => $qetaaId,
             'sana_marhala_id' => $sanaId,
-            'theoretical_mark' => 110,
+            'season_id' => $seasonId,
+            'theoretical_mark' => 100,
             'practical_mark' => 70,
             'exam_date' => '2024-05-01',
             'note' => 'نهائي',
@@ -180,7 +215,8 @@ class PersonExamMarkTest extends TestCase
             'ServentID' => $admin->PersonID,
             'QetaaID' => $qetaaId,
             'SanaMarhalaID' => $sanaId,
-            'TheoreticalMark' => 110,
+            'SeasonID' => $seasonId,
+            'TheoreticalMark' => 100,
             'PracticalMark' => 70,
             'Note' => 'نهائي',
         ]);
@@ -188,12 +224,13 @@ class PersonExamMarkTest extends TestCase
 
     public function test_rejects_decimal_marks(): void
     {
-        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId] = $this->createAdminAndScout();
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
 
         $response = $this->actingAs($admin)->from(route('personexammark.create'))->post(route('personexammark.insert'), [
             'person_id' => $scout->PersonID,
             'qetaa_id' => $qetaaId,
             'sana_marhala_id' => $sanaId,
+            'season_id' => $seasonId,
             'theoretical_mark' => 80.5,
             'practical_mark' => 70,
             'exam_date' => '2024-05-01',
@@ -204,15 +241,69 @@ class PersonExamMarkTest extends TestCase
         $this->assertDatabaseCount('PersonExamMark', 0);
     }
 
-    public function test_index_lists_exam_marks_page(): void
+    public function test_rejects_missing_season(): void
     {
         ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId] = $this->createAdminAndScout();
+
+        $response = $this->actingAs($admin)->from(route('personexammark.create'))->post(route('personexammark.insert'), [
+            'person_id' => $scout->PersonID,
+            'qetaa_id' => $qetaaId,
+            'sana_marhala_id' => $sanaId,
+            'theoretical_mark' => 80,
+            'practical_mark' => 70,
+            'exam_date' => '2024-05-01',
+        ]);
+
+        $response->assertRedirect(route('personexammark.create'));
+        $response->assertSessionHasErrors('season_id');
+        $this->assertDatabaseCount('PersonExamMark', 0);
+    }
+
+    public function test_update_rejects_marks_over_100(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
+
+        $examMarkId = DB::table('PersonExamMark')->insertGetId([
+            'PersonID' => $scout->PersonID,
+            'ServentID' => $admin->PersonID,
+            'QetaaID' => $qetaaId,
+            'SanaMarhalaID' => $sanaId,
+            'SeasonID' => $seasonId,
+            'TheoreticalMark' => 80,
+            'PracticalMark' => 70,
+            'ExamDate' => '2024-05-01',
+            'Note' => null,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->from(route('personexammark.edit', $examMarkId))
+            ->post(route('personexammark.updates', $examMarkId), [
+                'qetaa_id' => $qetaaId,
+                'sana_marhala_id' => $sanaId,
+                'season_id' => $seasonId,
+                'theoretical_mark' => 101,
+                'practical_mark' => 70,
+                'exam_date' => '2024-05-01',
+            ]);
+
+        $response->assertRedirect(route('personexammark.edit', $examMarkId));
+        $response->assertSessionHasErrors('theoretical_mark');
+        $this->assertDatabaseHas('PersonExamMark', [
+            'ExamMarkID' => $examMarkId,
+            'TheoreticalMark' => 80,
+        ]);
+    }
+
+    public function test_index_lists_exam_marks_page(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
 
         DB::table('PersonExamMark')->insert([
             'PersonID' => $scout->PersonID,
             'ServentID' => $admin->PersonID,
             'QetaaID' => $qetaaId,
             'SanaMarhalaID' => $sanaId,
+            'SeasonID' => $seasonId,
             'TheoreticalMark' => 80,
             'PracticalMark' => 70,
             'ExamDate' => '2023-06-01',
@@ -233,5 +324,62 @@ class PersonExamMarkTest extends TestCase
         $this->assertSame('ثالثة إعدادي', $row->SanaMarhalaName);
         $this->assertSame(80, (int) $row->TheoreticalMark);
         $this->assertSame(70, (int) $row->PracticalMark);
+        $this->assertSame($seasonId, (int) $row->SeasonID);
+    }
+
+    public function test_update_keeps_legacy_mark_over_100(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
+
+        $examMarkId = DB::table('PersonExamMark')->insertGetId([
+            'PersonID' => $scout->PersonID,
+            'ServentID' => $admin->PersonID,
+            'QetaaID' => $qetaaId,
+            'SanaMarhalaID' => $sanaId,
+            'SeasonID' => $seasonId,
+            'TheoreticalMark' => 110,
+            'PracticalMark' => 70,
+            'ExamDate' => '2024-05-01',
+            'Note' => null,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('personexammark.updates', $examMarkId), [
+            'qetaa_id' => $qetaaId,
+            'sana_marhala_id' => $sanaId,
+            'season_id' => $seasonId,
+            'theoretical_mark' => 110,
+            'practical_mark' => 70,
+            'exam_date' => '2024-05-01',
+            'note' => 'تعديل ملاحظة',
+        ]);
+
+        $response->assertRedirect(route('personexammark.index'));
+        $this->assertDatabaseHas('PersonExamMark', [
+            'ExamMarkID' => $examMarkId,
+            'TheoreticalMark' => 110,
+            'Note' => 'تعديل ملاحظة',
+        ]);
+    }
+
+    public function test_backfill_migration_sets_season_from_exam_year(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
+
+        $examMarkId = DB::table('PersonExamMark')->insertGetId([
+            'PersonID' => $scout->PersonID,
+            'ServentID' => $admin->PersonID,
+            'QetaaID' => $qetaaId,
+            'SanaMarhalaID' => $sanaId,
+            'SeasonID' => null,
+            'TheoreticalMark' => 80,
+            'PracticalMark' => 70,
+            'ExamDate' => '2026-03-01',
+            'Note' => null,
+        ]);
+
+        $migration = require base_path('database/migrations/2026_09_07_200100_backfill_person_exam_mark_season_id.php');
+        $migration->up();
+
+        $this->assertSame($seasonId, (int) DB::table('PersonExamMark')->where('ExamMarkID', $examMarkId)->value('SeasonID'));
     }
 }

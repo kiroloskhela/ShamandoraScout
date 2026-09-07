@@ -51,16 +51,29 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label for="season_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose season') }}</label>
+                        <select id="season_id" name="season_id" required
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none">
+                            <option value="">{{ __('-- Choose season --') }}</option>
+                            @foreach ($seasons as $season)
+                                <option value="{{ $season->SeasonID }}" @selected(old('season_id', $mark->SeasonID ?? $defaultSeasonId) == $season->SeasonID)>
+                                    {{ $season->SeasonName }} ({{ $season->SeasonYear }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="theoretical_mark" class="block mb-2 text-sm text-gray-700">درجة النظري</label>
-                            <input type="number" id="theoretical_mark" name="theoretical_mark" required min="0" max="999" step="1"
+                            <input type="number" id="theoretical_mark" name="theoretical_mark" required min="0" max="{{ max(100, (int) old('theoretical_mark', $mark->TheoreticalMark)) }}" step="1"
                                 value="{{ old('theoretical_mark', $mark->TheoreticalMark) }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none">
                         </div>
                         <div>
                             <label for="practical_mark" class="block mb-2 text-sm text-gray-700">درجة العملي</label>
-                            <input type="number" id="practical_mark" name="practical_mark" required min="0" max="999" step="1"
+                            <input type="number" id="practical_mark" name="practical_mark" required min="0" max="{{ max(100, (int) old('practical_mark', $mark->PracticalMark)) }}" step="1"
                                 value="{{ old('practical_mark', $mark->PracticalMark) }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-green-500 focus:outline-none">
                         </div>

@@ -5,7 +5,7 @@
         <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg border-2 border-blue-300">
             <div class="mb-6 text-center">
                 <h2 class="text-xl font-bold text-gray-800">تسجيل درجات الامتحان</h2>
-                <p class="text-sm text-gray-500 mt-2">الدرجات أرقام صحيحة فقط (من غير كسور)، ويمكن أن تتجاوز 100.</p>
+                <p class="text-sm text-gray-500 mt-2">الدرجات أرقام صحيحة فقط (من غير كسور)، والحد الأقصى 100.</p>
             </div>
 
             @if (session('error'))
@@ -65,17 +65,30 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label for="season_id" class="block mb-2 text-sm text-gray-700">{{ __('Choose season') }}</label>
+                        <select id="season_id" name="season_id" required
+                            class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none">
+                            <option value="">{{ __('-- Choose season --') }}</option>
+                            @foreach ($seasons as $season)
+                                <option value="{{ $season->SeasonID }}" @selected(old('season_id', $defaultSeasonId) == $season->SeasonID)>
+                                    {{ $season->SeasonName }} ({{ $season->SeasonYear }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="theoretical_mark" class="block mb-2 text-sm text-gray-700">درجة النظري</label>
-                            <input type="number" id="theoretical_mark" name="theoretical_mark" required min="0" max="999" step="1"
+                            <input type="number" id="theoretical_mark" name="theoretical_mark" required min="0" max="100" step="1"
                                 value="{{ old('theoretical_mark') }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 placeholder="مثال: 80">
                         </div>
                         <div>
                             <label for="practical_mark" class="block mb-2 text-sm text-gray-700">درجة العملي</label>
-                            <input type="number" id="practical_mark" name="practical_mark" required min="0" max="999" step="1"
+                            <input type="number" id="practical_mark" name="practical_mark" required min="0" max="100" step="1"
                                 value="{{ old('practical_mark') }}"
                                 class="w-full h-12 ps-4 border rounded-lg border-slate-200 text-slate-600 focus:border-blue-500 focus:outline-none"
                                 placeholder="مثال: 70">
