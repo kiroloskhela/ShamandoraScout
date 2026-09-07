@@ -39,6 +39,12 @@
                 'cssClass' => 'text-sm text-gray-900 font-medium',
             ],
             [
+                'key' => 'SeasonName',
+                'label' => __('Season'),
+                'type' => 'text',
+                'cssClass' => 'text-sm text-gray-900 font-medium',
+            ],
+            [
                 'key' => 'TheoreticalMark',
                 'label' => __('Theoretical'),
                 'type' => 'text',

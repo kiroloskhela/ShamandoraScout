@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Season\ActiveSeason;
 use App\Support\LikeSearch;
 use App\Support\LookupCache;
 use Illuminate\Http\Request;
@@ -103,12 +104,14 @@ class PersonExamMarkController extends Controller
                 em.ServentID,
                 em.QetaaID,
                 em.SanaMarhalaID,
+                em.SeasonID,
                 em.TheoreticalMark,
                 em.PracticalMark,
                 em.ExamDate,
                 em.Note,
                 q.QetaaName,
                 sm.SanaMarhalaName,
+                se.SeasonName,
                 CONCAT(
                     COALESCE(p.FirstName, ''), ' ',
                     COALESCE(p.SecondName, ''), ' ',
@@ -126,23 +129,42 @@ class PersonExamMarkController extends Controller
             LEFT JOIN PersonInformation s ON s.PersonID = em.ServentID
             LEFT JOIN Qetaa q ON q.QetaaID = em.QetaaID
             LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = em.SanaMarhalaID
+            LEFT JOIN Season se ON se.SeasonID = em.SeasonID
             WHERE em.ExamMarkID = ?
               AND em.PersonID IN ({$this->allowedPersonIdsSql()})
             LIMIT 1
         ", [$examMarkId, $userId]);
     }
 
-    private function markRules(): array
+    private function markFieldRules(?object $existing = null): array
     {
+        $theoreticalMax = max(100, (int) ($existing->TheoreticalMark ?? 0));
+        $practicalMax = max(100, (int) ($existing->PracticalMark ?? 0));
+
         return [
-            'person_id' => ['required', 'integer'],
             'qetaa_id' => ['required', 'integer', Rule::exists('Qetaa', 'QetaaID')],
             'sana_marhala_id' => ['required', 'integer', Rule::exists('SanaMarhala', 'SanaMarhalaID')],
-            'theoretical_mark' => ['required', 'integer', 'min:0', 'max:999'],
-            'practical_mark' => ['required', 'integer', 'min:0', 'max:999'],
+            'season_id' => ['required', 'integer', Rule::exists('Season', 'SeasonID')],
+            'theoretical_mark' => ['required', 'integer', 'min:0', 'max:'.$theoreticalMax],
+            'practical_mark' => ['required', 'integer', 'min:0', 'max:'.$practicalMax],
             'exam_date' => ['required', 'date'],
             'note' => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    private function markRules(): array
+    {
+        return array_merge([
+            'person_id' => ['required', 'integer'],
+        ], $this->markFieldRules());
+    }
+
+    private function seasonsForForm()
+    {
+        return DB::table('Season')
+            ->orderByDesc('SeasonYear')
+            ->orderBy('SeasonName')
+            ->get();
     }
 
     public function index(Request $request)
@@ -157,12 +179,14 @@ class PersonExamMarkController extends Controller
                 em.ServentID,
                 em.QetaaID,
                 em.SanaMarhalaID,
+                em.SeasonID,
                 em.TheoreticalMark,
                 em.PracticalMark,
                 em.ExamDate,
                 em.Note,
                 q.QetaaName,
                 sm.SanaMarhalaName,
+                CONCAT(se.SeasonName, ' (', se.SeasonYear, ')') AS SeasonName,
                 CONCAT(
                     COALESCE(p.FirstName, ''), ' ',
                     COALESCE(p.SecondName, ''), ' ',
@@ -181,6 +205,7 @@ class PersonExamMarkController extends Controller
             LEFT JOIN PersonPhoneNumbers ppn ON ppn.PersonID = em.PersonID
             LEFT JOIN Qetaa q ON q.QetaaID = em.QetaaID
             LEFT JOIN SanaMarhala sm ON sm.SanaMarhalaID = em.SanaMarhalaID
+            LEFT JOIN Season se ON se.SeasonID = em.SeasonID
             WHERE em.PersonID IN ({$this->allowedPersonIdsSql()})
             ORDER BY em.ExamDate DESC, em.ExamMarkID DESC
         ";
@@ -192,11 +217,13 @@ class PersonExamMarkController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(ActiveSeason $activeSeason)
     {
         return view('personexammark.create', [
             'qetaas' => LookupCache::ordered('Qetaa', 'QetaaName'),
             'sanaMarhalas' => LookupCache::ordered('SanaMarhala', 'SanaMarhalaName'),
+            'seasons' => $this->seasonsForForm(),
+            'defaultSeasonId' => $activeSeason->id(),
         ]);
     }
 
@@ -214,6 +241,7 @@ class PersonExamMarkController extends Controller
             'ServentID' => $userId,
             'QetaaID' => $data['qetaa_id'],
             'SanaMarhalaID' => $data['sana_marhala_id'],
+            'SeasonID' => $data['season_id'],
             'TheoreticalMark' => $data['theoretical_mark'],
             'PracticalMark' => $data['practical_mark'],
             'ExamDate' => $data['exam_date'],
@@ -224,7 +252,7 @@ class PersonExamMarkController extends Controller
             ->with('status', __('Exam marks recorded successfully'));
     }
 
-    public function edit($id)
+    public function edit($id, ActiveSeason $activeSeason)
     {
         $mark = $this->getAllowedMark($id);
 
@@ -236,6 +264,8 @@ class PersonExamMarkController extends Controller
             'mark' => $mark,
             'qetaas' => LookupCache::ordered('Qetaa', 'QetaaName'),
             'sanaMarhalas' => LookupCache::ordered('SanaMarhala', 'SanaMarhalaName'),
+            'seasons' => $this->seasonsForForm(),
+            'defaultSeasonId' => $activeSeason->id(),
         ]);
     }
 
@@ -246,20 +276,14 @@ class PersonExamMarkController extends Controller
             abort(403, __('You are not allowed to edit this record'));
         }
 
-        $data = $request->validate([
-            'qetaa_id' => ['required', 'integer', Rule::exists('Qetaa', 'QetaaID')],
-            'sana_marhala_id' => ['required', 'integer', Rule::exists('SanaMarhala', 'SanaMarhalaID')],
-            'theoretical_mark' => ['required', 'integer', 'min:0', 'max:999'],
-            'practical_mark' => ['required', 'integer', 'min:0', 'max:999'],
-            'exam_date' => ['required', 'date'],
-            'note' => ['nullable', 'string', 'max:500'],
-        ]);
+        $data = $request->validate($this->markFieldRules($mark));
 
         DB::table('PersonExamMark')
             ->where('ExamMarkID', $id)
             ->update([
                 'QetaaID' => $data['qetaa_id'],
                 'SanaMarhalaID' => $data['sana_marhala_id'],
+                'SeasonID' => $data['season_id'],
                 'TheoreticalMark' => $data['theoretical_mark'],
                 'PracticalMark' => $data['practical_mark'],
                 'ExamDate' => $data['exam_date'],
