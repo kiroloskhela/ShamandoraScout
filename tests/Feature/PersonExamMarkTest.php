@@ -382,4 +382,63 @@ class PersonExamMarkTest extends TestCase
 
         $this->assertSame($seasonId, (int) DB::table('PersonExamMark')->where('ExamMarkID', $examMarkId)->value('SeasonID'));
     }
+
+    public function test_khadem_can_open_exam_marks_index(): void
+    {
+        $khadem = User::create([
+            'FirstName' => 'Khadem',
+            'SecondName' => 'User',
+            'ShamandoraCode' => 'K1',
+        ]);
+        $this->grantStaffRole($khadem, 'Khadem');
+
+        $this->actingAs($khadem)
+            ->get(route('personexammark.index'))
+            ->assertOk();
+    }
+
+    public function test_mkhdom_cannot_open_exam_marks_index(): void
+    {
+        $mkhdom = User::create([
+            'FirstName' => 'Served',
+            'SecondName' => 'Person',
+            'ShamandoraCode' => 'M1',
+        ]);
+        $this->grantStaffRole($mkhdom, 'Mkhdom');
+
+        $this->actingAs($mkhdom)
+            ->get(route('personexammark.index'))
+            ->assertRedirect(route('login-auth'));
+    }
+
+    public function test_khadem_cannot_edit_exam_mark_outside_served_qetaa(): void
+    {
+        ['admin' => $admin, 'scout' => $scout, 'qetaaId' => $qetaaId, 'sanaId' => $sanaId, 'seasonId' => $seasonId] = $this->createAdminAndScout();
+
+        $examMarkId = DB::table('PersonExamMark')->insertGetId([
+            'PersonID' => $scout->PersonID,
+            'ServentID' => $admin->PersonID,
+            'QetaaID' => $qetaaId,
+            'SanaMarhalaID' => $sanaId,
+            'SeasonID' => $seasonId,
+            'TheoreticalMark' => 80,
+            'PracticalMark' => 70,
+            'ExamDate' => '2024-05-01',
+            'Note' => null,
+        ]);
+
+        $otherQetaaId = DB::table('Qetaa')->insertGetId(['QetaaName' => 'جوالة']);
+        $khadem = User::create([
+            'FirstName' => 'Khadem',
+            'SecondName' => 'Other',
+            'ShamandoraCode' => 'K2',
+        ]);
+        $this->grantStaffRole($khadem, 'Khadem');
+        DB::table('GroupQetaa')->insert(['GroupID' => 99, 'QetaaID' => $otherQetaaId]);
+        DB::table('PersonGroup')->insert(['PersonID' => $khadem->PersonID, 'GroupID' => 99]);
+
+        $this->actingAs($khadem)
+            ->get(route('personexammark.edit', $examMarkId))
+            ->assertForbidden();
+    }
 }

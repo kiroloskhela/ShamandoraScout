@@ -39,16 +39,6 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa', 'can.permission:we
     Route::post('/personspecialcase/destroy/{id}', [PersonSpecialCaseController::class, 'destroy'])->name('personspecialcase.destroy');
     Route::get('/personspecialcase/search-persons', [PersonSpecialCaseController::class, 'searchPersons'])->name('personspecialcase.searchPersons');
 
-    // Exam marks
-    Route::get('/personexammark', [PersonExamMarkController::class, 'index'])->name('personexammark.index');
-    Route::get('/personexammark/create', [PersonExamMarkController::class, 'create'])->name('personexammark.create');
-    Route::post('/personexammark/insert', [PersonExamMarkController::class, 'insert'])->name('personexammark.insert');
-    Route::get('/personexammark/edit/{id}', [PersonExamMarkController::class, 'edit'])->name('personexammark.edit');
-    Route::post('/personexammark/updates/{id}', [PersonExamMarkController::class, 'updates'])->name('personexammark.updates');
-    Route::get('/personexammark/delete/{id}', [PersonExamMarkController::class, 'deletes'])->name('personexammark.delete');
-    Route::post('/personexammark/destroy/{id}', [PersonExamMarkController::class, 'destroy'])->name('personexammark.destroy');
-    Route::get('/personexammark/search-persons', [PersonExamMarkController::class, 'searchPersons'])->name('personexammark.searchPersons');
-
     // Season Event Servant Followup
     Route::prefix('event-servant-followup')->name('eventServantFollowup.')->group(function () {
         Route::get('/selector', [SeasonEventServantFollowupController::class, 'selector'])->name('selector');
@@ -96,10 +86,20 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/CurriculaCategory/destroy/{id}', [CurriculaCategoryController::class, 'destroy'])->name('CurriculaCategory.destroy');
 });
 
-// Full profile + served directory for all staff except Mkhdom.
+// Full profile, served directory, and exam marks for all staff except Mkhdom.
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Finance|AdminInventory|Inventory|AdminFirstAid|Khadem|Media', 'can.permission:web.people.view_served|web.people.directory'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
     Route::get('/person/show/{id}', [PersonDirectoryController::class, 'show'])->name('person.show');
+
+    // Exam marks: staff CRUD, scoped to served qetaas in PersonExamMarkController.
+    Route::get('/personexammark', [PersonExamMarkController::class, 'index'])->name('personexammark.index');
+    Route::get('/personexammark/create', [PersonExamMarkController::class, 'create'])->name('personexammark.create');
+    Route::post('/personexammark/insert', [PersonExamMarkController::class, 'insert'])->name('personexammark.insert');
+    Route::get('/personexammark/edit/{id}', [PersonExamMarkController::class, 'edit'])->name('personexammark.edit');
+    Route::post('/personexammark/updates/{id}', [PersonExamMarkController::class, 'updates'])->name('personexammark.updates');
+    Route::get('/personexammark/delete/{id}', [PersonExamMarkController::class, 'deletes'])->name('personexammark.delete');
+    Route::post('/personexammark/destroy/{id}', [PersonExamMarkController::class, 'destroy'])->name('personexammark.destroy');
+    Route::get('/personexammark/search-persons', [PersonExamMarkController::class, 'searchPersons'])->name('personexammark.searchPersons');
 });
 
 // Person directory Excel export (scoped to caller's groups)

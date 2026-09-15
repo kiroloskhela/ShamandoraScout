@@ -504,13 +504,13 @@
                                 @endif
                                 <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                     href="{{ route('attendance.manage') }}">{{ __('Attendance') }}</a>
+                                <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
+                                    href="{{ route('personexammark.index') }}">{{ __('Exam marks') }}</a>
                                 @if ($canPerm['web.people.manage'] ?? false)
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('personspecialcase.index') }}">{{ __('Special cases') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('personblacklist.index') }}">{{ __('Blacklist') }}</a>
-                                    <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-                                        href="{{ route('personexammark.index') }}">{{ __('Exam marks') }}</a>
                                     <a class="block px-4 py-2 text-sm text-gray-600 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
                                         href="{{ route('eventServantFollowup.selector') }}">{{ __('Follow up member bookings') }}</a>
                                 @endif
