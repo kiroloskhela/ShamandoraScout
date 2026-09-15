@@ -70,17 +70,21 @@ class PersonPolicy
             return false;
         }
 
-        $adminQetaas = DB::table('PersonQetaa')
+        $scopeIds = DB::table('PersonQetaa')
             ->where('PersonID', $user->PersonID)
-            ->pluck('QetaaID');
+            ->pluck('QetaaID')
+            ->map(fn ($id) => (int) $id)
+            ->merge(app(TreePolicy::class)->servedQetaaIds((int) $user->PersonID))
+            ->unique()
+            ->values();
 
-        if ($adminQetaas->isEmpty()) {
+        if ($scopeIds->isEmpty()) {
             return false;
         }
 
         return DB::table('PersonQetaa')
             ->where('PersonID', $person->PersonID)
-            ->whereIn('QetaaID', $adminQetaas)
+            ->whereIn('QetaaID', $scopeIds)
             ->exists();
     }
 }

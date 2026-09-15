@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Domain\Person\PersonApiQueryService;
 use App\Models\User;
 use App\Policies\PersonPolicy;
 use Illuminate\Database\Schema\Blueprint;
@@ -86,21 +87,21 @@ class PersonPolicyTest extends TestCase
     public function test_owner_can_view_self(): void
     {
         $user = $this->userWithRole(null);
-        $this->assertTrue((new PersonPolicy())->view($user, $user));
+        $this->assertTrue((new PersonPolicy)->view($user, $user));
     }
 
     public function test_regular_user_cannot_view_other(): void
     {
         $a = $this->userWithRole(null);
         $b = $this->userWithRole(null);
-        $this->assertFalse((new PersonPolicy())->view($a, $b));
+        $this->assertFalse((new PersonPolicy)->view($a, $b));
     }
 
     public function test_super_admin_can_view_other(): void
     {
         $admin = $this->userWithRole('SuperAdmin');
         $other = $this->userWithRole(null);
-        $this->assertTrue((new PersonPolicy())->view($admin, $other));
+        $this->assertTrue((new PersonPolicy)->view($admin, $other));
     }
 
     public function test_khadem_can_view_person_in_served_qetaa_via_groups(): void
@@ -132,7 +133,7 @@ class PersonPolicyTest extends TestCase
         DB::table('GroupQetaa')->insert(['GroupID' => 2, 'QetaaID' => 4]);
         DB::table('PersonQetaa')->insert(['PersonID' => $served->PersonID, 'QetaaID' => 4]);
 
-        $this->assertTrue((new PersonPolicy())->view($media, $served));
+        $this->assertTrue((new PersonPolicy)->view($media, $served));
     }
 
     public function test_mkhdom_cannot_view_another_person_even_in_same_qetaa(): void
@@ -147,7 +148,7 @@ class PersonPolicyTest extends TestCase
             ['PersonID' => $other->PersonID, 'QetaaID' => 8],
         ]);
 
-        $this->assertFalse((new PersonPolicy())->view($mkhdom, $other));
+        $this->assertFalse((new PersonPolicy)->view($mkhdom, $other));
     }
 
     public function test_staff_cannot_view_person_with_no_qetaa(): void
@@ -157,7 +158,7 @@ class PersonPolicyTest extends TestCase
         DB::table('PersonGroup')->insert(['PersonID' => $khadem->PersonID, 'GroupID' => 5]);
         DB::table('GroupQetaa')->insert(['GroupID' => 5, 'QetaaID' => 1]);
 
-        $this->assertFalse((new PersonPolicy())->view($khadem, $orphan));
+        $this->assertFalse((new PersonPolicy)->view($khadem, $orphan));
     }
 
     public function test_roster_visibility_matches_profile_view(): void
@@ -169,10 +170,29 @@ class PersonPolicyTest extends TestCase
         DB::table('GroupQetaa')->insert(['GroupID' => 7, 'QetaaID' => 3]);
         DB::table('PersonQetaa')->insert(['PersonID' => $served->PersonID, 'QetaaID' => 3]);
 
-        $visible = app(\App\Domain\Person\PersonApiQueryService::class)
+        $visible = app(PersonApiQueryService::class)
             ->isVisibleTo((int) $khadem->PersonID, (int) $served->PersonID);
 
         $this->assertTrue($visible);
-        $this->assertSame($visible, (new PersonPolicy())->view($khadem, $served));
+        $this->assertSame($visible, (new PersonPolicy)->view($khadem, $served));
+    }
+
+    public function test_admin_qetaa_can_update_person_in_served_qetaa_not_own_person_qetaa(): void
+    {
+        $admin = $this->userWithRole('AdminQetaa');
+        $girl = $this->userWithRole(null);
+        $other = $this->userWithRole(null);
+
+        DB::table('PersonQetaa')->insert([
+            ['PersonID' => $admin->PersonID, 'QetaaID' => 7],
+            ['PersonID' => $girl->PersonID, 'QetaaID' => 9],
+            ['PersonID' => $other->PersonID, 'QetaaID' => 2],
+        ]);
+        DB::table('PersonGroup')->insert(['PersonID' => $admin->PersonID, 'GroupID' => 11]);
+        DB::table('GroupQetaa')->insert(['GroupID' => 11, 'QetaaID' => 9]);
+
+        $policy = new PersonPolicy;
+        $this->assertTrue($policy->update($admin, $girl));
+        $this->assertFalse($policy->update($admin, $other));
     }
 }

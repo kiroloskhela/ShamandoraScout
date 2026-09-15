@@ -15,6 +15,8 @@ class PersonPolicyPermissionTest extends TestCase
     {
         parent::setUp();
 
+        Schema::dropIfExists('GroupQetaa');
+        Schema::dropIfExists('PersonGroup');
         Schema::dropIfExists('PersonQetaa');
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
@@ -42,6 +44,16 @@ class PersonPolicyPermissionTest extends TestCase
         Schema::create('PersonQetaa', function (Blueprint $table) {
             $table->increments('PersonQetaaID');
             $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('QetaaID');
+        });
+        Schema::create('PersonGroup', function (Blueprint $table) {
+            $table->increments('PersonGroupID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('GroupID');
+        });
+        Schema::create('GroupQetaa', function (Blueprint $table) {
+            $table->increments('GroupQetaaID');
+            $table->unsignedInteger('GroupID');
             $table->unsignedInteger('QetaaID');
         });
     }
