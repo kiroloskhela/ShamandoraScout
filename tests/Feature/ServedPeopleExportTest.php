@@ -266,6 +266,44 @@ class ServedPeopleExportTest extends TestCase
         $this->assertSame([], $photos['photos'] ?? []);
     }
 
+    public function test_download_xlsx_is_valid_zip_with_png_photo(): void
+    {
+        $admin = $this->createUserWithRole('SuperAdmin');
+        $this->seedQetaa(1, 'كشافة');
+        $seasonId = $this->seedSeason();
+        $withPhoto = $this->seedPersonInQetaa(1, 'Photo', 'Scout');
+        $this->seedPersonInQetaa(1, 'No', 'Photo');
+
+        $dir = storage_path('app/public/persons/personal');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $file = $dir.'/served-export-png.png';
+        file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
+        DB::table('PersonImages')->insert([
+            'PersonID' => $withPhoto->PersonID,
+            'PersonSystemImagePath' => 'persons/personal/served-export-png.png',
+        ]);
+
+        try {
+            $response = $this->actingAs($admin)->post(route('export.served-people.download'), [
+                'qetaa_id' => 1,
+                'season_id' => $seasonId,
+            ]);
+            $response->assertOk();
+            $bytes = $response->streamedContent();
+            $this->assertSame('PK', substr($bytes, 0, 2));
+            $tmp = tempnam(sys_get_temp_dir(), 'served_dl_');
+            file_put_contents($tmp, $bytes);
+            $zip = new \ZipArchive;
+            $this->assertTrue($zip->open($tmp) === true);
+            $zip->close();
+            @unlink($tmp);
+        } finally {
+            @unlink($file);
+        }
+    }
+
     private function seedQetaa(int $id, string $name): void
     {
         DB::table('Qetaa')->insert(['QetaaID' => $id, 'QetaaName' => $name]);

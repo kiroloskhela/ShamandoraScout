@@ -15,9 +15,17 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use ZipArchive;
 
 class ExportController extends Controller
 {
+    private const EMBEDDABLE_IMAGE_TYPES = [
+        IMAGETYPE_JPEG,
+        IMAGETYPE_PNG,
+        IMAGETYPE_GIF,
+        IMAGETYPE_BMP,
+    ];
+
     public function __construct(
         private readonly ServedPeopleExportService $export,
     ) {}
@@ -61,6 +69,29 @@ class ExportController extends Controller
             'people_count' => $workbook['people_count'],
         ]);
 
+        $filename = 'served_export_'.$qetaaId.'_'.$seasonId.'_'.now()->format('Y-m-d_H-i-s').'.xlsx';
+        $path = $this->writeXlsx($this->makeSpreadsheet($workbook), $workbook);
+
+        return response()->streamDownload(function () use ($path) {
+            while (ob_get_length()) {
+                ob_end_clean();
+            }
+            try {
+                readfile($path);
+            } finally {
+                @unlink($path);
+            }
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-store, max-age=0',
+        ]);
+    }
+
+    /**
+     * @param  array{sheets: list<array{title: string, rows: list<array<string, mixed>>, photos?: array<int, string>}>}  $workbook
+     */
+    private function makeSpreadsheet(array $workbook, bool $embedPhotos = true): Spreadsheet
+    {
         $spreadsheet = new Spreadsheet;
         $first = true;
         foreach ($workbook['sheets'] as $sheet) {
@@ -69,20 +100,51 @@ class ExportController extends Controller
             $this->fillSheet(
                 $worksheet->setTitle($sheet['title']),
                 $sheet['rows'],
-                $sheet['photos'] ?? []
+                $embedPhotos ? ($sheet['photos'] ?? []) : []
             );
         }
         $spreadsheet->setActiveSheetIndex(0);
 
-        $filename = 'served_export_'.$qetaaId.'_'.$seasonId.'_'.now()->format('Y-m-d_H-i-s').'.xlsx';
-        $writer = new Xlsx($spreadsheet);
+        return $spreadsheet;
+    }
 
-        return response()->streamDownload(function () use ($writer) {
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Cache-Control' => 'no-store, max-age=0',
-        ]);
+    /**
+     * @param  array{sheets: list<array{title: string, rows: list<array<string, mixed>>, photos?: array<int, string>}>}  $workbook
+     */
+    private function writeXlsx(Spreadsheet $spreadsheet, array $workbook): string
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'served_xlsx_');
+        if ($tmp === false) {
+            abort(500);
+        }
+        $path = $tmp.'.xlsx';
+        @unlink($tmp);
+
+        try {
+            $this->saveValidXlsx($spreadsheet, $path);
+        } catch (\Throwable $e) {
+            Log::warning('served_people.export_xlsx_failed', ['error' => $e->getMessage()]);
+            @unlink($path);
+            $this->saveValidXlsx($this->makeSpreadsheet($workbook, false), $path);
+        }
+
+        return $path;
+    }
+
+    private function saveValidXlsx(Spreadsheet $spreadsheet, string $path): void
+    {
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($path);
+
+        $zip = new ZipArchive;
+        $ok = $zip->open($path);
+        if ($ok === true) {
+            $zip->close();
+
+            return;
+        }
+
+        throw new \RuntimeException('xlsx zip invalid: '.(string) $ok);
     }
 
     /**
@@ -154,14 +216,7 @@ class ExportController extends Controller
         $sheet->getColumnDimension($colLetter)->setWidth(14);
 
         foreach ($photos as $rowIndex => $path) {
-            if (! is_string($path) || $path === '' || ! is_file($path) || ! is_readable($path)) {
-                continue;
-            }
-            if (filesize($path) > 5 * 1024 * 1024) {
-                continue;
-            }
-            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-            if (! in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            if (! is_string($path) || ! self::isEmbeddableImage($path)) {
                 continue;
             }
 
@@ -170,6 +225,9 @@ class ExportController extends Controller
                 $drawing = new Drawing;
                 $drawing->setName('Photo');
                 $drawing->setPath($path);
+                if (! in_array($drawing->getType(), self::EMBEDDABLE_IMAGE_TYPES, true)) {
+                    continue;
+                }
                 $drawing->setCoordinates($colLetter.$excelRow);
                 $drawing->setHeight(54);
                 $drawing->setOffsetX(4);
@@ -180,6 +238,40 @@ class ExportController extends Controller
                 continue;
             }
         }
+    }
+
+    /**
+     * PhpSpreadsheet Drawing / Excel xlsx only handle jpeg/png/gif/bmp.
+     * Skip webp (including .jpg that is actually webp), empty, truncated, and GD-unreadable files.
+     */
+    public static function isEmbeddableImage(string $path): bool
+    {
+        if ($path === '' || ! is_file($path) || ! is_readable($path)) {
+            return false;
+        }
+
+        $size = @filesize($path);
+        if (! is_int($size) || $size < 8 || $size > 5 * 1024 * 1024) {
+            return false;
+        }
+
+        $type = @exif_imagetype($path);
+        if (! in_array($type, self::EMBEDDABLE_IMAGE_TYPES, true)) {
+            return false;
+        }
+
+        $bytes = @file_get_contents($path);
+        if ($bytes === false || $bytes === '') {
+            return false;
+        }
+
+        $gd = @imagecreatefromstring($bytes);
+        if ($gd === false) {
+            return false;
+        }
+        imagedestroy($gd);
+
+        return true;
     }
 
     private static function excelCell(mixed $value): string
