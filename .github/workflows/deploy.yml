@@ -180,6 +180,9 @@ jobs:
             echo "==> Role permission seed (additive; never deletes)"
             php artisan permissions:seed
 
+            echo "==> Photo thumbnails for Excel (idempotent; skips existing)"
+            php artisan photos:generate-thumbnails --no-interaction
+
             echo "==> Sentry release + log channel hints in .env"
             if [ -f .env ]; then
               if grep -q '^SENTRY_RELEASE=' .env; then

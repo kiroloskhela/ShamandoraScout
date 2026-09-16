@@ -2,6 +2,7 @@
 
 namespace App\Domain\Person;
 
+use App\Support\PersonPhotoThumbnail;
 use App\Support\ShamandoraCode;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -152,13 +153,19 @@ class PersonProfileService
             $oldImages = DB::table('PersonImages')->where('PersonID', $personId)->first();
 
             $personSystemImagePath = $oldImages->PersonSystemImagePath ?? null;
+            $personSystemImageThumbnailPath = $oldImages->PersonSystemImageThumbnailPath ?? null;
             $scoutOfficialUniformImagePath = $oldImages->ScoutOfficialUniformImagePath ?? null;
 
             if ($personalImage) {
                 if ($personSystemImagePath && Storage::disk('public')->exists($personSystemImagePath)) {
                     Storage::disk('public')->delete($personSystemImagePath);
                 }
+                PersonPhotoThumbnail::deleteStored($personSystemImageThumbnailPath);
                 $personSystemImagePath = $personalImage->store('persons/personal', 'public');
+                $personSystemImageThumbnailPath = PersonPhotoThumbnail::storeFromOriginal(
+                    $personSystemImagePath,
+                    $personId
+                );
             }
 
             if ($scoutImage) {
@@ -237,12 +244,16 @@ class PersonProfileService
             ]);
 
             if ($personalImage || $scoutImage) {
+                $imagePayload = [
+                    'PersonSystemImagePath' => $personSystemImagePath,
+                    'ScoutOfficialUniformImagePath' => $scoutOfficialUniformImagePath,
+                ];
+                if ($personalImage) {
+                    $imagePayload['PersonSystemImageThumbnailPath'] = $personSystemImageThumbnailPath;
+                }
                 DB::table('PersonImages')->updateOrInsert(
                     ['PersonID' => $personId],
-                    [
-                        'PersonSystemImagePath' => $personSystemImagePath,
-                        'ScoutOfficialUniformImagePath' => $scoutOfficialUniformImagePath,
-                    ]
+                    $imagePayload
                 );
             }
 

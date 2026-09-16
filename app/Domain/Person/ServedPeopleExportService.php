@@ -484,8 +484,7 @@ class ServedPeopleExportService
             $stored = trim((string) ($img?->PersonSystemImagePath ?? ''));
             $thumb = trim((string) ($img?->PersonSystemImageThumbnailPath ?? ''));
             $linkPath = $stored !== '' ? $stored : $thumb;
-            $local = PersonAvatar::localFile($thumb !== '' ? $thumb : null)
-                ?? PersonAvatar::localFile($stored !== '' ? $stored : null);
+            $local = PersonAvatar::localFile($thumb !== '' ? $thumb : null);
             if ($local !== null) {
                 $photos[$index] = $local;
             }

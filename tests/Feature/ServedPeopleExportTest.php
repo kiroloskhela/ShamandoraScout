@@ -280,9 +280,16 @@ class ServedPeopleExportTest extends TestCase
         }
         $file = $dir.'/served-export-png.png';
         file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
+        $thumbDir = storage_path('app/public/persons/personal/thumbs');
+        if (! is_dir($thumbDir)) {
+            mkdir($thumbDir, 0777, true);
+        }
+        $thumb = $thumbDir.'/served-export-png.jpg';
+        file_put_contents($thumb, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
         DB::table('PersonImages')->insert([
             'PersonID' => $withPhoto->PersonID,
             'PersonSystemImagePath' => 'persons/personal/served-export-png.png',
+            'PersonSystemImageThumbnailPath' => 'persons/personal/thumbs/served-export-png.jpg',
         ]);
 
         try {
@@ -299,6 +306,36 @@ class ServedPeopleExportTest extends TestCase
             $this->assertTrue($zip->open($tmp) === true);
             $zip->close();
             @unlink($tmp);
+        } finally {
+            @unlink($file);
+            @unlink($thumb);
+        }
+    }
+
+    public function test_photo_sheet_does_not_embed_full_original_without_thumbnail(): void
+    {
+        $this->seedQetaa(1, 'كشافة');
+        $seasonId = $this->seedSeason();
+        $withPhoto = $this->seedPersonInQetaa(1, 'Photo', 'Scout');
+
+        $dir = storage_path('app/public/persons/personal');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $file = $dir.'/served-export-original.png';
+        file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
+        DB::table('PersonImages')->insert([
+            'PersonID' => $withPhoto->PersonID,
+            'PersonSystemImagePath' => 'persons/personal/served-export-original.png',
+        ]);
+
+        try {
+            $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
+            $photos = collect($workbook['sheets'])->firstWhere('title', 'Personal photos');
+            $this->assertNotNull($photos);
+            $this->assertSame([], $photos['photos'] ?? []);
+            $row = collect($photos['rows'])->firstWhere('FullName', 'Photo Scout');
+            $this->assertStringContainsString('storage/persons/personal/served-export-original.png', (string) ($row['ImageLink'] ?? ''));
         } finally {
             @unlink($file);
         }

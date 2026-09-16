@@ -2,6 +2,7 @@
 
 namespace App\Domain\Enrolment;
 
+use App\Support\PersonPhotoThumbnail;
 use App\Support\ShamandoraCode;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -158,6 +159,10 @@ class MigrateEnrolmentService
             DB::table('PersonImages')->insert([
                 'PersonID' => $thisPersonID,
                 'PersonSystemImagePath' => $person->PersonalImagePath,
+                'PersonSystemImageThumbnailPath' => PersonPhotoThumbnail::storeFromOriginal(
+                    $person->PersonalImagePath,
+                    $thisPersonID
+                ),
                 'ScoutOfficialUniformImagePath' => $person->ScoutImagePath,
             ]);
 
