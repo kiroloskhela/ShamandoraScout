@@ -5,6 +5,7 @@ namespace App\Domain\Person;
 use App\Domain\Authz\PermissionService;
 use App\Models\User;
 use App\Policies\TreePolicy;
+use App\Support\PersonAvatar;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -38,7 +39,7 @@ class ServedPeopleExportService
     }
 
     /**
-     * @return array{sheets: list<array{title: string, rows: list<array<string, mixed>>}>, people_count: int}
+     * @return array{sheets: list<array{title: string, rows: list<array<string, mixed>>, photos?: array<int, string>}>, people_count: int}
      */
     public function build(int $qetaaId, int $seasonId): array
     {
@@ -69,6 +70,7 @@ class ServedPeopleExportService
                     'title' => 'درجات الموسم',
                     'rows' => $this->gradeRows($people, $personIds, $qetaaId, $seasonId),
                 ],
+                $this->photoSheet($people, $personIds),
             ],
         ];
     }
@@ -384,6 +386,8 @@ class ServedPeopleExportService
         return $people->map(function ($p) use ($eventHeaders, $patrols, $status) {
             $pid = (int) $p->PersonID;
             $row = [
+                'PersonID' => $p->PersonID,
+                'ShamandoraCode' => $p->ShamandoraCode,
                 'FullName' => $this->fullName($p),
                 'Tale3a' => $patrols[$pid] ?? '',
             ];
@@ -442,10 +446,6 @@ class ServedPeopleExportService
                 'PersonID' => $p->PersonID,
                 'ShamandoraCode' => $p->ShamandoraCode,
                 'FullName' => $this->fullName($p),
-                'FirstName' => $p->FirstName,
-                'SecondName' => $p->SecondName,
-                'ThirdName' => $p->ThirdName,
-                'FourthName' => $p->FourthName,
                 'QetaaName' => $p->QetaaName,
                 'SanaMarhalaName' => $mark?->SanaMarhalaName ?? ($p->SanaMarhalaName ?? ''),
                 'TheoreticalMark' => $mark?->TheoreticalMark ?? '',
@@ -455,6 +455,55 @@ class ServedPeopleExportService
                 'Note' => $mark?->Note ?? '',
             ];
         })->all();
+    }
+
+    /**
+     * @param  Collection<int, object>  $people
+     * @param  list<int>  $personIds
+     * @return array{title: string, rows: list<array<string, mixed>>, photos: array<int, string>}
+     */
+    private function photoSheet(Collection $people, array $personIds): array
+    {
+        $images = [];
+        if ($personIds !== [] && Schema::hasTable('PersonImages')) {
+            $rows = DB::table('PersonImages')
+                ->whereIn('PersonID', $personIds)
+                ->get(['PersonID', 'PersonSystemImagePath', 'PersonSystemImageThumbnailPath']);
+            foreach ($rows as $row) {
+                $id = (int) $row->PersonID;
+                if (! isset($images[$id])) {
+                    $images[$id] = $row;
+                }
+            }
+        }
+
+        $photos = [];
+        $sheetRows = [];
+        foreach ($people as $index => $p) {
+            $img = $images[(int) $p->PersonID] ?? null;
+            $stored = trim((string) ($img?->PersonSystemImagePath ?? ''));
+            $thumb = trim((string) ($img?->PersonSystemImageThumbnailPath ?? ''));
+            $linkPath = $stored !== '' ? $stored : $thumb;
+            $local = PersonAvatar::localFile($thumb !== '' ? $thumb : null)
+                ?? PersonAvatar::localFile($stored !== '' ? $stored : null);
+            if ($local !== null) {
+                $photos[$index] = $local;
+            }
+
+            $sheetRows[] = [
+                'PersonID' => $p->PersonID,
+                'ShamandoraCode' => $p->ShamandoraCode,
+                'FullName' => $this->fullName($p),
+                'ImageLink' => PersonAvatar::photoUrl($linkPath !== '' ? $linkPath : null) ?? '',
+                'Photo' => '',
+            ];
+        }
+
+        return [
+            'title' => 'Personal photos',
+            'rows' => $sheetRows,
+            'photos' => $photos,
+        ];
     }
 
     /**

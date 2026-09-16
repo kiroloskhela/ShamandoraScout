@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -65,7 +66,11 @@ class ExportController extends Controller
         foreach ($workbook['sheets'] as $sheet) {
             $worksheet = $first ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
             $first = false;
-            $this->fillSheet($worksheet->setTitle($sheet['title']), $sheet['rows']);
+            $this->fillSheet(
+                $worksheet->setTitle($sheet['title']),
+                $sheet['rows'],
+                $sheet['photos'] ?? []
+            );
         }
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -82,8 +87,9 @@ class ExportController extends Controller
 
     /**
      * @param  list<array<string, mixed>>  $data
+     * @param  array<int, string>  $photos
      */
-    private function fillSheet(Worksheet $sheet, array $data): void
+    private function fillSheet(Worksheet $sheet, array $data, array $photos = []): void
     {
         if ($data === []) {
             $sheet->setCellValue('A1', 'لا توجد بيانات');
@@ -123,8 +129,57 @@ class ExportController extends Controller
             $sheet->getColumnDimensionByColumn($col)->setWidth(22);
         }
 
+        $this->embedPhotos($sheet, $headers, $photos);
+
         $sheet->freezePane('A2');
         $sheet->setRightToLeft(true);
+    }
+
+    /**
+     * @param  list<string>  $headers
+     * @param  array<int, string>  $photos
+     */
+    private function embedPhotos(Worksheet $sheet, array $headers, array $photos): void
+    {
+        if ($photos === []) {
+            return;
+        }
+
+        $photoCol = array_search('Photo', $headers, true);
+        if ($photoCol === false) {
+            return;
+        }
+
+        $colLetter = Coordinate::stringFromColumnIndex($photoCol + 1);
+        $sheet->getColumnDimension($colLetter)->setWidth(14);
+
+        foreach ($photos as $rowIndex => $path) {
+            if (! is_string($path) || $path === '' || ! is_file($path) || ! is_readable($path)) {
+                continue;
+            }
+            if (filesize($path) > 5 * 1024 * 1024) {
+                continue;
+            }
+            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            if (! in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                continue;
+            }
+
+            $excelRow = $rowIndex + 2;
+            try {
+                $drawing = new Drawing;
+                $drawing->setName('Photo');
+                $drawing->setPath($path);
+                $drawing->setCoordinates($colLetter.$excelRow);
+                $drawing->setHeight(54);
+                $drawing->setOffsetX(4);
+                $drawing->setOffsetY(4);
+                $drawing->setWorksheet($sheet);
+                $sheet->getRowDimension($excelRow)->setRowHeight(58);
+            } catch (\Throwable) {
+                continue;
+            }
+        }
     }
 
     private static function excelCell(mixed $value): string
