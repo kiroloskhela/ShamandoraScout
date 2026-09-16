@@ -115,6 +115,8 @@ class ServedPeopleExportTest extends TestCase
         $this->assertSame('', $attendance['Quiet Scout']['Meeting (2026-01-01)'] ?? 'missing');
         $this->assertSame('', $attendance['Quiet Scout']['Camp (2026-01-01)'] ?? 'missing');
         $this->assertSame(2, $workbook['people_count']);
+        $this->assertArrayHasKey('PersonID', $attendance['Booked Scout']);
+        $this->assertArrayHasKey('ShamandoraCode', $attendance['Booked Scout']);
     }
 
     public function test_medical_sheet_omits_people_without_allergies_or_disease(): void
@@ -221,7 +223,6 @@ class ServedPeopleExportTest extends TestCase
         $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
         $gradeSheet = collect($workbook['sheets'])->firstWhere('title', 'درجات الموسم');
         $this->assertNotNull($gradeSheet);
-        $this->assertCount(5, $workbook['sheets']);
         $this->assertCount($workbook['people_count'], $gradeSheet['rows']);
 
         $grades = collect($gradeSheet['rows'])->keyBy('FullName');
@@ -229,9 +230,40 @@ class ServedPeopleExportTest extends TestCase
         $this->assertSame(80, (int) $grades['Graded Scout']['PracticalMark']);
         $this->assertSame(170, (int) $grades['Graded Scout']['TotalMark']);
         $this->assertSame('latest', $grades['Graded Scout']['Note']);
+        $this->assertArrayHasKey('PersonID', $grades['Graded Scout']);
+        $this->assertArrayHasKey('ShamandoraCode', $grades['Graded Scout']);
+        $this->assertArrayNotHasKey('FirstName', $grades['Graded Scout']);
+        $this->assertArrayNotHasKey('SecondName', $grades['Graded Scout']);
+        $this->assertArrayNotHasKey('ThirdName', $grades['Graded Scout']);
+        $this->assertArrayNotHasKey('FourthName', $grades['Graded Scout']);
         $this->assertSame('', $grades['Blank Scout']['TheoreticalMark'] ?? 'missing');
         $this->assertSame('', $grades['Blank Scout']['PracticalMark'] ?? 'missing');
         $this->assertSame('', $grades['Blank Scout']['TotalMark'] ?? 'missing');
+    }
+
+    public function test_personal_photos_sheet_links_stored_image_only(): void
+    {
+        $this->seedQetaa(1, 'كشافة');
+        $seasonId = $this->seedSeason();
+        $withPhoto = $this->seedPersonInQetaa(1, 'Photo', 'Scout');
+        $this->seedPersonInQetaa(1, 'No', 'Photo');
+        DB::table('PersonImages')->insert([
+            'PersonID' => $withPhoto->PersonID,
+            'PersonSystemImagePath' => 'persons/personal/demo.jpg',
+        ]);
+
+        $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
+        $photos = collect($workbook['sheets'])->firstWhere('title', 'Personal photos');
+        $this->assertNotNull($photos);
+        $this->assertCount(6, $workbook['sheets']);
+
+        $rows = collect($photos['rows'])->keyBy('FullName');
+        $this->assertArrayHasKey('PersonID', $rows['Photo Scout']);
+        $this->assertArrayHasKey('ShamandoraCode', $rows['Photo Scout']);
+        $this->assertStringContainsString('storage/persons/personal/demo.jpg', (string) $rows['Photo Scout']['ImageLink']);
+        $this->assertStringNotContainsString('default-male.png', (string) $rows['Photo Scout']['ImageLink']);
+        $this->assertSame('', $rows['No Photo']['ImageLink'] ?? 'missing');
+        $this->assertSame([], $photos['photos'] ?? []);
     }
 
     private function seedQetaa(int $id, string $name): void

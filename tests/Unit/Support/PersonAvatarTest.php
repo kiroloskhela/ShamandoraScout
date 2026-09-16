@@ -32,4 +32,33 @@ class PersonAvatarTest extends TestCase
         $this->assertStringContainsString('storage/person_images/demo.jpg', $url);
         $this->assertStringNotContainsString('default-female.png', $url);
     }
+
+    public function test_photo_url_is_null_without_a_stored_local_photo(): void
+    {
+        $this->assertNull(PersonAvatar::photoUrl(null));
+        $this->assertNull(PersonAvatar::photoUrl(''));
+        $this->assertNull(PersonAvatar::photoUrl('https://evil.test/x.jpg'));
+    }
+
+    public function test_local_file_rejects_http_and_path_traversal(): void
+    {
+        $this->assertNull(PersonAvatar::localFile('https://evil.test/x.jpg'));
+        $this->assertNull(PersonAvatar::localFile('../../../etc/passwd'));
+    }
+
+    public function test_local_file_resolves_photo_under_public_storage(): void
+    {
+        $dir = storage_path('app/public/persons/personal');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        $file = $dir.'/export-avatar-test.png';
+        file_put_contents($file, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
+
+        try {
+            $this->assertSame(realpath($file), PersonAvatar::localFile('persons/personal/export-avatar-test.png'));
+        } finally {
+            @unlink($file);
+        }
+    }
 }

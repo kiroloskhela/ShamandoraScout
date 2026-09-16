@@ -25,6 +25,55 @@ class PersonAvatar
         return self::defaultUrl($gender);
     }
 
+    /**
+     * Public URL for a stored personal photo, or null when none / remote.
+     */
+    public static function photoUrl(?string $storedPath): ?string
+    {
+        $path = self::normalizeStoredPath($storedPath);
+        if ($path === null || preg_match('/^https?:\/\//i', $path)) {
+            return null;
+        }
+
+        return asset($path);
+    }
+
+    /**
+     * Absolute local file for a stored personal photo, or null if unsafe/missing.
+     */
+    public static function localFile(?string $storedPath): ?string
+    {
+        $path = self::normalizeStoredPath($storedPath);
+        if ($path === null || preg_match('/^https?:\/\//i', $path)) {
+            return null;
+        }
+
+        $candidates = [public_path($path)];
+        $stripped = preg_replace('#^storage/#', '', $path) ?? $path;
+        if ($stripped !== $path) {
+            $candidates[] = storage_path('app/public/'.ltrim($stripped, '/'));
+        }
+
+        $roots = array_values(array_filter(array_map(
+            static fn (string $root) => realpath($root) ?: null,
+            [public_path(), storage_path('app/public')]
+        )));
+
+        foreach ($candidates as $candidate) {
+            $real = realpath($candidate);
+            if ($real === false || ! is_file($real)) {
+                continue;
+            }
+            foreach ($roots as $root) {
+                if ($real === $root || str_starts_with($real, $root.DIRECTORY_SEPARATOR)) {
+                    return $real;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public static function defaultUrl(mixed $gender = null): string
     {
         return asset(self::isFemale($gender) ? self::FEMALE_ASSET : self::MALE_ASSET);
