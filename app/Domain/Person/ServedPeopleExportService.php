@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Policies\TreePolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ServedPeopleExportService
 {
@@ -63,6 +64,10 @@ class ServedPeopleExportService
                 [
                     'title' => 'الحضور',
                     'rows' => $this->attendanceRows($people, $personIds, $qetaaId, $seasonId),
+                ],
+                [
+                    'title' => 'درجات الموسم',
+                    'rows' => $this->gradeRows($people, $personIds, $qetaaId, $seasonId),
                 ],
             ],
         ];
@@ -387,6 +392,68 @@ class ServedPeopleExportService
             }
 
             return $row;
+        })->all();
+    }
+
+    /**
+     * @param  Collection<int, object>  $people
+     * @param  list<int>  $personIds
+     * @return list<array<string, mixed>>
+     */
+    private function gradeRows(Collection $people, array $personIds, int $qetaaId, int $seasonId): array
+    {
+        $marks = [];
+        if (
+            $personIds !== []
+            && Schema::hasTable('PersonExamMark')
+            && Schema::hasColumn('PersonExamMark', 'SeasonID')
+        ) {
+            $rows = DB::table('PersonExamMark as em')
+                ->leftJoin('SanaMarhala as sm', 'sm.SanaMarhalaID', '=', 'em.SanaMarhalaID')
+                ->whereIn('em.PersonID', $personIds)
+                ->where('em.QetaaID', $qetaaId)
+                ->where('em.SeasonID', $seasonId)
+                ->orderByDesc('em.ExamDate')
+                ->orderByDesc('em.ExamMarkID')
+                ->select(
+                    'em.PersonID',
+                    'em.TheoreticalMark',
+                    'em.PracticalMark',
+                    'em.ExamDate',
+                    'em.Note',
+                    'sm.SanaMarhalaName',
+                    DB::raw('(COALESCE(em.TheoreticalMark, 0) + COALESCE(em.PracticalMark, 0)) AS TotalMark')
+                )
+                ->get();
+
+            foreach ($rows as $row) {
+                $id = (int) $row->PersonID;
+                if (isset($marks[$id])) {
+                    continue;
+                }
+                $marks[$id] = $row;
+            }
+        }
+
+        return $people->map(function ($p) use ($marks) {
+            $mark = $marks[(int) $p->PersonID] ?? null;
+
+            return [
+                'PersonID' => $p->PersonID,
+                'ShamandoraCode' => $p->ShamandoraCode,
+                'FullName' => $this->fullName($p),
+                'FirstName' => $p->FirstName,
+                'SecondName' => $p->SecondName,
+                'ThirdName' => $p->ThirdName,
+                'FourthName' => $p->FourthName,
+                'QetaaName' => $p->QetaaName,
+                'SanaMarhalaName' => $mark?->SanaMarhalaName ?? ($p->SanaMarhalaName ?? ''),
+                'TheoreticalMark' => $mark?->TheoreticalMark ?? '',
+                'PracticalMark' => $mark?->PracticalMark ?? '',
+                'TotalMark' => $mark?->TotalMark ?? '',
+                'ExamDate' => $mark?->ExamDate ?? '',
+                'Note' => $mark?->Note ?? '',
+            ];
         })->all();
     }
 

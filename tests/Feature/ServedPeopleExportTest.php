@@ -157,6 +157,83 @@ class ServedPeopleExportTest extends TestCase
         $this->assertSame('01033334444', $row['MotherMobileNumber'] ?? null);
     }
 
+    public function test_season_grades_sheet_uses_latest_mark_for_selected_season_and_qetaa(): void
+    {
+        $this->seedQetaa(1, 'كشافة');
+        $this->seedQetaa(2, 'جوالة');
+        $seasonId = $this->seedSeason();
+        $otherSeasonId = (int) DB::table('Season')->insertGetId([
+            'SeasonName' => '2025',
+            'SeasonYear' => 2025,
+        ]);
+        $admin = $this->createUserWithRole('SuperAdmin');
+        $graded = $this->seedPersonInQetaa(1, 'Graded', 'Scout');
+        $this->seedPersonInQetaa(1, 'Blank', 'Scout');
+        $sanaId = (int) DB::table('SanaMarhala')->insertGetId(['SanaMarhalaName' => 'أولى']);
+
+        DB::table('PersonExamMark')->insert([
+            [
+                'PersonID' => $graded->PersonID,
+                'ServentID' => $admin->PersonID,
+                'QetaaID' => 1,
+                'SanaMarhalaID' => $sanaId,
+                'SeasonID' => $seasonId,
+                'TheoreticalMark' => 50,
+                'PracticalMark' => 40,
+                'ExamDate' => '2026-01-01',
+                'Note' => 'older',
+            ],
+            [
+                'PersonID' => $graded->PersonID,
+                'ServentID' => $admin->PersonID,
+                'QetaaID' => 1,
+                'SanaMarhalaID' => $sanaId,
+                'SeasonID' => $seasonId,
+                'TheoreticalMark' => 90,
+                'PracticalMark' => 80,
+                'ExamDate' => '2026-06-01',
+                'Note' => 'latest',
+            ],
+            [
+                'PersonID' => $graded->PersonID,
+                'ServentID' => $admin->PersonID,
+                'QetaaID' => 1,
+                'SanaMarhalaID' => $sanaId,
+                'SeasonID' => $otherSeasonId,
+                'TheoreticalMark' => 10,
+                'PracticalMark' => 10,
+                'ExamDate' => '2025-06-01',
+                'Note' => 'other season',
+            ],
+            [
+                'PersonID' => $graded->PersonID,
+                'ServentID' => $admin->PersonID,
+                'QetaaID' => 2,
+                'SanaMarhalaID' => $sanaId,
+                'SeasonID' => $seasonId,
+                'TheoreticalMark' => 1,
+                'PracticalMark' => 1,
+                'ExamDate' => '2026-07-01',
+                'Note' => 'other qetaa',
+            ],
+        ]);
+
+        $workbook = app(ServedPeopleExportService::class)->build(1, $seasonId);
+        $gradeSheet = collect($workbook['sheets'])->firstWhere('title', 'درجات الموسم');
+        $this->assertNotNull($gradeSheet);
+        $this->assertCount(5, $workbook['sheets']);
+        $this->assertCount($workbook['people_count'], $gradeSheet['rows']);
+
+        $grades = collect($gradeSheet['rows'])->keyBy('FullName');
+        $this->assertSame(90, (int) $grades['Graded Scout']['TheoreticalMark']);
+        $this->assertSame(80, (int) $grades['Graded Scout']['PracticalMark']);
+        $this->assertSame(170, (int) $grades['Graded Scout']['TotalMark']);
+        $this->assertSame('latest', $grades['Graded Scout']['Note']);
+        $this->assertSame('', $grades['Blank Scout']['TheoreticalMark'] ?? 'missing');
+        $this->assertSame('', $grades['Blank Scout']['PracticalMark'] ?? 'missing');
+        $this->assertSame('', $grades['Blank Scout']['TotalMark'] ?? 'missing');
+    }
+
     private function seedQetaa(int $id, string $name): void
     {
         DB::table('Qetaa')->insert(['QetaaID' => $id, 'QetaaName' => $name]);
@@ -233,6 +310,7 @@ class ServedPeopleExportTest extends TestCase
             'SeasonEventBookingAttendance',
             'SeasonEventParticipantFinance',
             'Attendance',
+            'PersonExamMark',
             'PersonEntryQuestions',
             'MarhalaEntryQuestions',
             'PeopleMedicalHistory',
@@ -395,6 +473,18 @@ class ServedPeopleExportTest extends TestCase
             $table->unsignedInteger('SeasonEventID');
             $table->string('AttendanceStatus', 20);
             $table->unsignedInteger('ServentID')->nullable();
+        });
+        Schema::create('PersonExamMark', function (Blueprint $table) {
+            $table->increments('ExamMarkID');
+            $table->unsignedInteger('PersonID');
+            $table->unsignedInteger('ServentID');
+            $table->unsignedInteger('QetaaID');
+            $table->unsignedInteger('SanaMarhalaID');
+            $table->unsignedInteger('SeasonID')->nullable();
+            $table->integer('TheoreticalMark');
+            $table->integer('PracticalMark');
+            $table->date('ExamDate');
+            $table->string('Note', 500)->nullable();
         });
     }
 }
