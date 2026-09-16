@@ -1203,11 +1203,11 @@ return [
         ],
         'export.served-people' => [
             'title' => 'Download served people data',
-            'intro' => 'Export one sector for one season as an Excel file with personal data, medical notes, sector questions, and attendance.',
+            'intro' => 'Export one sector for one season as an Excel file with personal data, medical notes, sector questions, attendance, and exam grades.',
             'steps' => [
                 'Choose a sector you serve. SuperAdmin can choose any sector.',
-                'Choose the season for the attendance sheet.',
-                'Press Download Excel. Unmarked attendance stays blank.',
+                'Choose the season for the attendance and exam-grades sheets.',
+                'Press Download Excel. Unmarked attendance and missing grades stay blank.',
             ],
         ],
         'person.new-enrolments-analytics' => [
