@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Auth\TokenSessionService;
+use App\Domain\Person\PersonFolarService;
 use App\Domain\Person\PersonProfileService;
 use App\Domain\Person\PersonSearchService;
 use App\Domain\Person\PersonSeasonActivityService;
@@ -23,6 +24,7 @@ class PersonDirectoryController extends Controller
         private readonly PersonSearchService $personSearch,
         private readonly PersonProfileService $profiles,
         private readonly PersonSeasonActivityService $seasonActivity,
+        private readonly PersonFolarService $folar,
     ) {}
 
     public function index(Request $request)
@@ -57,6 +59,28 @@ class PersonDirectoryController extends Controller
             'filterOptions' => $this->personSearch->directoryFilterOptions(),
             'activeServerFilters' => $filters,
         ]);
+    }
+
+    public function folarAssign()
+    {
+        return view('person.person-folar', [
+            'persons' => $this->folar->listForAssign((int) Auth::id()),
+            'folars' => LookupCache::ordered('Folar', 'FolarName'),
+        ]);
+    }
+
+    public function folarSync(Request $request)
+    {
+        $validated = $request->validate([
+            'folar' => 'nullable|array|max:2000',
+            'folar.*' => 'nullable',
+        ]);
+
+        $this->folar->syncAssignments((int) Auth::id(), $validated['folar'] ?? []);
+
+        return redirect()
+            ->route('person.folar')
+            ->with('status', __('Scout scarves saved.'));
     }
 
     public function show(Request $request, $id)
@@ -417,6 +441,7 @@ class PersonDirectoryController extends Controller
         app(TokenSessionService::class)->revokeAllForUser((int) $id);
         DB::table('PersonSystemPassword')->where('PersonID', $id)->delete();
         DB::table('PersonSanaMarhala')->where('PersonID', $id)->delete();
+        DB::table('PersonFolar')->where('PersonID', $id)->delete();
         DB::table('PersonSpiritualFatherInformation')->where('PersonID', $id)->delete();
         DB::table('PersonInformation')->where('PersonID', $id)->delete();
         DB::table('PersonEntryQuestions')->where('PersonID', $id)->delete();
@@ -484,6 +509,7 @@ class PersonDirectoryController extends Controller
             'qetaat' => LookupCache::all('Qetaa'),
             'faculties' => LookupCache::all('Faculty'),
             'universities' => LookupCache::all('University'),
+            'folars' => LookupCache::ordered('Folar', 'FolarName'),
         ]);
     }
 
@@ -516,6 +542,7 @@ class PersonDirectoryController extends Controller
             'district_id' => 'required',
             'sana_marhala_id' => 'required',
             'qetaa_id' => 'required',
+            'folar_id' => 'nullable|integer|exists:Folar,FolarID',
         ]);
 
         try {

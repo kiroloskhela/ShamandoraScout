@@ -6,6 +6,12 @@
 @endphp
 @section('content')
     <div class="container mx-auto px-4 py-8">
+        <div class="mb-4 flex justify-end">
+            <a href="{{ route('person.folar') }}"
+                class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
+                {{ __('Assign scout scarves') }}
+            </a>
+        </div>
         <x-data-table :data="$persons" title="{{ __('Manage users') }}" :add-button="$canManagePeople ? [
             'label' => __('Add user'),
             'route' => route('person.create'),

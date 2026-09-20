@@ -125,6 +125,16 @@
                                 </div>
 
                                 <div class="md:col-span-6">
+                                    <label for="folar_id" class="{{ $labelClass }}">{{ __('Scout scarf') }}</label>
+                                    <select name="folar_id" id="folar_id" class="{{ $selectClass }}">
+                                        <option value="">{{ __('No scout scarf') }}</option>
+                                        @foreach ($folars ?? [] as $folar)
+                                            <option value="{{ $folar->FolarID }}">{{ $folar->FolarName }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="md:col-span-6">
                                     <label for="inputFacebookLink" class="{{ $labelClass }}">{{ __('Facebook link (if any)') }}</label>
                                     <input type="text" name="inputFacebookLink" id="inputFacebookLink" class="{{ $inputClass }}" dir="ltr">
                                 </div>

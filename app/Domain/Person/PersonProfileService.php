@@ -105,6 +105,13 @@ class PersonProfileService
                 'SanaMarhalaID' => $data['sana_marhala_id'] ?? null,
             ]);
 
+            if (! empty($data['folar_id'])) {
+                DB::table('PersonFolar')->insert([
+                    'PersonID' => $personId,
+                    'FolarID' => $data['folar_id'],
+                ]);
+            }
+
             DB::table('PersonSpiritualFatherInformation')->insert([
                 'PersonID' => $personId,
                 'SpiritualFatherName' => $data['spiritual_father'] ?? null,
