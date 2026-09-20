@@ -19,8 +19,10 @@ class LookupCrudTest extends TestCase
         $this->withoutVite();
         Cache::flush();
 
+        Schema::dropIfExists('PersonFolar');
         Schema::dropIfExists('PersonRole');
         Schema::dropIfExists('Roles');
+        Schema::dropIfExists('Folar');
         Schema::dropIfExists('BloodType');
         Schema::dropIfExists('PersonInformation');
 
@@ -48,6 +50,16 @@ class LookupCrudTest extends TestCase
         Schema::create('BloodType', function (Blueprint $table) {
             $table->increments('BloodTypeID');
             $table->string('BloodTypeName');
+        });
+
+        Schema::create('Folar', function (Blueprint $table) {
+            $table->increments('FolarID');
+            $table->string('FolarName')->unique();
+        });
+
+        Schema::create('PersonFolar', function (Blueprint $table) {
+            $table->unsignedInteger('PersonID')->primary();
+            $table->unsignedInteger('FolarID');
         });
     }
 
@@ -111,13 +123,58 @@ class LookupCrudTest extends TestCase
         $this->assertContains('Cached', $names);
     }
 
+    public function test_super_admin_can_create_update_and_delete_folar_lookup(): void
+    {
+        $admin = $this->createSuperAdmin();
+
+        $this->actingAs($admin)
+            ->post(route('folar.insert'), ['folar_name' => 'فولار تجريبي'])
+            ->assertRedirect(route('folar.index'));
+
+        $folarId = DB::table('Folar')->where('FolarName', 'فولار تجريبي')->value('FolarID');
+        $this->assertNotNull($folarId);
+
+        $this->actingAs($admin)
+            ->patch(route('folar.update', $folarId), ['folar_name' => 'فولار معدل'])
+            ->assertRedirect(route('folar.index'));
+
+        $this->assertDatabaseHas('Folar', [
+            'FolarID' => $folarId,
+            'FolarName' => 'فولار معدل',
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('folar.destroy', $folarId))
+            ->assertRedirect(route('folar.index'));
+
+        $this->assertDatabaseMissing('Folar', ['FolarID' => $folarId]);
+    }
+
+    public function test_cannot_delete_folar_assigned_to_a_person(): void
+    {
+        $admin = $this->createSuperAdmin();
+        $folarId = DB::table('Folar')->insertGetId(['FolarName' => 'فولار مستخدم']);
+        DB::table('PersonFolar')->insert([
+            'PersonID' => $admin->PersonID,
+            'FolarID' => $folarId,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('folar.index'))
+            ->delete(route('folar.destroy', $folarId))
+            ->assertRedirect(route('folar.index'))
+            ->assertSessionHasErrors('folar');
+
+        $this->assertDatabaseHas('Folar', ['FolarID' => $folarId]);
+    }
+
     private function createSuperAdmin(): User
     {
         $user = User::create([
             'FirstName' => 'Super',
             'SecondName' => 'Admin',
             'ThirdName' => 'Test',
-            'ShamandoraCode' => 'L' . uniqid(),
+            'ShamandoraCode' => 'L'.uniqid(),
         ]);
 
         $roleId = DB::table('Roles')->insertGetId([

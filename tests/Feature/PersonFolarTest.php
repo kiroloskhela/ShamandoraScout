@@ -44,6 +44,7 @@ class PersonFolarTest extends TestCase
             $table->string('SecondName')->nullable();
             $table->string('ThirdName')->nullable();
             $table->string('FourthName')->nullable();
+            $table->string('Gender')->nullable();
         });
 
         Schema::create('PersonImages', function (Blueprint $table) {
@@ -149,7 +150,7 @@ class PersonFolarTest extends TestCase
         $this->actingAs($khadem)
             ->get(route('person.folar'))
             ->assertOk()
-            ->assertSee('فولار ساده', false);
+            ->assertSee('John Edward', false);
 
         $this->actingAs($khadem)
             ->post(route('person.folar.sync'), [
@@ -220,6 +221,68 @@ class PersonFolarTest extends TestCase
             ->assertSessionHasErrors('folar');
 
         $this->assertDatabaseCount('PersonFolar', 0);
+    }
+
+    public function test_search_and_stage_filter_limit_the_list(): void
+    {
+        ['khadem' => $khadem, 'scout' => $scout] = $this->createKhademAndScout();
+
+        $otherStageId = DB::table('SanaMarhala')->insertGetId(['SanaMarhalaName' => 'أولى إعدادي']);
+        $other = User::create([
+            'FirstName' => 'Mariam',
+            'SecondName' => 'Fouad',
+            'ShamandoraCode' => 'S2',
+        ]);
+        $qetaaId = (int) DB::table('PersonQetaa')->where('PersonID', $scout->PersonID)->value('QetaaID');
+        DB::table('PersonQetaa')->insert(['PersonID' => $other->PersonID, 'QetaaID' => $qetaaId]);
+        DB::table('PersonSanaMarhala')->insert(['PersonID' => $other->PersonID, 'SanaMarhalaID' => $otherStageId]);
+        DB::table('PersonGroup')->insert(['PersonID' => $other->PersonID, 'GroupID' => 1]);
+
+        $this->actingAs($khadem)
+            ->get(route('person.folar', ['q' => 'Mariam']))
+            ->assertOk()
+            ->assertSee('Mariam', false)
+            ->assertDontSee('John', false);
+
+        $this->actingAs($khadem)
+            ->get(route('person.folar', ['f' => ['SanaMarhalaName' => 'ثالثة إعدادي']]))
+            ->assertOk()
+            ->assertSee('John', false)
+            ->assertDontSee('Mariam', false);
+    }
+
+    public function test_shows_thumbnail_and_dedupes_multi_qetaa_person(): void
+    {
+        ['khadem' => $khadem, 'scout' => $scout] = $this->createKhademAndScout();
+
+        $secondQetaaId = DB::table('Qetaa')->insertGetId(['QetaaName' => 'أشبال 2']);
+        DB::table('PersonQetaa')->insert(['PersonID' => $scout->PersonID, 'QetaaID' => $secondQetaaId]);
+        DB::table('GroupQetaa')->insert(['GroupID' => 1, 'QetaaID' => $secondQetaaId]);
+
+        DB::table('PersonImages')->insert([
+            'PersonID' => $scout->PersonID,
+            'PersonSystemImageThumbnailPath' => 'persons/personal/thumbs/1_scout.jpg',
+        ]);
+
+        $html = $this->actingAs($khadem)
+            ->get(route('person.folar'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertSame(1, substr_count($html, 'John Edward'));
+        $this->assertStringContainsString('1_scout.jpg', $html);
+    }
+
+    public function test_save_redirect_keeps_search_query(): void
+    {
+        ['khadem' => $khadem, 'scout' => $scout, 'folarId' => $folarId] = $this->createKhademAndScout();
+
+        $this->actingAs($khadem)
+            ->post(route('person.folar.sync'), [
+                'folar' => [$scout->PersonID => $folarId],
+                'q' => 'John',
+            ])
+            ->assertRedirect(route('person.folar', ['q' => 'John']));
     }
 
     public function test_guest_and_mkhdom_cannot_open_folar_page(): void

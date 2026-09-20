@@ -10,6 +10,7 @@ use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\EventTypeController;
 use App\Http\Controllers\FacultyController;
+use App\Http\Controllers\FolarController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupPersonController;
 use App\Http\Controllers\GroupTypeController;
@@ -188,6 +189,14 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
     Route::patch('/blood/update/{id}', [BloodTypeController::class, 'updates'])->name('blood.update');
     Route::get('/blood/delete/{id}', [BloodTypeController::class, 'deletes'])->name('blood.delete');
     Route::delete('/blood/destroy/{id}', [BloodTypeController::class, 'destroy'])->name('blood.destroy');
+
+    Route::get('/folar', [FolarController::class, 'index'])->name('folar.index');
+    Route::get('/folar/add', [FolarController::class, 'create'])->name('folar.create');
+    Route::post('/folar/insert', [FolarController::class, 'insert'])->name('folar.insert');
+    Route::get('/folar/edit/{id}', [FolarController::class, 'edit'])->name('folar.edit');
+    Route::patch('/folar/update/{id}', [FolarController::class, 'updates'])->name('folar.update');
+    Route::get('/folar/delete/{id}', [FolarController::class, 'deletes'])->name('folar.delete');
+    Route::delete('/folar/destroy/{id}', [FolarController::class, 'destroy'])->name('folar.destroy');
 
     Route::get('/person/change-qetaa', [PersonDirectoryController::class, 'showChangeQetaa'])
         ->name('person.changeQetaa');

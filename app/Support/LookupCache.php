@@ -17,7 +17,7 @@ class LookupCache
      *
      * @var list<string>
      */
-    private const EXTRA_TABLES = ['QuestionsTypes', 'Folar'];
+    private const EXTRA_TABLES = ['QuestionsTypes'];
 
     public static function all(string $table): Collection
     {

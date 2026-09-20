@@ -240,6 +240,33 @@
                                             'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-100'"
                                         x-text="getNestedValue(item, column.key)"></span>
                                 </div>
+
+                                <div x-show="column.type === 'image'">
+                                    <img :src="getNestedValue(item, column.key)"
+                                        :alt="column.alt || ''"
+                                        class="h-12 w-12 rounded-full object-cover bg-slate-100 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700">
+                                </div>
+
+                                <div x-show="column.type === 'select'">
+                                    <form :action="column.saveUrl" method="POST" class="m-0">
+                                        <input type="hidden" name="_token" :value="csrfToken">
+                                        <template x-for="(val, name) in (column.hiddenFields || {})" :key="name">
+                                            <input type="hidden" :name="name" :value="val">
+                                        </template>
+                                        <select
+                                            :name="(column.namePrefix || column.key) + '[' + item[column.idField || 'PersonID'] + ']'"
+                                            :value="getNestedValue(item, column.key) ?? ''"
+                                            @change="$el.form.submit()"
+                                            :class="column.selectClass ||
+                                                'w-full min-w-[12rem] rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'">
+                                            <option value="" x-text="column.emptyLabel || ''"></option>
+                                            <template x-for="opt in (column.options || [])" :key="opt.value">
+                                                <option :value="opt.value" x-text="opt.label"
+                                                    :selected="String(getNestedValue(item, column.key) ?? '') === String(opt.value)"></option>
+                                            </template>
+                                        </select>
+                                    </form>
+                                </div>
                             </td>
                         </template>
 
