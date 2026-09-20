@@ -10,6 +10,7 @@ use App\Domain\Person\PersonSeasonActivityService;
 use App\Models\User;
 use App\Support\LikeSearch;
 use App\Support\LookupCache;
+use App\Support\SafeHttpUrl;
 use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,11 +62,23 @@ class PersonDirectoryController extends Controller
         ]);
     }
 
-    public function folarAssign()
+    public function folarAssign(Request $request)
     {
+        $userId = (int) Auth::id();
+        $filters = TableColumnFilters::fromRequest($request, ['SanaMarhalaName']);
+        $options = $this->personSearch->directoryFilterOptions($userId);
+
         return view('person.person-folar', [
-            'persons' => $this->folar->listForAssign((int) Auth::id()),
+            'persons' => $this->folar->paginateForAssign(
+                $userId,
+                LikeSearch::fromRequest($request),
+                $filters,
+            ),
             'folars' => LookupCache::ordered('Folar', 'FolarName'),
+            'filterOptions' => [
+                'SanaMarhalaName' => $options['SanaMarhalaName'] ?? [],
+            ],
+            'activeServerFilters' => $filters,
         ]);
     }
 
@@ -79,8 +92,32 @@ class PersonDirectoryController extends Controller
         $this->folar->syncAssignments((int) Auth::id(), $validated['folar'] ?? []);
 
         return redirect()
-            ->route('person.folar')
+            ->route('person.folar', $this->folarListQuery($request))
             ->with('status', __('Scout scarves saved.'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function folarListQuery(Request $request): array
+    {
+        $query = [];
+        $term = LikeSearch::fromRequest($request);
+        if ($term !== null) {
+            $query['q'] = $term;
+        }
+
+        $page = max(1, (int) $request->input('page', 0));
+        if ($page > 1) {
+            $query['page'] = $page;
+        }
+
+        $filters = TableColumnFilters::fromRequest($request, ['SanaMarhalaName']);
+        if ($filters !== []) {
+            $query['f'] = $filters;
+        }
+
+        return $query;
     }
 
     public function show(Request $request, $id)
@@ -341,8 +378,8 @@ class PersonDirectoryController extends Controller
             'input_raqam_qawmy' => 'nullable|digits:14',
             'blood_type_input' => 'nullable|integer',
             'email_input' => 'nullable|email|max:255',
-            'inputFacebookLink' => \App\Support\SafeHttpUrl::rules(),
-            'inputInstagramLink' => \App\Support\SafeHttpUrl::rules(),
+            'inputFacebookLink' => SafeHttpUrl::rules(),
+            'inputInstagramLink' => SafeHttpUrl::rules(),
 
             'personal_phone_number' => 'nullable|digits_between:11,11',
             'father_phone_number' => 'nullable|digits_between:11,11',

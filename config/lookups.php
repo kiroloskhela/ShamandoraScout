@@ -1,6 +1,31 @@
 <?php
 
 return [
+    'folar' => [
+        'route' => 'folar',
+        'table' => 'Folar',
+        'primary_key' => 'FolarID',
+        'display_field' => 'FolarName',
+        'request_field' => 'folar_name',
+        'views' => [
+            'index' => 'folar.index',
+            'create' => 'folar.create',
+            'edit' => 'folar.edit',
+            'delete' => 'folar.delete',
+        ],
+        'variables' => ['index' => 'folars', 'item' => 'folar'],
+        'titles' => [
+            'index' => 'الفولارات',
+            'edit' => 'تعديل فولار',
+            'delete' => 'حذف فولار',
+        ],
+        'messages' => [
+            'store' => 'تم إدخال الفولار %s بنجاح',
+            'update' => 'تم تعديل الفولار %s بنجاح',
+            'destroy' => 'تم حذف الفولار بنجاح',
+        ],
+    ],
+
     'blood' => [
         'route' => 'blood',
         'table' => 'BloodType',
