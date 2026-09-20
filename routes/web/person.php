@@ -89,6 +89,8 @@ Route::middleware(['auth'])->group(function () {
 // Full profile, served directory, and exam marks for all staff except Mkhdom.
 Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminQetaa|AdminSecretary|Secretary|AdminFinance|Finance|AdminInventory|Inventory|AdminFirstAid|Khadem|Media', 'can.permission:web.people.view_served|web.people.directory'])->group(function () {
     Route::get('/person', [PersonDirectoryController::class, 'index'])->name('person.index');
+    Route::get('/person/folar', [PersonDirectoryController::class, 'folarAssign'])->name('person.folar');
+    Route::post('/person/folar', [PersonDirectoryController::class, 'folarSync'])->name('person.folar.sync');
     Route::get('/person/show/{id}', [PersonDirectoryController::class, 'show'])->name('person.show');
 
     // Exam marks: staff CRUD, scoped to served qetaas in PersonExamMarkController.
