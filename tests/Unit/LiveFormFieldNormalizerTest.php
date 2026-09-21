@@ -41,4 +41,25 @@ class LiveFormFieldNormalizerTest extends TestCase
         $this->assertNull($this->normalizer->cleanList('  '));
         $this->assertSame('a, b', $this->normalizer->cleanList("a، b; a\nb"));
     }
+
+    public function test_clean_list_drops_negative_placeholder_answers(): void
+    {
+        $this->assertNull($this->normalizer->cleanList('لا'));
+        $this->assertNull($this->normalizer->cleanList('لا يوجد'));
+        $this->assertNull($this->normalizer->cleanList('لايوجد'));
+        $this->assertNull($this->normalizer->cleanList('No'));
+        $this->assertNull($this->normalizer->cleanList('none'));
+        $this->assertNull($this->normalizer->cleanList('n/a'));
+        $this->assertNull($this->normalizer->cleanList('N.A.'));
+        $this->assertNull($this->normalizer->cleanList('nothing'));
+        $this->assertNull($this->normalizer->cleanList('بدون'));
+        $this->assertNull($this->normalizer->cleanList('مفيش'));
+        $this->assertNull($this->normalizer->cleanList('لا شئ'));
+        $this->assertNull($this->normalizer->cleanList('لا شيء'));
+        $this->assertSame('لبن', $this->normalizer->cleanList('لبن, لا, لا يوجد'));
+        $this->assertSame(['لبن'], $this->normalizer->listParts('لبن، لا'));
+        $this->assertTrue($this->normalizer->isNegativeAnswer('لا يوجد.'));
+        $this->assertFalse($this->normalizer->isNegativeAnswer('ربو'));
+        $this->assertFalse($this->normalizer->isNegativeAnswer('لبن'));
+    }
 }

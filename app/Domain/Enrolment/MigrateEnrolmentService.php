@@ -197,7 +197,9 @@ class MigrateEnrolmentService
             $medications = $this->splitList($person->MedicalMedications ?? null);
             $max = max(count($diseases), count($medications), 1);
             $hasEmergency = (int) ($person->HasEmergencyCase ?? 0);
-            $emergencyDetails = $hasEmergency ? ($person->EmergencyDetails ?? null) : null;
+            $emergencyDetails = $hasEmergency
+                ? (new LiveFormFieldNormalizer)->cleanList($person->EmergencyDetails ?? null)
+                : null;
 
             for ($i = 0; $i < $max; $i++) {
                 $d = $diseases[$i] ?? null;
@@ -224,6 +226,13 @@ class MigrateEnrolmentService
                 ]);
             }
 
+            if (! empty($person->FolarID)) {
+                DB::table('PersonFolar')->insert([
+                    'PersonID' => $thisPersonID,
+                    'FolarID' => (int) $person->FolarID,
+                ]);
+            }
+
             foreach ($questions as $question) {
                 DB::table('PersonEntryQuestions')->insert([
                     'PersonID' => $thisPersonID,
@@ -241,16 +250,6 @@ class MigrateEnrolmentService
 
     private function splitList($value): array
     {
-        if ($value === null) {
-            return [];
-        }
-        $value = trim((string) $value);
-        if ($value === '') {
-            return [];
-        }
-        $value = str_replace(["\r\n", "\n", '،', ';'], ',', $value);
-        $parts = array_filter(array_map('trim', explode(',', $value)), fn ($x) => $x !== '');
-
-        return array_values(array_unique($parts));
+        return (new LiveFormFieldNormalizer)->listParts($value === null ? null : (string) $value);
     }
 }

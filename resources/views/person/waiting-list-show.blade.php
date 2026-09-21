@@ -100,10 +100,6 @@
                         <dd class="font-mono font-medium text-gray-900">{{ $person->RaqamQawmy ?? '—' }}</dd>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <dt class="text-gray-500">{{ __('Scout joining year') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->ScoutJoiningYear ?? '—' }}</dd>
-                    </div>
-                    <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Blood type') }}</dt>
                         <dd class="font-medium text-gray-900">{{ $person->BloodTypeName ?? '—' }}</dd>
                     </div>
@@ -242,38 +238,83 @@
             </div>
 
             {{-- Medical --}}
+            @php
+                $fields = app(\App\Domain\Enrolment\LiveFormFieldNormalizer::class);
+                $allergyFood = $fields->cleanList((string) ($person->AllergyFood ?? '')) ?? '';
+                $allergyMedicine = $fields->cleanList((string) ($person->AllergyMedicine ?? '')) ?? '';
+                $medicalDiseases = $fields->cleanList((string) ($person->MedicalDiseases ?? '')) ?? '';
+                $medicalMedications = $fields->cleanList((string) ($person->MedicalMedications ?? '')) ?? '';
+                $hasEmergency = ! empty($person->HasEmergencyCase);
+                $emergencyDetailsVal = $fields->cleanList((string) ($person->EmergencyDetails ?? '')) ?? '';
+                $hasMedical =
+                    $allergyFood !== '' ||
+                    $allergyMedicine !== '' ||
+                    $medicalDiseases !== '' ||
+                    $medicalMedications !== '' ||
+                    $hasEmergency;
+            @endphp
+            @if ($hasMedical)
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <span class="w-1 h-5 bg-red-400 rounded-full inline-block"></span>
                     {{ __('Medical data') }}
                 </h2>
                 <dl class="space-y-3">
+                    @if ($allergyFood !== '')
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Food allergy') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->AllergyFood ?? '—' }}</dd>
+                        <dd class="font-medium text-gray-900">{{ $allergyFood }}</dd>
                     </div>
+                    @endif
+                    @if ($allergyMedicine !== '')
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Medicine allergy') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->AllergyMedicine ?? '—' }}</dd>
+                        <dd class="font-medium text-gray-900">{{ $allergyMedicine }}</dd>
                     </div>
+                    @endif
+                    @if ($medicalDiseases !== '')
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Diseases') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->MedicalDiseases ?? '—' }}</dd>
+                        <dd class="font-medium text-gray-900">{{ $medicalDiseases }}</dd>
                     </div>
+                    @endif
+                    @if ($medicalMedications !== '')
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Medications') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->MedicalMedications ?? '—' }}</dd>
+                        <dd class="font-medium text-gray-900">{{ $medicalMedications }}</dd>
                     </div>
+                    @endif
+                    @if ($hasEmergency)
                     <div class="flex justify-between text-sm">
                         <dt class="text-gray-500">{{ __('Emergency case?') }}</dt>
-                        <dd class="font-medium text-gray-900">{{ $person->HasEmergencyCase ? __('Yes') : __('No') }}</dd>
+                        <dd class="font-medium text-gray-900">{{ __('Yes') }}</dd>
                     </div>
-                    @if ($person->HasEmergencyCase)
+                    @endif
+                    @if ($hasEmergency && $emergencyDetailsVal !== '')
                         <div class="flex justify-between text-sm">
                             <dt class="text-gray-500">{{ __('Emergency details') }}</dt>
-                            <dd class="font-medium text-gray-900">{{ $person->EmergencyDetails ?? '—' }}</dd>
+                            <dd class="font-medium text-gray-900">{{ $emergencyDetailsVal }}</dd>
                         </div>
                     @endif
+                </dl>
+            </div>
+            @endif
+
+            {{-- Scout --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-base font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                    <span class="w-1 h-5 bg-teal-500 rounded-full inline-block"></span>
+                    {{ __('Scout section') }}
+                </h2>
+                <dl class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">{{ __('Joining year') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ $person->ScoutJoiningYear ?? '—' }}</dd>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <dt class="text-gray-500">{{ __('Scout scarf') }}</dt>
+                        <dd class="font-medium text-gray-900">{{ $person->FolarName ?? __('No scout scarf') }}</dd>
+                    </div>
                 </dl>
             </div>
 

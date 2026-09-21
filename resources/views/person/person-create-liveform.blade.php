@@ -326,17 +326,6 @@
                                 </div>
 
                                 <div class="md:col-span-6">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Joining year') }}</label>
-                                    <select id="joining_year_input" name="joining_year_input" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
-                                        @for ($year = date('Y'); $year >= 2000; $year--)
-                                            <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>
-                                                {{ $year }}
-                                            </option>
-                                        @endfor
-                                    </select>
-                                </div>
-
-                                <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">
                                         {{ __('National ID (14 digits)') }} <span class="text-rose-600">*</span>
                                     </label>
@@ -502,6 +491,35 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
+                            <div class="mb-5">
+                                <h2 class="text-xl font-bold text-brand-900">{{ __('Scout section') }}</h2>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Joining year') }}</label>
+                                    <select id="joining_year_input" name="joining_year_input" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        @for ($year = date('Y'); $year >= 2000; $year--)
+                                            <option value="{{ $year }}" {{ (string) old('joining_year_input', date('Y')) === (string) $year ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                </div>
+                                <div class="md:col-span-6">
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Scout scarf') }}</label>
+                                    <select id="folar_id" name="folar_id" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                        <option value="">{{ __('No scout scarf') }}</option>
+                                        @foreach ($folars ?? [] as $folar)
+                                            <option value="{{ $folar->FolarID }}" {{ (string) old('folar_id') === (string) $folar->FolarID ? 'selected' : '' }}>
+                                                {{ $folar->FolarName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </section>

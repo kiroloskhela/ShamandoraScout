@@ -144,12 +144,13 @@ class PersonFolarTest extends TestCase
         $this->assertDatabaseHas('Folar', ['FolarName' => 'فولار الخشبيه']);
     }
 
-    public function test_name_for_returns_assigned_folar_or_null(): void
+    public function test_name_for_and_id_for_return_assigned_folar_or_null(): void
     {
         ['scout' => $scout, 'folarId' => $folarId] = $this->createKhademAndScout();
         $service = app(PersonFolarService::class);
 
         $this->assertNull($service->nameFor((int) $scout->PersonID));
+        $this->assertNull($service->idFor((int) $scout->PersonID));
 
         DB::table('PersonFolar')->insert([
             'PersonID' => $scout->PersonID,
@@ -157,6 +158,27 @@ class PersonFolarTest extends TestCase
         ]);
 
         $this->assertSame('فولار ساده', $service->nameFor((int) $scout->PersonID));
+        $this->assertSame($folarId, $service->idFor((int) $scout->PersonID));
+    }
+
+    public function test_assign_one_sets_reassigns_and_clears_folar(): void
+    {
+        ['scout' => $scout, 'folarId' => $folarId] = $this->createKhademAndScout();
+        $service = app(PersonFolarService::class);
+        $otherId = (int) DB::table('Folar')->where('FolarName', 'فولار براعم')->value('FolarID');
+
+        $this->assertNull($service->idFor((int) $scout->PersonID));
+
+        $service->assignOne((int) $scout->PersonID, $folarId);
+        $this->assertSame($folarId, $service->idFor((int) $scout->PersonID));
+
+        $service->assignOne((int) $scout->PersonID, $otherId);
+        $this->assertSame($otherId, $service->idFor((int) $scout->PersonID));
+        $this->assertDatabaseCount('PersonFolar', 1);
+
+        $service->assignOne((int) $scout->PersonID, null);
+        $this->assertNull($service->idFor((int) $scout->PersonID));
+        $this->assertDatabaseMissing('PersonFolar', ['PersonID' => $scout->PersonID]);
     }
 
     public function test_khadem_can_assign_and_clear_folar_for_served_person(): void

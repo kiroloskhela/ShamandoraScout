@@ -10,6 +10,7 @@ use App\Domain\Enrolment\LiveFormSubmitService;
 use App\Domain\Enrolment\LiveFormTempFileService;
 use App\Domain\Enrolment\LiveFormWizardService;
 use App\Support\LookupCache;
+use App\Support\SafeHttpUrl;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -170,8 +171,8 @@ class LiveFormEnrolmentController extends Controller
             'nearest_landmark' => 'nullable|string|max:255',
             'manteqa_id' => 'required',
             'district_id' => 'required',
-            'inputFacebookLink' => \App\Support\SafeHttpUrl::rules(500),
-            'inputInstagramLink' => \App\Support\SafeHttpUrl::rules(500),
+            'inputFacebookLink' => SafeHttpUrl::rules(500),
+            'inputInstagramLink' => SafeHttpUrl::rules(500),
             'email_input' => 'nullable|email|max:255',
             'spiritual_father' => 'nullable|string|max:255',
             'spiritual_father_church' => 'nullable|string|max:255',
@@ -190,6 +191,7 @@ class LiveFormEnrolmentController extends Controller
             'medical_medications' => 'nullable|string|max:2000',
             'has_emergency_case' => 'nullable',
             'emergency_details' => 'nullable|string|max:255',
+            'folar_id' => 'nullable|integer|exists:Folar,FolarID',
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -300,6 +302,7 @@ class LiveFormEnrolmentController extends Controller
                 'medical_medications' => $request->medical_medications,
                 'has_emergency_case' => $hasEmergency ? 1 : 0,
                 'emergency_details' => $request->emergency_details,
+                'folar_id' => $data['folar_id'] ?? null,
 
                 'profile_image' => $profileImagePath,
                 'scout_uniform_image' => $scoutImagePath,
@@ -471,6 +474,7 @@ class LiveFormEnrolmentController extends Controller
                 'EmergencyDetails' => ! empty($step2['has_emergency_case'])
                     ? trim((string) ($step2['emergency_details'] ?? ''))
                     : null,
+                'FolarID' => ! empty($step2['folar_id']) ? (int) $step2['folar_id'] : null,
             ];
 
             $answers = [];

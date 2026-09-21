@@ -97,12 +97,13 @@
                         $personalUrl = $buildImgUrl($personalPath);
                         $scoutUrl = $buildImgUrl($scoutPath);
 
-                        $allergyFood = trim((string) ($person->AllergyFood ?? ($person->allergy_food ?? '')));
-                        $allergyMedicine = trim((string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? '')));
-                        $medicalDiseases = trim((string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? '')));
-                        $medicalMedications = trim((string) ($person->MedicalMedications ?? ($person->medical_medications ?? '')));
+                        $fields = app(\App\Domain\Enrolment\LiveFormFieldNormalizer::class);
+                        $allergyFood = $fields->cleanList((string) ($person->AllergyFood ?? ($person->allergy_food ?? ''))) ?? '';
+                        $allergyMedicine = $fields->cleanList((string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? ''))) ?? '';
+                        $medicalDiseases = $fields->cleanList((string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? ''))) ?? '';
+                        $medicalMedications = $fields->cleanList((string) ($person->MedicalMedications ?? ($person->medical_medications ?? ''))) ?? '';
                         $hasEmergency = $person->HasEmergencyCase ?? ($person->has_emergency_case ?? null);
-                        $emergencyDetailsVal = trim((string) ($person->EmergencyDetails ?? ($person->emergency_details ?? '')));
+                        $emergencyDetailsVal = $fields->cleanList((string) ($person->EmergencyDetails ?? ($person->emergency_details ?? ''))) ?? '';
 
                         $hasAllergy = $allergyFood !== '' || $allergyMedicine !== '';
                         $hasMedical =
@@ -211,7 +212,7 @@
                                                 </div>
                                             @endif
 
-                                            @if ($hasEmergency !== null)
+                                            @if ($hasEmergency == 1 || $hasEmergency === true || $hasEmergency === '1')
                                                 <div class="md:col-span-12">
                                                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Previous emergency cases?') }}</label>
                                                     <select name="has_emergency_case"
@@ -233,6 +234,32 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <div class="mb-6">
+                                <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                    <div class="font-bold text-slate-800 dark:text-slate-100 mb-4">{{ __('Scout section') }}</div>
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Joining year') }}</label>
+                                            <input type="number" name="joining_year_input" value="{{ old('joining_year_input', $person->ScoutJoiningYear ?? '') }}"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div class="md:col-span-6">
+                                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Scout scarf') }}</label>
+                                            <select name="folar_id"
+                                                class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="">{{ __('No scout scarf') }}</option>
+                                                @foreach ($folars ?? [] as $folar)
+                                                    <option value="{{ $folar->FolarID }}"
+                                                        {{ (string) old('folar_id', $person->FolarID ?? '') === (string) $folar->FolarID ? 'selected' : '' }}>
+                                                        {{ $folar->FolarName }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-3">
@@ -290,12 +317,6 @@
                                     <input type="date" name="birthdate_input" value="{{ old('birthdate_input', $person->DateOfBirth) }}"
                                         class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
-                                </div>
-
-                                <div class="md:col-span-6">
-                                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Joining year') }}</label>
-                                    <input type="number" name="joining_year_input" value="{{ old('joining_year_input', $person->ScoutJoiningYear ?? '') }}"
-                                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
 
                                 <div class="md:col-span-6">

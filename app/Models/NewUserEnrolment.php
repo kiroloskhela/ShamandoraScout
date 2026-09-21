@@ -20,7 +20,9 @@ use Illuminate\Database\Eloquent\Model;
 class NewUserEnrolment extends Model
 {
     protected $table = 'NewUsersInformation';
+
     protected $primaryKey = 'id';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -73,6 +75,7 @@ class NewUserEnrolment extends Model
         'MedicalMedications',
         'HasEmergencyCase',
         'EmergencyDetails',
+        'FolarID',
     ];
 
     protected $hidden = ['Password'];

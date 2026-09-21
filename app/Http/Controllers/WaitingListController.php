@@ -55,6 +55,7 @@ class WaitingListController extends Controller
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformationWaitinglist.DistrictID')
             ->leftJoin('Faculty', 'Faculty.FacultyID', '=', 'NewUsersInformationWaitinglist.FacultyID')
             ->leftJoin('University', 'University.UniversityID', '=', 'NewUsersInformationWaitinglist.UniversityID')
+            ->leftJoin('Folar', 'Folar.FolarID', '=', 'NewUsersInformationWaitinglist.FolarID')
             ->select(
                 'NewUsersInformationWaitinglist.*',
                 'BloodType.BloodTypeName',
@@ -62,7 +63,8 @@ class WaitingListController extends Controller
                 'Manteqa.ManteqaName',
                 'Districts.DistrictName',
                 'Faculty.FacultyName',
-                'University.UniversityName'
+                'University.UniversityName',
+                'Folar.FolarName'
             )
             ->first();
 

@@ -17,6 +17,7 @@ class LiveFormWizardService
             'districts' => LookupCache::all('Districts'),
             'faculties' => LookupCache::all('Faculty'),
             'universities' => LookupCache::all('University'),
+            'folars' => LookupCache::ordered('Folar', 'FolarName'),
         ];
     }
 }

@@ -53,26 +53,72 @@ class LiveFormFieldNormalizer
         return $data;
     }
 
-    public function cleanList(?string $value): ?string
+    /**
+     * @return list<string>
+     */
+    public function listParts(?string $value): array
     {
         if ($value === null) {
-            return null;
+            return [];
         }
 
         $value = trim($value);
 
         if ($value === '') {
-            return null;
+            return [];
         }
 
         $value = str_replace(["\r\n", "\n", '،', ';'], ',', $value);
 
         $parts = array_filter(array_map('trim', explode(',', $value)), function ($x) {
-            return $x !== '';
+            return $x !== '' && ! $this->isNegativeAnswer($x);
         });
 
-        $parts = array_values(array_unique($parts));
+        return array_values(array_unique($parts));
+    }
 
-        return count($parts) ? implode(', ', $parts) : null;
+    public function cleanList(?string $value): ?string
+    {
+        $parts = $this->listParts($value);
+
+        return $parts === [] ? null : implode(', ', $parts);
+    }
+
+    public function isNegativeAnswer(?string $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        $compact = $this->compactAnswer($value);
+
+        if ($compact === '') {
+            return true;
+        }
+
+        return in_array($compact, [
+            'no',
+            'none',
+            'nil',
+            'na',
+            'nada',
+            'nothing',
+            'لا',
+            'لايوجد',
+            'لاشئ',
+            'لاشيء',
+            'لاشي',
+            'بدون',
+            'مفيش',
+            'مشموجود',
+        ], true);
+    }
+
+    private function compactAnswer(string $value): string
+    {
+        $value = mb_strtolower(trim($value));
+        $value = str_replace(['أ', 'إ', 'آ', 'ٱ', 'ة', 'ى', 'ئ', 'ء'], ['ا', 'ا', 'ا', 'ا', 'ه', 'ي', 'ي', ''], $value);
+
+        return preg_replace('/[\s.،,;:_\\-\/\\\\]+/u', '', $value) ?? '';
     }
 }
