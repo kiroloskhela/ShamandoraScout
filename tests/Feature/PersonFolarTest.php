@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Person\PersonFolarService;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -141,6 +142,21 @@ class PersonFolarTest extends TestCase
         $this->assertSame(5, DB::table('Folar')->count());
         $this->assertDatabaseHas('Folar', ['FolarName' => 'فولار براعم']);
         $this->assertDatabaseHas('Folar', ['FolarName' => 'فولار الخشبيه']);
+    }
+
+    public function test_name_for_returns_assigned_folar_or_null(): void
+    {
+        ['scout' => $scout, 'folarId' => $folarId] = $this->createKhademAndScout();
+        $service = app(PersonFolarService::class);
+
+        $this->assertNull($service->nameFor((int) $scout->PersonID));
+
+        DB::table('PersonFolar')->insert([
+            'PersonID' => $scout->PersonID,
+            'FolarID' => $folarId,
+        ]);
+
+        $this->assertSame('فولار ساده', $service->nameFor((int) $scout->PersonID));
     }
 
     public function test_khadem_can_assign_and_clear_folar_for_served_person(): void

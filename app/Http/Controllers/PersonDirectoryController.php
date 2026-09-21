@@ -184,6 +184,10 @@ class PersonDirectoryController extends Controller
             )
             ->first();
 
+        if ($person) {
+            $person->FolarName = $this->folar->nameFor((int) $target->PersonID);
+        }
+
         $questions = DB::table('PersonEntryQuestions')
             ->join('MarhalaEntryQuestions', 'MarhalaEntryQuestions.QuestionID', '=', 'PersonEntryQuestions.QuestionID')
             ->select(
@@ -304,6 +308,8 @@ class PersonDirectoryController extends Controller
         if (! $person) {
             return view('person.entry-error');
         }
+
+        $person->FolarName = $this->folar->nameFor((int) $target->PersonID);
 
         $questions = collect();
 

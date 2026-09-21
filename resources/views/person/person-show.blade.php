@@ -328,6 +328,10 @@
                             <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">{{ __('Shamandora code') }}</div>
                             <div class="font-bold text-slate-900 dark:text-slate-100 font-mono" dir="ltr">{{ $val($code) }}</div>
                         </div>
+                        <div>
+                            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">{{ __('Scout scarf') }}</div>
+                            <div class="font-bold text-slate-900 dark:text-slate-100">{{ $val($p->FolarName ?? null, __('None')) }}</div>
+                        </div>
                     </div>
                 </article>
             </div>

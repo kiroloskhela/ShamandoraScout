@@ -522,6 +522,12 @@
                                     <input type="text" readonly value="{{ $person->QetaaName ?? __('Not available') }}"
                                         class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
                                 </div>
+
+                                <div class="md:col-span-4">
+                                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Scout scarf') }}</label>
+                                    <input type="text" readonly value="{{ $person->FolarName ?? __('None') }}"
+                                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                </div>
                             </div>
                         </section>
 

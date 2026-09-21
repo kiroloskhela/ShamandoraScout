@@ -86,6 +86,16 @@ class PersonFolarService
             });
     }
 
+    public function nameFor(int $personId): ?string
+    {
+        $name = DB::table('PersonFolar')
+            ->join('Folar', 'Folar.FolarID', '=', 'PersonFolar.FolarID')
+            ->where('PersonFolar.PersonID', $personId)
+            ->value('Folar.FolarName');
+
+        return is_string($name) && $name !== '' ? $name : null;
+    }
+
     /**
      * @param  array<int|string, mixed>  $folarByPersonId
      */
