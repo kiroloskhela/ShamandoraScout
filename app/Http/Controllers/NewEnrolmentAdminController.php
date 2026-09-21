@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Enrolment\LiveFormFieldNormalizer;
 use App\Support\LikeSearch;
 use App\Support\LookupCache;
+use App\Support\SafeHttpUrl;
 use App\Support\SqlPaginator;
 use App\Support\TableColumnFilters;
 use Illuminate\Http\Request;
@@ -178,6 +180,7 @@ class NewEnrolmentAdminController extends Controller
             ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'NewUsersInformation.SanaMarhalaID')
             ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformation.ManteqaID')
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
+            ->leftJoin('Folar', 'Folar.FolarID', '=', 'NewUsersInformation.FolarID')
             ->get()->first();
 
         $questions = DB::table('NewUsersPersonEntryQuestions')
@@ -277,6 +280,7 @@ class NewEnrolmentAdminController extends Controller
             ->leftJoin('SanaMarhala', 'SanaMarhala.SanaMarhalaID', '=', 'NewUsersInformation.SanaMarhalaID')
             ->leftJoin('Manteqa', 'Manteqa.ManteqaID', '=', 'NewUsersInformation.ManteqaID')
             ->leftJoin('Districts', 'Districts.DistrictID', '=', 'NewUsersInformation.DistrictID')
+            ->leftJoin('Folar', 'Folar.FolarID', '=', 'NewUsersInformation.FolarID')
             ->first();
         $questions = DB::table('MarhalaEntryQuestions')
             ->leftJoin('NewUsersPersonEntryQuestions', function ($join) use ($id) {
@@ -302,6 +306,7 @@ class NewEnrolmentAdminController extends Controller
         $manateq = LookupCache::all('Manteqa');
         $districts = LookupCache::all('Districts');
         $seneen_marahel = LookupCache::all('SanaMarhala');
+        $folars = LookupCache::ordered('Folar', 'FolarName');
 
         return view('person.new-enrolments-edit', [
             'person' => $person,
@@ -310,6 +315,7 @@ class NewEnrolmentAdminController extends Controller
             'manateq' => $manateq,
             'districts' => $districts,
             'seneen_marahel' => $seneen_marahel,
+            'folars' => $folars,
         ]);
     }
 
@@ -334,8 +340,9 @@ class NewEnrolmentAdminController extends Controller
             'birthdate_input' => 'required',
             'input_raqam_qawmy' => 'required|min_digits:14|max_digits:14',
             'personal_phone_number' => 'required|min_digits:11|max_digits:11',
-            'facebook_profile_url' => \App\Support\SafeHttpUrl::rules(),
-            'instagram_profile_url' => \App\Support\SafeHttpUrl::rules(),
+            'facebook_profile_url' => SafeHttpUrl::rules(),
+            'instagram_profile_url' => SafeHttpUrl::rules(),
+            'folar_id' => 'nullable|integer|exists:Folar,FolarID',
         ]);
 
         if ($validator->fails()) {
@@ -362,6 +369,8 @@ class NewEnrolmentAdminController extends Controller
         DB::beginTransaction();
 
         try {
+            $fields = app(LiveFormFieldNormalizer::class);
+
             DB::table('NewUsersInformation')
                 ->where('PersonID', $id)
                 ->update([
@@ -395,12 +404,13 @@ class NewEnrolmentAdminController extends Controller
                     'SchoolGraduationYear' => $request->school_graduation_year,
                     'SpiritualFatherName' => $request->spiritual_father_name,
                     'SpiritualFatherChurchName' => $request->spiritual_father_church_name,
-                    'AllergyFood' => $request->allergy_food,
-                    'AllergyMedicine' => $request->allergy_medicine,
-                    'MedicalDiseases' => $request->medical_diseases,
-                    'MedicalMedications' => $request->medical_medications,
+                    'AllergyFood' => $fields->cleanList($request->allergy_food),
+                    'AllergyMedicine' => $fields->cleanList($request->allergy_medicine),
+                    'MedicalDiseases' => $fields->cleanList($request->medical_diseases),
+                    'MedicalMedications' => $fields->cleanList($request->medical_medications),
                     'HasEmergencyCase' => $request->has_emergency_case ? 1 : 0,
-                    'EmergencyDetails' => $request->emergency_details,
+                    'EmergencyDetails' => $fields->cleanList($request->emergency_details),
+                    'FolarID' => $request->filled('folar_id') ? (int) $request->folar_id : null,
                 ]);
 
             // get qetaa after update

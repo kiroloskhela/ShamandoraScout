@@ -525,8 +525,16 @@
 
                                 <div class="md:col-span-4">
                                     <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Scout scarf') }}</label>
-                                    <input type="text" readonly value="{{ $person->FolarName ?? __('None') }}"
-                                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                    <select name="folar_id"
+                                        class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">{{ __('No scout scarf') }}</option>
+                                        @foreach ($folars ?? [] as $folar)
+                                            <option value="{{ $folar->FolarID }}"
+                                                {{ (string) old('folar_id', $person->FolarID ?? '') === (string) $folar->FolarID ? 'selected' : '' }}>
+                                                {{ $folar->FolarName }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </section>

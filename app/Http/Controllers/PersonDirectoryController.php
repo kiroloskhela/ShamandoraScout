@@ -309,7 +309,7 @@ class PersonDirectoryController extends Controller
             return view('person.entry-error');
         }
 
-        $person->FolarName = $this->folar->nameFor((int) $target->PersonID);
+        $person->FolarID = $this->folar->idFor((int) $target->PersonID);
 
         $questions = collect();
 
@@ -353,6 +353,7 @@ class PersonDirectoryController extends Controller
             'universities' => $universities,
             'person' => $person,
             'questions' => $questions,
+            'folars' => LookupCache::ordered('Folar', 'FolarName'),
         ]);
     }
 
@@ -415,6 +416,7 @@ class PersonDirectoryController extends Controller
 
             'rotba_kashfeyya_id' => 'nullable|integer',
             'betaka_id' => 'nullable|integer',
+            'folar_id' => 'nullable|integer|exists:Folar,FolarID',
 
             'personal_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
             'scout_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:6144',
@@ -428,14 +430,22 @@ class PersonDirectoryController extends Controller
         }
 
         try {
-            $this->profiles->updateProfile(
-                (int) $id,
-                $request->all(),
-                $request->file('personal_image'),
-                $request->file('scout_image'),
-                $request->input('questions'),
-                $request->exists('questions'),
-            );
+            $validated = $validator->validated();
+
+            DB::transaction(function () use ($id, $request, $validated) {
+                $this->profiles->updateProfile(
+                    (int) $id,
+                    $request->all(),
+                    $request->file('personal_image'),
+                    $request->file('scout_image'),
+                    $request->input('questions'),
+                    $request->exists('questions'),
+                );
+
+                if (array_key_exists('folar_id', $validated)) {
+                    $this->folar->assignOne((int) $id, $validated['folar_id']);
+                }
+            });
 
             return redirect()->route('person.edit', $id)->with('status', 'تم تعديل البيانات بنجاح');
         } catch (\Exception $e) {

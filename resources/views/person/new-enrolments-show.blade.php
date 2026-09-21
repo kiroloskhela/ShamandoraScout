@@ -121,12 +121,13 @@
                     $personalUrl = $buildImgUrl($personalPath);
                     $scoutUrl = $buildImgUrl($scoutPath);
 
-                    $allergyFood = trim((string) ($person->AllergyFood ?? ($person->allergy_food ?? '')));
-                    $allergyMedicine = trim((string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? '')));
-                    $medicalDiseases = trim((string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? '')));
-                    $medicalMedications = trim((string) ($person->MedicalMedications ?? ($person->medical_medications ?? '')));
+                    $fields = app(\App\Domain\Enrolment\LiveFormFieldNormalizer::class);
+                    $allergyFood = $fields->cleanList((string) ($person->AllergyFood ?? ($person->allergy_food ?? ''))) ?? '';
+                    $allergyMedicine = $fields->cleanList((string) ($person->AllergyMedicine ?? ($person->allergy_medicine ?? ''))) ?? '';
+                    $medicalDiseases = $fields->cleanList((string) ($person->MedicalDiseases ?? ($person->medical_diseases ?? ''))) ?? '';
+                    $medicalMedications = $fields->cleanList((string) ($person->MedicalMedications ?? ($person->medical_medications ?? ''))) ?? '';
                     $hasEmergency = $person->HasEmergencyCase ?? ($person->has_emergency_case ?? null);
-                    $emergencyDetailsVal = trim((string) ($person->EmergencyDetails ?? ($person->emergency_details ?? '')));
+                    $emergencyDetailsVal = $fields->cleanList((string) ($person->EmergencyDetails ?? ($person->emergency_details ?? ''))) ?? '';
 
                     $hasAllergy = $allergyFood !== '' || $allergyMedicine !== '';
                     $hasMedical =
@@ -239,7 +240,7 @@
                                             </div>
                                         @endif
 
-                                        @if ($hasEmergency !== null)
+                                        @if ($hasEmergency == 1 || $hasEmergency === true || $hasEmergency === '1')
                                             <div class="md:col-span-12">
                                                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Previous emergency cases?') }}</label>
                                                 <input type="text" readonly value="{{ $yesNo($hasEmergency) }}"
@@ -258,6 +259,24 @@
                                 </div>
                             </div>
                         @endif
+
+                        <div class="mb-6">
+                            <div class="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
+                                <div class="font-bold text-slate-800 dark:text-slate-100 mb-4">{{ __('Scout section') }}</div>
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    <div class="md:col-span-6">
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Joining year') }}</label>
+                                        <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? __('None') }}"
+                                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                    </div>
+                                    <div class="md:col-span-6">
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Scout scarf') }}</label>
+                                        <input type="text" readonly value="{{ $person->FolarName ?? __('No scout scarf') }}"
+                                            class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                             <div class="md:col-span-3">
@@ -307,12 +326,6 @@
                             <div class="md:col-span-6">
                                 <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Date of birth') }}</label>
                                 <input type="text" readonly value="{{ $person->DateOfBirth }}"
-                                    class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
-                            </div>
-
-                            <div class="md:col-span-6">
-                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">{{ __('Joining year') }}</label>
-                                <input type="text" readonly value="{{ $person->ScoutJoiningYear ?? __('None') }}"
                                     class="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 text-slate-900 dark:text-slate-100 focus:outline-none">
                             </div>
 

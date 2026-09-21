@@ -96,6 +96,16 @@ class PersonFolarService
         return is_string($name) && $name !== '' ? $name : null;
     }
 
+    public function idFor(int $personId): ?int
+    {
+        $id = DB::table('PersonFolar')
+            ->join('Folar', 'Folar.FolarID', '=', 'PersonFolar.FolarID')
+            ->where('PersonFolar.PersonID', $personId)
+            ->value('Folar.FolarID');
+
+        return $id !== null ? (int) $id : null;
+    }
+
     /**
      * @param  array<int|string, mixed>  $folarByPersonId
      */
@@ -204,7 +214,8 @@ class PersonFolarService
         return [$from, $bindings];
     }
 
-    private function assignOne(int $personId, mixed $folarId): void
+    /** Caller must authorize the person and validate $folarId against Folar. */
+    public function assignOne(int $personId, mixed $folarId): void
     {
         if ($folarId !== null && $folarId !== '') {
             DB::table('PersonFolar')->updateOrInsert(
