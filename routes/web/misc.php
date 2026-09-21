@@ -137,6 +137,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/games/update/{id}', [GamesController::class, 'updates'])->name('games.update');
     Route::middleware('superadmin.only')->group(function () {
         Route::get('/games/delete/{id}', [GamesController::class, 'deletes'])->name('games.delete');
-        Route::post('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
+        Route::delete('/games/destroy/{id}', [GamesController::class, 'destroy'])->name('games.destroy');
     });
 });
