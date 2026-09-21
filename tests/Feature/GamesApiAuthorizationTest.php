@@ -245,4 +245,26 @@ class GamesApiAuthorizationTest extends TestCase
             ->get("/games/delete/{$gameId}")
             ->assertOk();
     }
+
+    public function test_guest_web_delete_confirmation_redirects_to_login(): void
+    {
+        $gameId = $this->seedGame();
+
+        $this->get("/games/delete/{$gameId}")
+            ->assertRedirect(route('login-auth'));
+    }
+
+    public function test_web_destroy_deletes_game_for_superadmin(): void
+    {
+        // Production 405: confirm form spoofs DELETE; destroy must accept it (not POST-only).
+        $gameId = $this->seedGame();
+        $user = $this->createUserWithRoles(['SuperAdmin']);
+
+        $this->actingAs($user)
+            ->from("/games/delete/{$gameId}")
+            ->delete("/games/destroy/{$gameId}")
+            ->assertRedirect(route('games.index'));
+
+        $this->assertDatabaseMissing('Games', ['GameID' => $gameId]);
+    }
 }
