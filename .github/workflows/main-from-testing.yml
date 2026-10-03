@@ -1,0 +1,19 @@
+name: Protect main
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  only-testing:
+    name: only-testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the testing branch
+        env:
+          HEAD: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD" != "testing" ]; then
+            echo "Pull requests into main are allowed from the testing branch only."
+            exit 1
+          fi
