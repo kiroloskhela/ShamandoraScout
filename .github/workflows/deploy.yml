@@ -24,7 +24,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           # Matches the PHP-FPM version running in production (see deploy job below).
-          php-version: "8.3"
+          php-version: "8.3.36"
           extensions: mbstring, dom, fileinfo, mysql, sqlite3, pdo_sqlite
           coverage: none
 
@@ -101,7 +101,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: "8.3.36"
           extensions: mbstring, dom, fileinfo, mysql, pdo_mysql
           coverage: none
 
@@ -151,6 +151,13 @@ jobs:
             export GIT_PAGER=cat
 
             cd /var/www/shamandora
+
+            echo "==> Require patched PHP (CVE-2026-109618, CVE-2026-109619)"
+            php -r 'exit(PHP_VERSION_ID >= 80336 ? 0 : 1);' || {
+              echo "PHP $(php -r 'echo PHP_VERSION;') is older than 8.3.36."
+              echo "Upgrade the php8.3 packages, restart php8.3-fpm, then redeploy."
+              exit 1
+            }
 
             echo "==> Fetch & reset to origin/main"
             git fetch --all --prune
