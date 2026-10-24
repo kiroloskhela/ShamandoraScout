@@ -68,15 +68,11 @@ class AttendanceQrService
             ];
         }
 
-        // Bare numeric ID = person (legacy attendance-only QR)
+        // Bare numeric ID = person (legacy attendance-only QR).
+        // Prefixed values such as GUEST-12 are rejected so they cannot fall
+        // through to a person id.
         if (preg_match('/^\d+$/', $value)) {
             $id = (int) $value;
-
-            return $id > 0 ? ['type' => self::TYPE_PERSON, 'id' => $id] : null;
-        }
-
-        if (preg_match('/(\d+)\s*$/', $value, $m)) {
-            $id = (int) $m[1];
 
             return $id > 0 ? ['type' => self::TYPE_PERSON, 'id' => $id] : null;
         }
@@ -160,7 +156,7 @@ class AttendanceQrService
      */
     public function shouldSendViaWhatsApp(): bool
     {
-        return (bool) config('services.whatsapp.send_qr');
+        return $this->whatsApp->isEnabled() && (bool) config('services.whatsapp.send_qr');
     }
 
     public function sendQrViaWhatsApp(int $personId, ?string $eventName = null): array

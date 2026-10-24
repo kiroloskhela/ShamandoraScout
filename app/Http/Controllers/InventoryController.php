@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Authz\PermissionService;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
@@ -51,13 +52,23 @@ class InventoryController extends Controller
      */
     public function insert(Request $request)
     {
+        $this->authorizeInventoryManage();
+
+        $data = $request->validate([
+            'item_name' => ['required', 'string', 'max:255'],
+            'item_quantity' => ['required', 'numeric', 'min:0'],
+            'item_measuring_unit' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:255'],
+            'location' => ['required', 'string', 'max:255'],
+        ]);
+
         DB::table('Inventory')->insert([
             'InventoryID' => \App\Support\ManualPrimaryKey::next('Inventory', 'InventoryID'),
-            'ItemName' => $request->item_name,
-            'ItemQuantity' => $request->item_quantity,
-            'ItemMeasuringUnit' => $request->item_measuring_unit,
-            'Category' => $request->category,
-            'Location' => $request->location,
+            'ItemName' => $data['item_name'],
+            'ItemQuantity' => $data['item_quantity'],
+            'ItemMeasuringUnit' => $data['item_measuring_unit'],
+            'Category' => $data['category'],
+            'Location' => $data['location'],
         ]);
 
         return redirect()->route('inventory.index');
@@ -154,6 +165,14 @@ class InventoryController extends Controller
     /**
      * Helper: get enum values for dropdowns
      */
+    private function authorizeInventoryManage(): void
+    {
+        $user = auth()->user();
+        if (! $user || ! app(PermissionService::class)->userCan($user, 'web.inventory.manage')) {
+            abort(403, 'This action is unauthorized.');
+        }
+    }
+
     private function getEnumValues($table, $column)
     {
         $type = DB::select(

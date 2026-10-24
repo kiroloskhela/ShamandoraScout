@@ -6,7 +6,9 @@ use App\Jobs\SendWhatsAppCampaignMessage;
 use App\Models\User;
 use App\Models\WhatsAppCampaign;
 use App\Models\WhatsAppCampaignRecipient;
+use App\Support\AppSettings;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -27,6 +29,16 @@ class WhatsAppCampaignTest extends TestCase
             'services.whatsapp.bridge_url' => 'http://127.0.0.1:3010/send',
             'services.whatsapp.bridge_token' => 'test-token',
         ]);
+
+        Schema::dropIfExists('AppSettings');
+        Schema::create('AppSettings', function (Blueprint $table) {
+            $table->string('SettingKey')->primary();
+            $table->text('SettingValue')->nullable();
+            $table->timestamp('UpdatedAt')->nullable();
+            $table->unsignedBigInteger('UpdatedByPersonID')->nullable();
+        });
+        Cache::forget('app_settings.bag');
+        AppSettings::set('whatsapp_enabled', '1');
 
         foreach ([
             'whatsapp_campaign_recipients',
@@ -342,5 +354,9 @@ class WhatsAppCampaignTest extends TestCase
         $this->assertSame('+201000485402', $bridge->normalizeEgNumber('1000485402'));
         $this->assertSame('+201012345678', $bridge->normalizeEgNumber('01012345678'));
         $this->assertSame('+201000485402', $bridge->normalizeEgNumber('+201000485402'));
+        $this->assertSame('+201000485402', $bridge->normalizeEgNumber('00201000485402'));
+        $this->assertSame('+201000485402', $bridge->normalizeEgNumber('+20 01000485402'));
+        $this->expectException(\InvalidArgumentException::class);
+        $bridge->normalizeEgNumber('+14155552671');
     }
 }

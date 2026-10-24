@@ -79,7 +79,7 @@ class RolePermissionController extends Controller
                 abort(404);
             }
 
-            if (($role->RoleName ?? '') === 'SuperAdmin') {
+            if (strcasecmp((string) ($role->RoleName ?? ''), 'SuperAdmin') === 0) {
                 throw ValidationException::withMessages([
                     'role_id' => 'SuperAdmin always has every grantable permission. It is not edited in the matrix.',
                 ]);

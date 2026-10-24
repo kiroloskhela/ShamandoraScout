@@ -37,7 +37,8 @@ class PermissionService
             return $this->superAdminMemo[$memoKey];
         }
 
-        $this->superAdminMemo[$memoKey] = $this->roleNames($user)->contains('SuperAdmin');
+        $this->superAdminMemo[$memoKey] = $this->roleNames($user)
+            ->contains(fn ($name) => strcasecmp((string) $name, 'SuperAdmin') === 0);
 
         return $this->superAdminMemo[$memoKey];
     }

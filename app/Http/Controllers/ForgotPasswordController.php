@@ -19,8 +19,9 @@ class ForgotPasswordController extends Controller
     }
 
     /**
-     * Verify phone + DOB (+ optional NID), issue a reset link, send via WhatsApp
-     * (and email when available). Password is NOT changed until the reset form.
+     * Verify phone + DOB (+ optional NID), issue a reset link, and send it
+     * by Brevo email. WhatsApp is used as well only when that service is on.
+     * Password is NOT changed until the reset form.
      */
     public function handle(
         Request $request,
@@ -68,8 +69,8 @@ class ForgotPasswordController extends Controller
         $matches = $q->limit(2)->get();
 
         if ($matches->isEmpty()) {
-            // Same generic success as a real send — do not reveal whether the phone exists.
-            return back()->with('success', __('Password reset link sent via WhatsApp.'));
+            // Same generic success as a real email send — do not reveal whether the phone exists.
+            return back()->with('success', __('Password reset link sent to your email.'));
         }
 
         if ($matches->count() > 1 && ! $nid) {
@@ -82,6 +83,15 @@ class ForgotPasswordController extends Controller
         $person = $matches->first();
         $personId = (int) $person->PersonID;
         $email = trim((string) ($person->PersonalEmail ?? ''));
+        $hasEmail = $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL);
+        $whatsappOn = $whatsapp->isEnabled();
+
+        if (! $hasEmail && ! $whatsappOn) {
+            return back()->with(
+                'error',
+                __('This account has no email on file, and WhatsApp is turned off. Please contact support to reset your password.')
+            )->withInput();
+        }
 
         $fullName = trim(implode(' ', array_filter([
             $person->FirstName ?? '',
@@ -90,38 +100,15 @@ class ForgotPasswordController extends Controller
             $person->FourthName ?? '',
         ])));
 
-        $tokenKey = $resets->tokenKeyForPerson($personId, $email !== '' ? $email : null);
-        $resetUrl = $resets->issueResetUrl($tokenKey);
+        $tokenKey = $resets->tokenKeyForPerson($personId, $hasEmail ? $email : null);
+        $resetUrl = $resets->issueResetUrl($tokenKey, $personId);
         $expireMinutes = $resets->expireMinutes();
 
-        $waMessage = __('Hello :name ♡', ['name' => $fullName])."\n"
-            .__('To reset your password, open the following link within :minutes minutes:', ['minutes' => $expireMinutes])."\n"
-            ."{$resetUrl}\n"
-            .__('If you did not request this, ignore this message.');
-
-        try {
-            $whatsapp->sendText($phone, $waMessage);
-        } catch (\Throwable $e) {
-            Log::error('Password reset WhatsApp send failed', [
-                'person_id' => $personId,
-                'error' => $e->getMessage(),
-            ]);
-
-            if (app()->environment('local')) {
-                return back()->with(
-                    'error',
-                    __('WhatsApp send failed. For local testing use this link: ').$resetUrl
-                )->withInput();
-            }
-
-            // Production: same generic success so WA outages do not confirm the account.
-            return back()->with('success', __('Password reset link sent via WhatsApp.'));
-        }
-
-        if ($email !== '') {
+        $emailSent = false;
+        if ($hasEmail) {
             $logoUrl = config('services.brevo.logo_url', 'https://shamandorascout.com/img/shamandora.png');
             try {
-                SendPasswordResetLinkMail::dispatch(
+                SendPasswordResetLinkMail::dispatchSync(
                     $email,
                     $fullName,
                     (string) $personId,
@@ -129,15 +116,52 @@ class ForgotPasswordController extends Controller
                     $logoUrl,
                     $expireMinutes
                 );
+                $emailSent = true;
             } catch (\Throwable $e) {
-                Log::warning('Password reset email dispatch failed after WhatsApp OK', [
+                Log::error('Password reset email failed', [
                     'person_id' => $personId,
                     'error' => $e->getMessage(),
                 ]);
             }
         }
 
-        return back()->with('success', __('Password reset link sent via WhatsApp.'));
+        $whatsappSent = false;
+        if ($whatsappOn) {
+            $waMessage = __('Hello :name ♡', ['name' => $fullName])."\n"
+                .__('To reset your password, open the following link within :minutes minutes:', ['minutes' => $expireMinutes])."\n"
+                ."{$resetUrl}\n"
+                .__('If you did not request this, ignore this message.');
+
+            try {
+                $result = $whatsapp->sendText($phone, $waMessage);
+                $whatsappSent = empty($result['skipped']);
+            } catch (\Throwable $e) {
+                Log::error('Password reset WhatsApp send failed', [
+                    'person_id' => $personId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if ($emailSent) {
+            return back()->with('success', __('Password reset link sent to your email.'));
+        }
+
+        if ($whatsappSent) {
+            return back()->with('success', __('Password reset link sent via WhatsApp.'));
+        }
+
+        if (! $hasEmail) {
+            return back()->with(
+                'error',
+                __('Could not send the password reset message. Please contact support.')
+            )->withInput();
+        }
+
+        return back()->with(
+            'error',
+            __('Could not send the password reset email. Please try again or contact support.')
+        )->withInput();
     }
 
     public function showResetForm(Request $request, string $token, PasswordResetLinkService $resets)
@@ -173,14 +197,7 @@ class ForgotPasswordController extends Controller
                 ->with('error', __('Reset link is invalid or expired. Request a new link.'));
         }
 
-        $personId = null;
-        if (preg_match('/^person-(\d+)@password-reset\.local$/', $email, $m)) {
-            $personId = (int) $m[1];
-        } else {
-            $personId = DB::table('PersonInformation')
-                ->whereRaw('LOWER(TRIM(PersonalEmail)) = ?', [$email])
-                ->value('PersonID');
-        }
+        $personId = $resets->personIdForValidToken($email, $data['token']);
 
         if (! $personId) {
             return redirect()->route('forgot-password.form')

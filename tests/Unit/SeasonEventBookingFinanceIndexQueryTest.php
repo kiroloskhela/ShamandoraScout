@@ -105,7 +105,7 @@ class SeasonEventBookingFinanceIndexQueryTest extends TestCase
         $this->assertNotSame($firstSameDay, (int) $tie->LastPaymentID);
     }
 
-    public function test_refunds_are_excluded_from_payment_count_and_included_in_last_payment(): void
+    public function test_refunds_are_excluded_from_payment_count_and_last_payment(): void
     {
         $bookingId = $this->insertBooking(self::EVENT_A, [
             'AmountPaid' => 40,
@@ -131,9 +131,9 @@ class SeasonEventBookingFinanceIndexQueryTest extends TestCase
             ->firstWhere('SeasonEventParticipantFinanceID', $bookingId);
 
         $this->assertSame(1, (int) $row->PaymentsCount);
-        $this->assertSame($refundId, (int) $row->LastPaymentID);
-        $this->assertTrue($this->bookings->isLastPayment($bookingId, $refundId));
-        $this->assertFalse($this->bookings->isLastPayment($bookingId, $paymentId));
+        $this->assertSame($paymentId, (int) $row->LastPaymentID);
+        $this->assertFalse($this->bookings->isLastPayment($bookingId, $refundId));
+        $this->assertTrue($this->bookings->isLastPayment($bookingId, $paymentId));
         $this->assertStringContainsString('مسترد', $row->BookingStatusText);
 
         $guest = $this->bookings->listFinanceIndexBookings(self::EVENT_A)

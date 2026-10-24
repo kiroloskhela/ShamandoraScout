@@ -19,10 +19,15 @@ class HashPersonSystemPasswords extends Command
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
-                if (Hash::needsRehash($row->Password)) {
+                $stored = (string) $row->Password;
+                $alreadyHashed = str_starts_with($stored, '$2y$')
+                    || str_starts_with($stored, '$2a$')
+                    || str_starts_with($stored, '$2b$');
+
+                if (! $alreadyHashed && $stored !== '') {
                     DB::table('PersonSystemPassword')
                         ->where('PersonID', $row->PersonID)
-                        ->update(['Password' => Hash::make($row->Password)]);
+                        ->update(['Password' => Hash::make($stored)]);
                     $this->info("Hashed password for PersonID: {$row->PersonID}");
                 } else {
                     $this->info("Already hashed for PersonID: {$row->PersonID}");

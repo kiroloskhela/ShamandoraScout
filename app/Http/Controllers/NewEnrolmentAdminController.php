@@ -196,7 +196,7 @@ class NewEnrolmentAdminController extends Controller
     {
         $this->authorize('enrolment.delete', (int) $id);
 
-        $person = DB::table('NewUsersInformation')->where('PersonID', '=', $id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.ShamandoraCode', DB::raw("CONCAT(FirstName, ' ', SecondName, ' ', ThirdName, ' ', FourthName) as FullName"))->first();
+        $person = DB::table('NewUsersInformation')->where('PersonID', '=', $id)->select('NewUsersInformation.PersonID', 'NewUsersInformation.ShamandoraCode', DB::raw("CONCAT(COALESCE(FirstName, ''), ' ', COALESCE(SecondName, ''), ' ', COALESCE(ThirdName, ''), ' ', COALESCE(FourthName, '')) as FullName"))->first();
 
         return view('person.new-enrolments-delete', ['person' => $person]);
     }
@@ -323,12 +323,17 @@ class NewEnrolmentAdminController extends Controller
     {
         $this->authorize('enrolment.update', (int) $id);
 
+        $nid = $request->input_raqam_qawmy;
         $exists = DB::selectOne(
             'SELECT COUNT(*) as count FROM NewUsersInformation WHERE RaqamQawmy = ? AND PersonID != ?',
-            [$request->input_raqam_qawmy, $id]
+            [$nid, $id]
+        );
+        $inPeople = DB::selectOne(
+            'SELECT COUNT(*) as count FROM PersonInformation WHERE RaqamQawmy = ?',
+            [$nid]
         );
 
-        if ($exists->count > 0) {
+        if ($exists->count > 0 || $inPeople->count > 0) {
             return view('person.person-already-exists');
         }
 

@@ -28,12 +28,13 @@ class HealthEndpointTest extends TestCase
     {
         config(['app.health_token' => 'secret-ops-token']);
 
-        $this->getJson('/health?token=wrong')
+        $this->getJson('/health?token=secret-ops-token')
             ->assertOk()
             ->assertJsonMissingPath('release')
             ->assertJsonMissingPath('checks.failed_jobs');
 
-        $this->getJson('/health?token=secret-ops-token')
+        $this->withHeaders(['X-Health-Token' => 'secret-ops-token'])
+            ->getJson('/health')
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonStructure([

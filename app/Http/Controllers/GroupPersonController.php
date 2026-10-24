@@ -289,7 +289,7 @@ class GroupPersonController extends Controller
             ->select(
                 'PersonID',
                 'ShamandoraCode',
-                DB::raw("CONCAT(FirstName,' ',SecondName,' ',ThirdName,' ',FourthName) AS FullName")
+                DB::raw("CONCAT(COALESCE(FirstName,''),' ',COALESCE(SecondName,''),' ',COALESCE(ThirdName,''),' ',COALESCE(FourthName,'')) AS FullName")
             )
             ->where('PersonID', $personId)
             ->first();

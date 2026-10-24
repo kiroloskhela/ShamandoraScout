@@ -41,6 +41,11 @@ class ShareAuthRoleFlags
         }
 
         $roleSet = array_fill_keys($roleNames, true);
+        foreach ($roleNames as $name) {
+            if (strcasecmp((string) $name, 'SuperAdmin') === 0) {
+                $roleSet['SuperAdmin'] = true;
+            }
+        }
         $flags = [];
 
         foreach (self::ROLE_NAMES as $roleName) {

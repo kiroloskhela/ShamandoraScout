@@ -24,7 +24,9 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('vendor.pagination.tailwind');
         Paginator::defaultSimpleView('vendor.pagination.simple-tailwind');
 
-      // Trust all proxies For Testing Purposes with Ngrok
-
+        $root = rtrim((string) config('app.url'), '/');
+        if ($root !== '') {
+            URL::forceRootUrl($root);
+        }
     }
 }
