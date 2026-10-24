@@ -19,15 +19,19 @@ class PersonSpecialCaseService
 
     public function updateNote(int $specialCaseId, ?string $note): void
     {
-        $updated = DB::table('PersonSpecialCase')
+        $exists = DB::table('PersonSpecialCase')
+            ->where('SpecialCaseID', $specialCaseId)
+            ->exists();
+
+        if (! $exists) {
+            throw new RuntimeException('Special case not found');
+        }
+
+        DB::table('PersonSpecialCase')
             ->where('SpecialCaseID', $specialCaseId)
             ->update([
                 'Note' => $note,
             ]);
-
-        if ($updated === 0) {
-            throw new RuntimeException('Special case not found');
-        }
     }
 
     public function delete(int $specialCaseId): void

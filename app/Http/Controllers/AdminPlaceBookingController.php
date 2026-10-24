@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\PlaceBooking\PlaceBookingService;
 use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +91,7 @@ class AdminPlaceBookingController extends Controller
         return view('admin.place_bookings.show', compact('booking', 'locations', 'places', 'qetaat'));
     }
 
-    public function approve(Request $request, $id)
+    public function approve(Request $request, $id, PlaceBookingService $placeBookings)
     {
         $adminPersonId = $this->currentAdminPersonId();
         if (! $adminPersonId) {
@@ -125,8 +126,11 @@ class AdminPlaceBookingController extends Controller
             'admin_note' => 'nullable|string|max:2000',
         ]);
 
-        // Validate time order
-        if ($validated['approved_time_from'] >= $validated['approved_time_to']) {
+        if (! $placeBookings->endsAfterStart(
+            (string) $validated['approved_booking_date'],
+            (string) $validated['approved_time_from'],
+            (string) $validated['approved_time_to'],
+        )) {
             return back()->with('error', __('End time must be after start time.'))->withInput();
         }
 
@@ -187,6 +191,18 @@ class AdminPlaceBookingController extends Controller
         // ===== Save =====
         DB::beginTransaction();
         try {
+            if ($placeBookings->hasOverlappingApprovedBooking(
+                (int) $approvedPlace->PlaceID,
+                (string) $validated['approved_booking_date'],
+                (string) $validated['approved_time_from'],
+                (string) $validated['approved_time_to'],
+                (int) $id,
+            )) {
+                DB::rollBack();
+
+                return back()->with('error', __('This place already has an overlapping approved booking.'))->withInput();
+            }
+
             $affected = DB::table('PlaceBookings')
                 ->where('BookingID', $id)
                 ->where('Status', 'pending') // atomic guard
@@ -301,7 +317,7 @@ class AdminPlaceBookingController extends Controller
         }
     }
 
-    public function approveWithEdit(Request $request, $id)
+    public function approveWithEdit(Request $request, $id, PlaceBookingService $placeBookings)
     {
         $adminPersonId = $this->currentAdminPersonId();
         if (! $adminPersonId) {
@@ -330,26 +346,45 @@ class AdminPlaceBookingController extends Controller
             return back()->with('error', __('Approved place is invalid.'))->withInput();
         }
 
-        $adminNote = trim((string) $validated['admin_note']);
+        $adminNote = trim((string) ($validated['admin_note'] ?? ''));
         if (! $adminNote) {
             $adminNote = __('Booking approved with modifications.');
         }
 
-        try {
-            $affected = DB::table('PlaceBookings')
-                ->where('BookingID', $id)
-                ->where('Status', 'pending')
-                ->update([
-                    'Status' => 'approved',
-                    'AdminNote' => $adminNote,
-                    'ReviewedBy' => $adminPersonId,
-                    'ReviewedAt' => now(),
-                    'updated_at' => now(),
+        $approvedBookingDate = now();
 
-                    'ApprovedPlaceID' => $validated['approved_place_id'],
-                    'ApprovedTimeFrom' => $validated['approved_time_from'],
-                    'ApprovedTimeTo' => $validated['approved_time_to'],
-                ]);
+        try {
+            $affected = DB::transaction(function () use ($placeBookings, $validated, $id, $adminNote, $adminPersonId, $approvedBookingDate) {
+                if ($placeBookings->hasOverlappingApprovedBooking(
+                    (int) $validated['approved_place_id'],
+                    $approvedBookingDate->toDateTimeString(),
+                    (string) $validated['approved_time_from'],
+                    (string) $validated['approved_time_to'],
+                    (int) $id,
+                )) {
+                    return -1;
+                }
+
+                return DB::table('PlaceBookings')
+                    ->where('BookingID', $id)
+                    ->where('Status', 'pending')
+                    ->update([
+                        'Status' => 'approved',
+                        'AdminNote' => $adminNote,
+                        'ReviewedBy' => $adminPersonId,
+                        'ReviewedAt' => now(),
+                        'updated_at' => now(),
+
+                        'ApprovedPlaceID' => $validated['approved_place_id'],
+                        'ApprovedBookingDate' => $approvedBookingDate,
+                        'ApprovedTimeFrom' => $validated['approved_time_from'],
+                        'ApprovedTimeTo' => $validated['approved_time_to'],
+                    ]);
+            });
+
+            if ($affected === -1) {
+                return back()->with('error', __('This place already has an overlapping approved booking.'))->withInput();
+            }
 
             if ($affected === 0) {
                 return back()->with('error', __('Cannot approve a request that has already been reviewed.'));

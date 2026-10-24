@@ -27,6 +27,27 @@
         @endif
 
         <div class="bg-white dark:bg-slate-900 rounded-lg shadow dark:border dark:border-slate-700 border border-gray-100 dark:border-slate-700 p-6 space-y-4 max-w-xl">
+            <form method="POST" action="{{ route('configurations.update') }}" class="space-y-3 pb-4 border-b border-gray-100 dark:border-slate-700">
+                @csrf
+                @method('PUT')
+                <div class="text-sm font-semibold text-gray-800 dark:text-slate-100">{{ __('WhatsApp service') }}</div>
+                <p class="text-sm text-gray-500 dark:text-slate-400">{{ __('Turn WhatsApp on or off. While it is off, password reset, campaigns, QR codes, and other sends skip WhatsApp and do not fail.') }}</p>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center gap-2 text-sm">
+                        <input type="radio" name="whatsapp_enabled" value="1" @checked($enabled)>
+                        <span>{{ __('On') }}</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm">
+                        <input type="radio" name="whatsapp_enabled" value="0" @checked(! $enabled)>
+                        <span>{{ __('Off') }}</span>
+                    </label>
+                </div>
+                <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg font-semibold text-sm">{{ __('Save') }}</button>
+            </form>
+
+            @if (! $enabled)
+                <p class="text-sm text-gray-600 dark:text-slate-300">{{ __('WhatsApp is turned off. Turn it on from Configurations when a phone is connected.') }}</p>
+            @else
             <div>
                 <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">{{ __('Bridge URL') }}</div>
                 <div class="font-mono text-sm break-all text-slate-800 dark:text-slate-100">{{ $base }}</div>
@@ -73,6 +94,7 @@
                 <p class="text-sm text-gray-600 dark:text-slate-300">{{ __('No QR code available right now. Restart the bridge or wait a few seconds then refresh.') }}</p>
             @elseif ($connected)
                 <p class="text-sm text-gray-600 dark:text-slate-300">{{ __('Session is saved on disk. Do not delete the folder :folder.', ['folder' => 'whatsapp-bridge/auth_session']) }}</p>
+            @endif
             @endif
         </div>
     </div>

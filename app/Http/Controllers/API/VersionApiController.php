@@ -13,13 +13,13 @@ class VersionApiController extends Controller
      */
     public function check(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'platform' => 'required|in:android,ios',
             'version' => 'required|string',
         ]);
 
-        $platform = $request->query('platform');
-        $clientVersion = $request->query('version');
+        $platform = $validated['platform'];
+        $clientVersion = $validated['version'];
         $config = AppSettings::appVersionConfig();
         $platformConfig = $config[$platform];
 

@@ -71,6 +71,21 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\Password::class, 'PersonID', 'PersonID');
     }
 
+    /**
+     * Session invalidation compares this hash. The column lives on
+     * PersonSystemPassword, not on PersonInformation.
+     */
+    public function getAuthPassword()
+    {
+        try {
+            $hash = $this->password()->value('Password');
+
+            return is_string($hash) ? $hash : '';
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
     public function isSuperAdmin(): bool
     {
         return app(\App\Domain\Authz\PermissionService::class)->isSuperAdmin($this);

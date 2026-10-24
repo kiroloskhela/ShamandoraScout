@@ -128,8 +128,9 @@ class AdminCustodyRequestController extends Controller
             }
 
             $note = null;
-            if (is_array($validated['item_note'] ?? []) && array_key_exists($itemId, $validated['item_note'])) {
-                $note = trim((string) $validated['item_note'][$itemId]);
+            $itemNotes = $validated['item_note'] ?? [];
+            if (is_array($itemNotes) && array_key_exists($itemId, $itemNotes)) {
+                $note = trim((string) $itemNotes[$itemId]);
                 if ($note === '') {
                     $note = null;
                 }
@@ -146,7 +147,7 @@ class AdminCustodyRequestController extends Controller
         }
 
         // Compose admin note that user will see
-        $adminNote = trim((string) $validated['admin_note']);
+        $adminNote = trim((string) ($validated['admin_note'] ?? ''));
 
         if (! empty($reductions)) {
             $reductionText = __('Request approved with quantity adjustments:')."\n- ".implode("\n- ", $reductions);
@@ -193,8 +194,8 @@ class AdminCustodyRequestController extends Controller
                 $requestRow->PersonID,
                 __('Custody request approved'),
                 __('Your custody request from :from to :to was approved.', [
-                    'from' => $requestRow->date_from,
-                    'to' => $requestRow->date_to,
+                    'from' => $requestRow->DateFrom,
+                    'to' => $requestRow->DateTo,
                 ])
             );
 
@@ -230,7 +231,7 @@ class AdminCustodyRequestController extends Controller
             'admin_note' => 'nullable|string|max:2000',
         ]);
 
-        $adminNote = trim((string) $validated['admin_note']);
+        $adminNote = trim((string) ($validated['admin_note'] ?? ''));
         if (! $adminNote) {
             $adminNote = __('Request rejected.');
         }
@@ -256,8 +257,8 @@ class AdminCustodyRequestController extends Controller
                 $requestRow->PersonID,
                 __('Custody request rejected'),
                 __('Your custody request from :from to :to was rejected. Reason: :reason', [
-                    'from' => $requestRow->date_from,
-                    'to' => $requestRow->date_to,
+                    'from' => $requestRow->DateFrom,
+                    'to' => $requestRow->DateTo,
                     'reason' => $adminNote,
                 ])
             );

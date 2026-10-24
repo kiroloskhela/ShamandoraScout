@@ -39,11 +39,13 @@ class PlaceController extends Controller
             return redirect()->back()->with('status', __('Location not found'));
         }
 
-        DB::table('Place')->insert([
-            'PlaceID' => ManualPrimaryKey::next('Place', 'PlaceID'),
-            'PlaceName' => $request->place_name,
-            'LocationID' => $request->location_id,
-        ]);
+        ManualPrimaryKey::next('Place', 'PlaceID', function (int $placeId) use ($request) {
+            DB::table('Place')->insert([
+                'PlaceID' => $placeId,
+                'PlaceName' => $request->place_name,
+                'LocationID' => $request->location_id,
+            ]);
+        });
 
         return redirect()->route('place.index')
             ->with('status', __('Place added successfully: ').$request->place_name);

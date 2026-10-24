@@ -89,8 +89,8 @@ class SeasonEventBookingPaymentService
     {
         $amountPaid = (float) $booking->AmountPaid;
 
-        if ($deductionAmount > $amountPaid) {
-            throw new InvalidArgumentException('Deduction cannot exceed amount paid.');
+        if ($deductionAmount >= $amountPaid) {
+            throw new InvalidArgumentException('Deduction must be less than the amount paid.');
         }
 
         $refundAmount = $amountPaid - $deductionAmount;
@@ -110,7 +110,9 @@ class SeasonEventBookingPaymentService
 
     public function recordInstallment(object $booking, int $bookingId, int $serventId, array $installment): int
     {
-        return (int) DB::transaction(function () use ($booking, $bookingId, $serventId, $installment) {
+        return (int) DB::transaction(function () use ($bookingId, $serventId, $installment) {
+            $booking = $this->lockedBooking($bookingId);
+
             $paymentId = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
                 'SeasonEventParticipantFinanceID' => $bookingId,
                 'ServentID' => $serventId,
@@ -159,7 +161,8 @@ class SeasonEventBookingPaymentService
 
     public function refundFull(int $bookingId, object $booking, int $serventId, int $installmentNumber): int
     {
-        return (int) DB::transaction(function () use ($bookingId, $booking, $serventId, $installmentNumber) {
+        return (int) DB::transaction(function () use ($bookingId, $serventId, $installmentNumber) {
+            $booking = $this->lockedBooking($bookingId);
             $totals = $this->fullRefundTotals($booking);
             $paymentId = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
                 'SeasonEventParticipantFinanceID' => $bookingId,
@@ -188,7 +191,8 @@ class SeasonEventBookingPaymentService
 
     public function refundPartial(int $bookingId, object $booking, int $serventId, int $installmentNumber, float $deductionAmount, ?string $notes = null): int
     {
-        return (int) DB::transaction(function () use ($bookingId, $booking, $serventId, $installmentNumber, $deductionAmount, $notes) {
+        return (int) DB::transaction(function () use ($bookingId, $serventId, $installmentNumber, $deductionAmount, $notes) {
+            $booking = $this->lockedBooking($bookingId);
             $totals = $this->partialRefundTotals($booking, $deductionAmount, $notes);
             $paymentId = DB::table('SeasonEventParticipantFinancePayment')->insertGetId([
                 'SeasonEventParticipantFinanceID' => $bookingId,
@@ -213,6 +217,20 @@ class SeasonEventBookingPaymentService
 
             return $paymentId;
         });
+    }
+
+    private function lockedBooking(int $bookingId): object
+    {
+        $booking = DB::table('SeasonEventParticipantFinance')
+            ->where('SeasonEventParticipantFinanceID', $bookingId)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $booking) {
+            throw new InvalidArgumentException('Booking not found.');
+        }
+
+        return $booking;
     }
 
     private function createReceipt(int $paymentId, int $serventId): void

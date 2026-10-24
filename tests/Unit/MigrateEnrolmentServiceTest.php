@@ -59,11 +59,20 @@ class MigrateEnrolmentServiceTest extends TestCase
         DB::table('NewUsersInformation')->insert($this->enrolmentRow([
             'PersonID' => 7,
             'FolarID' => $folarId,
+            'FacultyID' => 4,
+            'UniversityID' => 5,
+            'UniversityGraduationYear' => 2020,
         ]));
 
         $newId = (new MigrateEnrolmentService)->migrateOneById(7);
 
         $this->assertGreaterThan(0, $newId);
+        $this->assertDatabaseHas('PersonLearningInformation', [
+            'PersonID' => $newId,
+            'FacultyID' => 4,
+            'UniversityID' => 5,
+            'ActualFacultyGraduationYear' => '2020',
+        ]);
         $this->assertDatabaseHas('PersonFolar', [
             'PersonID' => $newId,
             'FolarID' => $folarId,
@@ -115,6 +124,9 @@ class MigrateEnrolmentServiceTest extends TestCase
             'IsOPersonalPhoneNumberHavingWhatsapp' => 0,
             'SchoolName' => null,
             'SchoolGraduationYear' => null,
+            'FacultyID' => null,
+            'UniversityID' => null,
+            'UniversityGraduationYear' => null,
             'SpiritualFatherName' => null,
             'SpiritualFatherChurchName' => null,
             'PersonalImagePath' => null,
@@ -184,6 +196,9 @@ class MigrateEnrolmentServiceTest extends TestCase
             $table->boolean('IsOPersonalPhoneNumberHavingWhatsapp')->nullable();
             $table->string('SchoolName')->nullable();
             $table->string('SchoolGraduationYear')->nullable();
+            $table->unsignedInteger('FacultyID')->nullable();
+            $table->unsignedInteger('UniversityID')->nullable();
+            $table->string('UniversityGraduationYear')->nullable();
             $table->string('SpiritualFatherName')->nullable();
             $table->string('SpiritualFatherChurchName')->nullable();
             $table->string('PersonalImagePath')->nullable();
@@ -242,6 +257,9 @@ class MigrateEnrolmentServiceTest extends TestCase
             $table->unsignedInteger('PersonID')->primary();
             $table->string('SchoolName')->nullable();
             $table->string('SchoolGraduationYear')->nullable();
+            $table->unsignedInteger('FacultyID')->nullable();
+            $table->unsignedInteger('UniversityID')->nullable();
+            $table->string('ActualFacultyGraduationYear')->nullable();
         });
 
         Schema::create('PersonQetaa', function (Blueprint $table) {

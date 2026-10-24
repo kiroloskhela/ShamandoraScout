@@ -376,6 +376,13 @@
         <form method="POST" action="{{ route('profile.password.update') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @csrf
             @method('PUT')
+            <div class="sm:col-span-2">
+                <label class="{{ $label }}" for="current_password">{{ __('Current password') }}</label>
+                <input type="password" class="{{ $input }}" name="current_password" id="current_password" autocomplete="current-password" required>
+                @error('current_password')
+                    <p class="text-rose-600 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </div>
             <div>
                 <label class="{{ $label }}" for="password">{{ __('New password') }}</label>
                 <input type="password" class="{{ $input }}" name="password" id="password" autocomplete="new-password">

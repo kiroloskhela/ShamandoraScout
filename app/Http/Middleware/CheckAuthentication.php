@@ -31,7 +31,10 @@ class CheckAuthentication
         $flagUnAuthorized = true;
         // Check if the user has the required role
         foreach($rolesArraySentInRequest as $roleSent){
-            if ($userRole->contains('RoleName', $roleSent)) {
+            $matches = $userRole->contains(function ($row) use ($roleSent) {
+                return strcasecmp((string) ($row->RoleName ?? ''), (string) $roleSent) === 0;
+            });
+            if ($matches) {
                 $flagUnAuthorized = false;
             }
         }

@@ -41,15 +41,14 @@ class LiveFormDuplicateCheck
 
     public function isUniqueViolation(QueryException $e): bool
     {
-        $sqlState = (string) ($e->errorInfo[0] ?? '');
         $driverCode = (int) ($e->errorInfo[1] ?? 0);
         $message = strtolower($e->getMessage());
 
-        if ($sqlState === '23000' || $driverCode === 1062) {
+        if ($driverCode === 1062) {
             return true;
         }
 
-        return str_contains($message, 'unique constraint')
-            || str_contains($message, 'duplicate entry');
+        return str_contains($message, 'unique')
+            || str_contains($message, 'duplicate');
     }
 }

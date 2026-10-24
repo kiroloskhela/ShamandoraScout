@@ -187,15 +187,8 @@ class AttendanceController extends Controller
             return back()->with('error', __('Not allowed to take attendance for this event'));
         }
 
-        if ($seasonEventId && $type === AttendanceQrService::TYPE_PERSON && ! $this->qr->eventTakesReservation($seasonEventId)) {
-            $allowedQetaas = $this->allowedQetaas($meId, $seasonEventId);
-            $allowed = ! empty($allowedQetaas) && DB::table('PersonQetaa')
-                ->where('PersonID', $id)
-                ->whereIn('QetaaID', $allowedQetaas)
-                ->exists();
-            if (! $allowed) {
-                return back()->with('error', __('This person is not in your authorized sectors for this event.'));
-            }
+        if (! $this->entityIsInScope($meId, $type, $id, $seasonEventId)) {
+            return back()->with('error', __('This person is not in your authorized sectors for this event.'));
         }
 
         if (! $this->qr->shouldSendViaWhatsApp()) {
@@ -525,6 +518,75 @@ class AttendanceController extends Controller
             'allowedQetaas' => $allowedQetaas,
             'takesReservation' => $takesReservation,
         ];
+    }
+
+    private function entityIsInScope(int $meId, string $type, int $id, ?int $seasonEventId): bool
+    {
+        $takesReservation = $seasonEventId
+            && $this->qr->eventTakesReservation($seasonEventId);
+
+        if ($seasonEventId && ($type !== AttendanceQrService::TYPE_PERSON || $takesReservation)) {
+            return true;
+        }
+
+        $qetaas = $seasonEventId
+            ? $this->allowedQetaas($meId, $seasonEventId)
+            : $this->servantQetaas($meId);
+        $personIds = $this->entityPersonIds($type, $id);
+
+        return $personIds !== []
+            && $qetaas !== []
+            && DB::table('PersonQetaa')
+                ->whereIn('PersonID', $personIds)
+                ->whereIn('QetaaID', $qetaas)
+                ->exists();
+    }
+
+    /**
+     * Sectors this servant belongs to, used when no season event is selected.
+     *
+     * @return list<int>
+     */
+    private function servantQetaas(int $serventId): array
+    {
+        $myGroups = DB::table('PersonGroup')
+            ->where('PersonID', $serventId)
+            ->pluck('GroupID')
+            ->all();
+
+        if ($myGroups === []) {
+            return [];
+        }
+
+        return DB::table('GroupQetaa')
+            ->whereIn('GroupID', $myGroups)
+            ->pluck('QetaaID')
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function entityPersonIds(string $type, int $id): array
+    {
+        if ($type === AttendanceQrService::TYPE_PERSON) {
+            return [$id];
+        }
+
+        if ($type === AttendanceQrService::TYPE_GUEST) {
+            $personId = DB::table('Guests')->where('GuestID', $id)->value('PersonID');
+
+            return $personId ? [(int) $personId] : [];
+        }
+
+        return DB::table('PersonFamily')
+            ->where('FamilyID', $id)
+            ->pluck('PersonID')
+            ->map(fn ($v) => (int) $v)
+            ->all();
     }
 
     private function canAccessEvent(int $serventId, int $seasonEventId): bool

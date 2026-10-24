@@ -30,6 +30,7 @@ use App\Http\Controllers\RotbaKashfeyaController;
 use App\Http\Controllers\SanaMarhalaDeraseyyaController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\SeasonEventController;
+use App\Http\Controllers\ServiceConfigurationController;
 use App\Http\Controllers\SeasonPersonRollController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\WhatsAppBridgeController;
@@ -96,6 +97,9 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin', 'can.permission:web.system.ma
     // Mobile app version settings (iOS / Android)
     Route::get('/app-version-settings', [AppVersionSettingsController::class, 'edit'])->name('app-version-settings.edit');
     Route::put('/app-version-settings', [AppVersionSettingsController::class, 'update'])->name('app-version-settings.update');
+
+    Route::get('/configurations', [ServiceConfigurationController::class, 'edit'])->name('configurations.edit');
+    Route::put('/configurations', [ServiceConfigurationController::class, 'update'])->name('configurations.update');
 
     // Whatsapp
     Route::get('/whatsapp/status', [WhatsAppStatusController::class, 'index'])->name('whatsapp.status');

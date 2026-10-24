@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Jobs\SendPasswordResetLinkMail;
+use App\Support\AppSettings;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
@@ -50,12 +52,50 @@ class ForgotPasswordJobDispatchTest extends TestCase
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
+            $table->unsignedInteger('person_id')->nullable();
             $table->timestamp('created_at')->nullable();
         });
+
+        Schema::dropIfExists('AppSettings');
+        Cache::forget('app_settings.bag');
+    }
+
+    public function test_forgot_password_sends_email_and_skips_whatsapp_when_service_is_off(): void
+    {
+        Bus::fake();
+        Http::fake();
+
+        $personId = DB::table('PersonInformation')->insertGetId([
+            'FirstName' => 'Kiro',
+            'SecondName' => 'Test',
+            'PersonalEmail' => 'kiro@example.com',
+            'DateOfBirth' => '2001-03-29',
+        ]);
+
+        DB::table('PersonPhoneNumbers')->insert([
+            'PersonID' => $personId,
+            'PersonPersonalMobileNumber' => '01000485402',
+        ]);
+
+        $response = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01000485402',
+            'dob' => '2001-03-29',
+        ]);
+
+        $response->assertRedirect('/forgot-password');
+        $response->assertSessionHas('success');
+        Http::assertNothingSent();
+        Bus::assertDispatched(SendPasswordResetLinkMail::class, function (SendPasswordResetLinkMail $job) use ($personId) {
+            return $job->toEmail === 'kiro@example.com'
+                && $job->personId === (string) $personId
+                && str_contains($job->resetUrl, '/reset-password/');
+        });
+        $this->assertSame($personId, (int) DB::table('password_reset_tokens')->value('person_id'));
     }
 
     public function test_forgot_password_sends_whatsapp_link_and_dispatches_mail_job(): void
     {
+        $this->enableWhatsApp();
         Bus::fake();
         Http::fake([
             'http://127.0.0.1:3010/send' => Http::response(['ok' => true, 'to' => '201000485402', 'messageId' => '1'], 200),
@@ -97,8 +137,37 @@ class ForgotPasswordJobDispatchTest extends TestCase
         });
     }
 
+    public function test_forgot_password_without_email_asks_for_support_when_whatsapp_is_off(): void
+    {
+        Bus::fake();
+        Http::fake();
+
+        $personId = DB::table('PersonInformation')->insertGetId([
+            'FirstName' => 'No',
+            'SecondName' => 'Email',
+            'PersonalEmail' => null,
+            'DateOfBirth' => '2000-01-01',
+        ]);
+
+        DB::table('PersonPhoneNumbers')->insert([
+            'PersonID' => $personId,
+            'PersonPersonalMobileNumber' => '01012345678',
+        ]);
+
+        $response = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01012345678',
+            'dob' => '2000-01-01',
+        ]);
+
+        $response->assertRedirect('/forgot-password');
+        $response->assertSessionHas('error');
+        Bus::assertNotDispatched(SendPasswordResetLinkMail::class);
+        Http::assertNothingSent();
+    }
+
     public function test_forgot_password_whatsapp_works_without_email(): void
     {
+        $this->enableWhatsApp();
         Bus::fake();
         Http::fake([
             'http://127.0.0.1:3010/send' => Http::response(['ok' => true, 'to' => '201000485402', 'messageId' => '1'], 200),
@@ -129,7 +198,7 @@ class ForgotPasswordJobDispatchTest extends TestCase
         ]);
     }
 
-    public function test_forgot_password_unknown_match_returns_generic_success(): void
+    public function test_forgot_password_unknown_phone_asks_for_national_id_like_a_shared_phone(): void
     {
         Bus::fake();
         Http::fake();
@@ -140,9 +209,84 @@ class ForgotPasswordJobDispatchTest extends TestCase
         ]);
 
         $response->assertRedirect('/forgot-password');
-        $response->assertSessionHas('success');
+        $response->assertSessionHas('need_raqam_qawmy', true);
+        $response->assertSessionMissing('success');
         $response->assertSessionMissing('error');
         Bus::assertNothingDispatched();
         Http::assertNothingSent();
+    }
+
+    public function test_forgot_password_unknown_national_id_returns_generic_success(): void
+    {
+        Bus::fake();
+        Http::fake();
+
+        $response = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01000000000',
+            'dob' => '1990-01-01',
+            'raqam_qawmy' => '29901011234567',
+        ]);
+
+        $response->assertRedirect('/forgot-password');
+        $response->assertSessionHas('success');
+        $response->assertSessionMissing('need_raqam_qawmy');
+        Bus::assertNothingDispatched();
+    }
+
+    public function test_shared_phone_uses_national_id_to_choose_the_account(): void
+    {
+        Bus::fake();
+        Http::fake();
+
+        $first = DB::table('PersonInformation')->insertGetId([
+            'FirstName' => 'One',
+            'PersonalEmail' => 'one@example.com',
+            'DateOfBirth' => '2001-03-29',
+            'RaqamQawmy' => '30103291234567',
+        ]);
+        $second = DB::table('PersonInformation')->insertGetId([
+            'FirstName' => 'Two',
+            'PersonalEmail' => 'two@example.com',
+            'DateOfBirth' => '2001-03-29',
+            'RaqamQawmy' => '30103297654321',
+        ]);
+
+        foreach ([$first, $second] as $personId) {
+            DB::table('PersonPhoneNumbers')->insert([
+                'PersonID' => $personId,
+                'PersonPersonalMobileNumber' => '01000485402',
+            ]);
+        }
+
+        $ask = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01000485402',
+            'dob' => '2001-03-29',
+        ]);
+        $ask->assertSessionHas('need_raqam_qawmy', true);
+        Bus::assertNothingDispatched();
+
+        $sent = $this->from('/forgot-password')->post('/forgot-password', [
+            'phone' => '01000485402',
+            'dob' => '2001-03-29',
+            'raqam_qawmy' => '30103297654321',
+        ]);
+        $sent->assertSessionHas('success');
+        Bus::assertDispatched(SendPasswordResetLinkMail::class, function (SendPasswordResetLinkMail $job) use ($second) {
+            return $job->toEmail === 'two@example.com'
+                && $job->personId === (string) $second;
+        });
+    }
+
+    private function enableWhatsApp(): void
+    {
+        Schema::dropIfExists('AppSettings');
+        Schema::create('AppSettings', function (Blueprint $table) {
+            $table->string('SettingKey')->primary();
+            $table->text('SettingValue')->nullable();
+            $table->timestamp('UpdatedAt')->nullable();
+            $table->unsignedBigInteger('UpdatedByPersonID')->nullable();
+        });
+
+        AppSettings::set('whatsapp_enabled', '1');
     }
 }

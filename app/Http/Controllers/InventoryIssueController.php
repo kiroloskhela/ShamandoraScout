@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Authz\PermissionService;
 use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,8 @@ class InventoryIssueController extends Controller
 
 public function generate(Request $request)
 {
+    $this->authorizeInventoryManage();
+
     $request->validate([
         'season_id'   => 'required|integer',
         'event_id'    => 'required|integer',
@@ -56,6 +59,10 @@ public function generate(Request $request)
     ]);
 
     $event = DB::table('Event')->where('EventID', $request->event_id)->first();
+    if ($event === null) {
+        return redirect()->back()->with('error', 'Event not found.');
+    }
+
     $itemsData = [];
 
     foreach ($request->items as $item) {
@@ -85,5 +92,13 @@ public function generate(Request $request)
         ->header('Content-Type', 'text/html')
         ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 }
+
+    private function authorizeInventoryManage(): void
+    {
+        $user = auth()->user();
+        if (! $user || ! app(PermissionService::class)->userCan($user, 'web.inventory.manage')) {
+            abort(403, 'This action is unauthorized.');
+        }
+    }
 
 }

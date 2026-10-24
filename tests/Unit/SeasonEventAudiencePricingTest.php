@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Domain\EventFinance\SeasonEventBookingService;
 use App\Domain\EventFinance\SeasonEventPriceResolver;
+use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -27,10 +28,17 @@ class SeasonEventAudiencePricingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        Carbon::setTestNow('2026-05-06 10:00:00');
         $this->prices = new SeasonEventPriceResolver;
         $this->bookings = new SeasonEventBookingService($this->prices);
         $this->createSchema();
         $this->seedEvent();
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     public function test_person_price_follows_their_sector(): void

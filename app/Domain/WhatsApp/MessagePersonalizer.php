@@ -58,6 +58,8 @@ class MessagePersonalizer
             }
         }
 
+        $message = preg_replace('/\{[a-zA-Z_][a-zA-Z0-9_]*\}/', '', $message) ?? $message;
+
         if ($missing !== [] && $missingBehavior === 'skip' && $skipped === false && $name === '') {
             $skipped = true;
         }

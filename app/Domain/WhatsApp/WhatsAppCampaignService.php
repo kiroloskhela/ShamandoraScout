@@ -6,6 +6,7 @@ use App\Jobs\SendWhatsAppCampaignMessage;
 use App\Models\WhatsAppCampaign;
 use App\Models\WhatsAppCampaignRecipient;
 use App\Services\WhatsAppBridgeClient;
+use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -180,7 +181,11 @@ class WhatsAppCampaignService
                 $seen[$personId] = true;
 
                 $phoneRaw = (string) ($person->PersonPersonalMobileNumber ?? '');
-                $phone = $this->bridge->normalizeEgNumber($phoneRaw);
+                try {
+                    $phone = $this->bridge->normalizeEgNumber($phoneRaw);
+                } catch (InvalidArgumentException) {
+                    $phone = '';
+                }
 
                 $result = $this->personalizer->personalize(
                     $campaign->message_template,

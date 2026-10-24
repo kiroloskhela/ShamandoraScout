@@ -207,14 +207,20 @@ class LiveFormEnrolmentController extends Controller
             $nid = (string) $request->input_raqam_qawmy;
 
             if (strlen($nid) === 14 && strlen($birthDate) >= 10) {
+                $fullYear = (int) substr($birthDate, 0, 4);
                 $year = substr($birthDate, 2, 2);
                 $month = substr($birthDate, 5, 2);
                 $day = substr($birthDate, 8, 2);
 
                 $expected = substr($nid, 1, 2).substr($nid, 3, 2).substr($nid, 5, 2);
                 $actual = $year.$month.$day;
+                $expectedCentury = match (true) {
+                    $fullYear >= 1900 && $fullYear <= 1999 => '2',
+                    $fullYear >= 2000 && $fullYear <= 2099 => '3',
+                    default => null,
+                };
 
-                if ($expected !== $actual) {
+                if ($expectedCentury === null || $nid[0] !== $expectedCentury || $expected !== $actual) {
                     $validator->errors()->add('input_raqam_qawmy', 'الرقم القومي لا يتطابق مع تاريخ الميلاد');
                 }
             }
