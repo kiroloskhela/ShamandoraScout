@@ -18,13 +18,22 @@ class SendFcmNotification implements ShouldQueue
     public int $tries = 3;
 
     /**
+     * Stable across retries of this job so Android and Apple replace the first alert.
+     */
+    public string $collapseKey;
+
+    /**
      * @param  list<string>  $tokens
      */
     public function __construct(
         public array $tokens,
         public string $title,
         public string $body,
+        ?string $collapseKey = null,
     ) {
+        $this->collapseKey = ($collapseKey !== null && $collapseKey !== '')
+            ? $collapseKey
+            : bin2hex(random_bytes(16));
     }
 
     public function handle(FcmService $fcm): void
@@ -33,7 +42,7 @@ class SendFcmNotification implements ShouldQueue
             return;
         }
 
-        $fcm->sendToMultiple($this->tokens, $this->title, $this->body);
+        $fcm->sendToMultiple($this->tokens, $this->title, $this->body, $this->collapseKey);
     }
 
     public function failed(Throwable $exception): void

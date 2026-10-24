@@ -68,16 +68,17 @@ class ForgotPasswordController extends Controller
 
         $matches = $q->limit(2)->get();
 
-        if ($matches->isEmpty()) {
-            // Same generic success as a real email send — do not reveal whether the phone exists.
-            return back()->with('success', __('Password reset link sent to your email.'));
-        }
-
-        if ($matches->count() > 1 && ! $nid) {
+        if (! $nid && ($matches->isEmpty() || $matches->count() > 1)) {
+            // Unknown phones and shared phones get the same national-ID step.
             return back()
                 ->with('need_raqam_qawmy', true)
                 ->with('info', __('Please enter your national ID to confirm identity.'))
                 ->withInput();
+        }
+
+        if ($matches->count() !== 1) {
+            // A submitted ID that matches nobody, or more than one person, looks like a real send.
+            return back()->with('success', __('Password reset link sent to your email.'));
         }
 
         $person = $matches->first();
