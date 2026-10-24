@@ -84,8 +84,8 @@ class CurriculaApiController extends Controller
         $marhalaId  = $request->query('marhala_id');
 
         $query = DB::table('Curricula as c')
-            ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
-            ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
+            ->leftJoin('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
+            ->leftJoin('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
             ->select([
                 'c.CurriculaID',
                 'c.CurriculaName',
@@ -134,8 +134,8 @@ class CurriculaApiController extends Controller
         Gate::authorize('curricula.view');
 
         $item = DB::table('Curricula as c')
-            ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
-            ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
+            ->leftJoin('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
+            ->leftJoin('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
             ->select([
                 'c.CurriculaID',
                 'c.CurriculaName',

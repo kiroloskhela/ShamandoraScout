@@ -100,10 +100,8 @@ class GroupTreeService
 
     public function createGroup(string $name, int $typeId, int $parentGroupId, int $qetaaId): int
     {
-        $newId = (int) DB::transaction(function () use ($name, $typeId, $parentGroupId, $qetaaId) {
-            // GroupTable.GroupID is not AUTO_INCREMENT in production.
-            $newId = ManualPrimaryKey::next('GroupTable', 'GroupID');
-
+        // GroupTable.GroupID is not AUTO_INCREMENT. The insert runs inside the id lock.
+        $newId = ManualPrimaryKey::next('GroupTable', 'GroupID', function (int $newId) use ($name, $typeId, $parentGroupId, $qetaaId) {
             DB::table('GroupTable')->insert([
                 'GroupID' => $newId,
                 'GroupTypeID' => $typeId,
@@ -115,8 +113,6 @@ class GroupTreeService
                 'GroupID' => $newId,
                 'QetaaID' => $qetaaId,
             ]);
-
-            return $newId;
         });
 
         $this->bustCache();
@@ -156,14 +152,26 @@ class GroupTreeService
         $ids = collect($personIds)->map(fn ($id) => (int) $id)->unique()->values();
 
         DB::transaction(function () use ($groupId, $ids, $rotbaByPerson, $defaultRotbaId) {
-            DB::table('PersonGroup')->whereIn('PersonID', $ids)->delete();
+            $alreadyInGroup = DB::table('PersonGroup')
+                ->where('GroupID', $groupId)
+                ->whereIn('PersonID', $ids)
+                ->pluck('PersonID')
+                ->map(fn ($id) => (int) $id);
 
-            DB::table('PersonGroup')->insert(
-                $ids->map(fn ($personId) => [
-                    'PersonID' => $personId,
-                    'GroupID' => $groupId,
-                ])->all()
-            );
+            DB::table('PersonGroup')
+                ->whereIn('PersonID', $ids)
+                ->where('GroupID', '!=', $groupId)
+                ->delete();
+
+            $missing = $ids->diff($alreadyInGroup)->values();
+            if ($missing->isNotEmpty()) {
+                DB::table('PersonGroup')->insert(
+                    $missing->map(fn ($personId) => [
+                        'PersonID' => $personId,
+                        'GroupID' => $groupId,
+                    ])->all()
+                );
+            }
 
             foreach ($ids as $personId) {
                 $rotbaId = array_key_exists($personId, $rotbaByPerson)

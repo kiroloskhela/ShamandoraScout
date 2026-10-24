@@ -442,23 +442,35 @@ class PersonSpecialCaseApiController extends Controller
             ], 403);
         }
 
-        $exists = DB::table('PersonSpecialCase')
-            ->where('PersonID', $data['person_id'])
-            ->whereDate('CaseDate', now()->toDateString())
-            ->exists();
+        $specialCaseId = DB::transaction(function () use ($data, $userPersonId, $specialCases) {
+            DB::table('PersonInformation')
+                ->where('PersonID', (int) $data['person_id'])
+                ->lockForUpdate()
+                ->first();
 
-        if ($exists) {
+            $exists = DB::table('PersonSpecialCase')
+                ->where('PersonID', $data['person_id'])
+                ->whereDate('CaseDate', now()->toDateString())
+                ->lockForUpdate()
+                ->exists();
+
+            if ($exists) {
+                return null;
+            }
+
+            return $specialCases->create(
+                (int) $data['person_id'],
+                (int) $userPersonId,
+                $data['note'] ?? null
+            );
+        });
+
+        if ($specialCaseId === null) {
             return response()->json([
                 'ok' => false,
                 'message' => 'This person already has a special case today',
             ], 409);
         }
-
-        $specialCaseId = $specialCases->create(
-            (int) $data['person_id'],
-            (int) $userPersonId,
-            $data['note'] ?? null
-        );
 
         $case = $this->getAllowedCase((int) $specialCaseId, $userPersonId);
 

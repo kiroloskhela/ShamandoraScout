@@ -245,6 +245,10 @@ public function showPersons(Request $request, PersonApiQueryService $query)
                  ->on('a.ServedID',      '=', 'pq.PersonID');
         })
         ->where('pq.PersonID', $id)
+        ->where(function ($query) {
+            $query->whereNull('e.EventStartDate')
+                ->orWhereDate('e.EventStartDate', '<=', now()->toDateString());
+        })
                 ->select(
                     'se.SeasonEventID',
                     'e.EventID',
@@ -302,7 +306,7 @@ public function ShowCalendar(Request $request, $id)
     $id = $requestedId;
 
     $events = DB::select("
-            SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
+            SELECT DISTINCT e.EventID, e.EventName, e.EventStartDate, e.EventEndDate, et.EventTypeName, S.SeasonName, S.SeasonYear
             FROM PersonGroup pg
             JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
             JOIN Qetaa q ON gq.QetaaID = q.QetaaID

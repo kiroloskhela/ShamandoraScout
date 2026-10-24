@@ -22,6 +22,12 @@ class DriveAuthorize extends Command
      */
     public function handle(): int
     {
+        if (! class_exists(\Google\Client::class)) {
+            $this->error('Google\\Client is not installed. Install it with: composer require google/apiclient');
+
+            return self::FAILURE;
+        }
+
         $credentials = storage_path('app/google-drive-credentials.json');
         $tokenFile   = storage_path('app/drive_token.json');
 

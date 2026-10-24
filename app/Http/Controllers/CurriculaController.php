@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CurriculaController extends Controller
@@ -17,8 +18,8 @@ public function index()
     Gate::authorize('curricula.view');
 
     $curricula = DB::table('Curricula as c')
-        ->join('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
-        ->join('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
+        ->leftJoin('CurriculaCategory as cc', 'c.CurriculaCategoryID', '=', 'cc.CurriculaCategoryID')
+        ->leftJoin('Marhala as m', 'c.MarhalaID', '=', 'm.MarhalaID')
         ->leftJoin('PersonInformation as pi', 'pi.PersonID', '=', 'c.ServentID')
         ->select(
             'c.*',
@@ -97,7 +98,7 @@ public function index()
 
         $curriculum = DB::table('Curricula')->where('CurriculaID', $id)->first();
         if (!$curriculum) {
-            return redirect()->route('Curricula.index')->with('error', '❌ Curriculum not found.');
+            return redirect()->route('curricula.index')->with('error', '❌ Curriculum not found.');
         }
 
         $categories = DB::table('CurriculaCategory')->get();
@@ -141,7 +142,7 @@ public function index()
             'updated_at'          => now(),
         ]);
 
-        return redirect()->route('Curricula.index')->with('status', '✅ Curriculum updated successfully.');
+        return redirect()->route('curricula.index')->with('status', '✅ Curriculum updated successfully.');
     }
 
     public function delete($id)

@@ -20,7 +20,7 @@ class StoreCustodyRequestRequest extends FormRequest
             'event_type_id' => ['nullable', 'integer'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.inventory_id' => ['required', 'integer'],
-            'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.qty' => ['required', 'integer', 'min:1', 'max:10000'],
             'user_note' => ['nullable', 'string', 'max:500'],
         ];
     }

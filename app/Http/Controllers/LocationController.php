@@ -25,10 +25,12 @@ class LocationController extends Controller
             'LocationName' => 'required|string|max:100',
         ]);
 
-        DB::table('Locations')->insert([
-            'LocationID' => \App\Support\ManualPrimaryKey::next('Locations', 'LocationID'),
-            'LocationName' => $request->LocationName,
-        ]);
+        \App\Support\ManualPrimaryKey::next('Locations', 'LocationID', function (int $locationId) use ($request) {
+            DB::table('Locations')->insert([
+                'LocationID' => $locationId,
+                'LocationName' => $request->LocationName,
+            ]);
+        });
 
         return redirect()->route('locations.index')
             ->with('status', 'تم ادخال الموقع بنجاح: ' . $request->LocationName);

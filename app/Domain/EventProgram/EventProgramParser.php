@@ -486,18 +486,30 @@ final class EventProgramParser
     private function parseTimeRange(string $header): array
     {
         $normalized = $this->easternToWesternDigits($header);
-        if (preg_match('/(\d{1,2}:\d{2}).*?(\d{1,2}:\d{2})/u', $normalized, $m)) {
-            return [$this->normalizeTime($m[1]), $this->normalizeTime($m[2])];
+        if (preg_match('/(\d{1,2}:\d{2})\s*(AM|PM)?.*?(\d{1,2}:\d{2})\s*(AM|PM)?/iu', $normalized, $m)) {
+            return [
+                $this->normalizeTime($m[1], $m[2] !== '' ? $m[2] : null),
+                $this->normalizeTime($m[3], ($m[4] ?? '') !== '' ? $m[4] : null),
+            ];
         }
 
         return ['00:00', '00:00'];
     }
 
-    private function normalizeTime(string $t): string
+    private function normalizeTime(string $t, ?string $meridiem = null): string
     {
         [$h, $m] = array_pad(explode(':', $t), 2, '0');
+        $hour = (int) $h;
+        $minute = (int) $m;
+        $marker = strtoupper(trim((string) $meridiem));
 
-        return sprintf('%02d:%02d', (int) $h, (int) $m);
+        if ($marker === 'PM' && $hour < 12) {
+            $hour += 12;
+        } elseif ($marker === 'AM' && $hour === 12) {
+            $hour = 0;
+        }
+
+        return sprintf('%02d:%02d', $hour, $minute);
     }
 
     private function easternToWesternDigits(string $s): string

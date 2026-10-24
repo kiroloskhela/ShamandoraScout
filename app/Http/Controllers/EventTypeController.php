@@ -41,9 +41,10 @@ class EventTypeController extends LookupTableController
 
         $config = $this->lookupConfig();
         $payload = $this->payload($config, $request, true);
-        $payload[$config['primary_key']] = ManualPrimaryKey::next($config['table'], $config['primary_key']);
-
-        DB::table($config['table'])->insert($payload);
+        ManualPrimaryKey::next($config['table'], $config['primary_key'], function (int $id) use ($config, $payload) {
+            $payload[$config['primary_key']] = $id;
+            DB::table($config['table'])->insert($payload);
+        });
         $this->afterLookupWrite($config['table']);
 
         return $this->redirectWithMessage($config, 'store', $request);

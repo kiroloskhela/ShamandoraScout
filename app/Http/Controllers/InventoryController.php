@@ -62,14 +62,16 @@ class InventoryController extends Controller
             'location' => ['required', 'string', 'max:255'],
         ]);
 
-        DB::table('Inventory')->insert([
-            'InventoryID' => \App\Support\ManualPrimaryKey::next('Inventory', 'InventoryID'),
-            'ItemName' => $data['item_name'],
-            'ItemQuantity' => $data['item_quantity'],
-            'ItemMeasuringUnit' => $data['item_measuring_unit'],
-            'Category' => $data['category'],
-            'Location' => $data['location'],
-        ]);
+        \App\Support\ManualPrimaryKey::next('Inventory', 'InventoryID', function (int $inventoryId) use ($data) {
+            DB::table('Inventory')->insert([
+                'InventoryID' => $inventoryId,
+                'ItemName' => $data['item_name'],
+                'ItemQuantity' => $data['item_quantity'],
+                'ItemMeasuringUnit' => $data['item_measuring_unit'],
+                'Category' => $data['category'],
+                'Location' => $data['location'],
+            ]);
+        });
 
         return redirect()->route('inventory.index');
     }

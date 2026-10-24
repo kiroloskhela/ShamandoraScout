@@ -71,14 +71,14 @@ class PersonRoleController extends Controller
                 $this->assertRoleAssignableToPerson((int) $request->person_id, (int) $request->role_id);
 
                 // PersonRole.PersonRoleID is not AUTO_INCREMENT in production.
-                $thisPersonRoleID = ManualPrimaryKey::next('PersonRole', 'PersonRoleID');
-
-                DB::table('PersonRole')->insert([
-                    'PersonRoleID' => $thisPersonRoleID,
-                    'PersonID' => $request->person_id,
-                    'RoleID' => $request->role_id,
-                    'RequestPersonID' => $request->RequestPersonID,
-                ]);
+                ManualPrimaryKey::next('PersonRole', 'PersonRoleID', function (int $personRoleId) use ($request) {
+                    DB::table('PersonRole')->insert([
+                        'PersonRoleID' => $personRoleId,
+                        'PersonID' => $request->person_id,
+                        'RoleID' => $request->role_id,
+                        'RequestPersonID' => $request->RequestPersonID,
+                    ]);
+                });
 
                 app(PermissionService::class)->bumpVersion();
             });
