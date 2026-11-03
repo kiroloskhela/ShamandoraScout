@@ -352,6 +352,7 @@
                             @php
                                 $statusMap = [
                                     'present' => [__('Present'), 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-200'],
+                                    'present_late' => [__('Present late'), 'bg-sky-50 dark:bg-sky-900/40 text-sky-700 dark:text-sky-200'],
                                     'excused' => [__('Excused'), 'bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-200'],
                                     'absent' => [__('Absent'), 'bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-200'],
                                 ];

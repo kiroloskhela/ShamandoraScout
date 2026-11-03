@@ -58,14 +58,14 @@ class PersonSeasonActivityService
     }
 
     /**
-     * @return array{events: Collection, summary: array{total: int, present: int, absent: int, excused: int, rate: float|int}}
+     * @return array{events: Collection, summary: array{total: int, present: int, present_late: int, absent: int, excused: int, rate: float|int}}
      */
     public function loadAttendance(int $personId, ?int $seasonId): array
     {
         if (! $seasonId) {
             return [
                 'events' => collect(),
-                'summary' => ['total' => 0, 'present' => 0, 'absent' => 0, 'excused' => 0, 'rate' => 0],
+                'summary' => ['total' => 0, 'present' => 0, 'present_late' => 0, 'absent' => 0, 'excused' => 0, 'rate' => 0],
             ];
         }
 
@@ -97,6 +97,7 @@ class PersonSeasonActivityService
 
         $total = $events->count();
         $present = $events->where('Status', 'present')->count();
+        $presentLate = $events->where('Status', 'present_late')->count();
         $absent = $events->where('Status', 'absent')->count();
         $excused = $events->where('Status', 'excused')->count();
 
@@ -105,9 +106,10 @@ class PersonSeasonActivityService
             'summary' => [
                 'total' => $total,
                 'present' => $present,
+                'present_late' => $presentLate,
                 'absent' => $absent,
                 'excused' => $excused,
-                'rate' => $total ? round($present / $total * 100, 1) : 0,
+                'rate' => $total ? round(($present + $presentLate) / $total * 100, 1) : 0,
             ],
         ];
     }

@@ -55,7 +55,7 @@ class BulkMarkAttendanceFromRoster extends Command
             && ! (bool) $this->option('force-attendance-table');
         $allowedStatuses = $takesReservation
             ? BookingAttendanceService::STATUSES
-            : ['present', 'absent', 'excused'];
+            : ['present', 'present_late', 'absent', 'excused'];
 
         if (! in_array($status, $allowedStatuses, true)) {
             $this->error("Invalid status '{$status}' for this event. Allowed: ".implode(', ', $allowedStatuses));
