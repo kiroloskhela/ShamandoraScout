@@ -6,8 +6,8 @@ use App\Jobs\SendWhatsAppCampaignMessage;
 use App\Models\WhatsAppCampaign;
 use App\Models\WhatsAppCampaignRecipient;
 use App\Services\WhatsAppBridgeClient;
-use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use RuntimeException;
 
 class WhatsAppCampaignService
