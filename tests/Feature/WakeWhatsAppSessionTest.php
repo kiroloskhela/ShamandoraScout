@@ -2,11 +2,30 @@
 
 namespace Tests\Feature;
 
+use App\Support\AppSettings;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class WakeWhatsAppSessionTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Schema::dropIfExists('AppSettings');
+        Schema::create('AppSettings', function (Blueprint $table) {
+            $table->string('SettingKey')->primary();
+            $table->text('SettingValue')->nullable();
+            $table->timestamp('UpdatedAt')->nullable();
+            $table->unsignedBigInteger('UpdatedByPersonID')->nullable();
+        });
+        Cache::forget('app_settings.bag');
+        AppSettings::set('whatsapp_enabled', '1');
+    }
+
     public function test_wake_reconnects_when_session_exists_and_disconnected(): void
     {
         config([
