@@ -128,7 +128,7 @@ class AttendanceController extends Controller
         }
 
         $status = $data['status'];
-        if (! in_array($status, ['present', 'absent', 'excused'], true)) {
+        if (! in_array($status, ['present', 'present_late', 'absent', 'excused'], true)) {
             return response()->json(['ok' => false, 'error' => __('Invalid attendance status.')], 422);
         }
 
@@ -296,7 +296,7 @@ class AttendanceController extends Controller
 
         $request->validate([
             'attendance' => 'array',
-            'attendance.*.status' => 'required|in:present,absent,excused',
+            'attendance.*.status' => 'required|in:present,present_late,absent,excused',
             'attendance.*.excuse' => 'nullable|string|max:1000',
         ]);
 

@@ -16,7 +16,7 @@ class StoreAttendanceSaveRequest extends FormRequest
         return [
             'SeasonEventID' => ['required', 'integer', 'exists:SeasonEvent,SeasonEventID'],
             'attendance' => ['required', 'array'],
-            'attendance.*.status' => ['required', 'in:present,absent,excused'],
+            'attendance.*.status' => ['required', 'in:present,present_late,absent,excused'],
             'attendance.*.excuse' => ['nullable', 'string', 'max:1000'],
         ];
     }

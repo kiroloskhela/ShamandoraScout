@@ -113,6 +113,10 @@
                             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ __('Set all:') }}</span>
                             <button type="button" id="markAllPresent"
                                 class="px-3 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 text-xs font-semibold hover:bg-green-200 dark:hover:bg-green-900/60 transition">{{ __('✓ Present') }}</button>
+                            @unless ($isReservation)
+                                <button type="button" id="markAllPresentLate"
+                                    class="px-3 py-1.5 rounded-lg bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-200 text-xs font-semibold hover:bg-sky-200 dark:hover:bg-sky-900/60 transition">{{ __('✓ Present late') }}</button>
+                            @endunless
                             <button type="button" id="markAllAbsent"
                                 class="px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 text-xs font-semibold hover:bg-red-200 dark:hover:bg-red-900/60 transition">{{ __('✗ Absent') }}</button>
                             @if ($isReservation)
@@ -135,7 +139,7 @@
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ __('Phone') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ $isReservation ? __('Type') : __('Sector') }}</th>
                                     <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right">{{ $isReservation ? __('Code') : __('Stage') }}</th>
-                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center w-56">{{ __('Attendance section') }}</th>
+                                    <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-center min-w-[22rem]">{{ __('Attendance section') }}</th>
                                     @unless ($isReservation)
                                         <th class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-200 text-right" id="excuseHeader">{{ __('Excuse') }}</th>
                                     @endunless
@@ -167,7 +171,7 @@
                                         <td class="px-4 py-3 text-right text-slate-700 dark:text-slate-200">{{ $isReservation ? ($r['Code'] ?? '') : ($r['SanaMarhalaName'] ?? '') }}</td>
 
                                         <td class="px-4 py-3">
-                                            <div class="flex items-center justify-center gap-1">
+                                            <div class="flex items-center justify-center gap-1 flex-wrap">
 
                                                 <label class="status-label cursor-pointer">
                                                     <input type="radio" name="attendance[{{ $rowId }}][status]"
@@ -179,6 +183,19 @@
                                                         ? 'bg-green-600 text-white border-green-600'
                                                         : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-green-400' }}">{{ __('✓ Present') }}</span>
                                                 </label>
+
+                                                @unless ($isReservation)
+                                                    <label class="status-label cursor-pointer">
+                                                        <input type="radio" name="attendance[{{ $rowId }}][status]"
+                                                            value="present_late" class="sr-only status-radio"
+                                                            {{ $status === 'present_late' ? 'checked' : '' }}>
+                                                        <span
+                                                            class="status-btn late-btn inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all
+                                                        {{ $status === 'present_late'
+                                                            ? 'bg-sky-600 text-white border-sky-600'
+                                                            : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-sky-400' }}">{{ __('✓ Present late') }}</span>
+                                                    </label>
+                                                @endunless
 
                                                 <label class="status-label cursor-pointer">
                                                     <input type="radio" name="attendance[{{ $rowId }}][status]"
@@ -237,6 +254,9 @@
                     {{-- Summary counts --}}
                     <div class="flex items-center gap-6 mt-4 px-2">
                         <span class="text-sm text-green-700 dark:text-green-300 font-semibold">{{ __('Present:') }} <span id="countPresent">0</span></span>
+                        @unless ($isReservation)
+                            <span class="text-sm text-sky-700 dark:text-sky-300 font-semibold">{{ __('Present late:') }} <span id="countPresentLate">0</span></span>
+                        @endunless
                         <span class="text-sm text-red-700 dark:text-red-300 font-semibold">{{ __('Absent:') }} <span id="countAbsent">0</span></span>
                         <span class="text-sm text-amber-700 dark:text-amber-300 font-semibold">{{ $isReservation ? __('Outside:') : __('Absent with excuse:') }} <span
                                 id="countExcused">0</span></span>
@@ -275,16 +295,19 @@
                     function updateStatusButtons(row, value) {
                         const btns = {
                             present: row.querySelector('.present-btn'),
+                            present_late: row.querySelector('.late-btn'),
                             absent: row.querySelector('.absent-btn'),
                             [thirdStatus]: row.querySelector('.third-btn'),
                         };
                         const styles = {
                             present: ['bg-green-600', 'text-white', 'border-green-600'],
+                            present_late: ['bg-sky-600', 'text-white', 'border-sky-600'],
                             absent: ['bg-red-600', 'text-white', 'border-red-600'],
                             [thirdStatus]: ['bg-amber-500', 'text-white', 'border-amber-500'],
                         };
                         const hoverBorders = {
                             present: 'hover:border-green-400',
+                            present_late: 'hover:border-sky-400',
                             absent: 'hover:border-red-400',
                             [thirdStatus]: 'hover:border-amber-400',
                         };
@@ -294,9 +317,9 @@
                             if (!btn) return;
                             // reset
                             btn.classList.remove(
-                                'bg-green-600', 'bg-red-600', 'bg-amber-500',
-                                'text-white', 'border-green-600', 'border-red-600', 'border-amber-500',
-                                'hover:border-green-400', 'hover:border-red-400', 'hover:border-amber-400',
+                                'bg-green-600', 'bg-sky-600', 'bg-red-600', 'bg-amber-500',
+                                'text-white', 'border-green-600', 'border-sky-600', 'border-red-600', 'border-amber-500',
+                                'hover:border-green-400', 'hover:border-sky-400', 'hover:border-red-400', 'hover:border-amber-400',
                                 ...inactiveBtnClasses
                             );
                             btn.classList.add(...inactiveBtnClasses);
@@ -346,6 +369,7 @@
                         });
                     }
                     document.getElementById('markAllPresent')?.addEventListener('click', () => markAll('present'));
+                    document.getElementById('markAllPresentLate')?.addEventListener('click', () => markAll('present_late'));
                     document.getElementById('markAllAbsent')?.addEventListener('click', () => markAll('absent'));
                     document.getElementById('markAllExcused')?.addEventListener('click', () => markAll('excused'));
                     document.getElementById('markAllOutside')?.addEventListener('click', () => markAll('outside'));
@@ -353,16 +377,20 @@
                     // ── Counts ───────────────────────────────────────────────────
                     function updateCounts() {
                         let p = 0,
+                            late = 0,
                             a = 0,
                             ex = 0;
                         allRows.forEach(row => {
                             const checked = row.querySelector('input[type="radio"]:checked');
                             if (!checked) return;
                             if (checked.value === 'present') p++;
+                            else if (checked.value === 'present_late') late++;
                             else if (checked.value === 'absent') a++;
                             else if (checked.value === 'excused' || checked.value === 'outside') ex++;
                         });
                         document.getElementById('countPresent').textContent = p;
+                        const lateEl = document.getElementById('countPresentLate');
+                        if (lateEl) lateEl.textContent = late;
                         document.getElementById('countAbsent').textContent = a;
                         document.getElementById('countExcused').textContent = ex;
                         document.getElementById('countTotal').textContent = allRows.length;

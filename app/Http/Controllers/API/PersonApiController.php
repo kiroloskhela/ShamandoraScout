@@ -270,10 +270,14 @@ public function showPersons(Request $request, PersonApiQueryService $query)
         $summary = [
             'total'   => $attendance->count(),
             'present' => $attendance->where('Status', 'present')->count(),
+            'present_late' => $attendance->where('Status', 'present_late')->count(),
             'absent'  => $attendance->where('Status', 'absent')->count(),
             'excused' => $attendance->where('Status', 'excused')->count(),
             'rate'    => $attendance->count()
-                ? round($attendance->where('Status', 'present')->count() / $attendance->count() * 100, 1)
+                ? round(
+                    $attendance->whereIn('Status', ['present', 'present_late'])->count() / $attendance->count() * 100,
+                    1
+                )
                 : 0,
         ];
     return response()->json([
