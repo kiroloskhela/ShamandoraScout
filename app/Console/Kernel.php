@@ -25,6 +25,10 @@ class Kernel extends ConsoleKernel
             ->everyTwoMinutes()
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/whatsapp_wake.log'));
+
+        $schedule->call(function () {
+            app(\App\Domain\Enrolment\LiveFormTempFileService::class)->deleteExpiredTempFiles(24);
+        })->daily()->name('liveform-temp-cleanup')->withoutOverlapping();
     }
 
     /**

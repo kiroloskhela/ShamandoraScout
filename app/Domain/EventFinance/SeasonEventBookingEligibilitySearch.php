@@ -2,6 +2,7 @@
 
 namespace App\Domain\EventFinance;
 
+use App\Domain\Event\EventAudience;
 use App\Support\LikeSearch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -119,7 +120,14 @@ class SeasonEventBookingEligibilitySearch
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
             ->leftJoin('PersonBlackList as pb', 'p.PersonID', '=', 'pb.PersonID')
             ->leftJoin('PersonSpecialCase as psc', 'p.PersonID', '=', 'psc.PersonID')
-            ->whereIn('pq.QetaaID', $eligibleQetaaIDs)
+            ->where(function ($query) use ($event) {
+                app(EventAudience::class)->wherePersonQualifies(
+                    $query,
+                    (int) $event->EventID,
+                    'pq.PersonID',
+                    'pq.QetaaID'
+                );
+            })
             ->when($term !== null, function ($query) use ($term) {
                 $query->where(function ($sub) use ($term) {
                     LikeSearch::applyFlexiblePersonMatch($sub, $term, 'p', 'ppn');

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 final class PersonResolver
 {
     /**
-     * @return array{person_id: ?int, candidates: list<array{person_id: int, name: string, code: ?string}>, status: string}
+     * @return array{person_id: ?int, candidates: list<array{person_id: int, name: string, code: ?string}>, status: string, truncated?: bool}
      */
     public function resolve(?int $personId, ?string $shamandoraCode, ?string $name): array
     {
@@ -42,7 +42,9 @@ final class PersonResolver
             $candidatesQuery->where('FirstName', 'like', $parts[0].'%');
         }
 
-        $pool = $candidatesQuery->limit(50)->get();
+        $total = (clone $candidatesQuery)->count();
+        $pool = (clone $candidatesQuery)->limit(50)->get();
+        $truncated = $total > 50;
         $exact = $pool->filter(function ($p) use ($name) {
             $full = trim(implode(' ', array_filter([
                 $p->FirstName ?? null,
@@ -53,19 +55,21 @@ final class PersonResolver
             return $full === $name || mb_strtolower($full) === mb_strtolower($name);
         })->values();
 
-        if ($exact->count() === 1) {
+        if ($exact->count() === 1 && ! $truncated) {
             return [
                 'person_id' => (int) $exact->first()->PersonID,
                 'candidates' => [],
                 'status' => 'matched',
+                'truncated' => false,
             ];
         }
 
-        if ($exact->count() > 1) {
+        if ($exact->isNotEmpty()) {
             return [
                 'person_id' => null,
                 'candidates' => $exact->take(5)->map(fn ($p) => $this->candidate($p))->all(),
                 'status' => 'ambiguous',
+                'truncated' => $truncated,
             ];
         }
 
@@ -92,6 +96,7 @@ final class PersonResolver
             'person_id' => null,
             'candidates' => $fuzzy->map(fn ($p) => $this->candidate($p))->all(),
             'status' => $fuzzy->isEmpty() ? 'unmatched' : 'ambiguous',
+            'truncated' => $truncated,
         ];
     }
 

@@ -5,6 +5,7 @@ namespace App\Domain\Auth;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -39,7 +40,7 @@ class PasswordResetLinkService
      * Replace any existing token for $email and return an absolute reset URL.
      * The plain token exists only inside that URL.
      */
-    public function issueResetUrl(string $email): string
+    public function issueResetUrl(string $email, ?int $personId = null): string
     {
         $email = strtolower(trim($email));
         if ($email === '') {
@@ -47,23 +48,60 @@ class PasswordResetLinkService
         }
 
         $plainToken = Str::random(64);
+        $row = [
+            'token' => Hash::make($plainToken),
+            'created_at' => Carbon::now(),
+        ];
+
+        if ($personId !== null && Schema::hasColumn('password_reset_tokens', 'person_id')) {
+            $row['person_id'] = $personId;
+        }
 
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $email],
-            [
-                'token' => Hash::make($plainToken),
-                'created_at' => Carbon::now(),
-            ]
+            $row
         );
 
-        return url('/reset-password/'.urlencode($plainToken)).'?'.http_build_query([
+        $root = rtrim((string) config('app.url'), '/');
+
+        return $root.'/reset-password/'.urlencode($plainToken).'?'.http_build_query([
             'email' => $email,
         ]);
     }
 
     public function issueResetUrlForPerson(int $personId, ?string $email): string
     {
-        return $this->issueResetUrl($this->tokenKeyForPerson($personId, $email));
+        return $this->issueResetUrl($this->tokenKeyForPerson($personId, $email), $personId);
+    }
+
+    /**
+     * Person the token was issued for. The email query string is only the
+     * lookup key for the token row, never a second identity.
+     */
+    public function personIdForValidToken(string $email, string $plainToken): ?int
+    {
+        if (! $this->tokenIsValid($email, $plainToken)) {
+            return null;
+        }
+
+        $email = strtolower(trim($email));
+
+        if (Schema::hasColumn('password_reset_tokens', 'person_id')) {
+            $bound = DB::table('password_reset_tokens')->where('email', $email)->value('person_id');
+            if ($bound) {
+                return (int) $bound;
+            }
+        }
+
+        if (preg_match('/^person-(\d+)@password-reset\.local$/', $email, $m)) {
+            return (int) $m[1];
+        }
+
+        $personId = DB::table('PersonInformation')
+            ->whereRaw('LOWER(TRIM(PersonalEmail)) = ?', [$email])
+            ->value('PersonID');
+
+        return $personId ? (int) $personId : null;
     }
 
     public function tokenIsValid(string $email, string $plainToken): bool

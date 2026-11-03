@@ -161,7 +161,7 @@
                     'label' => __('Release lock'),
                     'route' => route('medicine.locks.release', ':id'),
                     'idField' => 'MedicineStockLockID',
-                    'method' => 'PATCH',
+                    'method' => 'POST',
                     'cssClass' =>
                         'inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 transition-colors duration-200',
                 ],

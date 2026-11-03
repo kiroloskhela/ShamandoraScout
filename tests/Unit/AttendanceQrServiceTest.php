@@ -29,6 +29,7 @@ class AttendanceQrServiceTest extends TestCase
         $this->assertNull($qr->parsePersonId('GUEST:7'));
         $this->assertNull($qr->parseCode(''));
         $this->assertNull($qr->parseCode('abc'));
+        $this->assertNull($qr->parseCode('GUEST-12'));
     }
 
     public function test_png_base64_is_non_empty(): void

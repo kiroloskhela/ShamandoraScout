@@ -70,8 +70,16 @@ class WhatsAppBridgeController extends Controller
     // --- Shared bridge caller ---
     private function sendToBridge(string $normalizedE164, string $message)
     {
+        if (! $this->bridge->isEnabled()) {
+            return back()->with('error', __('WhatsApp is turned off. Turn it on from Configurations when a phone is connected.'));
+        }
+
         try {
-            $this->bridge->sendText($normalizedE164, $message);
+            $result = $this->bridge->sendText($normalizedE164, $message);
+            if (! empty($result['skipped'])) {
+                return back()->with('error', __('WhatsApp is turned off. Turn it on from Configurations when a phone is connected.'));
+            }
+
             return back()->with('success', 'تم إرسال رسالة الواتساب بنجاح.');
         } catch (\Throwable $e) {
             Log::error('Bridge exception', ['error' => $e->getMessage()]);

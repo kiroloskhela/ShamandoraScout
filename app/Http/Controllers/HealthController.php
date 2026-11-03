@@ -87,7 +87,7 @@ class HealthController extends Controller
             return substr($auth, 7);
         }
 
-        return (string) $request->query('token', '');
+        return '';
     }
 
     private function redisRequired(): bool

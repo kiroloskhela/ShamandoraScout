@@ -150,6 +150,33 @@ public function insert(Request $request)
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        $seasonEvent = DB::table('SeasonEvent')->where('SeasonEventID', $id)->first();
+        if (!$seasonEvent) {
+            abort(404);
+        }
+
+        if ((int) $seasonEvent->EventID !== (int) $request->event_id) {
+            $hasBookings = DB::table('SeasonEventParticipantFinance')
+                ->where('SeasonEventID', $id)
+                ->exists();
+
+            $hasPayments = DB::table('SeasonEventParticipantFinancePayment as p')
+                ->join(
+                    'SeasonEventParticipantFinance as b',
+                    'p.SeasonEventParticipantFinanceID',
+                    '=',
+                    'b.SeasonEventParticipantFinanceID'
+                )
+                ->where('b.SeasonEventID', $id)
+                ->exists();
+
+            if ($hasBookings || $hasPayments) {
+                return redirect()->back()->withErrors([
+                    'event_id' => 'لا يمكن تغيير الفعالية لأن عليها حجوزات أو مدفوعات.',
+                ])->withInput();
+            }
+        }
+
         try {
             DB::beginTransaction();
 

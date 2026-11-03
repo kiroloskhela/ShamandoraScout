@@ -21,7 +21,7 @@ Route::middleware(['auth', 'checkAuth:SuperAdmin|AdminFirstAid', 'can.permission
     Route::delete('/medicine/locations/{id}', [MedicineInventoryController::class, 'destroyLocation'])->name('medicine.locations.destroy');
     Route::get('/medicine/locks', [MedicineInventoryController::class, 'locks'])->name('medicine.locks');
     Route::post('/medicine/locks', [MedicineInventoryController::class, 'storeLock'])->name('medicine.locks.store');
-    Route::get('/medicine/locks/{id}/release', [MedicineInventoryController::class, 'releaseLock'])->name('medicine.locks.release');
+    Route::post('/medicine/locks/{id}/release', [MedicineInventoryController::class, 'releaseLock'])->name('medicine.locks.release');
     Route::get('/medicine/{id}/stock', [MedicineInventoryController::class, 'stock'])->name('medicine.stock');
     Route::patch('/medicine/{id}/stock', [MedicineInventoryController::class, 'updateStock'])->name('medicine.stock.update');
     Route::post('/medicine/{id}/restock', [MedicineInventoryController::class, 'restock'])->name('medicine.restock');

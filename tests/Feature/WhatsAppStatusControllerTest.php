@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Support\AppSettings;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
@@ -23,6 +25,16 @@ class WhatsAppStatusControllerTest extends TestCase
         Schema::dropIfExists('Roles');
         Schema::dropIfExists('PersonImages');
         Schema::dropIfExists('PersonInformation');
+        Schema::dropIfExists('AppSettings');
+
+        Schema::create('AppSettings', function (Blueprint $table) {
+            $table->string('SettingKey')->primary();
+            $table->text('SettingValue')->nullable();
+            $table->timestamp('UpdatedAt')->nullable();
+            $table->unsignedBigInteger('UpdatedByPersonID')->nullable();
+        });
+        Cache::forget('app_settings.bag');
+        AppSettings::set('whatsapp_enabled', '1');
 
         Schema::create('PersonInformation', function (Blueprint $table) {
             $table->increments('PersonID');

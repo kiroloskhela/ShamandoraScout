@@ -72,7 +72,17 @@ class CustodyRequestService
             $userNote,
             $normalizedItems
         ) {
-            $updated = DB::table('CustodyRequests')
+            $pending = DB::table('CustodyRequests')
+                ->where('RequestID', $requestId)
+                ->where('PersonID', $personId)
+                ->where('Status', 'pending')
+                ->first();
+
+            if (! $pending) {
+                throw new RuntimeException('Custody request not pending or not owned');
+            }
+
+            DB::table('CustodyRequests')
                 ->where('RequestID', $requestId)
                 ->where('PersonID', $personId)
                 ->where('Status', 'pending')
@@ -84,10 +94,6 @@ class CustodyRequestService
                     'UserNote' => $userNote,
                     'updated_at' => now(),
                 ]);
-
-            if ($updated === 0) {
-                throw new RuntimeException('Custody request not pending or not owned');
-            }
 
             DB::table('CustodyRequestItems')->where('RequestID', $requestId)->delete();
             $this->replaceItems($requestId, $normalizedItems);

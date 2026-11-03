@@ -33,6 +33,10 @@ class ShamandoraCode
     /** @deprecated Use forPersonId() */
     public static function fromPersonId(int $personId, int $digits = 5): string
     {
+        if ($personId < 1) {
+            throw new InvalidArgumentException("Person ID must be a positive integer, got {$personId}.");
+        }
+
         if ($digits !== self::PADDED_LENGTH) {
             return self::PREFIX . str_pad((string) $personId, $digits, '0', STR_PAD_LEFT);
         }

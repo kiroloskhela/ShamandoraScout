@@ -2,6 +2,7 @@
 
 namespace App\Domain\EventFinance;
 
+use App\Domain\Event\EventAudience;
 use App\Jobs\SendAttendanceQrWhatsApp;
 use App\Services\AttendanceQrService;
 use Carbon\Carbon;
@@ -89,7 +90,7 @@ class SeasonEventBookingService
                 'pay.SeasonEventParticipantFinanceID',
                 DB::raw("SUM(CASE WHEN pay.PaymentType = 'PAYMENT' THEN 1 ELSE 0 END) AS PaymentsCount"),
                 DB::raw("MIN(CASE WHEN pay.PaymentType = 'PAYMENT' THEN pay.PaymentDate END) AS FirstPaymentAt"),
-                DB::raw('MAX(pay.PaymentDate) AS LastPaymentAt')
+                DB::raw("MAX(CASE WHEN pay.PaymentType = 'PAYMENT' THEN pay.PaymentDate END) AS LastPaymentAt")
             );
 
         return DB::table('SeasonEventParticipantFinance as b')
@@ -163,10 +164,11 @@ class SeasonEventBookingService
                 DB::raw('COALESCE(pay.PaymentsCount, 0) as PaymentsCount'),
                 DB::raw('pay.FirstPaymentAt as FirstPaymentAt'),
                 DB::raw('pay.LastPaymentAt as LastPaymentAt'),
-                DB::raw('(SELECT p4.PaymentID FROM SeasonEventParticipantFinancePayment p4
+                DB::raw("(SELECT p4.PaymentID FROM SeasonEventParticipantFinancePayment p4
                       WHERE p4.SeasonEventParticipantFinanceID = b.SeasonEventParticipantFinanceID
+                        AND p4.PaymentType = 'PAYMENT'
                       ORDER BY p4.PaymentDate DESC, p4.PaymentID DESC
-                      LIMIT 1) as LastPaymentID')
+                      LIMIT 1) as LastPaymentID")
             )
             ->orderByDesc('pay.LastPaymentAt')
             ->orderBy('PersonFullName')
@@ -242,11 +244,8 @@ class SeasonEventBookingService
             return false;
         }
 
-        return DB::table('EventQetaa as eq')
-            ->join('PersonQetaa as pq', 'eq.QetaaID', '=', 'pq.QetaaID')
-            ->where('eq.EventID', $event->EventID)
-            ->where('pq.PersonID', $personId)
-            ->exists();
+        return app(EventAudience::class)
+            ->personIsEligible((int) $event->EventID, $personId);
     }
 
     /**
@@ -314,17 +313,8 @@ class SeasonEventBookingService
             }
         }
 
-        $alreadyBooked = DB::table('SeasonEventParticipantFinance')
-            ->where('SeasonEventID', $seasonEventId)
-            ->where($entityField, $entityValue)
-            ->exists();
-
-        if ($alreadyBooked) {
-            return ['ok' => false, 'field' => 'general', 'message' => 'هذا الحجز موجود بالفعل في هذه الفعالية.'];
-        }
-
-        $priceDate = Carbon::parse($payload['first_payment_date'])->format('Y-m-d');
         $paymentDateTime = now();
+        $priceDate = $paymentDateTime->format('Y-m-d');
 
         $resolvedPrice = match ($bookingType) {
             'PERSON' => $this->prices->personPrice($seasonEventId, $priceDate, $personID),
@@ -397,8 +387,20 @@ class SeasonEventBookingService
                 $hasPersonSpecialCase,
                 $installmentsNumber,
                 $firstPaymentAmount,
+                $entityField,
+                $entityValue,
                 $payload
             ) {
+                $existingBooking = DB::table('SeasonEventParticipantFinance')
+                    ->where('SeasonEventID', $seasonEventId)
+                    ->where($entityField, $entityValue)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingBooking) {
+                    return ['duplicate' => true];
+                }
+
                 $bookingID = DB::table('SeasonEventParticipantFinance')->insertGetId([
                     'SeasonEventID' => $seasonEventId,
                     'PersonID' => $personID,
@@ -450,6 +452,10 @@ class SeasonEventBookingService
                     'booking_id' => (int) $bookingID,
                 ];
             });
+
+            if (! empty($result['duplicate'])) {
+                return ['ok' => false, 'field' => 'general', 'message' => 'هذا الحجز موجود بالفعل في هذه الفعالية.'];
+            }
 
             $this->queueAttendanceQrIfReservation(
                 $seasonEventId,
@@ -599,6 +605,7 @@ class SeasonEventBookingService
     {
         $lastPayment = DB::table('SeasonEventParticipantFinancePayment')
             ->where('SeasonEventParticipantFinanceID', $bookingId)
+            ->where('PaymentType', 'PAYMENT')
             ->orderByDesc('PaymentDate')
             ->orderByDesc('PaymentID')
             ->first();

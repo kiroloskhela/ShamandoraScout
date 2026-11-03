@@ -20,8 +20,8 @@ class StoreGameRequest extends FormRequest
             'point_system' => ['nullable', 'string', 'max:255'],
             'age_group' => ['nullable', 'string', 'max:255'],
             'target' => ['nullable', 'string', 'max:255'],
-            'require_custody' => ['nullable'],
-            'reference_link' => ['nullable', 'string', 'max:1000'],
+            'require_custody' => ['nullable', 'boolean'],
+            'reference_link' => ['nullable', 'url', 'max:1000'],
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use App\Domain\Event\EventAudience;
 use App\Domain\Person\AuthenticatedPersonId;
 use App\Domain\Person\PersonApiQueryService;
 use App\Http\Resources\PersonResource;
@@ -244,7 +245,13 @@ public function showPersons(Request $request, PersonApiQueryService $query)
             $join->on('a.SeasonEventID', '=', 'se.SeasonEventID')
                  ->on('a.ServedID',      '=', 'pq.PersonID');
         })
-        ->where('pq.PersonID', $id)
+        ->where('pq.PersonID', $id);
+        app(EventAudience::class)->whereJoinedLinkQualifies($attendance);
+        $attendance = $attendance
+        ->where(function ($query) {
+            $query->whereNull('e.EventStartDate')
+                ->orWhereDate('e.EventStartDate', '<=', now()->toDateString());
+        })
                 ->select(
                     'se.SeasonEventID',
                     'e.EventID',
@@ -301,19 +308,25 @@ public function ShowCalendar(Request $request, $id)
 
     $id = $requestedId;
 
-    $events = DB::select("
-            SELECT e.EventID, e.EventName, e.EventStartDate,e.EventEndDate , et.EventTypeName , S.SeasonName , S.SeasonYear
-            FROM PersonGroup pg
-            JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
-            JOIN Qetaa q ON gq.QetaaID = q.QetaaID
-            JOIN EventQetaa eq ON q.QetaaID = eq.QetaaID
-            JOIN Event e ON eq.EventID = e.EventID
-            JOIN EventType et ON e.EventTypeID = et.EventTypeID
-            JOIN SeasonEvent se on se.EventID = e.EventID
-            JOIN Season S on S.SeasonID = se.SeasonID
-            WHERE pg.PersonID = ?
-            ORDER BY e.EventStartDate ASC
-    ", [$id]);
+    $events = DB::table('Event as e')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->join('SeasonEvent as se', 'se.EventID', '=', 'e.EventID')
+            ->join('Season as S', 'S.SeasonID', '=', 'se.SeasonID')
+            ->where(function ($query) use ($id) {
+                app(EventAudience::class)->whereVisibleToPerson($query, (int) $id, 'e.EventID');
+            })
+            ->select(
+                'e.EventID',
+                'e.EventName',
+                'e.EventStartDate',
+                'e.EventEndDate',
+                'et.EventTypeName',
+                'S.SeasonName',
+                'S.SeasonYear'
+            )
+            ->distinct()
+            ->orderBy('e.EventStartDate')
+            ->get();
 
     return response()->json(['events' => $events]);
 }

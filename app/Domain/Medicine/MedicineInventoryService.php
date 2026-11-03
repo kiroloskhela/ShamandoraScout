@@ -84,7 +84,6 @@ class MedicineInventoryService
             ->select('LocationID', DB::raw('SUM(Quantity) as LockedAmount'))
             ->where('MedicineID', $medicineId)
             ->whereNull('ReleasedAt')
-            ->whereDate('StartsAt', '<=', today())
             ->whereDate('EndsAt', '>=', today())
             ->groupBy('LocationID')
             ->pluck('LockedAmount', 'LocationID');
@@ -137,7 +136,6 @@ class MedicineInventoryService
             ->where('MedicineID', $medicineId)
             ->where('LocationID', $locationId)
             ->whereNull('ReleasedAt')
-            ->whereDate('StartsAt', '<=', today())
             ->whereDate('EndsAt', '>=', today())
             ->sum('Quantity');
     }
@@ -373,16 +371,29 @@ class MedicineInventoryService
             throw ValidationException::withMessages(['amounts' => 'الدواء غير موجود.']);
         }
 
-        $requestedTotal = collect($amountsByLocationId)->sum(fn ($amount) => (int) $amount);
-        $currentTotal = (int) $medicine->Amount;
-
-        if ($requestedTotal !== $currentTotal) {
-            throw ValidationException::withMessages([
-                'amounts' => "مجموع توزيع المخزون يجب أن يساوي إجمالي المخزون الحالي ({$currentTotal}).",
-            ]);
-        }
-
         DB::transaction(function () use ($medicineId, $amountsByLocationId) {
+            $stocks = DB::table('MedicineStock')
+                ->where('MedicineID', $medicineId)
+                ->lockForUpdate()
+                ->get();
+
+            $currentTotal = (int) $stocks->sum(fn ($row) => (int) $row->Amount);
+            $requestedLocationIds = [];
+            foreach ($amountsByLocationId as $locationId => $amount) {
+                $requestedLocationIds[(int) $locationId] = true;
+            }
+
+            $omittedTotal = (int) $stocks
+                ->reject(fn ($row) => isset($requestedLocationIds[(int) $row->LocationID]))
+                ->sum(fn ($row) => (int) $row->Amount);
+            $requestedTotal = (int) collect($amountsByLocationId)->sum(fn ($amount) => (int) $amount);
+
+            if (($requestedTotal + $omittedTotal) !== $currentTotal) {
+                throw ValidationException::withMessages([
+                    'amounts' => "مجموع توزيع المخزون يجب أن يساوي إجمالي المخزون الحالي ({$currentTotal}).",
+                ]);
+            }
+
             foreach ($amountsByLocationId as $locationId => $amount) {
                 $locationId = (int) $locationId;
                 $amount = (int) $amount;
@@ -438,7 +449,12 @@ class MedicineInventoryService
             return 'لا يمكن عمل Restock لأن هناك حجز نشط أو مستقبلي في: '.$blockedLocations->implode('، ').'. فك الحجز أولاً.';
         }
 
-        DB::transaction(function () use ($medicineId, $medicine, $stockLocationId) {
+        DB::transaction(function () use ($medicineId, $stockLocationId) {
+            $freshTotal = (int) DB::table('MedicineStock')
+                ->where('MedicineID', $medicineId)
+                ->lockForUpdate()
+                ->sum('Amount');
+
             DB::table('MedicineStock')
                 ->where('MedicineID', $medicineId)
                 ->where('LocationID', '!=', $stockLocationId)
@@ -450,7 +466,7 @@ class MedicineInventoryService
             DB::table('MedicineStock')->updateOrInsert(
                 ['MedicineID' => $medicineId, 'LocationID' => $stockLocationId],
                 [
-                    'Amount' => (int) $medicine->Amount,
+                    'Amount' => $freshTotal,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

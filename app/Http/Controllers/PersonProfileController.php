@@ -134,10 +134,20 @@ class PersonProfileController extends Controller
     public function updatePassword(Request $request)
     {
         $request->validate([
+            'current_password' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = Auth::user();
+        $currentHash = DB::table('PersonSystemPassword')
+            ->where('PersonID', $user->PersonID)
+            ->value('Password');
+
+        if (! is_string($currentHash) || ! Hash::check((string) $request->input('current_password'), $currentHash)) {
+            return back()->withErrors([
+                'current_password' => __('The current password is incorrect.'),
+            ]);
+        }
 
         DB::transaction(function () use ($user, $request) {
             DB::table('PersonSystemPassword')->updateOrInsert(

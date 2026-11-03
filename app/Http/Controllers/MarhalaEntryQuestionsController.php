@@ -59,17 +59,17 @@ class MarhalaEntryQuestionsController extends Controller
         $isRequired = $request->has('questionIsRequired') ? 1 : 0;
 
         // Prod PK is NOT AUTO_INCREMENT — allocate explicitly (see scripts/check-auto-increment.php).
-        $thisQuestionID = ManualPrimaryKey::next('MarhalaEntryQuestions', 'QuestionID');
-
-        DB::table('MarhalaEntryQuestions')->insert([
-            'QuestionID' => $thisQuestionID,
-            'QetaaID' => $request->qetaa_id,
-            'QuestionText' => $request->question_text,
-            'RequiredAnswerType' => $request->required_answer_type,
-            'MCAnswer' => $stringOfChoices,
-            'NotToBeShown' => 0,
-            'IsRequired' => $isRequired,
-        ]);
+        $thisQuestionID = ManualPrimaryKey::next('MarhalaEntryQuestions', 'QuestionID', function (int $questionId) use ($request, $stringOfChoices, $isRequired) {
+            DB::table('MarhalaEntryQuestions')->insert([
+                'QuestionID' => $questionId,
+                'QetaaID' => $request->qetaa_id,
+                'QuestionText' => $request->question_text,
+                'RequiredAnswerType' => $request->required_answer_type,
+                'MCAnswer' => $stringOfChoices,
+                'NotToBeShown' => 0,
+                'IsRequired' => $isRequired,
+            ]);
+        });
 
         return redirect()->route('entry-questions.index')
             ->with('status', __('Question added successfully: ').$thisQuestionID);

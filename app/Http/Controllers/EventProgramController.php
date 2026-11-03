@@ -349,8 +349,8 @@ class EventProgramController extends Controller
             }
         }
 
-        $this->importer->answer($session, $answers);
         try {
+            $this->importer->answer($session, $answers);
             $program = EventProgram::query()->where('SeasonEventID', $session->SeasonEventID)->first();
             $preserve = ($session->source === 'refresh' && $program)
                 ? $program->status

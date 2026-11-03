@@ -425,7 +425,7 @@ class AttendanceApiController extends Controller
         }
 
         if (! $this->canAccessEvent($authPersonId, $seasonEventId)) {
-            return response()->json(['ok' => true, 'persons' => []]);
+            return $this->forbidden('Not allowed to view this roster');
         }
 
         if ($this->qr->eventTakesReservation($seasonEventId)) {

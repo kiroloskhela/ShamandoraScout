@@ -2,6 +2,7 @@
 
 namespace App\Domain\EventFinance;
 
+use App\Domain\Event\EventAudience;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,9 @@ class SeasonEventPriceResolver
             ->join('EventQetaa as eq', 'pq.QetaaID', '=', 'eq.QetaaID')
             ->join('SeasonEvent as se', 'eq.EventID', '=', 'se.EventID')
             ->where('se.SeasonEventID', $seasonEventId)
-            ->where('pq.PersonID', $personId)
+            ->where('pq.PersonID', $personId);
+        app(EventAudience::class)->whereJoinedLinkQualifies($qetaaIds);
+        $qetaaIds = $qetaaIds
             ->distinct()
             ->pluck('pq.QetaaID')
             ->map(fn ($id) => (int) $id)

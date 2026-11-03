@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Event\EventAudience;
 use App\Support\LikeSearch;
 use Exception;
 use Illuminate\Http\Request;
@@ -114,7 +115,14 @@ class SeasonEventWaitingListController extends Controller
             ->join('PersonQetaa as pq', 'p.PersonID', '=', 'pq.PersonID')
             ->join('Qetaa as q', 'pq.QetaaID', '=', 'q.QetaaID')
             ->leftJoin('PersonPhoneNumbers as ppn', 'p.PersonID', '=', 'ppn.PersonID')
-            ->whereIn('pq.QetaaID', $eligibleQetaaIDs)
+            ->where(function ($query) use ($event) {
+                app(EventAudience::class)->wherePersonQualifies(
+                    $query,
+                    (int) $event->EventID,
+                    'pq.PersonID',
+                    'pq.QetaaID'
+                );
+            })
             ->whereNotExists(function ($sub) {
                 $sub->select(DB::raw(1))
                     ->from('PersonBlackList as pb')
@@ -213,12 +221,13 @@ class SeasonEventWaitingListController extends Controller
             return redirect()->route('eventWaitingList.index', $seasonEventID);
         }
 
-        $qetaaID = DB::table('PersonQetaa as pq')
+        $qetaaQuery = DB::table('PersonQetaa as pq')
             ->join('EventQetaa as eq', 'pq.QetaaID', '=', 'eq.QetaaID')
             ->join('SeasonEvent as se', 'eq.EventID', '=', 'se.EventID')
             ->where('se.SeasonEventID', $seasonEventID)
-            ->where('pq.PersonID', $personID)
-            ->value('pq.QetaaID');
+            ->where('pq.PersonID', $personID);
+        app(EventAudience::class)->whereJoinedLinkQualifies($qetaaQuery);
+        $qetaaID = $qetaaQuery->value('pq.QetaaID');
 
         try {
             DB::table('SeasonEventWaitingList')->insert([
@@ -285,11 +294,8 @@ class SeasonEventWaitingListController extends Controller
             return false;
         }
 
-        return DB::table('EventQetaa as eq')
-            ->join('PersonQetaa as pq', 'eq.QetaaID', '=', 'pq.QetaaID')
-            ->where('eq.EventID', $event->EventID)
-            ->where('pq.PersonID', $personID)
-            ->exists();
+        return app(EventAudience::class)
+            ->personIsEligible((int) $event->EventID, (int) $personID);
     }
 
     private function isBlacklisted($personID)
