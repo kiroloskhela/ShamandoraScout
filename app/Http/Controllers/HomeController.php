@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Event\EventAudience;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
@@ -22,23 +23,31 @@ class HomeController extends Controller
         $personsCount = $row ? (int) $row->total : 0;
 
         // Upcoming (and undated) events only; cap keeps the home calendar bounded.
-        $events = DB::select('
-            SELECT DISTINCT
-                e.EventID, e.EventName, e.EventStartDate, e.EventEndDate,
-                et.EventTypeName, S.SeasonName, S.SeasonYear
-            FROM PersonGroup pg
-            JOIN GroupQetaa gq ON pg.GroupID = gq.GroupID
-            JOIN Qetaa q ON gq.QetaaID = q.QetaaID
-            JOIN EventQetaa eq ON q.QetaaID = eq.QetaaID
-            JOIN Event e ON eq.EventID = e.EventID
-            JOIN EventType et ON e.EventTypeID = et.EventTypeID
-            JOIN SeasonEvent se ON se.EventID = e.EventID
-            JOIN Season S ON S.SeasonID = se.SeasonID
-            WHERE pg.PersonID = ?
-              AND (e.EventEndDate IS NULL OR e.EventEndDate >= ?)
-            ORDER BY e.EventStartDate ASC, e.EventID ASC
-            LIMIT 150
-        ', [$userId, $today]);
+        $events = DB::table('Event as e')
+            ->join('EventType as et', 'e.EventTypeID', '=', 'et.EventTypeID')
+            ->join('SeasonEvent as se', 'se.EventID', '=', 'e.EventID')
+            ->join('Season as S', 'S.SeasonID', '=', 'se.SeasonID')
+            ->where(function ($query) use ($userId) {
+                app(EventAudience::class)->whereVisibleToPerson($query, (int) $userId, 'e.EventID');
+            })
+            ->where(function ($query) use ($today) {
+                $query->whereNull('e.EventEndDate')
+                    ->orWhere('e.EventEndDate', '>=', $today);
+            })
+            ->select(
+                'e.EventID',
+                'e.EventName',
+                'e.EventStartDate',
+                'e.EventEndDate',
+                'et.EventTypeName',
+                'S.SeasonName',
+                'S.SeasonYear'
+            )
+            ->distinct()
+            ->orderBy('e.EventStartDate')
+            ->orderBy('e.EventID')
+            ->limit(150)
+            ->get();
 
         return view('index', compact('personsCount', 'events'));
     }

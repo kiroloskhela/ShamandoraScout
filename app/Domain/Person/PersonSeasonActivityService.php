@@ -2,6 +2,7 @@
 
 namespace App\Domain\Person;
 
+use App\Domain\Event\EventAudience;
 use App\Domain\Season\ActiveSeason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +79,9 @@ class PersonSeasonActivityService
                     ->on('a.ServedID', '=', 'pq.PersonID');
             })
             ->where('pq.PersonID', $personId)
-            ->where('se.SeasonID', $seasonId)
+            ->where('se.SeasonID', $seasonId);
+        app(EventAudience::class)->whereJoinedLinkQualifies($events);
+        $events = $events
             ->select(
                 'se.SeasonEventID',
                 'e.EventName',

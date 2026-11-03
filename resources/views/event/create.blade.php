@@ -76,18 +76,7 @@
                         <div>
                             <label class="block mb-2 text-sm font-medium text-slate-700"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Choose sectors linked to this event') }}</label>
-                            <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
-                                @foreach ($qetaat as $qetaa)
-                                    <label
-                                        class="flex items-center mb-2 cursor-pointer hover:bg-slate-50 p-2 rounded qetaa-option"
-                                        style="font-family: 'Cairo', sans-serif; direction: rtl;">
-                                        <input type="checkbox" name="qetaa_id[]" value="{{ $qetaa->QetaaID }}"
-                                            data-qetaa-name="{{ $qetaa->QetaaName }}"
-                                            class="ml-2 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
-                                        <span class="text-sm text-slate-700">{{ $qetaa->QetaaName }}</span>
-                                    </label>
-                                @endforeach
-                            </div>
+                            @include('event._sector_picker', ['qetaat' => $qetaat, 'tone' => 'blue'])
                             <div id="qetaa-validation-error" class="hidden text-red-500 text-xs mt-1"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Please choose at least one sector') }}</div>
                         </div>
@@ -168,9 +157,13 @@
                 }
 
                 function getSelectedQetaaNames() {
-                    return Array.from(document.querySelectorAll('input[name="qetaa_id[]"]:checked'))
+                    return Array.from(document.querySelectorAll('#qetaa-picker input:checked'))
                         .map(cb => cb.getAttribute('data-qetaa-name'))
                         .filter(Boolean);
+                }
+
+                function selectedSectorCount() {
+                    return document.querySelectorAll('#qetaa-picker input:checked:not(:disabled)').length;
                 }
 
                 function buildAutoName() {
@@ -338,7 +331,7 @@
                 startDateInput.addEventListener('change', refreshAutoNamePreview);
                 endDateInput.addEventListener('change', refreshAutoNamePreview);
 
-                document.querySelectorAll('input[name="qetaa_id[]"]').forEach(cb => {
+                document.querySelectorAll('#qetaa-picker input').forEach(cb => {
                     cb.addEventListener('change', refreshAutoNamePreview);
                 });
 
@@ -351,21 +344,21 @@
                         });
                     }
 
-                    $('input[name="qetaa_id[]"]').on('change', function() {
+                    $('#qetaa-picker').on('change', 'input', function() {
                         const label = $(this).parent();
                         if ($(this).is(':checked')) {
                             label.addClass('bg-blue-50 border-l-4 border-blue-500');
                         } else {
                             label.removeClass('bg-blue-50 border-l-4 border-blue-500');
                         }
-                        if ($('input[name="qetaa_id[]"]:checked').length > 0) {
+                        if (selectedSectorCount() > 0) {
                             qetaaErr.classList.add('hidden');
                         }
                     });
 
                     $('#regForm').on('submit', async function(e) {
                         const eventType = $('#event_type_id').val();
-                        const qetaaChecked = $('input[name="qetaa_id[]"]:checked').length;
+                        const qetaaChecked = selectedSectorCount();
 
                         if (!eventType || qetaaChecked === 0) {
                             e.preventDefault();

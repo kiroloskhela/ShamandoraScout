@@ -81,22 +81,12 @@
                             <label class="block mb-2 text-sm font-medium text-slate-700"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Choose sectors linked to this event') }}</label>
 
-                            <div class="border rounded-lg border-slate-200 p-4 bg-white min-h-32 max-h-48 overflow-y-auto">
-                                @foreach ($qetaat as $qetaa)
-                                    <label
-                                        class="flex items-center mb-2 cursor-pointer hover:bg-emerald-50 p-2 rounded qetaa-option
-                                        @if (in_array($qetaa->QetaaID, $selectedQetaat ?? [])) bg-emerald-50 border-l-4 border-emerald-500 @endif"
-                                        style="font-family: 'Cairo', sans-serif; direction: rtl;">
-                                        <input type="checkbox" name="qetaa_id[]" value="{{ $qetaa->QetaaID }}"
-                                            data-qetaa-name="{{ $qetaa->QetaaName }}"
-                                            @if (in_array($qetaa->QetaaID, $selectedQetaat ?? [])) checked @endif
-                                            class="ml-2 w-4 h-4 text-emerald-500 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2">
-                                        <span class="text-sm text-slate-700" style="font-family: 'Cairo', sans-serif;">
-                                            {{ $qetaa->QetaaName }}
-                                        </span>
-                                    </label>
-                                @endforeach
-                            </div>
+                            @include('event._sector_picker', [
+                                'qetaat' => $qetaat,
+                                'selectedQetaat' => $selectedQetaat ?? [],
+                                'selectedScopes' => $selectedScopes ?? [],
+                                'tone' => 'emerald',
+                            ])
 
                             <div id="qetaa-validation-error" class="hidden text-red-500 text-xs mt-1"
                                 style="font-family: 'Cairo', sans-serif; text-align: right;">{{ __('Please choose at least one sector') }}</div>
@@ -153,9 +143,13 @@
                 }
 
                 function getSelectedQetaaNames() {
-                    return Array.from(document.querySelectorAll('input[name="qetaa_id[]"]:checked'))
+                    return Array.from(document.querySelectorAll('#qetaa-picker input:checked'))
                         .map(cb => cb.getAttribute('data-qetaa-name'))
                         .filter(Boolean);
+                }
+
+                function selectedSectorCount() {
+                    return document.querySelectorAll('#qetaa-picker input:checked:not(:disabled)').length;
                 }
 
                 function buildAutoName() {
@@ -201,7 +195,7 @@
 
                 $('#regForm').on('submit', function(e) {
                     const eventType = $('#event_type_id').val();
-                    const qetaaCheckboxes = $('input[name="qetaa_id[]"]:checked');
+                    const qetaaCheckboxes = $(document.querySelectorAll('#qetaa-picker input:checked:not(:disabled)'));
                     const startDate = $('#event_start_date').val();
                     let endDate = $('#event_end_date').val();
 
@@ -251,7 +245,7 @@
                     }
                 });
 
-                $('input[name="qetaa_id[]"]').on('change', function() {
+                $('#qetaa-picker').on('change', 'input', function() {
                     const label = $(this).parent();
 
                     if ($(this).is(':checked')) {
@@ -260,7 +254,7 @@
                         label.removeClass('bg-emerald-50 border-l-4 border-emerald-500');
                     }
 
-                    if ($('input[name="qetaa_id[]"]:checked').length > 0) {
+                    if (selectedSectorCount() > 0) {
                         $('#qetaa-validation-error').addClass('hidden');
                     }
 

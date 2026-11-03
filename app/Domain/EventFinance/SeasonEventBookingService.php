@@ -2,6 +2,7 @@
 
 namespace App\Domain\EventFinance;
 
+use App\Domain\Event\EventAudience;
 use App\Jobs\SendAttendanceQrWhatsApp;
 use App\Services\AttendanceQrService;
 use Carbon\Carbon;
@@ -243,11 +244,8 @@ class SeasonEventBookingService
             return false;
         }
 
-        return DB::table('EventQetaa as eq')
-            ->join('PersonQetaa as pq', 'eq.QetaaID', '=', 'pq.QetaaID')
-            ->where('eq.EventID', $event->EventID)
-            ->where('pq.PersonID', $personId)
-            ->exists();
+        return app(EventAudience::class)
+            ->personIsEligible((int) $event->EventID, $personId);
     }
 
     /**
