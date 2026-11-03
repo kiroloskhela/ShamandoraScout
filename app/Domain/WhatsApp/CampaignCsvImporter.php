@@ -3,6 +3,7 @@
 namespace App\Domain\WhatsApp;
 
 use App\Services\WhatsAppBridgeClient;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -104,7 +105,13 @@ class CampaignCsvImporter
                     throw new RuntimeException("صف {$line}: الرسالة أطول من 4000 حرف.");
                 }
 
-                $phone = $this->bridge->normalizeEgNumber($phoneRaw);
+                try {
+                    $phone = $this->bridge->normalizeEgNumber($phoneRaw);
+                } catch (InvalidArgumentException) {
+                    throw new RuntimeException(
+                        "صف {$line}: رقم هاتف غير صالح ({$phoneRaw}). مثال صحيح: 1000485402 أو 01000485402"
+                    );
+                }
                 $digitLen = strlen(preg_replace('/\D+/', '', $phone) ?? '');
 
                 if ($phone === '+2' || $digitLen < 12) {

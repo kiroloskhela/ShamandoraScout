@@ -64,6 +64,15 @@ class AppSettings
         }
     }
 
+    /**
+     * Master switch for the WhatsApp bridge. Missing key means off, so a
+     * disconnected phone cannot break password reset, campaigns, or QR sends.
+     */
+    public static function whatsappEnabled(): bool
+    {
+        return self::get('whatsapp_enabled', '0') === '1';
+    }
+
     public static function liveformIsOpen(): bool
     {
         return self::get('liveform_open', '1') === '1';

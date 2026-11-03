@@ -17,6 +17,12 @@ class WakeWhatsAppSession extends Command
 
     public function handle(WhatsAppBridgeClient $bridge): int
     {
+        if (! $bridge->isEnabled()) {
+            $this->info('WhatsApp is turned off. Wake skipped.');
+
+            return self::SUCCESS;
+        }
+
         try {
             $base = $bridge->assertLoopbackBaseUrl();
         } catch (RuntimeException $e) {

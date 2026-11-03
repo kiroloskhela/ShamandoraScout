@@ -6,6 +6,7 @@ use App\Domain\WhatsApp\CampaignRecipientQuery;
 use App\Domain\WhatsApp\MessagePersonalizer;
 use App\Domain\WhatsApp\WhatsAppCampaignService;
 use App\Models\WhatsAppCampaign;
+use App\Services\WhatsAppBridgeClient;
 use App\Support\LookupCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -204,6 +205,10 @@ class WhatsAppCampaignController extends Controller
     {
         $this->authorize('manage', $campaign);
 
+        if (! app(WhatsAppBridgeClient::class)->isEnabled()) {
+            return back()->with('error', __('WhatsApp is turned off, so this campaign was not started.'));
+        }
+
         try {
             $campaigns->confirmAndStart(
                 $campaign,
@@ -234,6 +239,10 @@ class WhatsAppCampaignController extends Controller
     public function resume(WhatsAppCampaign $campaign, WhatsAppCampaignService $campaigns)
     {
         $this->authorize('manage', $campaign);
+
+        if (! app(WhatsAppBridgeClient::class)->isEnabled()) {
+            return back()->with('error', __('WhatsApp is turned off, so this campaign was not started.'));
+        }
 
         try {
             $campaigns->resume($campaign);

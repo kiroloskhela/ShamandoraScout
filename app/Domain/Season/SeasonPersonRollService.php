@@ -133,7 +133,11 @@ class SeasonPersonRollService
                 $this->replaceSanaMarhala((int) $row['person_id'], (int) $row['new_sana_marhala_id']);
 
                 if ($qetaaChanged) {
-                    $this->replaceQetaa((int) $row['person_id'], (int) $row['new_qetaa_id']);
+                    $this->replaceQetaa(
+                        (int) $row['person_id'],
+                        $row['old_qetaa_id'] !== null ? (int) $row['old_qetaa_id'] : null,
+                        (int) $row['new_qetaa_id'],
+                    );
                     DB::table('PersonGroup')->where('PersonID', $row['person_id'])->delete();
                 }
             }
@@ -166,12 +170,15 @@ class SeasonPersonRollService
                     $this->replaceSanaMarhala((int) $snap->person_id, (int) $snap->old_sana_marhala_id);
                 }
 
-                $qetaaChanged = $snap->old_qetaa_id !== null
-                    && $snap->new_qetaa_id !== null
+                $qetaaChanged = $snap->new_qetaa_id !== null
                     && (int) $snap->old_qetaa_id !== (int) $snap->new_qetaa_id;
 
                 if ($qetaaChanged) {
-                    $this->replaceQetaa((int) $snap->person_id, (int) $snap->old_qetaa_id);
+                    $this->replaceQetaa(
+                        (int) $snap->person_id,
+                        (int) $snap->new_qetaa_id,
+                        $snap->old_qetaa_id !== null ? (int) $snap->old_qetaa_id : null,
+                    );
 
                     DB::table('PersonGroup')->where('PersonID', $snap->person_id)->delete();
 
@@ -447,12 +454,22 @@ class SeasonPersonRollService
         ]);
     }
 
-    private function replaceQetaa(int $personId, int $qetaaId): void
+    private function replaceQetaa(int $personId, ?int $removeQetaaId, ?int $insertQetaaId): void
     {
-        DB::table('PersonQetaa')->where('PersonID', $personId)->delete();
+        if ($removeQetaaId !== null) {
+            DB::table('PersonQetaa')
+                ->where('PersonID', $personId)
+                ->where('QetaaID', $removeQetaaId)
+                ->delete();
+        }
+
+        if ($insertQetaaId === null) {
+            return;
+        }
+
         DB::table('PersonQetaa')->insert([
             'PersonID' => $personId,
-            'QetaaID' => $qetaaId,
+            'QetaaID' => $insertQetaaId,
         ]);
     }
 }

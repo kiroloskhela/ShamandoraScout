@@ -13,6 +13,7 @@ class WhatsAppStatusController extends Controller
     public function index(WhatsAppBridgeClient $bridge)
     {
         $base = $bridge->baseUrl();
+        $enabled = $bridge->isEnabled();
         $connected = false;
         $qr = null;
         $reachable = false;
@@ -20,6 +21,20 @@ class WhatsAppStatusController extends Controller
         $hasReusableSession = false;
         $pairingRequired = false;
         $reconnecting = false;
+
+        if (! $enabled) {
+            return view('whatsapp.status', compact(
+                'enabled',
+                'connected',
+                'qr',
+                'reachable',
+                'error',
+                'base',
+                'hasReusableSession',
+                'pairingRequired',
+                'reconnecting',
+            ));
+        }
 
         try {
             $health = Http::timeout(5)->get(rtrim($base, '/') . '/health');
@@ -48,6 +63,7 @@ class WhatsAppStatusController extends Controller
         }
 
         return view('whatsapp.status', compact(
+            'enabled',
             'connected',
             'qr',
             'reachable',
@@ -61,6 +77,12 @@ class WhatsAppStatusController extends Controller
 
     public function reconnect(WhatsAppBridgeClient $bridge): RedirectResponse
     {
+        if (! $bridge->isEnabled()) {
+            return redirect()
+                ->route('whatsapp.status')
+                ->with('error', __('WhatsApp is turned off. Turn it on from Configurations when a phone is connected.'));
+        }
+
         try {
             $bridge->reconnectSavedSession();
 

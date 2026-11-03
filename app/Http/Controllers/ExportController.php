@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -169,6 +170,7 @@ class ExportController extends Controller
         }
 
         $sheet->fromArray($rows, null, 'A1', true);
+        $this->forceTextColumns($sheet, array_keys($data[0]), $data);
 
         $lastCol = Coordinate::stringFromColumnIndex(count($headers));
         $lastRow = count($rows);
@@ -272,6 +274,38 @@ class ExportController extends Controller
         imagedestroy($gd);
 
         return true;
+    }
+
+    /**
+     * Phone and national-ID columns stay text without a visible apostrophe.
+     *
+     * @param  list<string>  $headers
+     * @param  list<array<string, mixed>>  $data
+     */
+    private function forceTextColumns(Worksheet $sheet, array $headers, array $data): void
+    {
+        $textKeys = [
+            'RaqamQawmy',
+            'PersonPersonalMobileNumber',
+            'FatherMobileNumber',
+            'MotherMobileNumber',
+            'HomePhoneNumber',
+        ];
+
+        foreach ($headers as $index => $header) {
+            if (! in_array($header, $textKeys, true)) {
+                continue;
+            }
+
+            $column = Coordinate::stringFromColumnIndex($index + 1);
+            foreach ($data as $rowIndex => $record) {
+                $sheet->setCellValueExplicit(
+                    $column.($rowIndex + 2),
+                    (string) ($record[$header] ?? ''),
+                    DataType::TYPE_STRING
+                );
+            }
+        }
     }
 
     private static function excelCell(mixed $value): string

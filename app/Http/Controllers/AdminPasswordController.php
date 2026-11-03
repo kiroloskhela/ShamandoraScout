@@ -70,25 +70,26 @@ class AdminPasswordController extends Controller
             ->where('PersonID', $id)
             ->value('PersonPersonalMobileNumber');
 
-        if ($phone) {
+        $bridge = app(WhatsAppBridgeClient::class);
+        if ($phone && $bridge->isEnabled()) {
             try {
                 $resets = app(PasswordResetLinkService::class);
                 $email = trim((string) ($person->PersonalEmail ?? ''));
                 $tokenKey = $resets->tokenKeyForPerson((int) $id, $email !== '' ? $email : null);
-                $resetUrl = $resets->issueResetUrl($tokenKey);
+                $resetUrl = $resets->issueResetUrl($tokenKey, (int) $id);
                 $loginUrl = route('login-auth');
                 $message = __('Your password was changed by an administrator.')."\n\n"
                     .__('If you did not expect this, set a new password with this link:')."\n{$resetUrl}\n\n"
                     .__('Log in here:')."\n{$loginUrl}";
 
-                app(WhatsAppBridgeClient::class)->sendText((string) $phone, $message);
+                $bridge->sendText((string) $phone, $message);
             } catch (\Throwable $e) {
                 Log::error('Failed to send WA password-change notice', [
                     'person_id' => $id,
                     'error' => $e->getMessage(),
                 ]);
             }
-        } else {
+        } elseif (! $phone) {
             Log::warning('No phone found for WA password change notice', ['person_id' => $id]);
         }
 

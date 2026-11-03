@@ -13,8 +13,8 @@ class BulkMarkAttendanceFromRoster extends Command
     protected $signature = 'attendance:bulk-mark
         {seasonEventId : SeasonEventID to mark attendance for}
         {path : Path to .xlsx or .json roster file}
+        {serventId : PersonID recorded as the servant who marked attendance}
         {--status=present : Attendance status (present|absent|outside|excused)}
-        {--servent-id= : PersonID recorded as the servant who marked attendance}
         {--force-attendance-table : Write to Attendance even if the event takes reservations}
         {--dry-run : Resolve people and report without writing}';
 
@@ -26,7 +26,7 @@ class BulkMarkAttendanceFromRoster extends Command
         $path = (string) $this->argument('path');
         $status = (string) $this->option('status');
         $dryRun = (bool) $this->option('dry-run');
-        $serventId = (int) ($this->option('servent-id') ?: 0);
+        $serventId = (int) $this->argument('serventId');
 
         if (! is_file($path)) {
             $this->error("File not found: {$path}");
@@ -63,12 +63,8 @@ class BulkMarkAttendanceFromRoster extends Command
             return self::FAILURE;
         }
 
-        if ($serventId <= 0) {
-            $serventId = (int) (DB::table('PersonInformation')->orderBy('PersonID')->value('PersonID') ?: 0);
-        }
-
-        if ($serventId <= 0) {
-            $this->error('Could not resolve --servent-id. Pass it explicitly.');
+        if ($serventId <= 0 || ! DB::table('PersonInformation')->where('PersonID', $serventId)->exists()) {
+            $this->error("Servant PersonID {$serventId} was not found. Pass a real serventId argument.");
 
             return self::FAILURE;
         }
@@ -192,7 +188,7 @@ class BulkMarkAttendanceFromRoster extends Command
         );
 
         if ($missingPerson !== []) {
-            $this->warn('Missing person (no ShamandoraCode / name match):');
+            $this->warn('Unresolved names skipped (no ShamandoraCode / unique name match):');
             foreach ($missingPerson as $row) {
                 $this->line(sprintf('  - row %s | %s | %s', $row['row'] ?? '?', $row['code'] ?? '-', $row['name'] ?? '-'));
             }
@@ -300,15 +296,6 @@ class BulkMarkAttendanceFromRoster extends Command
 
             if ($personId) {
                 return ['person_id' => (int) $personId];
-            }
-
-            // SH-01072 → 1072 fallback if ShamandoraCode column drifts
-            if (preg_match('/^SH-0*(\d+)$/', $code, $m)) {
-                $fallbackId = (int) $m[1];
-                $exists = DB::table('PersonInformation')->where('PersonID', $fallbackId)->exists();
-                if ($exists) {
-                    return ['person_id' => $fallbackId];
-                }
             }
 
             return ['person_id' => null];

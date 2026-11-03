@@ -31,8 +31,25 @@ class SqlPaginator
 
         $total = (int) (DB::selectOne($countSql, $countBindings ?? $bindings)->aggregate ?? 0);
 
-        $page = LengthAwarePaginator::resolveCurrentPage();
-        $offset = max(0, ($page - 1) * $perPage);
+        $page = max(1, LengthAwarePaginator::resolveCurrentPage());
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        if ($page > $lastPage) {
+            $page = $lastPage;
+        }
+
+        $offset = ($page - 1) * $perPage;
+        if (! is_int($offset) || $offset < 0) {
+            return new LengthAwarePaginator(
+                [],
+                $total,
+                $perPage,
+                1,
+                [
+                    'path' => LengthAwarePaginator::resolveCurrentPath(),
+                    'query' => request()->query(),
+                ]
+            );
+        }
 
         $pageSql = $sql.' LIMIT ? OFFSET ?';
         $rows = DB::select($pageSql, array_merge($bindings, [$perPage, $offset]));

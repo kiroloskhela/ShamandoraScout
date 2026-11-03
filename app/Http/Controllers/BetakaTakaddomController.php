@@ -31,14 +31,12 @@ class BetakaTakaddomController extends Controller
         public function insert(Request  $request)
         {
             // EgazetBetakatTaqaddomID is not AUTO_INCREMENT in production.
-            $thisBetakaID = \App\Support\ManualPrimaryKey::next('EgazetBetakatTaqaddom', 'EgazetBetakatTaqaddomID');
-
-            DB::table('EgazetBetakatTaqaddom')->insert(
-                array(
-                    'EgazetBetakatTaqaddomID' => $thisBetakaID,
-                    'EgazetBetakatTaqaddomName' => $request -> betaka_name
-                )
-            );
+            \App\Support\ManualPrimaryKey::next('EgazetBetakatTaqaddom', 'EgazetBetakatTaqaddomID', function (int $betakaId) use ($request) {
+                DB::table('EgazetBetakatTaqaddom')->insert([
+                    'EgazetBetakatTaqaddomID' => $betakaId,
+                    'EgazetBetakatTaqaddomName' => $request->betaka_name,
+                ]);
+            });
             return redirect()->route('betaka.index')->with('status',' :تم ادخال بنجاح ' .$request->EgazetBetakatTaqaddomName);
         }
     

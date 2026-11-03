@@ -163,23 +163,44 @@ class PersonProfileService
             $personSystemImageThumbnailPath = $oldImages->PersonSystemImageThumbnailPath ?? null;
             $scoutOfficialUniformImagePath = $oldImages->ScoutOfficialUniformImagePath ?? null;
 
+            $deleteAfterCommit = [];
+            $deleteThumbsAfterCommit = [];
+
             if ($personalImage) {
-                if ($personSystemImagePath && Storage::disk('public')->exists($personSystemImagePath)) {
-                    Storage::disk('public')->delete($personSystemImagePath);
-                }
-                PersonPhotoThumbnail::deleteStored($personSystemImageThumbnailPath);
-                $personSystemImagePath = $personalImage->store('persons/personal', 'public');
-                $personSystemImageThumbnailPath = PersonPhotoThumbnail::storeFromOriginal(
-                    $personSystemImagePath,
+                $storedPersonal = $personalImage->store('persons/personal', 'public');
+                $storedThumb = PersonPhotoThumbnail::storeFromOriginal(
+                    $storedPersonal,
                     $personId
                 );
+                if ($personSystemImagePath && $personSystemImagePath !== $storedPersonal) {
+                    $deleteAfterCommit[] = $personSystemImagePath;
+                }
+                if ($personSystemImageThumbnailPath && $personSystemImageThumbnailPath !== $storedThumb) {
+                    $deleteThumbsAfterCommit[] = $personSystemImageThumbnailPath;
+                }
+                $personSystemImagePath = $storedPersonal;
+                $personSystemImageThumbnailPath = $storedThumb;
             }
 
             if ($scoutImage) {
-                if ($scoutOfficialUniformImagePath && Storage::disk('public')->exists($scoutOfficialUniformImagePath)) {
-                    Storage::disk('public')->delete($scoutOfficialUniformImagePath);
+                $storedScout = $scoutImage->store('persons/scout', 'public');
+                if ($scoutOfficialUniformImagePath && $scoutOfficialUniformImagePath !== $storedScout) {
+                    $deleteAfterCommit[] = $scoutOfficialUniformImagePath;
                 }
-                $scoutOfficialUniformImagePath = $scoutImage->store('persons/scout', 'public');
+                $scoutOfficialUniformImagePath = $storedScout;
+            }
+
+            if ($deleteAfterCommit !== [] || $deleteThumbsAfterCommit !== []) {
+                DB::afterCommit(function () use ($deleteAfterCommit, $deleteThumbsAfterCommit) {
+                    foreach ($deleteAfterCommit as $path) {
+                        if (Storage::disk('public')->exists($path)) {
+                            Storage::disk('public')->delete($path);
+                        }
+                    }
+                    foreach ($deleteThumbsAfterCommit as $path) {
+                        PersonPhotoThumbnail::deleteStored($path);
+                    }
+                });
             }
 
             $personUpdate = [
@@ -210,24 +231,24 @@ class PersonProfileService
                 ->update($personUpdate);
 
             $this->upsertFiltered('PersonPhoneNumbers', $personId, [
-                'PersonPersonalMobileNumber' => $data['personal_phone_number'] ?? null,
-                'FatherMobileNumber' => $data['father_phone_number'] ?? null,
-                'MotherMobileNumber' => $data['mother_phone_number'] ?? null,
-                'HomePhoneNumber' => $data['home_phone_number'] ?? null,
-                'IsOPersonalPhoneNumberHavingWhatsapp' => $data['has_whatsapp'] ?? null,
+                'PersonPersonalMobileNumber' => $this->clearable($data, 'personal_phone_number'),
+                'FatherMobileNumber' => $this->clearable($data, 'father_phone_number'),
+                'MotherMobileNumber' => $this->clearable($data, 'mother_phone_number'),
+                'HomePhoneNumber' => $this->clearable($data, 'home_phone_number'),
+                'IsOPersonalPhoneNumberHavingWhatsapp' => $this->clearable($data, 'has_whatsapp'),
             ]);
 
             $this->upsertFiltered('PersonJob', $personId, [
-                'JobName' => $data['person_job'] ?? null,
-                'WorkPlace' => $data['person_job_place'] ?? null,
+                'JobName' => $this->clearable($data, 'person_job'),
+                'WorkPlace' => $this->clearable($data, 'person_job_place'),
             ]);
 
             $this->upsertFiltered('PersonLearningInformation', $personId, [
-                'SchoolName' => $data['school_name'] ?? null,
-                'SchoolGraduationYear' => $data['school_grad_year'] ?? null,
-                'FacultyID' => $data['person_faculty'] ?? null,
-                'UniversityID' => $data['person_university'] ?? null,
-                'ActualFacultyGraduationYear' => $data['university_grad_year'] ?? null,
+                'SchoolName' => $this->clearable($data, 'school_name'),
+                'SchoolGraduationYear' => $this->clearable($data, 'school_grad_year'),
+                'FacultyID' => $this->clearable($data, 'person_faculty'),
+                'UniversityID' => $this->clearable($data, 'person_university'),
+                'ActualFacultyGraduationYear' => $this->clearable($data, 'university_grad_year'),
             ]);
 
             $this->upsertOrDelete('PersonRotbaKashfeyya', $personId, 'RotbaID', $data['rotba_kashfeyya_id'] ?? null);
@@ -235,19 +256,19 @@ class PersonProfileService
             $this->upsertOrDelete('PersonSanaMarhala', $personId, 'SanaMarhalaID', $data['sana_marhala_id'] ?? null);
 
             $this->upsertFiltered('PersonSpiritualFatherInformation', $personId, [
-                'SpiritualFatherName' => $data['spiritual_father'] ?? null,
-                'SpiritualFatherChurchName' => $data['spiritual_father_church'] ?? null,
+                'SpiritualFatherName' => $this->clearable($data, 'spiritual_father'),
+                'SpiritualFatherChurchName' => $this->clearable($data, 'spiritual_father_church'),
             ]);
 
             $this->upsertFiltered('PersonalPhysicalAddress', $personId, [
-                'BuildingNumber' => $data['building_number'] ?? null,
-                'FloorNumber' => $data['floor_number'] ?? null,
-                'AppartmentNumber' => $data['appartment_number'] ?? null,
-                'MainStreetName' => $data['main_street_name'] ?? null,
-                'SubStreetName' => $data['sub_street_name'] ?? null,
-                'NearestLandmark' => $data['nearest_landmark'] ?? null,
-                'ManteqaID' => $data['manteqa_id'] ?? null,
-                'DistrictID' => $data['district_id'] ?? null,
+                'BuildingNumber' => $this->clearable($data, 'building_number'),
+                'FloorNumber' => $this->clearable($data, 'floor_number'),
+                'AppartmentNumber' => $this->clearable($data, 'appartment_number'),
+                'MainStreetName' => $this->clearable($data, 'main_street_name'),
+                'SubStreetName' => $this->clearable($data, 'sub_street_name'),
+                'NearestLandmark' => $this->clearable($data, 'nearest_landmark'),
+                'ManteqaID' => $this->clearable($data, 'manteqa_id'),
+                'DistrictID' => $this->clearable($data, 'district_id'),
             ]);
 
             if ($personalImage || $scoutImage) {
@@ -290,11 +311,32 @@ class PersonProfileService
     }
 
     /**
+     * A submitted blank ('' or null after ConvertEmptyStringsToNull) clears the column.
+     * A missing key is left unchanged.
+     */
+    private function clearable(array $data, string $key): mixed
+    {
+        if (! array_key_exists($key, $data)) {
+            return null;
+        }
+
+        $value = $data[$key];
+
+        return ($value === null || $value === '') ? '' : $value;
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      */
     private function upsertFiltered(string $table, int $personId, array $data): void
     {
-        $filtered = array_filter($data, fn ($value) => $value !== null && $value !== '');
+        $filtered = [];
+        foreach ($data as $column => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $filtered[$column] = $value === '' ? null : $value;
+        }
         if ($filtered === []) {
             return;
         }

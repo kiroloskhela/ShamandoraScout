@@ -42,14 +42,16 @@ class RolePermissionSeeder extends Seeder
             return;
         }
 
-        $row = [
-            'RoleID' => ManualPrimaryKey::next('Roles', 'RoleID'),
-            'RoleName' => 'Mkhdom',
-        ];
-        if (Schema::hasColumn('Roles', 'RoleDescription')) {
-            $row['RoleDescription'] = 'Served person (own-only mobile access)';
-        }
+        ManualPrimaryKey::next('Roles', 'RoleID', function (int $roleId) {
+            $row = [
+                'RoleID' => $roleId,
+                'RoleName' => 'Mkhdom',
+            ];
+            if (Schema::hasColumn('Roles', 'RoleDescription')) {
+                $row['RoleDescription'] = 'Served person (own-only mobile access)';
+            }
 
-        DB::table('Roles')->insert($row);
+            DB::table('Roles')->insert($row);
+        });
     }
 }

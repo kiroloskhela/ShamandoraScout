@@ -16,6 +16,10 @@ class LiveFormFieldNormalizer
             return $value;
         }
 
+        if (preg_match('/\p{Arabic}/u', $value) !== 1) {
+            return $value;
+        }
+
         $search = [
             'أ', 'إ', 'آ', 'ٱ',
             'ى', 'ئ', 'ي',

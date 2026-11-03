@@ -137,10 +137,12 @@ class BookingAttendanceService
             ->where('IsRefunded', 0)
             ->count();
 
-        $rows = DB::table('SeasonEventBookingAttendance')
-            ->where('SeasonEventID', $seasonEventId)
-            ->select('AttendanceStatus', DB::raw('COUNT(*) as c'))
-            ->groupBy('AttendanceStatus')
+        $rows = DB::table('SeasonEventBookingAttendance as a')
+            ->join('SeasonEventParticipantFinance as b', 'b.SeasonEventParticipantFinanceID', '=', 'a.SeasonEventParticipantFinanceID')
+            ->where('a.SeasonEventID', $seasonEventId)
+            ->where('b.IsRefunded', 0)
+            ->select('a.AttendanceStatus', DB::raw('COUNT(*) as c'))
+            ->groupBy('a.AttendanceStatus')
             ->pluck('c', 'AttendanceStatus');
 
         $present = (int) ($rows['present'] ?? 0);
@@ -309,6 +311,7 @@ class BookingAttendanceService
             ->leftJoin('Guests as g', 'b.GuestID', '=', 'g.GuestID')
             ->leftJoin('FamilyMembers as f', 'b.FamilyID', '=', 'f.FamilyID')
             ->where('a.SeasonEventID', $seasonEventId)
+            ->where('b.IsRefunded', 0)
             ->orderByDesc('a.UpdatedAt')
             ->limit($limit)
             ->select(

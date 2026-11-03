@@ -133,6 +133,9 @@ class MigrateEnrolmentService
                 'PersonID' => $thisPersonID,
                 'SchoolName' => $person->SchoolName,
                 'SchoolGraduationYear' => $person->SchoolGraduationYear,
+                'FacultyID' => $person->FacultyID ?? null,
+                'UniversityID' => $person->UniversityID ?? null,
+                'ActualFacultyGraduationYear' => $person->UniversityGraduationYear ?? null,
             ]);
 
             DB::table('PersonQetaa')->insert([

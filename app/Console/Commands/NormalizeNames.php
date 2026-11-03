@@ -2,84 +2,66 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Enrolment\LiveFormFieldNormalizer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class NormalizeNames extends Command
 {
-    protected $signature = 'names:normalize';
+    protected $signature = 'names:normalize {--dry-run : Print changes without writing}';
     protected $description = 'Normalize existing names in database';
 
-    private function normalizeArabicName(?string $value): ?string
+    public function handle(LiveFormFieldNormalizer $normalizer): int
     {
-        if ($value === null) return null;
+        $dryRun = (bool) $this->option('dry-run');
 
-        $value = trim($value);
-        if ($value === '') return $value;
+        $this->normalizeTable('PersonInformation', $normalizer, $dryRun);
+        $this->normalizeTable('NewUsersInformation', $normalizer, $dryRun);
 
-        $search = ['أ','إ','آ','ٱ','ى','ئ','ي','ؤ','ة','ج'];
-        $replace = ['ا','ا','ا','ا','ي','ي','ي','و','ه','چ'];
+        $this->info($dryRun ? 'Dry run finished. No rows were updated.' : 'Name normalization finished.');
 
-        $value = str_replace($search, $replace, $value);
-        $value = preg_replace('/[\x{064B}-\x{065F}\x{0670}\x{06D6}-\x{06ED}\x{0640}]/u', '', $value);
-        $value = preg_replace('/[\x{200E}\x{200F}\x{061C}\x{202A}-\x{202E}]/u', '', $value);
-        $value = preg_replace('/[^\p{Arabic}\s]/u', '', $value);
-        $value = preg_replace('/\s+/u', ' ', $value);
-
-        return trim($value);
+        return self::SUCCESS;
     }
 
-    public function handle()
+    private function normalizeTable(string $table, LiveFormFieldNormalizer $normalizer, bool $dryRun): void
     {
-        DB::table('PersonInformation')
+        DB::table($table)
             ->orderBy('PersonID')
-            ->chunk(500, function ($rows) {
+            ->chunk(500, function ($rows) use ($table, $normalizer, $dryRun) {
                 foreach ($rows as $row) {
                     $updates = [];
+                    $fields = [
+                        'FirstName' => $normalizer->normalizeArabicName($row->FirstName ?? null),
+                        'SecondName' => $normalizer->normalizeArabicName($row->SecondName ?? null),
+                        'ThirdName' => $normalizer->normalizeArabicName($row->ThirdName ?? null),
+                        'FourthName' => $normalizer->normalizeArabicName($row->FourthName ?? null),
+                    ];
 
-                    $first  = $this->normalizeArabicName($row->FirstName ?? null);
-                    $second = $this->normalizeArabicName($row->SecondName ?? null);
-                    $third  = $this->normalizeArabicName($row->ThirdName ?? null);
-                    $fourth = $this->normalizeArabicName($row->FourthName ?? null);
+                    foreach ($fields as $column => $normalized) {
+                        $current = $row->{$column} ?? null;
+                        if ($current === $normalized) {
+                            continue;
+                        }
 
-                    if (($row->FirstName ?? null) !== $first)  $updates['FirstName'] = $first;
-                    if (($row->SecondName ?? null) !== $second) $updates['SecondName'] = $second;
-                    if (($row->ThirdName ?? null) !== $third)  $updates['ThirdName'] = $third;
-                    if (($row->FourthName ?? null) !== $fourth) $updates['FourthName'] = $fourth;
+                        $updates[$column] = $normalized;
+                        if ($dryRun) {
+                            $this->line(sprintf(
+                                '%s #%s %s: %s => %s',
+                                $table,
+                                $row->PersonID,
+                                $column,
+                                $current === null ? 'NULL' : $current,
+                                $normalized === null ? 'NULL' : $normalized,
+                            ));
+                        }
+                    }
 
-                    if (!empty($updates)) {
-                        DB::table('PersonInformation')
+                    if ($updates !== [] && ! $dryRun) {
+                        DB::table($table)
                             ->where('PersonID', $row->PersonID)
                             ->update($updates);
                     }
                 }
             });
-
-        DB::table('NewUsersInformation')
-            ->orderBy('PersonID')
-            ->chunk(500, function ($rows) {
-                foreach ($rows as $row) {
-                    $updates = [];
-
-                    $first  = $this->normalizeArabicName($row->FirstName ?? null);
-                    $second = $this->normalizeArabicName($row->SecondName ?? null);
-                    $third  = $this->normalizeArabicName($row->ThirdName ?? null);
-                    $fourth = $this->normalizeArabicName($row->FourthName ?? null);
-
-                    if (($row->FirstName ?? null) !== $first)  $updates['FirstName'] = $first;
-                    if (($row->SecondName ?? null) !== $second) $updates['SecondName'] = $second;
-                    if (($row->ThirdName ?? null) !== $third)  $updates['ThirdName'] = $third;
-                    if (($row->FourthName ?? null) !== $fourth) $updates['FourthName'] = $fourth;
-
-                    if (!empty($updates)) {
-                        DB::table('NewUsersInformation')
-                            ->where('PersonID', $row->PersonID)
-                            ->update($updates);
-                    }
-                }
-            });
-
-        $this->info('Name normalization finished.');
-        return self::SUCCESS;
     }
 }

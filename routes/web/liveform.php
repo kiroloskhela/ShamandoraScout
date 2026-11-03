@@ -9,7 +9,7 @@ use App\Http\Controllers\LiveFormEnrolmentController;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['liveform.open'])->group(function () {
+Route::middleware(['liveform.open', 'throttle:30,1'])->group(function () {
     Route::get('/liveform', [LiveFormEnrolmentController::class, 'createLiveForm'])->name('person.liveform-create');
     Route::post('/liveform/step1', [LiveFormEnrolmentController::class, 'insertLiveForm'])->name('person.liveform-insert');
 

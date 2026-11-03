@@ -96,6 +96,10 @@ final class EventProgramImporter
      */
     public function answer(EventProgramImportSession $session, array $answers): EventProgramImportSession
     {
+        if ($session->status === EventProgramImportSession::STATUS_COMMITTED) {
+            throw new RuntimeException('جلسة الاستيراد مُعتمدة بالفعل ولا يمكن تعديل إجاباتها.');
+        }
+
         $merged = array_merge($session->answers_json ?? [], $answers);
         $session->answers_json = $merged;
         $session->status = EventProgramImportSession::STATUS_READY;
@@ -309,10 +313,6 @@ final class EventProgramImporter
                         }
                     }
                     unset($leader);
-                    $day['leaders'] = array_values(array_filter(
-                        $day['leaders'],
-                        fn ($l) => empty($l['_skip'])
-                    ));
                 }
                 unset($day);
             }
@@ -343,6 +343,17 @@ final class EventProgramImporter
                 }
             }
         }
+
+        foreach ($parsed['days'] as &$day) {
+            if (! isset($day['leaders']) || ! is_array($day['leaders'])) {
+                continue;
+            }
+            $day['leaders'] = array_values(array_filter(
+                $day['leaders'],
+                fn ($l) => empty($l['_skip'])
+            ));
+        }
+        unset($day);
 
         return $parsed;
     }

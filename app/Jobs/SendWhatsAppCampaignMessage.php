@@ -85,7 +85,22 @@ class SendWhatsAppCampaignMessage implements ShouldQueue
         ]);
 
         try {
-            $result = $bridge->sendText($recipient->phone, (string) $recipient->personalized_message);
+            $result = $bridge->sendText(
+                $recipient->phone,
+                (string) $recipient->personalized_message,
+                'campaign-'.$campaign->id.'-recipient-'.$recipient->id
+            );
+
+            if (! empty($result['skipped'])) {
+                $recipient->update([
+                    'status' => WhatsAppCampaignRecipient::STATUS_SKIPPED,
+                    'error_message' => 'WhatsApp is turned off',
+                    'error_kind' => 'disabled',
+                ]);
+
+                return;
+            }
+
             $recipient->update([
                 'status' => WhatsAppCampaignRecipient::STATUS_SENT,
                 'whatsapp_message_id' => (string) ($result['messageId'] ?? ''),
@@ -126,6 +141,28 @@ class SendWhatsAppCampaignMessage implements ShouldQueue
         }
 
         $campaigns->dispatchNext($campaign->fresh(), $campaigns->randomDelaySeconds($campaign));
+    }
+
+    public function failed(Throwable $e): void
+    {
+        Log::error('WhatsApp campaign job failed', [
+            'campaign_id' => $this->campaignId,
+            'recipient_id' => $this->recipientId,
+            'error' => $e->getMessage(),
+        ]);
+
+        if ($this->recipientId === null) {
+            return;
+        }
+
+        WhatsAppCampaignRecipient::query()
+            ->where('id', $this->recipientId)
+            ->where('status', WhatsAppCampaignRecipient::STATUS_SENDING)
+            ->update([
+                'status' => WhatsAppCampaignRecipient::STATUS_FAILED,
+                'error_message' => $e->getMessage(),
+                'error_kind' => 'permanent',
+            ]);
     }
 
     private function classifyError(Throwable $e): string
