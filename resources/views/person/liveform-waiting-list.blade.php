@@ -83,6 +83,7 @@
         </div>
     </div>
 
+    @include('partials.liveform-draft-clear')
 </body>
 
 </html>

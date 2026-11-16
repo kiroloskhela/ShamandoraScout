@@ -14,6 +14,7 @@ use App\Support\SafeHttpUrl;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -32,11 +33,15 @@ class LiveFormEnrolmentController extends Controller
 
     public function createLiveForm()
     {
-        $seneen_marahel = LookupCache::all('SanaMarhala');
+        try {
+            $seneen_marahel = LookupCache::all('SanaMarhala');
 
-        return view('person.person-create-liveform-1', [
-            'seneen_marahel' => $seneen_marahel,
-        ]);
+            return view('person.person-create-liveform-1', [
+                'seneen_marahel' => $seneen_marahel,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->formUnavailable($e);
+        }
     }
 
     public function insertLiveForm(Request $request)
@@ -45,8 +50,13 @@ class LiveFormEnrolmentController extends Controller
             'sana_marhala_id' => 'required',
             'gender' => 'required|in:Male,Female',
             'newLeadersSchool' => 'nullable',
+        ], [
+            'sana_marhala_id.required' => __('Choose the academic year and stage.'),
+            'gender.required' => __('Choose the applicant gender.'),
+            'gender.in' => __('Choose male or female.'),
         ]);
 
+        try {
         $sana_marhala_name = DB::table('SanaMarhala')
             ->where('SanaMarhalaID', $request->sana_marhala_id)
             ->value('SanaMarhalaName');
@@ -59,7 +69,7 @@ class LiveFormEnrolmentController extends Controller
 
         if (empty($qetaat)) {
             return back()->withErrors([
-                'qetaa_id' => 'لا يوجد قطاع كشفي متاح لهذه المرحلة',
+                'sana_marhala_id' => __('No scout sector is available for this stage. Choose another stage, or contact the group.'),
             ])->withInput();
         }
 
@@ -119,6 +129,9 @@ class LiveFormEnrolmentController extends Controller
         ]);
 
         return redirect()->route('person.liveform-step2');
+        } catch (\Throwable $e) {
+            return $this->backToStart($e);
+        }
     }
 
     public function showLiveFormStep2()
@@ -126,20 +139,24 @@ class LiveFormEnrolmentController extends Controller
         $step1 = session('liveform.step1');
 
         if (! $step1) {
-            return redirect()->route('person.liveform-create');
+            return $this->sessionExpired();
         }
 
-        return view('person.person-create-liveform', array_merge(
-            $this->wizard->step2Lookups(),
-            [
-                'sana_marhala_id' => $step1['sana_marhala_id'],
-                'sana_marhala_name' => $step1['sana_marhala_name'],
-                'qetaa_id' => $step1['qetaa_id'],
-                'qetaa_name' => $step1['qetaa_name'],
-                'available_qetaat' => $step1['available_qetaat'] ?? [],
-                'gender' => $step1['gender'],
-            ]
-        ));
+        try {
+            return view('person.person-create-liveform', array_merge(
+                $this->wizard->step2Lookups(),
+                [
+                    'sana_marhala_id' => $step1['sana_marhala_id'],
+                    'sana_marhala_name' => $step1['sana_marhala_name'],
+                    'qetaa_id' => $step1['qetaa_id'],
+                    'qetaa_name' => $step1['qetaa_name'],
+                    'available_qetaat' => $step1['available_qetaat'] ?? [],
+                    'gender' => $step1['gender'],
+                ]
+            ));
+        } catch (\Throwable $e) {
+            return $this->formUnavailable($e);
+        }
     }
 
     public function saveLiveFormStep2(Request $request)
@@ -147,22 +164,24 @@ class LiveFormEnrolmentController extends Controller
         $step1 = session('liveform.step1');
 
         if (! $step1) {
-            return redirect()->route('person.liveform-create');
+            return $this->sessionExpired();
         }
+
+        $this->normalizeLiveFormInput($request);
 
         $rules = [
             'first_name' => 'required|string|max:255',
             'second_name' => 'required|string|max:255',
             'third_name' => 'required|string|max:255',
             'fourth_name' => 'nullable|string|max:255',
-            'birthdate_input' => 'required|date',
+            'birthdate_input' => 'required|date|before_or_equal:today',
             'joining_year_input' => 'required',
             'input_raqam_qawmy' => 'required|digits:14',
             'blood_type_input' => 'required',
             'personal_phone_number' => 'required|digits:11',
-            'father_phone_number' => 'nullable',
-            'mother_phone_number' => 'nullable',
-            'home_phone_number' => 'nullable',
+            'father_phone_number' => 'nullable|digits:11',
+            'mother_phone_number' => 'nullable|digits:11',
+            'home_phone_number' => ['nullable', 'regex:/^\d{5,11}$/'],
             'building_number' => 'required',
             'floor_number' => 'required',
             'appartment_number' => 'required',
@@ -191,10 +210,12 @@ class LiveFormEnrolmentController extends Controller
             'medical_medications' => 'nullable|string|max:2000',
             'has_emergency_case' => 'nullable',
             'emergency_details' => 'nullable|string|max:255',
-            'folar_id' => 'nullable|integer|exists:Folar,FolarID',
+            'folar_id' => Schema::hasTable('Folar')
+                ? 'nullable|integer|exists:Folar,FolarID'
+                : 'nullable|integer',
         ];
 
-        $validator = Validator::make($request->all(), $rules);
+        $validator = Validator::make($request->all(), $rules, $this->step2Messages());
 
         $hasEmergency = $request->boolean('has_emergency_case');
 
@@ -203,6 +224,13 @@ class LiveFormEnrolmentController extends Controller
         });
 
         $validator->after(function ($validator) use ($request) {
+            foreach (['first_name', 'second_name', 'third_name', 'fourth_name'] as $nameField) {
+                $name = trim((string) $request->input($nameField));
+                if ($name !== '' && preg_match('/^[\x{0600}-\x{06FF}\x{0750}-\x{077F}\x{08A0}-\x{08FF}\s]+$/u', $name) !== 1) {
+                    $validator->errors()->add($nameField, __('Please enter Arabic letters only'));
+                }
+            }
+
             $birthDate = (string) $request->birthdate_input;
             $nid = (string) $request->input_raqam_qawmy;
 
@@ -221,7 +249,7 @@ class LiveFormEnrolmentController extends Controller
                 };
 
                 if ($expectedCentury === null || $nid[0] !== $expectedCentury || $expected !== $actual) {
-                    $validator->errors()->add('input_raqam_qawmy', 'الرقم القومي لا يتطابق مع تاريخ الميلاد');
+                    $validator->errors()->add('input_raqam_qawmy', __('The national ID does not match the date of birth. Check both.'));
                 }
             }
         });
@@ -244,7 +272,7 @@ class LiveFormEnrolmentController extends Controller
 
         if (! $selectedQetaa) {
             return redirect()->back()
-                ->withErrors(['qetaa_id' => 'برجاء اختيار قطاع صحيح'])
+                ->withErrors(['qetaa_id' => __('Choose a scout sector from the list.')])
                 ->withInput();
         }
 
@@ -253,21 +281,25 @@ class LiveFormEnrolmentController extends Controller
 
         session(['liveform.step1' => $step1]);
 
-        $raqam = (string) $request->input('input_raqam_qawmy');
+        try {
+            $raqam = (string) $request->input('input_raqam_qawmy');
 
-        if ($this->duplicates->exists($raqam)) {
-            return view('person.person-already-exists');
-        }
-        $profileImagePath = session('liveform.step2.profile_image');
-        $scoutImagePath = session('liveform.step2.scout_uniform_image');
+            if ($this->duplicates->exists($raqam)) {
+                return redirect()->back()
+                    ->withErrors(['input_raqam_qawmy' => __('This national ID is already registered. Check the digits, or contact the group if this person is already enrolled.')])
+                    ->withInput();
+            }
 
-        if ($request->hasFile('profile_image')) {
-            $profileImagePath = $request->file('profile_image')->store('temp/liveform', 'public');
-        }
+            $profileImagePath = session('liveform.step2.profile_image');
+            $scoutImagePath = session('liveform.step2.scout_uniform_image');
 
-        if ($request->hasFile('scout_uniform_image')) {
-            $scoutImagePath = $request->file('scout_uniform_image')->store('temp/liveform', 'public');
-        }
+            if ($request->hasFile('profile_image')) {
+                $profileImagePath = $request->file('profile_image')->store('temp/liveform', 'public');
+            }
+
+            if ($request->hasFile('scout_uniform_image')) {
+                $scoutImagePath = $request->file('scout_uniform_image')->store('temp/liveform', 'public');
+            }
 
         session([
             'liveform.step2' => [
@@ -302,12 +334,12 @@ class LiveFormEnrolmentController extends Controller
                 'person_faculty' => $request->person_faculty,
                 'person_university' => $request->person_university,
                 'university_grad_year' => $request->university_grad_year,
-                'allergy_food' => $request->allergy_food,
-                'allergy_medicine' => $request->allergy_medicine,
-                'medical_diseases' => $request->medical_diseases,
-                'medical_medications' => $request->medical_medications,
-                'has_emergency_case' => $hasEmergency ? 1 : 0,
-                'emergency_details' => $request->emergency_details,
+                'allergy_food' => $this->fields->cleanList($request->allergy_food),
+                'allergy_medicine' => $this->fields->cleanList($request->allergy_medicine),
+                'medical_diseases' => $this->fields->cleanList($request->medical_diseases),
+                'medical_medications' => $this->fields->cleanList($request->medical_medications),
+                'has_emergency_case' => $hasEmergency && $this->fields->cleanList($request->emergency_details) !== null ? 1 : 0,
+                'emergency_details' => $this->fields->cleanList($request->emergency_details),
                 'folar_id' => $data['folar_id'] ?? null,
 
                 'profile_image' => $profileImagePath,
@@ -316,6 +348,9 @@ class LiveFormEnrolmentController extends Controller
         ]);
 
         return redirect()->route('person.entry-questions-liveform');
+        } catch (\Throwable $e) {
+            return $this->backToStep2($e);
+        }
     }
 
     public function getLiveformQuestions()
@@ -324,14 +359,18 @@ class LiveFormEnrolmentController extends Controller
         $step2 = session('liveform.step2');
 
         if (! $step1 || ! $step2) {
-            return redirect()->route('person.liveform-create');
+            return $this->sessionExpired();
         }
 
-        $questions = DB::table('MarhalaEntryQuestions')
-            ->where('QetaaID', $step1['qetaa_id'])
-            ->where('NotToBeShown', 0)
-            ->orderBy('QuestionID')
-            ->get();
+        try {
+            $questions = DB::table('MarhalaEntryQuestions')
+                ->where('QetaaID', $step1['qetaa_id'])
+                ->where('NotToBeShown', 0)
+                ->orderBy('QuestionID')
+                ->get();
+        } catch (\Throwable $e) {
+            return $this->formUnavailable($e);
+        }
 
         $person = (object) [
             'PersonID' => null,
@@ -360,21 +399,35 @@ class LiveFormEnrolmentController extends Controller
         $step2 = session('liveform.step2');
 
         if (! $step1 || ! $step2) {
-            return redirect()->route('person.liveform-create');
+            return $this->sessionExpired();
         }
 
-        $questions = DB::table('MarhalaEntryQuestions')
-            ->where('QetaaID', $step1['qetaa_id'])
-            ->where('NotToBeShown', 0)
-            ->get();
+        try {
+            $questions = DB::table('MarhalaEntryQuestions')
+                ->where('QetaaID', $step1['qetaa_id'])
+                ->where('NotToBeShown', 0)
+                ->get();
+        } catch (\Throwable $e) {
+            return $this->formUnavailable($e);
+        }
+
+        $missing = [];
 
         foreach ($questions as $question) {
+            $answer = $request->input($question->QuestionID);
 
-            $q = $request->input($question->QuestionID);
-
-            if ($question->IsRequired && ($q === null || $q === '')) {
-                return view('person.entry-error-repeat-trial');
+            if ($question->IsRequired && ($answer === null || $answer === '')) {
+                $missing[(string) $question->QuestionID] = __('Answer this question: :question', [
+                    'question' => $question->QuestionText,
+                ]);
             }
+        }
+
+        if ($missing !== []) {
+            return redirect()
+                ->route('person.entry-questions-liveform')
+                ->withErrors($missing)
+                ->withInput();
         }
 
         DB::beginTransaction();
@@ -390,7 +443,7 @@ class LiveFormEnrolmentController extends Controller
             if ($this->duplicates->exists((string) $step2['input_raqam_qawmy'], lockForUpdate: true)) {
                 DB::rollBack();
 
-                return view('person.person-already-exists');
+                return $this->nationalIdTaken($step2);
             }
 
             /*
@@ -476,9 +529,10 @@ class LiveFormEnrolmentController extends Controller
                 'AllergyMedicine' => $this->fields->cleanList($step2['allergy_medicine'] ?? null),
                 'MedicalDiseases' => $this->fields->cleanList($step2['medical_diseases'] ?? null),
                 'MedicalMedications' => $this->fields->cleanList($step2['medical_medications'] ?? null),
-                'HasEmergencyCase' => ! empty($step2['has_emergency_case']) ? 1 : 0,
+                'HasEmergencyCase' => ! empty($step2['has_emergency_case'])
+                    && $this->fields->cleanList($step2['emergency_details'] ?? null) !== null ? 1 : 0,
                 'EmergencyDetails' => ! empty($step2['has_emergency_case'])
-                    ? trim((string) ($step2['emergency_details'] ?? ''))
+                    ? $this->fields->cleanList($step2['emergency_details'] ?? null)
                     : null,
                 'FolarID' => ! empty($step2['folar_id']) ? (int) $step2['folar_id'] : null,
             ];
@@ -510,27 +564,186 @@ class LiveFormEnrolmentController extends Controller
             DB::rollBack();
 
             if ($this->duplicates->isUniqueViolation($e)) {
-                return view('person.person-already-exists');
+                return $this->nationalIdTaken($step2);
             }
 
-            Log::error('submitLiveformQuestions failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-
-            return view('person.entry-error');
+            return $this->backToQuestions($e);
         } catch (\Throwable $e) {
 
             DB::rollBack();
 
-            Log::error('submitLiveformQuestions failed', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-
-            return view('person.entry-error');
+            return $this->backToQuestions($e);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $step2
+     */
+    private function nationalIdTaken(array $step2)
+    {
+        return redirect()
+            ->route('person.liveform-step2')
+            ->withInput($step2)
+            ->withErrors([
+                'input_raqam_qawmy' => __('This national ID is already registered. Check the digits, or contact the group if this person is already enrolled.'),
+            ]);
+    }
+
+    private function backToQuestions(\Throwable $e)
+    {
+        Log::error('submitLiveformQuestions failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return redirect()
+            ->route('person.entry-questions-liveform')
+            ->withInput(request()->except('_token'))
+            ->withErrors([
+                'form' => __('Something went wrong while saving. Your answers are still here. Please try again.'),
+            ]);
+    }
+
+    private function backToStart(\Throwable $e)
+    {
+        Log::error('liveform step failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return redirect()
+            ->route('person.liveform-create')
+            ->withInput(request()->except('_token'))
+            ->withErrors([
+                'form' => __('Something went wrong while saving. Your answers are still here. Please try again.'),
+            ]);
+    }
+
+    private function backToStep2(\Throwable $e)
+    {
+        Log::error('liveform step failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return redirect()
+            ->route('person.liveform-step2')
+            ->withInput(request()->except(['_token', 'profile_image', 'scout_uniform_image']))
+            ->withErrors([
+                'form' => __('Something went wrong while saving. Your answers are still here. Please choose the photos again and try again.'),
+            ]);
+    }
+
+    private function sessionExpired()
+    {
+        return redirect()
+            ->route('person.liveform-create')
+            ->with('status', __('The page was open too long. Continue from here. Your saved answers will come back.'));
+    }
+
+    private function formUnavailable(\Throwable $e)
+    {
+        Log::error('liveform page failed', [
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+
+        return response()->view('person.liveform-unavailable', [], 503);
+    }
+
+    private function normalizeLiveFormInput(Request $request): void
+    {
+        $merged = [];
+
+        foreach ([
+            'input_raqam_qawmy',
+            'personal_phone_number',
+            'father_phone_number',
+            'mother_phone_number',
+            'home_phone_number',
+        ] as $key) {
+            if (! $request->exists($key)) {
+                continue;
+            }
+
+            $merged[$key] = $this->westernDigits($request->input($key));
+        }
+
+        foreach (['inputFacebookLink', 'inputInstagramLink'] as $key) {
+            $raw = trim((string) $request->input($key, ''));
+            if ($raw !== '' && preg_match('#^[a-z][a-z0-9+.-]*://#i', $raw) !== 1) {
+                $merged[$key] = 'https://'.ltrim($raw, '/');
+            }
+        }
+
+        if ($merged !== []) {
+            $request->merge($merged);
+        }
+    }
+
+    private function westernDigits(mixed $value): ?string
+    {
+        $value = strtr((string) $value, [
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+        ]);
+        $digits = preg_replace('/\D+/', '', $value) ?? '';
+
+        return $digits === '' ? null : $digits;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function step2Messages(): array
+    {
+        $long = __('This value is too long. Shorten it and try again.');
+        $photo = __('Image must be JPG/PNG/WebP and under 5 MB');
+        $mobile = __('The mobile number must be 11 digits.');
+
+        return [
+            'first_name.required' => __('Enter the first name in Arabic.'),
+            'second_name.required' => __('Enter the second name in Arabic.'),
+            'third_name.required' => __('Enter the third name in Arabic.'),
+            'first_name.max' => $long,
+            'second_name.max' => $long,
+            'third_name.max' => $long,
+            'fourth_name.max' => $long,
+            'birthdate_input.required' => __('Enter the date of birth.'),
+            'birthdate_input.date' => __('The date of birth is not a valid date.'),
+            'birthdate_input.before_or_equal' => __('The date of birth cannot be in the future.'),
+            'joining_year_input.required' => __('Choose the joining year.'),
+            'input_raqam_qawmy.required' => __('Enter the national ID.'),
+            'input_raqam_qawmy.digits' => __('The national ID must be 14 digits.'),
+            'blood_type_input.required' => __('Choose the blood type. Choose Unspecified if you are not sure.'),
+            'personal_phone_number.required' => __('Enter the applicant mobile number.'),
+            'personal_phone_number.digits' => $mobile,
+            'father_phone_number.digits' => $mobile,
+            'mother_phone_number.digits' => $mobile,
+            'home_phone_number.regex' => __('Enter the landline as digits only, from 5 to 11 digits.'),
+            'building_number.required' => __('Enter the building number.'),
+            'floor_number.required' => __('Enter the floor number.'),
+            'appartment_number.required' => __('Enter the apartment number.'),
+            'sub_street_name.required' => __('Enter the street name.'),
+            'manteqa_id.required' => __('Choose the area.'),
+            'district_id.required' => __('Choose the district.'),
+            'email_input.email' => __('Invalid email address'),
+            'qetaa_id.required' => __('Choose a scout sector from the list.'),
+            'emergency_details.required' => __('Write the emergency details, because you answered yes.'),
+            'profile_image.image' => $photo,
+            'profile_image.mimes' => $photo,
+            'profile_image.max' => $photo,
+            'scout_uniform_image.image' => $photo,
+            'scout_uniform_image.mimes' => $photo,
+            'scout_uniform_image.max' => $photo,
+            'folar_id.exists' => __('Choose a scarf from the list, or leave it empty.'),
+            'folar_id.integer' => __('Choose a scarf from the list, or leave it empty.'),
+        ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Domain\Enrolment;
 
 use App\Support\LookupCache;
+use Illuminate\Support\Facades\Schema;
 
 class LiveFormWizardService
 {
@@ -17,7 +18,9 @@ class LiveFormWizardService
             'districts' => LookupCache::all('Districts'),
             'faculties' => LookupCache::all('Faculty'),
             'universities' => LookupCache::all('University'),
-            'folars' => LookupCache::ordered('Folar', 'FolarName'),
+            'folars' => Schema::hasTable('Folar')
+                ? LookupCache::ordered('Folar', 'FolarName')
+                : collect(),
         ];
     }
 }

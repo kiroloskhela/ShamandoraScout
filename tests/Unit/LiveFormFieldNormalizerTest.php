@@ -57,6 +57,10 @@ class LiveFormFieldNormalizerTest extends TestCase
         $this->assertNull($this->normalizer->cleanList('لا شئ'));
         $this->assertNull($this->normalizer->cleanList('لا شيء'));
         $this->assertSame('لبن', $this->normalizer->cleanList('لبن, لا, لا يوجد'));
+        $this->assertNull($this->normalizer->cleanList('لا يوجد حساسية'));
+        $this->assertNull($this->normalizer->cleanList('لا حساسية'));
+        $this->assertNull($this->normalizer->cleanList('no allergy'));
+        $this->assertSame('لاكتوز', $this->normalizer->cleanList('لاكتوز'));
         $this->assertSame(['لبن'], $this->normalizer->listParts('لبن، لا'));
         $this->assertTrue($this->normalizer->isNegativeAnswer('لا يوجد.'));
         $this->assertFalse($this->normalizer->isNegativeAnswer('ربو'));
