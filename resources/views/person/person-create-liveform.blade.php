@@ -191,7 +191,7 @@
         </div>
     @endif
 
-    <div class="max-w-4xl mx-auto px-4" x-data="{ step: 1 }" x-cloak id="wizardRoot">
+    <div class="max-w-4xl mx-auto px-4" x-data="{ step: window.__liveformWizardStep || 1 }" x-cloak id="wizardRoot">
         <div class="rounded-3xl bg-white/90 shadow-xl ring-1 ring-teal-100 overflow-hidden backdrop-blur">
 
             <div class="px-6 md:px-10 py-8 border-b border-teal-100 bg-gradient-to-b from-teal-50/80 to-white">
@@ -202,6 +202,9 @@
                         <h1 class="text-2xl md:text-3xl font-extrabold text-brand-900">{{ __('New enrolment application') }}</h1>
                         <p class="text-slate-600 mt-2 text-sm md:text-base">
                             {{ __('Required fields are marked') }} <span class="font-bold text-rose-600">*</span>
+                        </p>
+                        <p class="text-slate-500 mt-2 text-xs leading-relaxed">
+                            {{ __('Your answers stay on this device if the page closes, until you finish or start fresh.') }}
                         </p>
                     </div>
                 </div>
@@ -240,6 +243,17 @@
                 <form id="regForm2" method="POST" action="{{ route('person.liveform-step2-save') }}" novalidate
                     enctype="multipart/form-data">
                     @csrf
+
+                    @if ($errors->any())
+                        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900">
+                            <p class="font-bold">{{ __('Please check the following fields:') }}</p>
+                            <ul class="mt-2 list-disc ps-5 text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <!-- ============================ STEP 1: Personal ============================ -->
                     <div data-step="1" x-show="step === 1" x-transition.opacity.duration.200ms>
@@ -323,6 +337,9 @@
                                     <input required id="birthdate_input" name="birthdate_input" type="date"
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
                                     <p class="error hidden mt-1 text-sm text-rose-600">{{ __('This field is required') }}</p>
+                                    <p class="hidden mt-1 text-sm text-rose-600" data-error="birth-future">
+                                        {{ __('The date of birth cannot be in the future.') }}
+                                    </p>
                                 </div>
 
                                 <div class="md:col-span-6">
@@ -334,7 +351,10 @@
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('Enter 14 digits') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600" data-error="nid">
-                                        {{ __('National ID must be 14 valid digits') }}
+                                        {{ __('The national ID must be 14 digits.') }}
+                                    </p>
+                                    <p class="hidden mt-1 text-sm text-rose-600" data-error="nid-dob">
+                                        {{ __('The national ID does not match the date of birth. Check both.') }}
                                     </p>
                                 </div>
 
@@ -347,22 +367,28 @@
                                         class="field w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="{{ __('Example: 01xxxxxxxxx') }}">
                                     <p class="error hidden mt-1 text-sm text-rose-600" data-error="phone">
-                                        {{ __('Mobile number must be 11 digits') }}
+                                        {{ __('The mobile number must be 11 digits.') }}
                                     </p>
                                 </div>
 
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Facebook link (if any)') }}</label>
                                     <input id="inputFacebookLink" name="inputFacebookLink" type="url"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        class="field-url w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="https://facebook.com/...">
+                                    <p class="error-url hidden mt-1 text-sm text-rose-600">
+                                        {{ __('Start the link with https://. Example: https://facebook.com/name') }}
+                                    </p>
                                 </div>
 
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Instagram link (if any)') }}</label>
                                     <input id="inputInstagramLink" name="inputInstagramLink" type="url"
-                                        class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                        class="field-url w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                         placeholder="https://instagram.com/...">
+                                    <p class="error-url hidden mt-1 text-sm text-rose-600">
+                                        {{ __('Start the link with https://. Example: https://facebook.com/name') }}
+                                    </p>
                                 </div>
 
                                 <div class="md:col-span-6">
@@ -423,9 +449,15 @@
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
                             <div class="mb-5">
                                 <h2 class="text-xl font-bold text-brand-900">{{ __('Allergy section') }}</h2>
-                                <p class="text-slate-500 mt-1 text-sm">{{ __('Write allergies if any (separate items with a comma).') }}</p>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Choose yes only if there is an allergy to record.') }}</p>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <label class="block text-sm font-bold text-slate-700 mb-1" for="has_allergy">{{ __('Do you have any allergy?') }}</label>
+                            <select id="has_allergy" name="has_allergy"
+                                class="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                <option value="0" selected>{{ __('No') }}</option>
+                                <option value="1">{{ __('Yes') }}</option>
+                            </select>
+                            <div id="allergy_questions" class="hidden mt-5 grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Food allergy (if any)') }}</label>
                                     <select id="allergy_food_select" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600">
@@ -456,9 +488,15 @@
                         <section class="rounded-2xl border border-teal-100 bg-white p-5 md:p-6 mt-6">
                             <div class="mb-5">
                                 <h2 class="text-xl font-bold text-brand-900">{{ __('Medical history section') }}</h2>
-                                <p class="text-slate-500 mt-1 text-sm">{{ __('Optional — helps us in emergencies.') }}</p>
+                                <p class="text-slate-500 mt-1 text-sm">{{ __('Choose yes only if there is medical history to record.') }}</p>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                            <label class="block text-sm font-bold text-slate-700 mb-1" for="has_medical_history">{{ __('Do you have a medical history?') }}</label>
+                            <select id="has_medical_history" name="has_medical_history"
+                                class="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                <option value="0" selected>{{ __('No') }}</option>
+                                <option value="1">{{ __('Yes') }}</option>
+                            </select>
+                            <div id="medical_questions" class="hidden mt-5 grid grid-cols-1 md:grid-cols-12 gap-4">
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Chronic diseases / diagnosis (if any)') }}</label>
                                     <input id="medical_diseases" name="medical_diseases" type="text"
@@ -471,24 +509,20 @@
                                 </div>
                                 <div class="md:col-span-12">
                                     <div class="rounded-2xl bg-teal-50/50 border border-teal-100 p-4">
-                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                                            <div>
-                                                <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-700">
-                                                    <input id="has_emergency_case" name="has_emergency_case"
-                                                        type="checkbox" value="1"
-                                                        class="h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-600">
-                                                    {{ __('Any previous emergency cases?') }}
-                                                </label>
-                                                <p class="text-xs text-slate-500 mt-1">{{ __('e.g.: severe allergy, fainting, hospital admission…') }}</p>
-                                            </div>
-                                            <div class="w-full md:w-2/3">
-                                                <input id="emergency_details" name="emergency_details" type="text"
-                                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                                                    placeholder="{{ __('Write case details (if yes)') }}">
-                                                <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-600">
-                                                    {{ __('Please write case details because you chose "Yes"') }}
-                                                </p>
-                                            </div>
+                                        <label class="block text-sm font-bold text-slate-700 mb-1" for="has_emergency_case">{{ __('Any previous emergency cases?') }}</label>
+                                        <p class="text-xs text-slate-500 mb-2">{{ __('e.g.: severe allergy, fainting, hospital admission…') }}</p>
+                                        <select id="has_emergency_case" name="has_emergency_case"
+                                            class="w-full md:w-1/2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600">
+                                            <option value="0" selected>{{ __('No') }}</option>
+                                            <option value="1">{{ __('Yes') }}</option>
+                                        </select>
+                                        <div id="emergency_details_wrap" class="hidden mt-3">
+                                            <input id="emergency_details" name="emergency_details" type="text"
+                                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                                                placeholder="{{ __('Write case details (if yes)') }}">
+                                            <p id="emergency_details_error" class="hidden mt-1 text-sm text-rose-600">
+                                                {{ __('Please write case details because you chose "Yes"') }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -545,17 +579,20 @@
                                 <div class="md:col-span-4">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Father mobile (if any)') }}</label>
                                     <input id="father_phone_number" name="father_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                        inputmode="numeric" maxlength="11" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                    <p class="hidden mt-1 text-sm text-rose-600" data-error="phone">{{ __('The mobile number must be 11 digits.') }}</p>
                                 </div>
                                 <div class="md:col-span-4">
-                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Mother mobile (if any)') }} <span class="text-rose-600">*</span></label>
+                                    <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Mother mobile (if any)') }}</label>
                                     <input id="mother_phone_number" name="mother_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                        inputmode="numeric" maxlength="11" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                    <p class="hidden mt-1 text-sm text-rose-600" data-error="phone">{{ __('The mobile number must be 11 digits.') }}</p>
                                 </div>
                                 <div class="md:col-span-4">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Landline (if any)') }}</label>
                                     <input id="home_phone_number" name="home_phone_number" type="text"
-                                        inputmode="numeric" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                        inputmode="numeric" maxlength="11" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600" placeholder="{{ __('Optional') }}">
+                                    <p class="hidden mt-1 text-sm text-rose-600" data-error="landline">{{ __('Enter the landline as digits only, from 5 to 11 digits.') }}</p>
                                 </div>
                                 <div class="md:col-span-6">
                                     <label class="block text-sm font-bold text-slate-700 mb-1">{{ __('Does the primary mobile number have WhatsApp?') }}</label>
@@ -942,7 +979,12 @@
         }
 
         function onlyDigits(value) {
-            return (value || '').replace(/\D/g, '');
+            const eastern = '٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹';
+            const mapped = String(value || '').replace(/[٠-٩۰-۹]/g, (ch) => {
+                const index = eastern.indexOf(ch);
+                return index === -1 ? '' : String(index % 10);
+            });
+            return mapped.replace(/\D/g, '');
         }
 
         function normalizeEmail(value) {
@@ -977,18 +1019,15 @@
                 el.classList.add('border-slate-300');
             }
 
+            wrapper.querySelectorAll('[data-error]').forEach((node) => node.classList.add('hidden'));
             const requiredMsg = wrapper.querySelector('.error');
-            if (requiredMsg && !customKey) requiredMsg.classList.toggle('hidden', !show);
-            if (requiredMsg && customKey) requiredMsg.classList.add('hidden');
+            if (requiredMsg) requiredMsg.classList.add('hidden');
 
-            const phoneMsg = wrapper.querySelector('[data-error="phone"]');
-            const nidMsg = wrapper.querySelector('[data-error="nid"]');
+            if (!show) return;
 
-            if (phoneMsg) phoneMsg.classList.add('hidden');
-            if (nidMsg) nidMsg.classList.add('hidden');
-
-            if (show && customKey === 'phone' && phoneMsg) phoneMsg.classList.remove('hidden');
-            if (show && customKey === 'nid' && nidMsg) nidMsg.classList.remove('hidden');
+            const specific = customKey ? wrapper.querySelector(`[data-error="${customKey}"]`) : null;
+            const message = specific || requiredMsg;
+            if (message) message.classList.remove('hidden');
         }
 
         function showEmailError(el, show) {
@@ -1044,14 +1083,89 @@
 
             if (!el.value.trim()) return validateRequired(el);
 
-            const basicValid = el.value.length === 14;
+            if (el.value.length !== 14) {
+                showError(el, true, 'nid');
+                return false;
+            }
+
             const dobInput = document.getElementById('birthdate_input');
             const dob = dobInput ? dobInput.value : null;
-            const matchesDOB = validateNIDWithDOB(el.value, dob);
-            const ok = basicValid && matchesDOB;
+            if (!validateNIDWithDOB(el.value, dob)) {
+                showError(el, true, 'nid-dob');
+                return false;
+            }
 
-            showError(el, !ok, 'nid');
+            showError(el, false);
+            return true;
+        }
+
+        function validateBirthdate(el) {
+            if (!validateRequired(el)) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const entered = new Date(`${el.value}T00:00:00`);
+            if (Number.isNaN(entered.getTime()) || entered > today) {
+                showError(el, true, 'birth-future');
+                return false;
+            }
+            showError(el, false);
+            return true;
+        }
+
+        function validateOptionalMobile(el) {
+            el.value = onlyDigits(el.value).slice(0, 11);
+            if (!el.value) {
+                showError(el, false);
+                return true;
+            }
+            const ok = el.value.length === 11;
+            showError(el, !ok, 'phone');
             return ok;
+        }
+
+        function validateLandline(el) {
+            el.value = onlyDigits(el.value).slice(0, 11);
+            if (!el.value) {
+                showError(el, false);
+                return true;
+            }
+            const ok = el.value.length >= 5 && el.value.length <= 11;
+            showError(el, !ok, 'landline');
+            return ok;
+        }
+
+        function validateUrlField(el) {
+            let value = (el.value || '').trim();
+            if (value && !/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
+                value = 'https://' + value.replace(/^\/+/, '');
+            }
+            el.value = value;
+            if (!value) {
+                showUrlError(el, false);
+                return true;
+            }
+            let ok = false;
+            try {
+                const url = new URL(value);
+                ok = url.protocol === 'http:' || url.protocol === 'https:';
+            } catch (e) {
+                ok = false;
+            }
+            showUrlError(el, !ok);
+            return ok;
+        }
+
+        function showUrlError(el, show) {
+            const wrapper = el.closest('div');
+            const msg = wrapper ? wrapper.querySelector('.error-url') : null;
+            if (show) {
+                el.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.remove('border-slate-300');
+            } else {
+                el.classList.remove('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.add('border-slate-300');
+            }
+            if (msg) msg.classList.toggle('hidden', !show);
         }
 
         function validateEmailField(el) {
@@ -1089,6 +1203,7 @@
             if (el.id === 'personal_phone_number') return validatePhone(el);
             if (el.id === 'input_raqam_qawmy') return validateNID(el);
             if (el.id === 'email_input') return validateEmailField(el);
+            if (el.id === 'birthdate_input') return validateBirthdate(el);
 
             if (['first_name', 'second_name', 'third_name', 'fourth_name'].includes(el.id)) {
                 return validateArabicName(el);
@@ -1097,25 +1212,39 @@
             return validateRequired(el);
         }
 
-        const emergencyCheckbox = document.getElementById('has_emergency_case');
+        const emergencyAnswer = document.getElementById('has_emergency_case');
         const emergencyDetails = document.getElementById('emergency_details');
+        const emergencyDetailsWrap = document.getElementById('emergency_details_wrap');
         const emergencyDetailsError = document.getElementById('emergency_details_error');
+
+        function emergencyIsYes() {
+            return emergencyAnswer && emergencyAnswer.value === '1';
+        }
+
+        function syncEmergencyQuestion() {
+            if (!emergencyDetailsWrap) return;
+            const open = emergencyIsYes();
+            emergencyDetailsWrap.classList.toggle('hidden', !open);
+            if (!open && emergencyDetails) emergencyDetails.value = '';
+        }
 
         const birthdateInput = document.getElementById('birthdate_input');
         if (birthdateInput) {
             birthdateInput.addEventListener('change', () => {
+                touchedFields.add(birthdateInput.id);
+                validateBirthdate(birthdateInput);
                 const nidField = document.getElementById('input_raqam_qawmy');
                 if (nidField && touchedFields.has(nidField.id)) {
                     validateNID(nidField);
-                    validateAll();
                 }
+                validateAll();
             });
         }
 
         function validateEmergencyDetails() {
-            if (!emergencyCheckbox || !emergencyDetails) return true;
+            if (!emergencyAnswer || !emergencyDetails) return true;
 
-            const needs = emergencyCheckbox.checked;
+            const needs = emergencyIsYes();
             const val = (emergencyDetails.value || '').trim();
 
             if (needs && !val) {
@@ -1131,8 +1260,9 @@
             return true;
         }
 
-        if (emergencyCheckbox && emergencyDetails) {
-            emergencyCheckbox.addEventListener('change', () => {
+        if (emergencyAnswer && emergencyDetails) {
+            emergencyAnswer.addEventListener('change', () => {
+                syncEmergencyQuestion();
                 touchedFields.add('emergency_details');
                 validateEmergencyDetails();
                 validateAll();
@@ -1175,8 +1305,146 @@
 
             select.addEventListener('change', syncFoodAllergy);
             otherInput.addEventListener('input', syncFoodAllergy);
+            otherInput.addEventListener('blur', () => {
+                otherInput.value = cleanMedicalAnswer(otherInput.value);
+                syncFoodAllergy();
+            });
             syncFoodAllergy();
         })();
+
+        function isNegativeMedicalAnswer(value) {
+            const compact = String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[أإآٱ]/g, 'ا')
+                .replace(/ة/g, 'ه')
+                .replace(/ى/g, 'ي')
+                .replace(/ئ/g, 'ي')
+                .replace(/ء/g, '')
+                .replace(/[\s.،,;:_\-\/\\]+/g, '');
+
+            return [
+                '', 'no', 'none', 'nil', 'na', 'nada', 'nothing',
+                'لا', 'لايوجد', 'لاشئ', 'لاشيء', 'لاشي', 'بدون', 'مفيش', 'مشموجود',
+            ].includes(compact) || ['لايوجد', 'لا', 'no', 'none', 'مفيش'].some((prefix) => {
+                return ['حساسيه', 'حساسيات', 'مرض', 'امراض', 'دواء', 'ادويه', 'علاج', 'شي', 'شيء', 'allergy', 'allergies', 'disease', 'diseases', 'medicine', 'medication']
+                    .some((filler) => compact === prefix + filler);
+            });
+        }
+
+        function cleanMedicalAnswer(value) {
+            const parts = String(value || '')
+                .replace(/[،;\n]/g, ',')
+                .split(',')
+                .map((part) => part.trim())
+                .filter((part) => part !== '' && !isNegativeMedicalAnswer(part));
+
+            return [...new Set(parts)].join(', ');
+        }
+
+        function dropNegativeMedicalAnswers() {
+            ['allergy_medicine', 'medical_diseases', 'medical_medications', 'emergency_details', 'allergy_food_other', 'allergy_food'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.value = cleanMedicalAnswer(el.value);
+            });
+
+            const emergency = document.getElementById('has_emergency_case');
+            const details = document.getElementById('emergency_details');
+            if (emergency && details && !details.value.trim()) {
+                emergency.value = '0';
+            }
+
+            const foodSelect = document.getElementById('allergy_food_select');
+            const foodHidden = document.getElementById('allergy_food');
+            if (foodSelect && foodHidden && !foodHidden.value.trim()) {
+                foodSelect.value = '';
+                document.getElementById('allergy_food_other_wrap')?.classList.add('hidden');
+            }
+
+            closeEmptySectionGates();
+        }
+
+        function fieldHasText(id) {
+            const el = document.getElementById(id);
+            return !!(el && el.value.trim());
+        }
+
+        function clearAllergyAnswers() {
+            const foodSelect = document.getElementById('allergy_food_select');
+            const otherWrap = document.getElementById('allergy_food_other_wrap');
+            ['allergy_food', 'allergy_medicine', 'allergy_food_other'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            if (foodSelect) foodSelect.value = '';
+            otherWrap?.classList.add('hidden');
+        }
+
+        function clearMedicalAnswers() {
+            ['medical_diseases', 'medical_medications', 'emergency_details'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const emergency = document.getElementById('has_emergency_case');
+            if (emergency) emergency.value = '0';
+            syncEmergencyQuestion();
+        }
+
+        function allergyAnswersExist() {
+            return fieldHasText('allergy_food')
+                || fieldHasText('allergy_medicine')
+                || fieldHasText('allergy_food_other')
+                || (document.getElementById('allergy_food_select')?.value || '') !== '';
+        }
+
+        function medicalAnswersExist() {
+            return fieldHasText('medical_diseases')
+                || fieldHasText('medical_medications')
+                || fieldHasText('emergency_details')
+                || document.getElementById('has_emergency_case')?.value === '1';
+        }
+
+        function setSectionOpen(gateId, panelId, open) {
+            const gate = document.getElementById(gateId);
+            const panel = document.getElementById(panelId);
+            if (gate) gate.value = open ? '1' : '0';
+            panel?.classList.toggle('hidden', !open);
+        }
+
+        function closeEmptySectionGates() {
+            const allergyOpen = document.getElementById('has_allergy')?.value === '1';
+            const medicalOpen = document.getElementById('has_medical_history')?.value === '1';
+            setSectionOpen('has_allergy', 'allergy_questions', allergyOpen);
+            setSectionOpen('has_medical_history', 'medical_questions', medicalOpen);
+            if (!allergyOpen) clearAllergyAnswers();
+            if (!medicalOpen) clearMedicalAnswers();
+            else syncEmergencyQuestion();
+        }
+
+        function restoreSectionGates() {
+            const allergyOpen = allergyAnswersExist() || document.getElementById('has_allergy')?.value === '1';
+            const medicalOpen = medicalAnswersExist() || document.getElementById('has_medical_history')?.value === '1';
+            setSectionOpen('has_allergy', 'allergy_questions', allergyOpen);
+            setSectionOpen('has_medical_history', 'medical_questions', medicalOpen);
+            syncEmergencyQuestion();
+        }
+
+        document.getElementById('has_allergy')?.addEventListener('change', () => {
+            const open = document.getElementById('has_allergy')?.value === '1';
+            setSectionOpen('has_allergy', 'allergy_questions', open);
+            if (!open) clearAllergyAnswers();
+        });
+
+        document.getElementById('has_medical_history')?.addEventListener('change', () => {
+            const open = document.getElementById('has_medical_history')?.value === '1';
+            setSectionOpen('has_medical_history', 'medical_questions', open);
+            if (!open) clearMedicalAnswers();
+            else syncEmergencyQuestion();
+        });
+
+        document.addEventListener('liveform:restored', restoreSectionGates);
+        restoreSectionGates();
 
         function formatFileSize(bytes) {
             if (!bytes) return @json(__('0 bytes'));
@@ -1580,6 +1848,14 @@
 
         form.addEventListener('blur', (e) => {
             const el = e.target;
+            if (['allergy_medicine', 'medical_diseases', 'medical_medications', 'emergency_details'].includes(el.id)) {
+                el.value = cleanMedicalAnswer(el.value);
+                if (el.id === 'emergency_details' && !el.value.trim()) {
+                    const emergency = document.getElementById('has_emergency_case');
+                    if (emergency) emergency.value = '0';
+                    syncEmergencyQuestion();
+                }
+            }
             if (!el.classList.contains('field') && !el.classList.contains('field-email')) return;
 
             touchedFields.add(el.id);
@@ -1593,6 +1869,19 @@
             if (['first_name', 'second_name', 'third_name', 'fourth_name'].includes(el.id)) {
                 const cleaned = sanitizeArabic(el.value);
                 if (el.value !== cleaned) el.value = cleaned;
+            }
+
+            if (el.id === 'father_phone_number' || el.id === 'mother_phone_number') {
+                validateOptionalMobile(el);
+                return;
+            }
+            if (el.id === 'home_phone_number') {
+                validateLandline(el);
+                return;
+            }
+            if (el.id === 'inputFacebookLink' || el.id === 'inputInstagramLink') {
+                validateUrlField(el);
+                return;
             }
 
             if (!touchedFields.has(el.id)) return;
@@ -1611,6 +1900,8 @@
         });
 
         form.addEventListener('submit', (e) => {
+            dropNegativeMedicalAnswers();
+
             const allFields = form.querySelectorAll('.field[required], .field-email');
             allFields.forEach(el => touchedFields.add(el.id));
 
@@ -1626,6 +1917,16 @@
 
             if (!validateEmergencyDetails()) ok = false;
 
+            ['father_phone_number', 'mother_phone_number'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el && !validateOptionalMobile(el)) ok = false;
+            });
+            const landline = document.getElementById('home_phone_number');
+            if (landline && !validateLandline(landline)) ok = false;
+            form.querySelectorAll('.field-url').forEach((el) => {
+                if (!validateUrlField(el)) ok = false;
+            });
+
             if (isAnyFileProcessing()) {
                 ok = false;
                 alert(i18n.waitPhotos);
@@ -1636,7 +1937,7 @@
             if (!ok) {
                 e.preventDefault();
                 const firstInvalid = form.querySelector('.ring-rose-200') || form.querySelector(
-                    '.error-photo:not(.hidden)');
+                    '.error-photo:not(.hidden), .error-url:not(.hidden)');
                 if (firstInvalid) {
                     const step = stepOfElement(firstInvalid);
                     if (step) setWizardStep(step);
@@ -1681,7 +1982,56 @@
             root.classList.toggle('dark', nextDark);
             try { localStorage.setItem('theme', nextDark ? 'dark' : 'light'); } catch (e) {}
         });
+
+        document.addEventListener('liveform:restored', () => {
+            document.addEventListener('alpine:initialized', () => {
+                if (getWizardStep() === 4) refreshReviewSummary();
+            });
+        });
+
+        (function showServerErrors() {
+            const serverErrors = @json($errors->getMessages());
+            const names = Object.keys(serverErrors || {});
+            if (!names.length) return;
+
+            let first = null;
+            names.forEach((name) => {
+                if (name === 'form') return;
+                const el = form.querySelector(`[name="${window.CSS && CSS.escape ? CSS.escape(name) : name}"]`);
+                if (!el) return;
+                const message = (serverErrors[name] || [])[0];
+                if (!message) return;
+                const wrapper = el.closest('div');
+                let msg = wrapper ? wrapper.querySelector('.error, .error-email, .error-url, .error-photo, [data-error]') : null;
+                if (!msg && wrapper) {
+                    msg = document.createElement('p');
+                    msg.className = 'mt-1 text-sm text-rose-600';
+                    wrapper.appendChild(msg);
+                }
+                if (msg) {
+                    msg.textContent = message;
+                    msg.classList.remove('hidden');
+                }
+                el.classList.add('border-rose-600', 'ring-2', 'ring-rose-200');
+                el.classList.remove('border-slate-300');
+                if (!first) first = el;
+            });
+
+            document.addEventListener('alpine:initialized', () => {
+                if (!first) return;
+                const step = stepOfElement(first);
+                if (step) setWizardStep(step);
+                setTimeout(() => first.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+            });
+        })();
     </script>
+    @include('partials.liveform-draft', [
+        'formId' => 'regForm2',
+        'storageKey' => 'shamandora.liveform.step2',
+        'restoreWizard' => true,
+        'mentionPhotos' => true,
+        'skip' => ['gender', 'sana_marhala_id'],
+    ])
 
 </body>
 

@@ -47,3 +47,6 @@ db_backups/
 /whatsapp-bridge/auth_session/*
 !/whatsapp-bridge/auth_session/.gitignore
 /whatsapp-bridge/.env
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/

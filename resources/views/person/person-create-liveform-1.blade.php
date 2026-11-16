@@ -64,11 +64,30 @@
                         <p class="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
                             {{ __('Join the Sea Shamandora Scout Group — Alexandria') }}
                         </p>
+                        <p class="mt-2 text-xs text-slate-500 leading-relaxed">
+                            {{ __('Your answers stay on this device if the page closes, until you finish or start fresh.') }}
+                        </p>
                     </div>
 
                     <form id="regForm" method="POST" action="{{ route('person.liveform-insert') }}"
                         class="mt-8 space-y-5" novalidate>
                         @csrf
+
+                        @if (session('status'))
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                                {{ session('status') }}
+                            </div>
+                        @endif
+
+                        @if ($errors->any())
+                            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                                <ul class="list-disc ps-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1.5">
@@ -210,9 +229,16 @@
                 leadersCheckbox.classList.remove('hidden');
             } else {
                 leadersCheckbox.classList.add('hidden');
+                const box = leadersCheckbox.querySelector('input[type="checkbox"]');
+                if (box) box.checked = false;
             }
         });
     </script>
+    @include('partials.liveform-draft', [
+        'formId' => 'regForm',
+        'storageKey' => 'shamandora.liveform.step1',
+        'enableSubmit' => true,
+    ])
 </body>
 
 </html>

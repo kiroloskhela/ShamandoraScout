@@ -132,6 +132,9 @@
                         <p class="text-slate-600 mt-2 text-sm md:text-base">
                             {{ __('Required fields are marked') }} <span class="font-bold text-rose-600">**</span>
                         </p>
+                        <p class="text-slate-500 mt-2 text-xs leading-relaxed">
+                            {{ __('Your answers stay on this device if the page closes, until you finish or start fresh.') }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -141,6 +144,17 @@
                     action="{{ route('person.entry-questions-submit-liveform') }}"
                     novalidate>
                     @csrf
+
+                    @if ($errors->any())
+                        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900">
+                            <p class="font-bold">{{ __('Please check the following fields:') }}</p>
+                            <ul class="mt-2 list-disc ps-5 text-sm">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <input type="hidden" name="qetaa_id" id="qetaa_id" value="{{ $person->QetaaID }}">
 
@@ -258,12 +272,18 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                @error((string) $question->QuestionID)
+                                                    <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
+                                                @enderror
                                             @elseif ($question->RequiredAnswerType == 'OpenQuestion')
                                                 <input type="text" name="{{ $question->QuestionID }}"
                                                     id="{{ $question->QuestionID }}"
                                                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
                                                     placeholder="{{ __('Enter your answer here') }}"
                                                     value="{{ $selectedAnswer }}">
+                                                @error((string) $question->QuestionID)
+                                                    <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
+                                                @enderror
                                             @elseif ($question->RequiredAnswerType == 'TrueOrFalse')
                                                 <select name="{{ $question->QuestionID }}"
                                                     id="{{ $question->QuestionID }}"
@@ -277,6 +297,9 @@
                                                     <option value="لا"
                                                         {{ $selectedAnswer == 'لا' ? 'selected' : '' }}>{{ __('No') }}</option>
                                                 </select>
+                                                @error((string) $question->QuestionID)
+                                                    <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
+                                                @enderror
                                             @endif
                                         </div>
                                     </div>
@@ -317,6 +340,10 @@
             try { localStorage.setItem('theme', nextDark ? 'dark' : 'light'); } catch (e) {}
         });
     </script>
+    @include('partials.liveform-draft', [
+        'formId' => 'regForm',
+        'storageKey' => 'shamandora.liveform.questions',
+    ])
 </body>
 
 </html>

@@ -100,7 +100,7 @@ class LiveFormFieldNormalizer
             return true;
         }
 
-        return in_array($compact, [
+        if (in_array($compact, [
             'no',
             'none',
             'nil',
@@ -115,7 +115,21 @@ class LiveFormFieldNormalizer
             'بدون',
             'مفيش',
             'مشموجود',
-        ], true);
+        ], true)) {
+            return true;
+        }
+
+        $fillers = ['حساسيه', 'حساسيات', 'مرض', 'امراض', 'دواء', 'ادويه', 'علاج', 'شي', 'شيء', 'allergy', 'allergies', 'disease', 'diseases', 'medicine', 'medication'];
+
+        foreach (['لايوجد', 'لا', 'no', 'none', 'مفيش'] as $prefix) {
+            foreach ($fillers as $filler) {
+                if ($compact === $prefix.$filler) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function compactAnswer(string $value): string
